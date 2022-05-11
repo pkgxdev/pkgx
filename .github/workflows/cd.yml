@@ -1,0 +1,167 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+
+concurrency:
+  group: distribute
+  cancel-in-progress: true
+
+env:
+  VERBOSE: 1
+  TEA_SECRET: ${{ secrets.TEA_SECRET }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      commence: ${{ steps.rev-parse.outputs.result == 'commence' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+
+      #TMP until we go public
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.PK }}
+
+      - id: extract
+        name: determine current version
+        run: |
+          source <(tea -Eds)
+          echo "::set-output name=version::$VERSION"
+          if test x$VERSION = x; then exit 1; fi
+        env:
+          VERBOSE: 0
+
+      - id: rev-parse
+        name: did we already publish this version?
+        run: |
+          if git show-ref --tags v${{ steps.extract.outputs.version }} --quiet; then
+            echo "::set-output name=result::cancel"
+          else
+            echo "::set-output name=result::commence"
+          fi
+
+      - run: echo ${{ steps.rev-parse.outputs.result }}
+
+      - uses: andymckay/cancel-action@0.2
+        if: ${{ steps.rev-parse.outputs.result == 'cancel' }}
+
+  ci:
+    needs: [check]
+    if: ${{ needs.check.outputs.commence }}
+    runs-on: ubuntu-latest
+    steps:
+      #TMP until we go public
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.PK }}
+
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+
+      #TMP we don’t yet provide deno on Linux, but… soon!
+      - run: |
+          curl -L https://github.com/denoland/deno/releases/download/v1.22.1/deno-x86_64-unknown-linux-gnu.zip -o deno.zip
+          unzip deno.zip
+          mkdir -p /opt/deno.land/v1.22.1/bin
+          mv deno /opt/deno.land/v1.22.1/bin
+
+      - run: scripts/test.sh
+
+  cd:
+    needs: [check, ci]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      FILENAME: /opt/tea-${{ needs.check.outputs.version }}+${{ matrix.build-id }}.tar.gz
+    strategy:
+      matrix:
+        include:
+          - deno-target: x86_64-apple-darwin
+            build-id: darwin+x86-64
+            tea-prefix: darwin/x86-64
+          - deno-target: aarch64-apple-darwin
+            build-id: darwin+aarch64
+            tea-prefix: darwin/aarch64
+          - deno-target: x86_64-unknown-linux-gnu
+            tea-prefix: linux/x86-64
+            build-id: linux+x86-64
+    steps:
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x #FIXME
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/checkout@v3
+
+      - name: Compile
+        run: |
+          deno compile \
+            --allow-read --allow-write=/opt --allow-net --allow-run --allow-env \
+            --import-map=./import-map.json \
+            --output ./tea.out \
+            --target ${{ matrix.deno-target }} \
+            ./src/app.ts
+
+      - run: |
+          sudo mkdir -p /opt/tea.xyz/v$VERSION/bin
+          mv tea.out /opt/tea.xyz/v$VERSION/bin/tea
+          cd /opt
+          tar czf $FILENAME tea.xyz
+
+      # TODO v'*' should be a (non permanent) redirect
+
+      - run: |
+          aws s3 cp \
+            $FILENAME \
+            s3://${{ secrets.AWS_S3 }}/tea.xyz/${{ matrix.tea-prefix }}/v$VERSION.tar.gz \
+            --metadata-directive REPLACE \
+            --cache-control max-age=31536000,immutable
+          aws s3 cp \
+            $FILENAME \
+            s3://${{ secrets.AWS_S3 }}/tea.xyz/${{ matrix.tea-prefix }}/v'*'.tar.gz \
+            --metadata-directive REPLACE \
+            --cache-control no-cache,must-revalidate
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tarballs
+          path: ${{ env.FILENAME }}
+          if-no-files-found: error
+
+  release:
+    needs: [cd, check]
+    runs-on: ubuntu-latest
+    env:
+      TAG: v${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tarballs
+          path: artifacts
+
+      #TODO find a release action that will tag atomically
+      # the GitHub API does this so it is frankly unacceptable the action refuses
+      - run: |
+          git tag ${{ env.TAG }}
+          git push origin ${{ env.TAG }}
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          files: artifacts/*.tar.gz
+          fail_on_unmatched_files: true
