@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - tsconfig.json
+      - '**/*.ts'
+      - import-map.json
+      - .github/workflows/ci.yml
+  workflow_call:
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    env:
+      VERBOSE: 1
+      TEA_SECRET: ${{ secrets.TEA_SECRET }}
+    steps:
+      #TMP until we go public
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.PK }}
+
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+      - run: ./scripts/test.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
