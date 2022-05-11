@@ -1,0 +1,105 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+
+concurrency:
+  group: distribute
+  cancel-in-progress: true
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    strategy:
+      matrix:
+        include:
+          - deno-target: x86_64-apple-darwin
+            build-id: darwin+x86-64
+            tea-prefix: darwin/x86-64
+          - deno-target: aarch64-apple-darwin
+            build-id: darwin+aarch64
+            tea-prefix: darwin/aarch64
+          - deno-target: x86_64-unknown-linux-gnu
+            tea-prefix: linux/x86-64
+            build-id: linux+x86-64
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x #FIXME
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Compile
+        run: |
+          deno compile \
+            --allow-read --allow-write=/opt --allow-net --allow-run --allow-env \
+            --import-map=./import-map.json \
+            --output ./tea.out \
+            --target ${{ matrix.deno-target }} \
+            ./src/app.ts
+
+      - id: version
+        run: |
+          export VERSION=0.0.1
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=VERSION::$VERSION"
+          echo "FILENAME=/opt/tea-$VERSION+${{ matrix.build-id }}.tar.gz" >> $GITHUB_ENV
+
+      - run: |
+          sudo mkdir -p /opt/tea.xyz/v$VERSION/bin
+          mv tea.out /opt/tea.xyz/v$VERSION/bin/tea
+          cd /opt
+          tar czf $FILENAME tea.xyz
+
+      - run: |
+          aws s3 cp \
+            $FILENAME \
+            s3://${{ secrets.AWS_S3 }}/tea.xyz/${{ matrix.tea-prefix }}/v$VERSION.tar.gz \
+            --metadata-directive REPLACE \
+            --cache-control max-age=31536000,immutable
+          aws s3 cp \
+            $FILENAME \
+            s3://${{ secrets.AWS_S3 }}/tea.xyz/${{ matrix.tea-prefix }}/v'*'.tar.gz \
+            --metadata-directive REPLACE \
+            --cache-control no-cache,must-revalidate
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tarballs
+          path: ${{ env.FILENAME }}
+          if-no-files-found: error
+
+  release:
+    needs: [cd]
+    runs-on: ubuntu-latest
+    env:
+      TAG: v${{ needs.cd.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tarballs
+          path: artifacts
+
+      #TODO find a release action that will tag atomically
+      # the GitHub API does this so it is frankly unacceptable the action refuses
+      - run: |
+          git tag --force ${{ env.TAG }}
+          git push --force origin ${{ env.TAG }}
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          files: artifacts/*.tar.gz
+          fail_on_unmatched_files: true

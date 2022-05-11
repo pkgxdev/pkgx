@@ -1,0 +1,13 @@
+{
+  "imports": {
+    "types": "./src/types.ts",
+    "hooks/": "./src/hooks/",
+    "prefab/": "./src/prefab/",
+    "semver": "https://deno.land/x/semver@v1.4.0/mod.ts",
+    "deno/": "https://deno.land/std@0.123.0/",
+    "utils": "./src/utils.ts",
+    "utils/": "./src/utils/",
+    "is_what": "https://deno.land/x/is_what@v4.1.7/src/index.ts",
+    "cliffy/": "https://deno.land/x/cliffy@v0.23.0/"
+ }
+}
