@@ -1,3 +1,5 @@
+name: CD
+
 on:
   push:
     branches:
@@ -10,10 +12,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cd:
+  check:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.extract.outputs.version }}
+      commence: ${{ steps.rev-parse.outputs.result }}
+    env:
+      VERBOSE: 1
+      TEA_SECRET: ${{ secrets.TEA_SECRET }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+
+      - id: extract
+        name: determine current version
+        run: |
+          # source <(tea -Ed)
+          export VERSION=0.0.2
+          echo "::set-output name=version::$VERSION"
+          if test x$VERSION = x; then exit 1; fi
+
+      - id: rev-parse
+        name: did we already publish this version?
+        run: |
+          result=true
+          if git show-ref --tags v${{ steps.extract.outputs.version }} --quiet; then
+            result=false
+          fi
+          echo "::set-output name=result::$result"
+
+  cd:
+    needs: [check]
+    if: ${{ needs.check.outputs.commence == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      FILENAME: /opt/tea-${{ needs.check.outputs.version }}+${{ matrix.build-id }}.tar.gz
     strategy:
       matrix:
         include:
@@ -27,8 +61,6 @@ jobs:
             tea-prefix: linux/x86-64
             build-id: linux+x86-64
     steps:
-      - uses: actions/checkout@v3
-
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x #FIXME
@@ -39,6 +71,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - uses: actions/checkout@v3
+
       - name: Compile
         run: |
           deno compile \
@@ -47,13 +81,6 @@ jobs:
             --output ./tea.out \
             --target ${{ matrix.deno-target }} \
             ./src/app.ts
-
-      - id: version
-        run: |
-          export VERSION=0.0.1
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "::set-output name=VERSION::$VERSION"
-          echo "FILENAME=/opt/tea-$VERSION+${{ matrix.build-id }}.tar.gz" >> $GITHUB_ENV
 
       - run: |
           sudo mkdir -p /opt/tea.xyz/v$VERSION/bin
@@ -80,10 +107,10 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: [cd]
+    needs: [cd, check]
     runs-on: ubuntu-latest
     env:
-      TAG: v${{ needs.cd.outputs.version }}
+      TAG: v${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v3
 
@@ -95,8 +122,8 @@ jobs:
       #TODO find a release action that will tag atomically
       # the GitHub API does this so it is frankly unacceptable the action refuses
       - run: |
-          git tag --force ${{ env.TAG }}
-          git push --force origin ${{ env.TAG }}
+          git tag ${{ env.TAG }}
+          git push origin ${{ env.TAG }}
 
       - uses: softprops/action-gh-release@v1
         with:

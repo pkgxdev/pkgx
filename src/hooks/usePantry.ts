@@ -29,8 +29,6 @@ const prefix = new Path("/opt/tea.xyz/var/pantry/projects")
 
 export default function usePantry(): Response {
   const getVersions = async (pkg: PackageRequirement) => {
-    await installIfNecessary()
-
     const files = entry(pkg)
     let rv: SemVer[]
     if (await txt()) return rv!
@@ -75,8 +73,6 @@ export default function usePantry(): Response {
   }
 
   const getDeps = async ({pkg, wbuild}: GetDepsOptions) => {
-    await installIfNecessary()
-
     const yml =  await entry(pkg).yml()
     return go(yml.dependencies).concat(go(wbuild && yml.build?.dependencies))
     // deno-lint-ignore no-explicit-any
@@ -102,8 +98,6 @@ export default function usePantry(): Response {
         : yml.distributable)
 
   const getDistributable = async (pkg: Package) => {
-    await installIfNecessary()
-
     const yml = await entry(pkg).yml()
     let url = getRawDistributableURL(yml)
     let stripComponents: number | undefined
@@ -124,8 +118,6 @@ export default function usePantry(): Response {
   }
 
   const getBuildScript = async (pkg: Package) => {
-    await installIfNecessary()
-
     const yml = await entry(pkg).yml()
     const prefix = useCellar().mkpath(pkg)
     const raw = validateString(validatePlainObject(yml.build).script)
@@ -183,6 +175,7 @@ async function installIfNecessary() {
 function entry(pkg: Package | PackageRequirement): Entry {
   const dir = prefix.join(pkg.project)
   const yml = async () => {
+    await installIfNecessary()
     // deno-lint-ignore no-explicit-any
     const yml = await dir.join("package.yml").readYAML() as any
     if (!isPlainObject(yml)) throw "bad-yaml"

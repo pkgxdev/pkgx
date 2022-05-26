@@ -75,7 +75,7 @@ try {
       const blueprint = await flatMap(args.env, useVirtualEnv)
       const script = await useScript(args.script, blueprint?.srcroot)
       const explicitDeps = [...blueprint?.requirements ?? [], ...script.deps] //TODO need to resolve intersections
-      const dry = explicitDeps.filter(x => cellar.resolve(x) == undefined)
+      const dry = explicitDeps.filter(x => !cellar.isInstalled(x))
       const wet = await hydrate(dry)
       const gas = await resolve(wet)
       for (const pkg of gas) {
