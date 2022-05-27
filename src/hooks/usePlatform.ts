@@ -4,7 +4,7 @@ interface Return {
   platform: 'darwin' | 'linux' | 'windows'
   arch: 'x86-64' | 'aarch64'
   target: string
-  semver: string
+  buildIdentifiers: string[]
 }
 
 export default function usePlatform(): Return {
@@ -15,10 +15,11 @@ export default function usePlatform(): Return {
       // ^^ ∵ https://en.wikipedia.org/wiki/X86-64 and semver.org prohibits underscores
     }
   })()
+  const { os: platform, target } = Deno.build
   return {
-    platform: Deno.build.os,
+    platform,
     arch,
-    target: Deno.build.target,
-    semver: Deno.build.target.replaceAll(/_/g, '-')
+    target,
+    buildIdentifiers: [platform, arch]
   }
 }

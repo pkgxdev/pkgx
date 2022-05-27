@@ -11,20 +11,16 @@ args:
   - --import-map={{ srcroot }}/import-map.json
 --- */
 
-import { parsePackageRequirement, Path, SemVer } from "types"
+import { parsePackageRequirement, Path } from "types"
 import useCellar from "hooks/useCellar.ts"
 import useCache from "hooks/useCache.ts"
 import { run } from "utils"
-import usePlatform from "../src/hooks/usePlatform.ts";
 
 const cellar = useCellar()
 
 for (const req of Deno.args.map(parsePackageRequirement)) {
   const { path: kegdir, pkg } = await cellar.resolve(req)
-  const platform = usePlatform()
   const filesListName = "files.txt"
-  const v = pkg.version
-  pkg.version = new SemVer(`${v.major}.${v.minor}.${v.patch}+${platform.semver}`)
 
   const files = await walk(kegdir, path => {
     switch (path.relative({ to: kegdir })) {

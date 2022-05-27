@@ -1,5 +1,6 @@
 import { copy, readerFromStreamReader } from "deno/streams/mod.ts"
 import { Package, Path } from "types"
+import usePlatform from "hooks/usePlatform.ts"
 
 interface DownloadOptions {
   url: string
@@ -15,8 +16,8 @@ export default function useCache(): Response {
   const stem = (pkg: Package) => {
     const name = pkg.project.replaceAll("/", "∕")
     // ^^ OHAI, we’re replacing folder slashes with unicode slashes
-    const build = pkg.version.build.reduce((s, bi) => s += `+${bi}`, '')
-    return `${name}-${pkg.version}${build}`
+    const build = usePlatform().arch
+    return `${name}-${pkg.version}+${build}`
   }
 
   const download = async ({ url: readURL, pkg }: DownloadOptions) => {

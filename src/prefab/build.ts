@@ -1,11 +1,9 @@
 import { Path, Package, PackageRequirement } from "types"
 import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
-import useEnv from "hooks/useEnv.ts"
-import { run, outdent } from "utils"
-import usePlatform from "../hooks/usePlatform.ts";
-import useEnv from "hooks/useShellEnv.ts"
+import useShellEnv from "hooks/useShellEnv.ts"
 import { run, undent } from "utils"
+import usePlatform from "../hooks/usePlatform.ts";
 
 interface Options {
   pkg: Package
@@ -16,7 +14,7 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
   const pantry = usePantry()
   const dst = useCellar().mkpath(pkg)
   const src = dst.join("src")
-  const env = await useEnv(deps)
+  const env = await useShellEnv(deps)
   const sh = await pantry.getBuildScript(pkg)
   const platform = usePlatform()
 
