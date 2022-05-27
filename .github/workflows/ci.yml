@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - tsconfig.json
+      - '**/*.ts'
+      - import-map.json
+      - .github/workflows/ci.yml
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    env:
+      VERBOSE: 1
+      TEA_SECRET: ${{ secrets.TEA_SECRET }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+      - run: ./scripts/test.sh
