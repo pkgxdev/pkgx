@@ -6,8 +6,8 @@ import { isNumber } from "utils"
 type Mode = {
   mode: 'run'
   script: Path | URL
-  scriptArgs: string[]
-  env: boolean
+  args: string[]
+  useVirtualEnv: boolean
 } | {
   mode: 'help'
 } | {
@@ -16,8 +16,7 @@ type Mode = {
   env: boolean
 } | {
   mode: 'exec'
-  pkg: PackageRequirement
-  cmd: string,
+  cmd: [PackageRequirement, {bin: string}]
   args: string[]
 }
 
@@ -143,21 +142,20 @@ export function useArgs(args: string[]): Mode & Adjustments {
     }
     if (exec) {
       const pkg = parsePackageRequirement(exec)
-      const [cmd, ...args] = literal
+      const [bin, ...args] = literal
       return {
         mode: 'exec',
-        pkg,
-        cmd,
+        cmd: [pkg, {bin}],
         args
       }
     }
     if (unknown.length < 1) throw "file argument required"
-    const [arg0, ...scriptArgs] = unknown
+    const [arg0, ...args] = unknown
     return {
       mode: 'run',
-      env: env ?? false,
+      useVirtualEnv: env ?? false,
       script: PathOrURL(arg0),
-      scriptArgs
+      args
     }
   }
 }

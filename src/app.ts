@@ -61,18 +61,21 @@ try {
           `
         for (const pkg of pending) {
           const cmds = (await pantry.getProvides(pkg)).join("|")
-          rv += `  ${cmds}) tea --exec ${pkg.project}@'${pkg.constraint}' -- "$@";;\n`
+          rv += `    ${cmds}) tea --exec ${pkg.project}@'${pkg.constraint}' -- "$@";;\n`
         }
-        rv += "  esac\n}"
+        rv += `  *)\n    printf 'zsh: command not found: %s\\n' "$1";;\n  esac\n}`
 
         await print(rv)
+      } else {
+        //TODO unless there's a default!
+        await print("if typeset -f command_not_found_handler >/dev/null; then unset -f command_not_found_handler; fi")
       }
 
     } break
 
     case "run": {
       const cellar = useCellar()
-      const blueprint = await flatMap(args.env, useVirtualEnv)                 ; console.debug({blueprint})
+      const blueprint = await flatMap(args.useVirtualEnv, useVirtualEnv)       ; console.debug({blueprint})
       const script = await useScript(args.script, blueprint?.srcroot)          ; console.debug({script})
       const explicitDeps = [...blueprint?.requirements ?? [], ...script.deps]  ; console.debug({explicitDeps}) //TODO need to resolve intersections
       const dry = explicitDeps                                                 ; console.debug({dry})
@@ -91,15 +94,15 @@ try {
         if (blueprint.version) env["VERSION"] = blueprint.version.toString()
       }
 
-      const cmd = [...script.args, ...args.scriptArgs]
+      const cmd = [...script.args, ...args.args]
       await run({ cmd, env }) //TODO deno needs an `execvp`
     } break
 
     case "exec": {
       const cellar = useCellar()
-      let installation = await cellar.isInstalled(args.pkg)
+      let installation = await cellar.isInstalled(args.cmd[0])
       if (!installation) {
-        const wet = await hydrate([args.pkg])
+        const wet = await hydrate([args.cmd[0]])
         const gas = await resolve(wet)
         for (const pkg of gas) {
           if (await cellar.isInstalled(pkg)) continue
@@ -111,7 +114,7 @@ try {
 
       //TODO needs env since it won't be set
       const cmd = [
-        installation!.path.join("bin", args.cmd),
+        installation!.path.join("bin", args.cmd[1].bin),
         ...args.args
       ]
 

@@ -2,7 +2,7 @@ import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, 
 export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp }
 
 ///////////////////////////////////////////////////////////////////////// HTTP
-import { cache, File, Policy, configure } from "https://deno.land/x/cache@0.2.13/mod.ts"
+import { cache, File, Policy, configure } from "https://raw.githubusercontent.com/mxcl/deno-cache/main/mod.ts"
 
 //FIXME lol better
 configure({ directory: "/opt/tea.xyz/var/www2" })
