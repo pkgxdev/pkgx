@@ -30,5 +30,9 @@ export default async function install(pkg: Package): Promise<Installation> {
   // clearEnv requires unstable API
   await run({ cmd/*, clearEnv: true*/ })
 
-  return await cellar.resolve(pkg)
+  const install = await cellar.resolve(pkg)
+
+  await run({ cmd: ['xattr', '-rd', 'com.apple.quarantine', install.path.string] })
+
+  return install
 }
