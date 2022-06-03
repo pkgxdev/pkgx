@@ -1,10 +1,15 @@
 //lol FIXME
 
+import { Installation } from "types";
+import { run } from "utils";
+
 interface Return {
   platform: 'darwin' | 'linux' | 'windows'
   arch: 'x86-64' | 'aarch64'
   target: string
   buildIdentifiers: string[]
+
+  finalizeInstall: (install: Installation) => Promise<void>
 }
 
 export default function usePlatform(): Return {
@@ -16,10 +21,20 @@ export default function usePlatform(): Return {
     }
   })()
   const { os: platform, target } = Deno.build
+
+  const finalizeInstall = async (install: Installation) => {
+    switch (platform) {
+      case 'darwin':
+        /// for now, prevent gatekeeper prompts FIXME sign everything!
+        await run({ cmd: ['xattr', '-rd', 'com.apple.quarantine', install.path.string] })
+    }
+  }
+
   return {
     platform,
     arch,
     target,
-    buildIdentifiers: [platform, arch]
+    buildIdentifiers: [platform, arch],
+    finalizeInstall,
   }
 }
