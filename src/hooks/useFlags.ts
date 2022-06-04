@@ -173,10 +173,10 @@ function getVerbosity({v, verbose, silent}: {v?: number, verbose?: boolean, sile
   if (isNumber(v)) return v
   if (verbose === true) return 2
   if (isNumber(verbose)) return verbose
+  if (silent) return Verbosity.quiet
   const env = flatMap(flatMap(Deno.env.get("VERBOSE"), parseInt), chuzzle)
   if (isNumber(env)) return env + 1
   if (Deno.env.get("DEBUG") == '1') return Verbosity.debug
-  if (silent) return Verbosity.quiet
   return Verbosity.normal
 }
 

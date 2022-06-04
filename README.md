@@ -393,7 +393,7 @@ If you got this error message, you need to install tea:
 |   Project   | Version |  Lock  |
 |-------------|---------|--------|
 | deno.land   | ^1.18   | 1.20.3 |
-| tea.xyz     | 0.01    | -      |
+| tea.xyz     | 0.1.0   | -      |
 
 ## Metadata
 
