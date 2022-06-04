@@ -36,8 +36,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - run: |
-          . <(tea -Eds)
+      - name: Typecheck ./scripts/*
+        run: |
+          eval "$(tea -Eds)"
           for x in scripts/*.ts; do
             deno check --import-map=import-map.json $x
           done
+        env:
+          VERBOSE: -1
