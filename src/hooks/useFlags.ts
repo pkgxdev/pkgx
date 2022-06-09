@@ -182,7 +182,7 @@ function getVerbosity({v, verbose, silent}: {v?: number, verbose?: boolean, sile
 
 function getMagic(muggle: boolean | undefined): boolean {
   if (muggle !== undefined) return !muggle
-  const env = Deno.env.get("MUGGLE")
-  if (env != undefined && env != "0") return false
+  const env = Deno.env.get("MAGIC")
+  if (env === "0") return false
   return true
 }

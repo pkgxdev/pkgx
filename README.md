@@ -1,24 +1,39 @@
 ![tea](https://tea.xyz/banner.png)
 
-tea is a delightful developer tool designed to give back your time so you
-can concentrate on what matters: *building your app*. tea is made by
-developers for developers.
+tea is a delightful developer tool that gives you and your team your time back
+so you can concentrate on what matters: *building your app*.
+
+tea is built with a set of primitives that make packaging *programmable*.
+We made tea/cli with those primitives.
+We want *you* to compose them and build completely new tools,
+workflows and inventions that change how you work, how your team works or
+even (especially) *how the world works*.
 
 &nbsp;
 
 
-tea is a universal interpreter:
+# tea/cli 0.1.0
+
+tea/cli is a universal interpreter:
 
 ```sh
 $ tea https://github.com/teaxyz/demos/blob/main/ai.py input.png
 tea: installing python^3
 pip: installing dall-e-2
+…
+
+$ curl https://github.com/teaxyz/demos/blob/main/ai.py
+#!/usr/bin/env tea
+# ---
+# dependencies:
+#   python.org: ~3.8
+#   python.org/pip/requests: ^2.18
+#   optipng.sourceforge.net: '*'    # optipng will be in `PATH`
+# ---
+…
 ```
 
-> <details><summary>
->
-> Is this safe? ⤵
-> </summary>
+> <details><summary><i>Is this safe?</i></summary>
 >
 > If you’re worried about executing scripts from the Internet: *read them
 > first!* tea only executes what the script tells it to; the dependency
@@ -27,18 +42,20 @@ pip: installing dall-e-2
 
 &nbsp;
 
+
 tea is a universal (and magical) virtual‑environment manager:
 
 ```
-$ deno --version
+$ deno
 zsh: command not found: deno
 
 $ echo $PATH
 /opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
 
 $ cd my-project
-$ deno --version
-deno 1.20.3
+$ deno
+deno 1.22.1
+> ^D
 
 $ env
 PATH=/opt/deno.land/v1.20.3/bin:/usr/bin:/bin
@@ -46,10 +63,9 @@ SRCROOT=/src/my-project
 …
 ```
 
-> <details><summary>
->
-> *What is this sourcery?* ⤵
-> </summary>
+Don’t worry, this magic also works with [VSCode].
+
+> <details><summary><i>What is this sourcery?</i></summary>
 >
 > tea uses a shell hook to insert the precise tooling your project needs into
 > your shell environment. Development is now containerized at the
@@ -64,73 +80,27 @@ SRCROOT=/src/my-project
 > trying to execute it will install it first.
 > </details>
 
-&nbsp;
-
-The package manager is—in fact—just an implementation detail:
-
-```
-$ cd my-project
-$ tea -E scripts/run.sh
-tea: installing: python.org~2.7, postgresql.org*
-tea: running: /opt/python.org/v2.7.18/bin/python scripts/run.sh
-…
-```
-
-> <details><summary>
->
-> Woah there! Where are you installing all this stuff? ⤵
-> </summary>
->
-> Everything installs to isolated “kegs” in `/opt`:
->
-> ```sh
-> $ ls /opt
-> /opt/deno.land/v1.20.3
-> /opt/deno.land/v1.20    # symlinks to v1.20.3
-> /opt/deno.land/v1       # symlinks to v1.20.3
-> ```
->
-> That’s it. Indeed—nothing installs to a global prefix or has impact on
-> anything else installed to your machine.
->
-> </details>
+[VSCode]: https://code.visualstudio.com
 
 &nbsp;
 
-Really tea is a universal interpreter:
-
-```python
-#!/usr/bin/env tea
-# ---
-# dependencies:
-#   python.org: ~3.8
-#   python.org/pip/requests: ^2.18
-#   http://optipng.sourceforge.net: '*'   # optipng will be in `PATH`
-# ---
-
-if sys.argv[1:] == "--help"
-  print("usage: sh <(curl tea.xyz) https://example.com/favicon.py [input.img]")
-
-# [snip]…
-```
-
-
-&nbsp;
 
 ## A Brief Diatribe
 
 Every programming language, every build system, every compiler, web server,
 database and email client seem to gravitate towards adding infinite features
-and complexity so that their users can do more and more.
+and complexity so that their users can do ever more and more.
 
-We believe this is wrong: tools should focus on what they’re good at. Instead
-of duplicating functionality and adding complexity *you* should be able to
-compose your tools and create only what you can imagine. tea enables that
-composability: it’s the programmable, composable package manager that aims to
-empower you to do more with what you already have.
+This is against the UNIX philosophy: tools should do one thing and do that one
+thing *damn* well, but they should be composable and flexible; built to be
+combined, piped and utilized as part of a larger toolbox of unique and
+excellent tools.
 
+tea fills the gap that has prevented open source from fulfilling this goal for
+some time now.
 
 &nbsp;
+
 
 # Getting Started
 
@@ -156,10 +126,7 @@ If they want to learn about tea first they can go to the same URL as they’re
 curl’ing. Don’t forget we *will* be cross platform too so you can write one
 line for everyone, anywhere.
 
-> <details><summary>
->
-> *Installing Manually* ⤵
-> </summary>
+> <details><summary><i>Installing Manually</i></summary>
 >
 > `tea` is a single binary that you can install yourself:
 >
@@ -180,15 +147,16 @@ line for everyone, anywhere.
 >
 > </details>
 
-> <details><summary>
->
-> *Uninstalling tea* ⤵
-> </summary>
+> <details><summary><i>Uninstalling tea</i></summary>
 >
 > tea installs everything to `/opt` though other things may live there too, so
-> don’t delete indiscriminately. There’s also a one-liner added to your
-> `~/.zshrc` you should remove.
+> don’t delete indiscriminately.
+> We also install `/usr/local/bin/tea`.
+> There’s also a one-liner added to your `~/.zshrc` you should remove.
 > </details>
+
+&nbsp;
+
 
 ## Usage as an Environment Manager
 
@@ -204,12 +172,8 @@ your `README`.
 > document your dependencies. Typically in open source this information is
 > barely documented, incorrectly documented or duplicated (incorrectly) in
 > various hard to find places. No longer.
-
-
-> <details><summary>
 >
-> *Umm, I hate this, can I use a different file?* ⤵
-> </summary>
+> <details><summary><i>Umm, I hate this, can I use a different file?</i></summary>
 >
 > You can use `package.json` instead:
 >
@@ -239,6 +203,19 @@ tea --env --dump
 control checkout. So if you’re using git we’ll look around for a `.git`
 directory and consider that the `SRCROOT` for your project. Then we check the
 `README.md` there to gather the environment information.
+
+tea attempts to enhance your environment based on your workspace context:
+
+| Variable  | Description |
+| --------- | ----------- |
+| `VERSION` | Extracted from the Teafile |
+| `SRCROOT` | We descend towards root until we find a source control marker, eg. `.git` |
+| `MANPATH` | So `man …` works for your deps |
+
+We also provide eg. `PKG_CONFIG_PATH`, `LD_LIBRARY_PATH`, etc. so other tools
+can find your dependencies.
+
+&nbsp;
 
 
 ## Usage as an Interpreter
@@ -273,6 +250,7 @@ dependencies:
 tea will run the script with the latest version of Python that is >=2.7 but
 less than 3.0. If it's not installed we grab it, otherwise we use what is
 available.
+
 
 ### Using a Shebang
 
@@ -322,6 +300,9 @@ tea: /opt/deno.land/v1.18/bin/deno run \
 > project already specifies your deno dependency, so the above YAML could
 > remove that because `-E` is being used.
 
+&nbsp;
+
+
 ## Caveats
 
 tea is **new software** and not mature. If you are an enterprise, we don’t
@@ -336,8 +317,20 @@ support.
 
 tea allows you to “get started” anywhere (*just not quite yet*).
 
+&nbsp;
+
+
+# Magic
+
+tea works with the concept of magic. While enabled we try to be clever and
+infer what you want. When disabled we are strict and require precise
+specification of your intent.
+
+You can disable magic by specifying `--muggle` or defining `MAGIC=0` in your
+environment.
 
 &nbsp;
+
 
 # Contributing
 
@@ -357,12 +350,32 @@ your checkout, (installing deno first ofc).
 
 [discussion]: https://github.com/teaxyz/cli/discussions/new
 
+&nbsp;
+
+
+# FAQ
+
+## What are you doing to my computer?
+
+We install compartmentalized packages to `/opt`,we create one symlink
+(`/usr/local/bin/tea`) and we add one line to your `.zshrc`.
+
+## I thought you were decentralized and web3 and shit
+
+tea is creating new technologies that will change how open source is funded.
+This software is an essential part of that endeavor and is released
+prior to our protocol in order bootstrap the open source revolution.
+
+## I have another question
+
+Start a [discussion] and we’ll get back to you.
 
 
 &nbsp;
 
+&nbsp;
 
----
+
 
 # Appendix
 
