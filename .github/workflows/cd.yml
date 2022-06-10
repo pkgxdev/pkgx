@@ -42,6 +42,9 @@ jobs:
       - id: rev-parse
         name: did we already publish this version?
         run: |
+          # fetch tags since actions/checkout is a shallow checkout
+          git fetch --prune --unshallow --tags
+
           if git show-ref --tags v${{ steps.extract.outputs.version }} --quiet; then
             echo "::set-output name=result::cancel"
           else
