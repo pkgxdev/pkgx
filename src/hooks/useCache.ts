@@ -5,24 +5,37 @@ import usePlatform from "hooks/usePlatform.ts"
 interface DownloadOptions {
   url: string
   pkg: Package
+  type?: 'src' | 'bottle'
 }
 
 interface Response {
-  stem(pkg: Package): string
+  bottle(pkg: Package): Path
   download(opts: DownloadOptions): Promise<Path>
 }
 
 export default function useCache(): Response {
+  const prefix = new Path("/opt/tea.xyz/var/www")
   const stem = (pkg: Package) => {
     const name = pkg.project.replaceAll("/", "∕")
     // ^^ OHAI, we’re replacing folder slashes with unicode slashes
-    const build = usePlatform().arch
-    return `${name}-${pkg.version}+${build}`
+    return `${name}-${pkg.version}`
   }
 
-  const download = async ({ url: readURL, pkg }: DownloadOptions) => {
+  const src = (pkg: Package) => `${stem(pkg)}+src`
+  const bottle = (pkg: Package) => {
+    const { arch } = usePlatform()
+    return prefix.join(`${stem(pkg)}+${arch}.tar.gz`)
+  }
+
+  const download = async ({ url: readURL, pkg, type = 'bottle' }: DownloadOptions) => {
     const extension = Path.extname(readURL)
-    const filename = stem(pkg) + extension
+    const stem = () => {
+      switch(type!) {
+      case 'src': return src(pkg)
+      case 'bottle': return bottle(pkg)
+      }
+    }
+    const filename = stem() + extension
     const writeFilename = new Path("/opt/tea.xyz/var/www").join(filename)
     console.debug(writeFilename)
     if (writeFilename.isReadableFile()) {
@@ -34,7 +47,7 @@ export default function useCache(): Response {
     return writeFilename
   }
 
-  return { download, stem }
+  return { download, bottle }
 }
 
 async function grab({ readURL, writeFilename }: { readURL: string, writeFilename: Path }) {
