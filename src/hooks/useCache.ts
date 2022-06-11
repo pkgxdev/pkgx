@@ -1,5 +1,6 @@
 import { copy, readerFromStreamReader } from "deno/streams/mod.ts"
-import { Package, Path } from "types"
+import { Package, Path, semver } from "types"
+import { packageSort } from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import * as _ from "utils" // console.verbose
 
@@ -12,6 +13,7 @@ interface DownloadOptions {
 interface Response {
   bottle(pkg: Package): Path
   download(opts: DownloadOptions): Promise<Path>
+  ls(): Promise<Package[]>
 }
 
 export default function useCache(): Response {
@@ -37,7 +39,7 @@ export default function useCache(): Response {
       }
     }
     const filename = stem() + extension
-    const writeFilename = new Path("/opt/tea.xyz/var/www").join(filename)
+    const writeFilename = prefix.join(filename)
     console.debug(writeFilename)
     if (writeFilename.isReadableFile()) {
       console.info({alreadyDownloaded: writeFilename})
@@ -48,7 +50,24 @@ export default function useCache(): Response {
     return writeFilename
   }
 
-  return { download, bottle }
+  const ls = async () => {
+    const { arch } = usePlatform()
+
+    const rv = []
+
+    for await (const file of prefix.ls()) {
+      const match = file[1].name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)\\+${arch}\\.tar\\.gz$`)
+      if (!match) { continue }
+      const [_, project, v] = match
+      const version = semver.coerce(v)
+      if (!version) { continue }
+      rv.push({ project, version })
+    }
+
+    return rv.sort(packageSort)
+  }
+
+  return { download, stem, ls }
 }
 
 async function grab({ readURL, writeFilename }: { readURL: string, writeFilename: Path }) {

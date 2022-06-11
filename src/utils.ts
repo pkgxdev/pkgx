@@ -119,6 +119,11 @@ export async function attempt<T>(body: () => Promise<T>, opts: {swallow: unknown
   }
 }
 
+export function packageSort(a: Package, b: Package): number {
+  return a.project === b.project
+    ? a.version.compare(b.version)
+    : (a.project < b.project ? -1 : 1)
+}
 
 /////////////////////////////////////////////////////////////////// Unarchiver
 import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./utils/Unarchiver.ts"
@@ -126,7 +131,7 @@ export { Unarchiver, TarballUnarchiver, ZipUnarchiver }
 
 
 ////////////////////////////////////////////////////////////////////////// run
-import { Path } from "types"
+import { Package, Path } from "types"
 
 interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'> {
   cmd: (string | Path)[] | Path
