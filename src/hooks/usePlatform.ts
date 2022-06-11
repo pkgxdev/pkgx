@@ -1,5 +1,3 @@
-//lol FIXME
-
 import { Installation } from "types";
 import { run } from "utils";
 
