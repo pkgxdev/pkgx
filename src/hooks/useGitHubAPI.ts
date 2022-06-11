@@ -19,7 +19,7 @@ interface GHRelease {
 
 export default function useGitHubAPI(): Response {
   const getVersions = async ({ user, repo }: GetVersionsOptions) => {
-    const releases = await GET<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases`)
+    const releases = await GET<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases`, { maxAge: 3600, strict: true })
     return releases.compactMap(({ tag_name, name }) => {
       //TODO should be explicit if you want coerce
       return flatMap(tag_name ?? name, x => semver.coerce(x))

@@ -16,8 +16,8 @@ export function download(
   return cache(url, policy, ns)
 }
 
-export async function GET<T>(url: string): Promise<T> {
-  const foo = await download(url)
+export async function GET<T>(url: string, policy: Policy | undefined = undefined): Promise<T> {
+  const foo = await download(url, policy)
   const txt = await Deno.readTextFile(foo.path)
   const json = JSON.parse(txt)
   return json as T
