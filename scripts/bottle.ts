@@ -24,12 +24,12 @@ for (const req of Deno.args.map(parsePackageRequirement)) {
 
   const files = await walk(kegdir, path => {
     switch (path.relative({ to: kegdir })) {
-      case 'src':
-      case 'build.sh':
-      case filesListName:
-        return 'skip'
-      default:
-        return 'accumulate'
+    case 'src':
+    case 'build.sh':
+    case filesListName:
+      return 'skip'
+    default:
+      return 'accumulate'
     }
   })
   const relativePaths = files.map(x => x.relative({ to: cellar.prefix }))

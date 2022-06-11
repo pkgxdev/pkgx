@@ -7,7 +7,7 @@ args:
   - --allow-net
   - --allow-write=/opt
   - --allow-read
-  - --allow-env=HOME,VERBOSE,DEBUG,MUGGLE,PATH,MANPATH,PKG_CONFIG_PATH
+  - --allow-env=HOME,VERBOSE,DEBUG,MUGGLE,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN,MAGIC
   - --allow-run
   - --import-map={{ srcroot }}/import-map.json
 ---*/

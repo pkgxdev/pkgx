@@ -3,7 +3,7 @@ import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
 import useShellEnv from "hooks/useShellEnv.ts"
 import { run, undent } from "utils"
-import usePlatform from "../hooks/usePlatform.ts";
+import usePlatform from "hooks/usePlatform.ts";
 
 interface Options {
   pkg: Package
