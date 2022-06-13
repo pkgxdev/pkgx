@@ -1,6 +1,7 @@
 import { copy, readerFromStreamReader } from "deno/streams/mod.ts"
 import { Package, Path } from "types"
 import usePlatform from "hooks/usePlatform.ts"
+import * as _ from "utils" // console.verbose
 
 interface DownloadOptions {
   url: string
