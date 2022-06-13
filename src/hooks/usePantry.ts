@@ -2,6 +2,7 @@ import { Package, PackageRequirement, Path, PlainObject, SemVer, semver } from "
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
 import { run, flatMap, isNumber, isPlainObject, isString, isArray } from "utils"
 import useCellar from "hooks/useCellar.ts"
+import { join } from "https://deno.land/std@0.123.0/path/mod.ts";
 
 
 interface GetDepsOptions {
@@ -17,6 +18,8 @@ interface Response {
   getBuildScript(pkg: Package): Promise<string>
   update(): Promise<void>
   getProvides(rq: PackageRequirement | Package): Promise<string[]>
+  /// list all packages in the pantry
+  ls(): Promise<string[]>
 }
 
 interface Entry {
@@ -140,7 +143,21 @@ export default function usePantry(): Response {
     return node.compactMap(x => isString(x) && x.startsWith("bin/") && x.slice(4))
   }
 
-  return { getVersions, getDeps, getDistributable, getBuildScript, update, getProvides }
+  const ls = async (path = "") => {
+    let rv: string[] = []
+    for await (const p of Deno.readDir(`${prefix}/${path}`)) {
+      const name = join(path, p.name)
+      try {
+        await entry({ project: name, constraint: new semver.Range('*') }).yml();
+        rv.push(name)
+      } catch {
+        rv = rv.concat(await ls(name))
+      }
+    }
+    return rv.sort();
+  }
+
+  return { getVersions, getDeps, getDistributable, getBuildScript, update, getProvides, ls }
 }
 
 
