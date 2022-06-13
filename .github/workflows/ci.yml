@@ -34,7 +34,7 @@ jobs:
       - uses: teaxyz/setup@v0
       - run: ./scripts/test.sh
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Typecheck ./scripts/*
         run: |

@@ -9,7 +9,7 @@ args: /bin/sh
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT \
+ --allow-env=SRCROOT,GITHUB_TOKEN \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
  tests/*.ts
