@@ -128,10 +128,8 @@ export default function usePantry(): Response {
     const platform = usePlatform()
     const raw = validateString(validatePlainObject(yml.build).script)
     return raw
-      .replace(/{{\s*arch\s*}}/g, platform.arch)
-      .replace(/{{\s*target\s*}}/g, platform.target)
-      .replace(/{{\s*prefix\s*}}/g, prefix.string)
-      .replace(/{{\s*version\s*}}/g, pkg.version.toString())
+      .replace(/{{\s*platform.target\s*}}/g, platform.target)
+      .replace(/{{\s*pkg.prefix\s*}}/g, prefix.string)
       .replace(/{{\s*jobs\s*}}/g, navigator.hardwareConcurrency.toString())  //TODO remove, only available with ts build scripts
   }
 
