@@ -37,12 +37,7 @@ for (const req of Deno.args.map(parsePackageRequirement)) {
   const filelist = kegdir.join(filesListName).write({ text: relativePaths.join("\n"), force: true })
   const tarball = new Path("/opt/tea.xyz/var/www").join(useCache().stem(pkg) + ".tar.gz")
 
-  await run({
-    cmd: [
-      "tar", "cf", tarball, "--files-from", filelist
-    ],
-    cwd: cellar.prefix
-  })
+  await run({ cmd: [ "tar", "cf", tarball, "--directory", cellar.prefix,"--files-from", filelist ] })
 }
 
 
