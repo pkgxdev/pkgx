@@ -2,6 +2,7 @@ import { Package, PackageRequirement, Path, PlainObject, SemVer, semver } from "
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
 import { run, flatMap, isNumber, isPlainObject, isString, isArray } from "utils"
 import useCellar from "hooks/useCellar.ts"
+import usePlatform from "hooks/usePlatform.ts"
 import { join } from "https://deno.land/std@0.123.0/path/mod.ts";
 
 
@@ -52,9 +53,10 @@ export default function usePantry(): Response {
 
     async function github(): Promise<boolean> {
       const yml = await files.yml()
+      const ignoredVersions = yml['ignore-versions']?.map((v: string) => new RegExp(v))
       try {
         const { user, repo } = get()
-        rv = await useGitHubAPI().getVersions({ user, repo })
+        rv = await useGitHubAPI().getVersions({ user, repo, ignoredVersions })
         return true
       } catch (err) {
         if (err === "not-github") return false
@@ -123,8 +125,11 @@ export default function usePantry(): Response {
   const getBuildScript = async (pkg: Package) => {
     const yml = await entry(pkg).yml()
     const prefix = useCellar().mkpath(pkg)
+    const platform = usePlatform()
     const raw = validateString(validatePlainObject(yml.build).script)
     return raw
+      .replace(/{{\s*arch\s*}}/g, platform.arch)
+      .replace(/{{\s*target\s*}}/g, platform.target)
       .replace(/{{\s*prefix\s*}}/g, prefix.string)
       .replace(/{{\s*version\s*}}/g, pkg.version.toString())
       .replace(/{{\s*jobs\s*}}/g, navigator.hardwareConcurrency.toString())  //TODO remove, only available with ts build scripts

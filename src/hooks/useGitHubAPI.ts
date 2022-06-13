@@ -7,6 +7,7 @@ import { flatMap, GET } from "utils"
 interface GetVersionsOptions {
   user: string
   repo: string
+  ignoredVersions?: RegExp[]
 }
 
 interface Response {
@@ -19,11 +20,13 @@ interface GHRelease {
 }
 
 export default function useGitHubAPI(): Response {
-  const getVersions = async ({ user, repo }: GetVersionsOptions) => {
+  const getVersions = async ({ user, repo, ignoredVersions }: GetVersionsOptions) => {
     const releases = await GET<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases`, RELOAD_POLICY)
     return releases.compactMap(({ tag_name, name }) => {
       //TODO should be explicit if you want coerce
-      return flatMap(tag_name ?? name, x => semver.coerce(x))
+      const raw_version = tag_name ?? name ?? ""
+      if (ignoredVersions?.some(v => raw_version.match(v))) { return undefined }
+      return flatMap(raw_version, x => semver.coerce(x))
     }, { throws: true })
   }
   return { getVersions }
