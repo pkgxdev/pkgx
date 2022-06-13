@@ -20,6 +20,13 @@ const cellar = useCellar()
 
 for (const req of Deno.args.map(parsePackageRequirement)) {
   const { path: kegdir, pkg } = await cellar.resolve(req)
+  const tarball = useCache().bottle(pkg)
+
+  if (tarball.exists()) {
+    console.verbose({ alreadyExists: tarball.string })
+    continue
+  }
+
   const filesListName = "files.txt"
 
   const files = await walk(kegdir, path => {
@@ -35,11 +42,10 @@ for (const req of Deno.args.map(parsePackageRequirement)) {
   const relativePaths = files.map(x => x.relative({ to: cellar.prefix }))
 
   const filelist = kegdir.join(filesListName).write({ text: relativePaths.join("\n"), force: true })
-  const tarball = new Path("/opt/tea.xyz/var/www").join(useCache().stem(pkg) + ".tar.gz")
 
   await run({
     cmd: [
-      "tar", "cf", tarball, "--files-from", filelist
+      "tar", "zcf", tarball, "--files-from", filelist
     ],
     cwd: cellar.prefix
   })

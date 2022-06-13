@@ -56,7 +56,7 @@ async function prepare(pkg: Package) {
   const dstdir = useCellar().mkpath(pkg).join("src")
   const { url, stripComponents } = await pantry.getDistributable(pkg)
   const { download } = useCache()
-  const zip = await download({ pkg, url })
+  const zip = await download({ pkg, url, type: 'src' })
   await useSourceUnarchiver().unarchive({
     dstdir,
     zipfile: zip,
