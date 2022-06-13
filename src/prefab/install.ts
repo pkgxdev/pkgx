@@ -16,7 +16,7 @@ import { run } from "utils"
 
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
-  const { platform, arch } = usePlatform()
+  const { platform, arch, finalizeInstall } = usePlatform()
   const url = `https://s3.amazonaws.com/dist.tea.xyz/${project}/${platform}/${arch}/v${version}.tar.gz`
   const { prefix: dstdir, ...cellar } = useCellar()
   const { verbosity } = useFlags()
@@ -32,10 +32,7 @@ export default async function install(pkg: Package): Promise<Installation> {
 
   const install = await cellar.resolve(pkg)
 
-  if (Deno.build.os == 'darwin') {
-    /// for now, prevent gatekeeper prompts FIXME sign everything!
-    await run({ cmd: ['xattr', '-rd', 'com.apple.quarantine', install.path.string] })
-  }
+  await finalizeInstall(install)
 
   return install
 }
