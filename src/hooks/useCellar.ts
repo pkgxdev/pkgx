@@ -62,7 +62,11 @@ export default function useCellar(): Return {
 
   const mkpath = (pkg: Package) => prefix.join(pkg.project, `v${pkg.version}`).mkpath()
 
-  const isInstalled = (pkg: Package | PackageRequirement) => resolve(pkg).swallow(/^not-found:/)
+  const isInstalled = async (pkg: Package | PackageRequirement) => {
+    const resolution = await resolve(pkg).swallow(/^not-found:/)
+    if (resolution && await looksEmpty(resolution.path)) { return undefined }
+    return resolution
+  }
 
   return { resolve, ls, mkpath, prefix, shelf, isInstalled }
 }
