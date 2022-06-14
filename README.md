@@ -12,7 +12,7 @@ even (especially) *how the world works*.
 &nbsp;
 
 
-# tea/cli 0.1.0
+# tea/cli 0.1.1
 
 tea/cli is a universal interpreter:
 
@@ -412,4 +412,4 @@ If you got this error message, you need to install tea:
 
 | Name     | Value |
 |----------|-------|
-| Version  | 0.1.0 |
+| Version  | 0.1.1 |
