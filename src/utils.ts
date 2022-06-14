@@ -89,8 +89,8 @@ Array.prototype.compactUnshift = function<T>(item: T | null | undefined) {
   if (item) this.unshift(item)
 }
 
-export function flatMap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined): S | undefined {
-  if (t) return body(t)
+export function flatMap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined): NonNullable<S> | undefined {
+  if (t) return body(t) ?? undefined
 }
 
 declare global {
