@@ -11,7 +11,7 @@ args:
   - --import-map={{ srcroot }}/import-map.json
 --- */
 
-import { parsePackageRequirement, Path } from "types"
+import { PackageRequirement, parsePackageRequirement, Path } from "types"
 import useCellar from "hooks/useCellar.ts"
 import useCache from "hooks/useCache.ts"
 import { run } from "utils"
@@ -19,12 +19,16 @@ import { run } from "utils"
 const cellar = useCellar()
 
 for (const req of Deno.args.map(parsePackageRequirement)) {
+  await bottle(req)
+}
+
+export async function bottle(req: PackageRequirement) {
   const { path: kegdir, pkg } = await cellar.resolve(req)
   const tarball = useCache().bottle(pkg)
 
   if (tarball.exists()) {
     console.verbose({ alreadyExists: tarball.string })
-    continue
+    return
   }
 
   const filesListName = "files.txt"

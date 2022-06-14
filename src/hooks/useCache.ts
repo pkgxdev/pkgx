@@ -12,6 +12,7 @@ interface DownloadOptions {
 
 interface Response {
   bottle(pkg: Package): Path
+  s3Key(pkg: Package): string
   download(opts: DownloadOptions): Promise<Path>
   ls(): Promise<Package[]>
 }
@@ -67,7 +68,12 @@ export default function useCache(): Response {
     return rv.sort(packageSort)
   }
 
-  return { download, bottle, ls }
+  const s3Key = (pkg: Package) => {
+    const { platform, arch } = usePlatform()
+    return `${pkg.project}/${platform}/${arch}/v${pkg.version.version}.tar.gz`
+  }
+
+  return { download, bottle, ls, s3Key }
 }
 
 async function grab({ readURL, writeFilename }: { readURL: string, writeFilename: Path }) {

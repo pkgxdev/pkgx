@@ -52,7 +52,7 @@ for (const req of args[0].map(parsePackageRequirement)) {
   await link({ path, pkg })
 }
 
-async function prepare(pkg: Package) {
+export async function prepare(pkg: Package) {
   const dstdir = useCellar().mkpath(pkg).join("src")
   const { url, stripComponents } = await pantry.getDistributable(pkg)
   const { download } = useCache()
