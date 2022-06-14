@@ -18,8 +18,6 @@ export interface VirtualEnv {
 export default async function useVirtualEnv(): Promise<VirtualEnv> {
   const { magic } = useFlags()
 
-  console.debug(magic)
-
   if (!magic) {
     const reqs = extractFromJSON(Path.cwd().join("package.json"))
     if (!reqs) throw "package.json not found"
@@ -98,9 +96,17 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
     })
   })()
 
-  const version = flatMap(
+  const fromMetadataTable = () => flatMap(
     findTable("Metadata").find(([key, value]) => key == "Version" && value),
-    ([,x]) => new SemVer(x))
+    ([,x]) => new SemVer(x)
+  )
+
+  const fromFirstHeader = () => flatMap(
+    lines.find(line => line.match(/^\s*#\s+.+$/)),
+    semver.coerce
+  )
+
+  const version = fromMetadataTable() ?? fromFirstHeader()
 
   return { requirements, version }
 }
@@ -132,8 +138,6 @@ function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
 
 async function domagic(srcroot: Path): Promise<VirtualEnv | undefined> {
   let path: Path | undefined
-
-  console.debug("doing:MAGIC")
 
   const requirements = await (async () => {
     if (path = srcroot.join("action.yml").isReadableFile()) {
