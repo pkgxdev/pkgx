@@ -25,21 +25,18 @@ export default function useCache(): Response {
     return `${name}-${pkg.version}`
   }
 
-  const src = (pkg: Package) => `${stem(pkg)}+src`
   const bottle = (pkg: Package) => {
     const { arch } = usePlatform()
     return prefix.join(`${stem(pkg)}+${arch}.tar.gz`)
   }
 
   const download = async ({ url: readURL, pkg, type = 'bottle' }: DownloadOptions) => {
-    const extension = Path.extname(readURL)
-    const stem = () => {
+    const filename = (() => {
       switch(type!) {
-      case 'src': return src(pkg)
-      case 'bottle': return bottle(pkg)
+      case 'src': return stem(pkg) + Path.extname(readURL)
+      case 'bottle': return bottle(pkg).string
       }
-    }
-    const filename = stem() + extension
+    })()
     const writeFilename = prefix.join(filename)
     console.debug(writeFilename)
     if (writeFilename.isReadableFile()) {
