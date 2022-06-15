@@ -100,7 +100,10 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
   } catch (error) {
     console.verbose({ failedToBuild: pkg, error })
   } finally {
-    useCellar().mkpath(pkg).join("src").rm({ recursive: true })
+    /// HACK: can't clean up `go` srcdir because it's a required part of the install
+    if (pkg.project !== "go.dev") {
+      useCellar().mkpath(pkg).join("src").rm({ recursive: true })
+    }
   }
 }
 

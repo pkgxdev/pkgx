@@ -34,8 +34,11 @@ export async function bottle(req: PackageRequirement) {
   const filesListName = "files.txt"
 
   const files = await walk(kegdir, path => {
+    /// HACK: `go` requires including the `src` dir
+    const isGo = kegdir.string.match(/\/go.dev\//)
     switch (path.relative({ to: kegdir })) {
     case 'src':
+      return isGo ? 'accumulate' : 'skip'
     case 'build.sh':
     case filesListName:
       return 'skip'
