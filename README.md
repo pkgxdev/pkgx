@@ -12,7 +12,7 @@ even (especially) *how the world works*.
 &nbsp;
 
 
-# tea/cli 0.1.2
+# tea/cli 0.2.0
 
 tea/cli is a universal interpreter:
 
