@@ -158,9 +158,10 @@ try {
     15
         environment variables:
           VERBOSE        {-1: silent, 0: default, 1: verbose, 2: debug}
+          MAGIC          [0,1]
 
-        manual:
-    20    https://tea.xyz/README/
+    20  manual:
+    21    https://tea.xyz/README/
         `)
         //HEYU! did you exceed 22 lines? Don’t! That’s the limit!
   }
