@@ -17,4 +17,4 @@ do
   rm -rf /opt/"$x"
 done
 
-rm /opt/tea.xyz/var/www/*.tar.gz
+rm /opt/tea.xyz/var/www/*.tar.?z
