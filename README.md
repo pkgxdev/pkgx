@@ -14,7 +14,50 @@ even (especially) *how the world works*.
 
 # tea/cli 0.2.0
 
-tea/cli is a universal interpreter:
+tea is a universal virtual‑environment manager:
+
+```
+$ deno
+zsh: command not found: deno
+
+$ echo $PATH
+/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+
+$ cd my-project
+$ deno
+deno 1.22.1
+> ^D
+
+$ env
+PATH=/opt/deno.land/v1.20.3/bin:/usr/bin:/bin
+SRCROOT=/src/my-project
+VERSION=…
+…
+```
+
+Don’t worry! This magic also works with [VSCode]. And everything else too.
+
+> <details><summary><i>What is this sourcery?</i></summary>
+>
+> tea uses a shell hook to insert the precise tooling your project needs into
+> your shell environment. Development is now containerized at the
+> *package manager* level. No longer do you need to worry about your team
+> being on different versions of foundational tooling nor do you need to worry
+> about system level updates breaking different projects you’re working on.
+>
+> Projects can specify precisely what they need and you can install those
+> requirements precisely be it today, tomorrow or in ten years.
+>
+> In the above example if `deno` is not yet installed we insert a hook so
+> trying to execute it will install it first.
+> </details>
+
+[VSCode]: https://code.visualstudio.com
+
+&nbsp;
+
+
+tea is also a universal interpreter:
 
 ```sh
 $ tea https://github.com/teaxyz/demos/blob/main/ai.py input.png
@@ -42,47 +85,6 @@ $ curl https://github.com/teaxyz/demos/blob/main/ai.py
 
 &nbsp;
 
-
-tea is a universal (and magical) virtual‑environment manager:
-
-```
-$ deno
-zsh: command not found: deno
-
-$ echo $PATH
-/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
-
-$ cd my-project
-$ deno
-deno 1.22.1
-> ^D
-
-$ env
-PATH=/opt/deno.land/v1.20.3/bin:/usr/bin:/bin
-SRCROOT=/src/my-project
-…
-```
-
-Don’t worry, this magic also works with [VSCode].
-
-> <details><summary><i>What is this sourcery?</i></summary>
->
-> tea uses a shell hook to insert the precise tooling your project needs into
-> your shell environment. Development is now containerized at the
-> *package manager* level. No longer do you need to worry about your team
-> being on different versions of foundational tooling nor do you need to worry
-> about system level updates breaking different projects you’re working on.
->
-> Projects can specify precisely what they need and you can install those
-> requirements precisely be it today, tomorrow or in ten years.
->
-> In the above example if `deno` is not yet installed we insert a hook so
-> trying to execute it will install it first.
-> </details>
-
-[VSCode]: https://code.visualstudio.com
-
-&nbsp;
 
 
 ## A Brief Diatribe
