@@ -35,7 +35,8 @@ VERSION=…
 …
 ```
 
-Don’t worry! This magic also works with [VSCode]. And everything else too.
+Fear not, this magic works with things like [VSCode] too (we don’t believe in
+forcing your choice of tooling).
 
 > <details><summary><i>What is this sourcery?</i></summary>
 >
@@ -57,22 +58,12 @@ Don’t worry! This magic also works with [VSCode]. And everything else too.
 &nbsp;
 
 
-tea is also a universal interpreter:
+tea is a universal interpreter:
 
 ```sh
-$ tea https://github.com/teaxyz/demos/blob/main/ai.py input.png
-tea: installing python^3
-pip: installing dall-e-2
-…
-
-$ curl https://github.com/teaxyz/demos/blob/main/ai.py
-#!/usr/bin/env tea
-# ---
-# dependencies:
-#   python.org: ~3.8
-#   python.org/pip/requests: ^2.18
-#   optipng.sourceforge.net: '*'    # optipng will be in `PATH`
-# ---
+$ tea https://github.com/teaxyz/demos/blob/main/demo.go input.txt
+tea: installing go 1.18.3
+go: running demo.go
 …
 ```
 
@@ -85,6 +76,32 @@ $ curl https://github.com/teaxyz/demos/blob/main/ai.py
 
 &nbsp;
 
+
+tea is a universal dependency manager†:
+
+```sh
+$ tea https://github.com/teaxyz/demos/blob/main/ai-image-gen.py input.png
+tea: installing python^3
+pip: installing pytorch.org^1.11
+…
+ai-image-gen: optimizing output.png
+
+$ curl https://github.com/teaxyz/demos/blob/main/ai.py
+#!/usr/bin/env tea
+# ---
+# dependencies:
+#   python.org: ~3.8
+#   pypi.org/pytorch: ^1.11
+#   optipng.sourceforge.net: '*'    # optipng will be in `PATH`
+# ---
+…
+```
+
+> † we use the term dependency manager for tools like npm, pip, cargo and gem
+> that install packages for programming languages. They are variants of
+> package managers.
+
+&nbsp;
 
 
 ## A Brief Diatribe
