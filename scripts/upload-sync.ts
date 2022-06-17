@@ -11,6 +11,7 @@ args:
 ---*/
 
 import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
+import { crypto } from "https://deno.land/std@0.144.0/crypto/mod.ts";
 import useCache from "hooks/useCache.ts";
 
 const s3 = new S3({
@@ -31,7 +32,12 @@ for (const pkg of await useCache().ls()) {
     // path.read() returns a string; this is easier to get a UInt8Array
     const contents = await Deno.readFile(bottle.string);
 
+    const basename = key.split("/").pop()
+    const sha256sum = new TextDecoder().decode(await crypto.subtle.digest("SHA-256", contents))
+    const body = new TextEncoder().encode(`${sha256sum}  ${basename}`)
+
     await bucket.putObject(key, contents);
+    await bucket.putObject(`${key}.sha256sum`, body);
 
     console.log({ uploaded: key });
   }
