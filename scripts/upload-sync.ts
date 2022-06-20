@@ -11,7 +11,7 @@ args:
 ---*/
 
 import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
-import { crypto } from "https://deno.land/std@0.144.0/crypto/mod.ts";
+import { crypto } from "deno/crypto/mod.ts";
 import useCache from "hooks/useCache.ts";
 import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
 

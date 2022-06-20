@@ -3,7 +3,7 @@ import useGitHubAPI from "hooks/useGitHubAPI.ts"
 import { run, flatMap, isNumber, isPlainObject, isString, isArray } from "utils"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
-import { join } from "https://deno.land/std@0.123.0/path/mod.ts";
+import { join } from "deno/path/mod.ts";
 
 
 interface GetDepsOptions {

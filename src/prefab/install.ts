@@ -6,8 +6,8 @@ import { Installation } from "types"
 import { TarballUnarchiver } from "utils/Unarchiver.ts"
 import useFlags from "hooks/useFlags.ts"
 import { run } from "utils"
-import { crypto } from "https://deno.land/std@0.144.0/crypto/mod.ts";
-import { readAll, readerFromStreamReader } from "https://deno.land/std@0.123.0/streams/mod.ts";
+import { crypto } from "deno/crypto/mod.ts";
+import { readAll, readerFromStreamReader } from "deno/streams/mod.ts";
 import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
 
 
