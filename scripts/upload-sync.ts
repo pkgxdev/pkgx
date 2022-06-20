@@ -13,6 +13,7 @@ args:
 import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
 import { crypto } from "https://deno.land/std@0.144.0/crypto/mod.ts";
 import useCache from "hooks/useCache.ts";
+import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
 
 const s3 = new S3({
   accessKeyID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
@@ -33,7 +34,7 @@ for (const pkg of await useCache().ls()) {
     const contents = await Deno.readFile(bottle.string);
 
     const basename = key.split("/").pop()
-    const sha256sum = new TextDecoder().decode(await crypto.subtle.digest("SHA-256", contents))
+    const sha256sum = encodeToString(new Uint8Array(await crypto.subtle.digest("SHA-256", contents)))
     const body = new TextEncoder().encode(`${sha256sum}  ${basename}`)
 
     await bucket.putObject(key, contents);

@@ -4,7 +4,9 @@
 args:
   - deno
   - run
+  - --allow-env
   - --allow-net
+  - --allow-run
   - --allow-write=/opt
   - --allow-read
   - --import-map={{ srcroot }}/import-map.json
