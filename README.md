@@ -110,13 +110,20 @@ Every programming language, every build system, every compiler, web server,
 database and email client seem to gravitate towards adding infinite features
 and complexity so that their users can do ever more and more.
 
-This is against the UNIX philosophy: tools should do one thing and do that one
-thing *damn* well, but they should be composable and flexible; built to be
-combined, piped and utilized as part of a larger toolbox of unique and
-excellent tools.
+This is contrary to the UNIX philosophy: tools should do one thing and
+—by being tight and focused—
+do it *damn* well. If they are also composable and
+flexible then they can be combined, piped and leveraged into a larger, more
+capable toolbox. *It’s with this toolbox that the Internet is built.*
 
-tea fills the gap that has prevented open source from fulfilling this goal for
-some time now.
+Nowadays every programming language
+reimplements the same set of libraries and tools because using a
+well-maintained, mature and portable library adds too much complexity.
+This extends the adolescence of new languages and leads to levels of
+duplication that clearly create a more fragile open source ecosystem.
+
+tea is designed to remove this complexity for development, for deployment *and
+for scripting*.
 
 &nbsp;
 
