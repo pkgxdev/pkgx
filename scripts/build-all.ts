@@ -4,11 +4,11 @@
 args:
   - deno
   - run
-  - --allow-env
   - --allow-net
   - --allow-run
   - --allow-read=/opt
   - --allow-write=/opt
+  - --allow-env=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,S3_BUCKET,GITHUB_TOKEN
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 

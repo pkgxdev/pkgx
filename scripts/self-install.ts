@@ -4,10 +4,10 @@
 args:
   - deno
   - run
-  - --allow-write=/usr/local/bin/tea
-  - --allow-read=/usr/local/bin/tea
-  - --import-map={{ srcroot }}/import-map.json
   - --allow-env=SRCROOT
+  - --allow-read=/usr/local/bin/tea
+  - --allow-write=/usr/local/bin/tea
+  - --import-map={{ srcroot }}/import-map.json
 ---*/
 
 import { Path } from "types"
