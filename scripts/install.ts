@@ -9,6 +9,7 @@ args:
   - --allow-run
   - --allow-write=/opt
   - --allow-read
+  - --allow-env=VERBOSE,DEBUG,MAGIC,GITHUB_TOKEN
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
