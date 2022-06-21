@@ -6,13 +6,12 @@ args:
   - run
   - --allow-net
   - --allow-env
-  - --allow-read=/opt/tea.xyz/var/www
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
 import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
 import { crypto } from "deno/crypto/mod.ts";
-import useCache from "hooks/useCache.ts";
+import { readerFromStreamReader, readAll } from "deno/streams/conversion.ts";
 import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
 
 const s3 = new S3({
@@ -23,23 +22,21 @@ const s3 = new S3({
 
 const bucket = s3.getBucket(Deno.env.get("S3_BUCKET")!);
 
-for (const pkg of await useCache().ls()) {
-  const key = useCache().s3Key(pkg)
-  const bottle = useCache().bottle(pkg)
+for await (const pkg of bucket.listAllObjects({ batchSize: 200 })) {
+  if (!pkg.key?.endsWith('.tar.gz')) { continue }
+  console.log({ checking: pkg.key });
 
-  console.log({ checking: key });
+  if (!await bucket.headObject(`${pkg.key}.sha256sum`)) {
+    console.log({ missingChecksum: pkg.key })
+    const reader = (await bucket.getObject(pkg.key))!.body.getReader()
+    const contents = await readAll(readerFromStreamReader(reader))
 
-  if (!await bucket.headObject(key)) {
-    // path.read() returns a string; this is easier to get a UInt8Array
-    const contents = await Deno.readFile(bottle.string);
-
-    const basename = key.split("/").pop()
+    const basename = pkg.key.split("/").pop()
     const sha256sum = encodeToString(new Uint8Array(await crypto.subtle.digest("SHA-256", contents)))
     const body = new TextEncoder().encode(`${sha256sum}  ${basename}`)
 
-    await bucket.putObject(key, contents);
-    await bucket.putObject(`${key}.sha256sum`, body);
+    await bucket.putObject(`${pkg.key}.sha256sum`, body);
 
-    console.log({ uploaded: key });
+    console.log({ uploaded: `${pkg.key}.sha256sum` });
   }
 }
