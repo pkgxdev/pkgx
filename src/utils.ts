@@ -2,7 +2,7 @@ import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, 
 export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp }
 
 ///////////////////////////////////////////////////////////////////////// HTTP
-import { cache, File, Policy, configure } from "https://raw.githubusercontent.com/mxcl/deno-cache/0.2.14/mod.ts"
+import { cache, File, Policy, configure } from "mxcl/deno-cache"
 
 //FIXME lol better
 configure({ directory: "/opt/tea.xyz/var/www2" })
@@ -25,7 +25,7 @@ export async function GET<T>(url: string, policy: Policy | undefined = undefined
 
 
 ////////////////////////////////////////////////////////////// base extensions
-import outdent from "https://deno.land/x/outdent@v0.8.0/mod.ts"
+import outdent from "outdent"
 export { outdent as undent }
 
 declare global {

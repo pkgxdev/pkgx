@@ -21,7 +21,7 @@ import { semver, PackageRequirement, Package } from "types"
 import useCache from "hooks/useCache.ts"
 import useCellar from "hooks/useCellar.ts"
 import useSourceUnarchiver from "hooks/useSourceUnarchiver.ts"
-import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
+import { S3 } from "s3";
 
 const pantry = usePantry();
 const projects = await pantry.ls()
