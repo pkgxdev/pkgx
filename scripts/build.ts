@@ -5,10 +5,10 @@ args:
   - deno
   - run
   - --allow-net
-  - --allow-write=/opt
-  - --allow-read
-  - --allow-env=HOME,VERBOSE,DEBUG,MUGGLE,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN,MAGIC
   - --allow-run
+  - --allow-read=/opt
+  - --allow-write=/opt
+  - --allow-env=VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 

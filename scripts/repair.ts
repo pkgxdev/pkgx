@@ -6,8 +6,8 @@ args:
   - deno
   - run
   - --allow-net
+  - --allow-read=/opt
   - --allow-write=/opt
-  - --allow-read
   - --import-map={{ srcroot }}/import-map.json
 ---
 */

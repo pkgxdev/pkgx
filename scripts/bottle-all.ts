@@ -4,11 +4,11 @@
 args:
   - deno
   - run
-  - --allow-env
   - --allow-net
   - --allow-run
   - --allow-read=/opt
   - --allow-write=/opt
+  - --allow-env=GITHUB_TOKEN
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
