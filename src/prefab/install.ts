@@ -20,12 +20,13 @@ import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
 
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
-  const { platform, arch, finalizeInstall } = usePlatform()
-  const url = `https://s3.amazonaws.com/dist.tea.xyz/${project}/${platform}/${arch}/v${version}.tar.gz`
+  const { finalizeInstall } = usePlatform()
+  const { s3Key, download } = useCache()
+  const url = `https://s3.amazonaws.com/dist.tea.xyz/${s3Key(pkg)}`
   const { prefix: dstdir, ...cellar } = useCellar()
   const { verbosity } = useFlags()
 
-  const tarball = await useCache().download({ url, pkg: { project, version } })
+  const tarball = await download({ url, pkg: { project, version } })
 
   try {
     await validateChecksum(tarball, `${url}.sha256sum`)

@@ -56,7 +56,9 @@ export default function useCache(): Response {
     for await (const file of prefix.ls()) {
       const match = file[1].name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)\\+${arch}\\.tar\\.gz$`)
       if (!match) { continue }
-      const [_, project, v] = match
+      const [_, p, v] = match
+      // Gotta undo the package name manipulation to get the package from the bottle
+      const project = p.replaceAll("∕", "/")
       const version = semver.coerce(v)
       if (!version) { continue }
       rv.push({ project, version })
