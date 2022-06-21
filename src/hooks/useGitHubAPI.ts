@@ -1,4 +1,4 @@
-import { RELOAD_POLICY } from "https://raw.githubusercontent.com/mxcl/deno-cache/main/mod.ts";
+import { RELOAD_POLICY } from "mxcl/deno-cache";
 import { semver, SemVer } from "types"
 import { flatMap, GET } from "utils"
 

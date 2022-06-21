@@ -9,7 +9,7 @@ args:
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
-import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
+import { S3 } from "s3";
 import { stringify as yaml } from "deno/encoding/yaml.ts"
 
 const s3 = new S3({

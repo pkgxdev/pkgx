@@ -8,7 +8,7 @@ import useFlags from "hooks/useFlags.ts"
 import { run } from "utils"
 import { crypto } from "deno/crypto/mod.ts";
 import { readAll, readerFromStreamReader } from "deno/streams/mod.ts";
-import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
+import { encodeToString } from "encodeToString";
 
 
 // # NOTE

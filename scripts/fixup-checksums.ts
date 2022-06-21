@@ -9,10 +9,10 @@ args:
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
-import { S3 } from "https://deno.land/x/s3@0.5.0/mod.ts";
+import { S3 } from "s3";
 import { crypto } from "deno/crypto/mod.ts";
 import { readerFromStreamReader, readAll } from "deno/streams/conversion.ts";
-import { encodeToString } from "https://deno.land/std@0.97.0/encoding/hex.ts";
+import { encodeToString } from "encodeToString";
 
 const s3 = new S3({
   accessKeyID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
