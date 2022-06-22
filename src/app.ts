@@ -32,10 +32,24 @@ try {
 
       console.verbose({ blueprint })
 
+      const shell = Deno.env.get("SHELL")?.split('/').pop()
+      const [ setEnv, unsetEnv ]= (() => {
+        switch (shell) {
+        case "fish":
+          return [
+            (name: string, val: string) => `set -gx ${name} ${val};`,
+            (name: string) => `set -e ${name};`
+          ]
+        default:
+          return [
+            (name: string, val: string) => `export ${name}=${val}`,
+            (name: string) => `unset ${name}`
+          ]
+      }})()
       if (blueprint?.srcroot) {
-        await print(`export SRCROOT=${blueprint.srcroot}`)
+        await print(setEnv("SRCROOT", blueprint.srcroot.string))
       } else if (Deno.env.get("SRCROOT")) {
-        await print("unset SRCROOT")
+        await print(unsetEnv("SRCROOT"))
       }
 
       const { combinedStrings: vars, pending } = await useShellEnv(blueprint?.requirements ?? [])
@@ -45,12 +59,15 @@ try {
 
       for (const [key, value] of Object.entries(vars)) {
         await print(value
-          ? `export ${key}=${value}`
-          : `unset ${key}`)
+          ? setEnv(key, value)
+          : unsetEnv(key))
       }
       if (blueprint?.version) {
-        await print(`export VERSION=${blueprint.version}`)
+        await print(setEnv("VERSION", blueprint.version.toString()))
       }
+
+      // TODO: consider command-not-found for fish
+      if (shell !== "fish") { break }
 
       if (pending.length) {
         const pantry = usePantry()
