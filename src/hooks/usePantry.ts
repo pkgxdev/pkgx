@@ -113,26 +113,31 @@ export default function usePantry(): Response {
       url = validateString(yml.distributable)
     }
 
-    url = url
-      .replace(/{{\s*version\s*}}/g, pkg.version.toString())
-      .replace(/{{\s*version.major\s*}}/g, pkg.version.major.toString())
-      .replace(/{{\s*version.minor\s*}}/g, pkg.version.minor.toString())
-      .replace(/{{\s*version.build\s*}}/g, pkg.version.build.join('+'))
+    url = remapTokens(url, pkg)
 
     return { url, stripComponents }
   }
 
   const getBuildScript = async (pkg: Package) => {
     const yml = await entry(pkg).yml()
-    const prefix = useCellar().mkpath(pkg)
-    const platform = usePlatform()
     const raw = validateString(validatePlainObject(yml.build).script)
-    return raw
-      .replace(/{{\s*hw.arch\s*}}/g, platform.arch)
-      .replace(/{{\s*hw.target\s*}}/g, platform.target)
-      .replace(/{{\s*prefix\s*}}/g, prefix.string)
-      .replace(/{{\s*version\s*}}/g, pkg.version.toString())
-      .replace(/{{\s*hw.concurrency\s*}}/g, navigator.hardwareConcurrency.toString())  //TODO remove, only available with ts build scripts
+    return remapTokens(raw, pkg)
+  }
+
+  const remapTokens = (input: string, pkg: Package) => {
+    const platform = usePlatform()
+    const prefix = useCellar().mkpath(pkg)
+
+    return [
+      { from: "version", to: pkg.version.toString() },
+      { from: "version.major", to: pkg.version.major.toString() },
+      { from: "version.minor", to: pkg.version.minor.toString() },
+      { from: "version.build", to: pkg.version.build.join('+') },
+      { from: "hw.arch", to: platform.arch },
+      { from: "hw.target", to: platform.target },
+      { from: "prefix", to: prefix.string },
+      { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() }
+    ].reduce((acc, map) => acc.replace(new RegExp(`{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
   }
 
   const update = async () => {
