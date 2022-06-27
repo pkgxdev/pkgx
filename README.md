@@ -1,18 +1,22 @@
 ![tea](https://tea.xyz/banner.png)
 
-tea is a delightful developer tool that gives you and your team your time back
-so you can concentrate on what matters: *building your app*.
+Package managers prop up every developer’s stack.
+With great power comes great responsibility—but like—packagers sit beneath all other developer tools;
+couldn’t they do so much more?
 
-tea is built with a set of primitives that make packaging *programmable*.
-We made tea/cli with those primitives.
-We want *you* to compose them and build completely new tools,
-workflows and inventions that change how you work, how your team works or
-even (especially) *how the world works*.
+We think so.
+
+tea abstracts away packaging; its a *universal* virtual environment manager,
+a *universal* interpreter; it’s a *universal* dependency manager.
+tea makes packaging *programmable* by exposing it as a set of primitives that can be composed into entirely new tools.
+Change how you work.
+Change how your team works.
+*Change how the world works*.
 
 &nbsp;
 
 
-# tea/cli 0.2.0
+# tea/cli 0.3.0
 
 tea is a universal virtual‑environment manager:
 
@@ -35,10 +39,7 @@ VERSION=…
 …
 ```
 
-Fear not, this magic works with things like [VSCode] too (we don’t believe in
-forcing or restricting your choice of tooling).
-
-> <details><summary><i>What is this sourcery?</i></summary>
+> <details><summary><i>What is this sourcery?</i></summary><br>
 >
 > tea uses a shell hook to insert the precise tooling your project needs into
 > your shell environment. Development is now containerized at the
@@ -53,7 +54,23 @@ forcing or restricting your choice of tooling).
 > trying to execute it will install it first.
 > </details>
 
-[VSCode]: https://code.visualstudio.com
+> <details><summary><i>Fear not! This works with your other shit…</i></summary><br>
+>
+> Fear not, this magic works with things like [VSCode] too (we don’t believe in
+> forcing or restricting your choice of tooling).
+> </details>
+
+> <details><summary><i>PSA:</i> Stop using Docker</summary><br>
+>
+> Docker is great for deployment, but it sucks for dev.
+>
+> *Docker stifles builders*.
+> It constricts you; you’re immalleable; tech marches onwards but your docker
+> container remains immobile.
+>
+> Keep deploying with Docker, but use tea to develop (and when you deploy, use
+> tea to install your deps).
+> </details>
 
 &nbsp;
 
@@ -67,7 +84,10 @@ go: running demo.go
 …
 ```
 
-> <details><summary><i>Is this safe?</i></summary>
+We infer interpreter from the extension, shebang, YAML front matter or
+open graph metadata (we’ve added packaging extensions).
+
+> <details><summary><i>Is this safe?</i></summary><br>
 >
 > If you’re worried about executing scripts from the Internet: *read them
 > first!* tea only executes what the script tells it to; the dependency
@@ -99,7 +119,7 @@ $ curl https://github.com/teaxyz/demos/blob/main/ai.py
 
 > † we use the term dependency manager for tools like npm, pip, cargo and gem
 > that install packages for programming languages. They are variants of
-> package managers. tea blurs the line a little between these tools.
+> package managers. tea blurs the line between these tools.
 
 &nbsp;
 
@@ -130,6 +150,9 @@ $ cd project
 $ tea build
 tea: executing `# Build`
 ```
+
+&nbsp;
+
 
 
 ## A Brief Diatribe
@@ -187,7 +210,7 @@ If they want to learn about tea first they can go to the same URL as they’re
 curl’ing. And as soon as we enable cross platform support this one-liner
 will work for everyone, everywhere.
 
-> <details><summary><i>Installing Manually</i></summary>
+> <details><summary><i>Installing Manually</i></summary><br>
 >
 > `tea` is a single binary that you can install yourself:
 >
@@ -209,7 +232,7 @@ will work for everyone, everywhere.
 >
 > </details>
 
-> <details><summary><i>Uninstalling tea</i></summary>
+> <details><summary><i>Uninstalling tea</i></summary><br>
 >
 > tea installs everything to `/opt` though other things may live there too, so
 > don’t delete indiscriminately.
@@ -227,7 +250,7 @@ tools you need per project or script are available to that workspace as
 *virtual environments*. Our magic works from depths of libc to the heights of
 the latests fads in CSS precompilers. All versions†. All platforms‡.
 
-> † we’re new software, give us time to achieve this promise
+> † We’re new software, give us time to achieve this promise.\
 > ‡ Windows, Raspberry Pi, BeOS, etc. coming soon!
 
 When you `cd` into a project in your terminal, tea sets up the environment so
@@ -256,7 +279,7 @@ your `README`.
 >
 > </details>
 
-For an example see our [Dependencies](#dependencies) section
+For an example see our “[dependencies](#dependencies)” section
 (teaception: we use tea to build tea).
 
 You can check what environment this generates with `tea`:
@@ -397,7 +420,7 @@ tea allows you to “get started” anywhere (*just not quite yet*).
 # Magic
 
 tea uses the concept of magic. In an environment with magic we try to be
-clever and infer what you want. In an environment of muggles we are strict and
+clever and infer what you want. Without magic we are strict and
 require precise specification of your intent.
 
 You can disable magic by specifying `--muggle` or exporting `MAGIC=0` to your
@@ -493,4 +516,10 @@ If you got this error message, you need to install tea:
 |   Project   | Version |  Lock  |
 |-------------|---------|--------|
 | deno.land   | ^1.18   | 1.20.3 |
-| tea.xyz     | 0.2.0   | -      |
+| tea.xyz     | ^0      | 0.3.0  |
+
+
+[pantry]: ../../../../pantry
+[VSCode]: https://code.visualstudio.com
+[Markdown]: https://daringfireball.net/projects/markdown/
+[discussion]: ../../discussions

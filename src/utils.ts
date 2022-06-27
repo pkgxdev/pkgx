@@ -146,7 +146,7 @@ export async function run(opts: RunOptions) {
   const proc = Deno.run({ ...opts, cmd, cwd })
   const exit = await proc.status()
   console.verbose({ exit })
-  if (!exit.success) throw "run-error"
+  if (!exit.success) throw new Error("run-error")
 }
 
 

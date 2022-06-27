@@ -5,7 +5,8 @@ export async function shout({ tea: args, cwd }: { tea: string[], cwd?: Path }) {
   const cmd = [
     'deno',
     'run',
-    '--allow-env', '--allow-read',
+    '--allow-env', '--allow-read', '--allow-run',
+    `--allow-write=${Deno.env.get('TMPDIR')}`,
     `--import-map=${srcroot}/import-map.json`,
     `${srcroot}/src/app.ts`,
     ...args

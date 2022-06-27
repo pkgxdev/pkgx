@@ -3,22 +3,7 @@ import { flatMap, chuzzle } from "utils"
 import { Path, Verbosity, PackageRequirement, parsePackageRequirement } from "types"
 import { isNumber } from "utils"
 
-type Mode = {
-  mode: 'run'
-  script: Path | URL
-  args: string[]
-  useVirtualEnv: boolean
-} | {
-  mode: 'help'
-} | {
-  mode: 'dump'
-  script?: Path | URL
-  env: boolean
-} | {
-  mode: 'exec'
-  cmd: [PackageRequirement, {bin: string}]
-  args: string[]
-}
+export type Mode = 'exec' | 'dump' | 'help'
 
 interface Flags {
   verbosity: Verbosity
@@ -56,10 +41,19 @@ interface Adjustments {
   cd?: Path
 }
 
+interface Args {
+  std: string[]
+  fwd: string[]
+  env: boolean
+  pkgs: PackageRequirement[]
+}
+
 //FIXME -v=99 parses and gives v == 1
 // probs we shouldn't allow this, you have to use --verbose to specify it thus
 
-export function useArgs(args: string[]): Mode & Adjustments {
+export type ReturnValue = { mode?: Mode } & Adjustments & { args: Args }
+
+export function useArgs(args: string[]): ReturnValue {
   if (flags) throw "contract-violated"
 
   const parsedArgs = parseFlags(args, {
@@ -91,6 +85,7 @@ export function useArgs(args: string[]): Mode & Adjustments {
       aliases: ["C", "chdir"]
     }, {
       name: "exec",
+      aliases: ["x"],
       type: "string"
     }]
   }) as { flags: {
@@ -102,7 +97,7 @@ export function useArgs(args: string[]): Mode & Adjustments {
     v?: number,
     muggle?: boolean,
     cd?: string,
-    exec: string
+    exec?: string,
   }, unknown: string[], literal: string[] }
 
   const { flags: { verbose, silent, help, env, dump, v, muggle, cd, exec }, unknown, literal } = parsedArgs
@@ -122,49 +117,29 @@ export function useArgs(args: string[]): Mode & Adjustments {
 
   console.debug({ parsedArgs })
 
+  if ((exec?1:0) + (help?1:0) + (dump?1:0) > 1) throw "usage:invalid"
+
+  // TEA_DIR must be absolute for security reasons
+  const getcd = () =>
+    flatMap(cd, x => Path.cwd().join(x)) ??
+    flatMap(Deno.env.get("TEA_DIR"), x => new Path(x))
+
   return {
-    ...get(),
-    cd: flatMap(cd, x => Path.cwd().join(x))
-  }
-
-  function get(): Mode {
-    if (help) {
-      if (env || dump) throw "usage:invalid"
-      return { mode: 'help' }
-    }
-    if (dump) {
-      if (unknown.length < 1 && !env) throw "file argument required"
-      return {
-        mode: 'dump',
-        env: env ?? false,
-        script: flatMap(unknown[0], PathOrURL)
-      }
-    }
-    if (exec) {
-      const pkg = parsePackageRequirement(exec)
-      const [bin, ...args] = literal
-      return {
-        mode: 'exec',
-        cmd: [pkg, {bin}],
-        args
-      }
-    }
-    if (unknown.length < 1) throw "file argument required"
-    const [arg0, ...args] = unknown
-    return {
-      mode: 'run',
-      useVirtualEnv: env ?? false,
-      script: PathOrURL(arg0),
-      args
+    ...getMode(),
+    cd: getcd(),
+    args: {
+      env: env ?? false,
+      std: unknown,
+      fwd: literal,
+      pkgs: [] //FIXME
     }
   }
-}
 
-function PathOrURL(input: string): Path | URL {
-  try {
-    return new URL(input)
-  } catch {
-    return Path.cwd().join(input)
+  function getMode(): { mode?: Mode } {
+    if (help) return { mode: 'help' }
+    if (dump) return { mode: 'dump' }
+    if (exec) return { mode: 'exec' }
+    return {}
   }
 }
 

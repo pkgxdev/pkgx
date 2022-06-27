@@ -9,8 +9,8 @@ args: /bin/sh
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT,GITHUB_TOKEN \
+ --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
- --allow-write="$TMPDIR"
+ --allow-write="$TMPDIR" \
  tests/*.ts

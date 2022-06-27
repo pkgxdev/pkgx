@@ -150,7 +150,15 @@ export default function usePantry(): Response {
     const yml = await entry(pkg).yml()
     const node = yml["provides"]
     if (!isArray(node)) throw "bad-yaml"
-    return node.compactMap(x => isString(x) && x.startsWith("bin/") && x.slice(4))
+
+    return node.compactMap(x => {
+      if (isPlainObject(x)) {
+        x = x["executable"]
+      }
+      if (isString(x)) {
+        return x.startsWith("bin/") && x.slice(4)
+      }
+    })
   }
 
   const ls = async (path = "") => {

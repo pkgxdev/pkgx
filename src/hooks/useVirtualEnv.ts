@@ -97,7 +97,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   })()
 
   const fromMetadataTable = () => flatMap(
-    findTable("Metadata").find(([key, value]) => key == "Version" && value),
+    findTable("Metadata").find(([key, value]) => key.toLowerCase() == "version" && value),
     ([,x]) => new SemVer(x)
   )
 
@@ -108,7 +108,9 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
 
   const version = fromMetadataTable() ?? fromFirstHeader()
 
-  return { requirements, version }
+  if (requirements.chuzzle() || version) {
+    return { requirements, version }
+  }
 }
 
 async function extractFromJSON(path: Path): Promise<VirtualEnvSubset | undefined> {

@@ -1,4 +1,4 @@
-import { assert } from "deno/testing/asserts.ts"
+import { assert, assertEquals } from "deno/testing/asserts.ts"
 import useExecutableMarkdown from "hooks/useExecutableMarkdown.ts"
 import { undent } from "utils"
 import { shout, sandbox } from "./utils.ts"
@@ -55,21 +55,28 @@ Deno.test("find-script-complex", async () => {
 
 ////////////////////////////////////////////////////////////////////////// impl
 Deno.test("tea build", async () => {
-  const { markdown, script } = fixture()
+  const { markdown } = fixture()
   const output = await sandbox(async tmpdir => {
+    tmpdir.join(".git").mkdir()
     tmpdir.join("README.md").write({ text: undent`
       # Build
       ${markdown}
+
+      # Metadata
+      | Key     | Value   |
+      |---------|---------|
+      | Version | 1.2.3   |
       `})
+    //FIXME metadata table because depending on tea.xyz is silently ignored
     return await shout({ tea: ["build"], cwd: tmpdir })
   })
-  assert(output == script)
+  assertEquals(output, "foo bar\n")
 })
 
 
 ////////////////////////////////////////////////////////////////////////// util
 function fixture() {
-  const script = 'foo bar'
+  const script = 'echo foo bar'
   const markdown = undent`
     \`\`\`sh
     ${script}
