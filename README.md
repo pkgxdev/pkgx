@@ -150,7 +150,9 @@ Nowadays every programming language
 reimplements the same set of libraries and tools because using a
 well-maintained, mature and portable library that lives higher up the stack
 adds too much complexity.
-This extends the adolescence of new languages and leads to degrees of
+This extends the adolescence of new languages,
+results in no single language even becoming truly state of the art
+and leads to degrees of
 duplication that make the open source ecosystem *fragile*.
 This is to the detriment of all software, everywhere.
 
@@ -446,6 +448,10 @@ We install compartmentalized packages to `/opt`,we create one symlink
 tea is creating new technologies that will change how open source is funded.
 This software is an essential part of that endeavor and is released
 prior to our protocol in order to bootstrap the open source revolution.
+
+We don’t subscribe to any particular “web” at tea.xyz, our blockchain
+component will be an implementation detail that you won’t need to think about
+(but we think you will want to).
 
 ## I have another question
 
