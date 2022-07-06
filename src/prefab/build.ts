@@ -26,6 +26,7 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
 
     set -e
     set -o pipefail
+    set -x
     cd "${src}"
 
     ${expand(env.vars)}
