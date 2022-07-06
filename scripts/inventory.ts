@@ -11,6 +11,7 @@ args:
 
 import { S3 } from "s3";
 import { stringify as yaml } from "deno/encoding/yaml.ts"
+import { stringify as csv } from "deno/encoding/csv.ts"
 
 const s3 = new S3({
   accessKeyID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
@@ -21,6 +22,7 @@ const s3 = new S3({
 const bucket = s3.getBucket(Deno.env.get("S3_BUCKET")!);
 
 const inventory: Inventory = {}
+const flat = []
 
 for await (const pkg of bucket.listAllObjects({ batchSize: 200 })) {
   if (!pkg.key?.endsWith('.tar.gz')) { continue }
@@ -35,11 +37,31 @@ for await (const pkg of bucket.listAllObjects({ batchSize: 200 })) {
   if (!inventory[project][platform]) inventory[project][platform] = {}
   if (!inventory[project][platform]) inventory[project][platform] = {}
   inventory[project][platform][arch] = [...(inventory[project]?.[platform]?.[arch] ?? []), version]
+  flat.push({ project, platform, arch, version })
 }
 
-const contents = new TextEncoder().encode(yaml(inventory))
+/// For ultimate user-friendliness, we store this data 4 ways:
+/// YAML, JSON, CSV, flat text
 
-bucket.putObject("versions.yaml", contents)
+const te = new TextEncoder()
+
+const yml = te.encode(yaml(inventory))
+
+bucket.putObject("versions.yaml", yml)
+bucket.putObject("versions.yml", yml)  // Some people like 8.3 filenames
+
+const json = te.encode(JSON.stringify(inventory))
+
+bucket.putObject("versions.json", json)
+
+const csvData = te.encode(await csv(flat, ["project", "platform", "arch", "version"]))
+
+bucket.putObject("versions.csv", csvData)
+
+const txt = te.encode(flat.map(({ project, platform, arch, version }) => `${project}/${platform}/${arch}/${version}`).join("\n"))
+
+bucket.putObject("versions.txt", txt)
+
 //end
 
 type Inventory = {
