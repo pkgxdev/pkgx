@@ -16,7 +16,7 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
   const src = dst.join("src")
   const env = await useShellEnv(deps)
   const sh = await pantry.getBuildScript(pkg)
-  const { platform, target } = usePlatform()
+  const { platform } = usePlatform()
 
   /// FIXME: no one likes this. `set -o pipefail` is the reason for this requirement.
   const shell = platform === "linux" ? "bash" : "sh"
@@ -27,11 +27,6 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
     set -e
     set -o pipefail
     cd "${src}"
-
-    export CFLAGS="-target ${target} $CFLAGS"
-    export CCFLAGS="-target ${target} $CCFLAGS"
-    export CXXFLAGS="-target ${target} $CXXFLAGS"
-    export LDFLAGS="-target ${target} $LDFLAGS"
 
     ${expand(env.vars)}
 
