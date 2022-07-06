@@ -12,7 +12,13 @@ export async function shout({ tea: args, cwd }: { tea: string[], cwd?: Path }) {
     ...args
   ]
 
-  const proc = Deno.run({ cmd, stdout: "piped", cwd: cwd?.string })
+  // unset these if set
+  const env = {
+    VERBOSE: "0",
+    DEBUG: "0"
+  }
+
+  const proc = Deno.run({ cmd, stdout: "piped", cwd: cwd?.string, env})
   const raw = await proc.output()
   proc.close()
 
