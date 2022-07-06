@@ -8,7 +8,7 @@ args:
   - --allow-run
   - --allow-read=/opt
   - --allow-write=/opt
-  - --allow-env=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,S3_BUCKET,GITHUB_TOKEN
+  - --allow-env=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,S3_BUCKET,GITHUB_TOKEN,VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
