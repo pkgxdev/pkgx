@@ -20,7 +20,7 @@ Change how your team works.
 
 tea is a universal virtual‑environment manager:
 
-```
+```sh
 $ deno
 zsh: command not found: deno
 
@@ -37,6 +37,18 @@ PATH=/opt/deno.land/v1.20.3/bin:/usr/bin:/bin
 SRCROOT=/src/my-project
 VERSION=…
 …
+```
+
+You need 34 dependencies to compile our white-paper but with tea there’s
+nothing to think about:
+
+```sh
+$ git clone https://github.com/teaxyz/white-paper
+$ cd white-paper
+$ make
+tea: installing dependencies…
+…
+$ open tea.white-paper.pdf
 ```
 
 > <details><summary><i>What is this sourcery?</i></summary><br>

@@ -20,6 +20,7 @@ export default async function hydrate(reqs: PackageRequirement[]): Promise<Packa
         // ^^ adjust our constraint
       } else {
         stack.unshift(dep)
+        set[dep.project] = dep.constraint
       }
     }
 

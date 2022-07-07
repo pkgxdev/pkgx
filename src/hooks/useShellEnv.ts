@@ -2,7 +2,7 @@ import { PackageRequirement } from "types"
 import useCellar from "hooks/useCellar.ts"
 
 type Env = Record<string, string[]>
-export const EnvKeys = ['PATH', 'MANPATH', 'PKG_CONFIG_PATH']
+export const EnvKeys = ['PATH', 'MANPATH', 'PKG_CONFIG_PATH', "LIBRARY_PATH", "CPATH", "XDG_DATA_DIRS"]
 
 interface Response {
   vars: Env
@@ -29,6 +29,14 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
         if (!vars[key]) vars[key] = []
         vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
       }
+
+      // if the tool provides no pkg-config files then fall back on old-school specification methods
+      if (!vars.PKG_CONFIG_PATH?.chuzzle()) {
+        vars.LIBRARY_PATH = []
+        vars.CPATH = []
+        vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
+        vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
+      }
   }
 
   const defaults: Env = {}
@@ -54,5 +62,10 @@ function suffixes(key: string) {
       return ["share/man"]
     case 'PKG_CONFIG_PATH':
       return ['share/pkgconfig', 'lib/pkgconfig']
+    case 'LIBRARY_PATH':
+    case 'CPATH':
+      return []  // we handle these specially
+    case 'XDG_DATA_DIRS':
+      return ['share']
   }
 }

@@ -34,14 +34,14 @@ const prefix = new Path("/opt/tea.xyz/var/pantry/projects")
 export default function usePantry(): Response {
   const getVersions = async (pkg: PackageRequirement) => {
     const files = entry(pkg)
-    let rv: SemVer[]
-    if (await txt()) return rv!
-    if (await github()) return rv!.sort()
     const foo = (await files.yml()).versions
     if (isArray(foo)) {
       if (foo.length > 5) throw "use-versions.txt-if-more-than-5-versions"
       return foo.map(x => new SemVer(x))
     }
+    let rv: SemVer[]
+    if (await txt()) return rv!
+    if (await github()) return rv!.sort()
     throw "no-versions"
 
     async function txt(): Promise<boolean> {

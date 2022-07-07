@@ -8,7 +8,7 @@ args:
   - --allow-run
   - --allow-read=/opt
   - --allow-write=/opt
-  - --allow-env=VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN
+  - --allow-env=VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN,CPATH,LIBRARY_PATH,XDG_DATA_DIRS
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
@@ -33,7 +33,7 @@ const pantry = usePantry()
 //TODO skip untar, skip download etc. flags
 
 for (const req of args[0].map(parsePackageRequirement)) {
-  console.debug({hi: req})
+  console.debug({ req })
   const versions = await pantry.getVersions(req)
   const version = semver.maxSatisfying(versions, req.constraint)
   if (!version) throw "no-version-found"

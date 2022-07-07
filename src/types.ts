@@ -37,7 +37,7 @@ export type DistributableType = BinaryType[] | 'source-code'
 export type Platform = 'darwin' | 'linux' | 'windows'
 
 export function parsePackageRequirement(input: string): PackageRequirement {
-  const splat = input.split('@')
+  const splat = input.split('@') //FIXME we do specs with eg. foo^1
   switch (splat.length) {
   case 1:
     return {
@@ -57,10 +57,9 @@ export function parsePackageRequirement(input: string): PackageRequirement {
 /////////////////////////////////////////////////////////////////////// semver
 import SemVer, * as semver from "semver"
 
-//TODO I expect this is inefficient AF
-//FIXME strictly this isn’t valid since ranges can have holes, but we don’t allow holes
 function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
-  throw new Error("unimpl")
+  if (a.raw == b.raw) return a
+  throw "unimpl" //TODO
 }
 
 export { SemVer, semver, semver_intersection }
