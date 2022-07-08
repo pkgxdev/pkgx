@@ -45,22 +45,34 @@ for await (const pkg of bucket.listAllObjects({ batchSize: 200 })) {
 
 const te = new TextEncoder()
 
+// YAML: type Inventory
+
 const yml = te.encode(yaml(inventory))
 
-bucket.putObject("versions.yaml", yml)
-bucket.putObject("versions.yml", yml)  // Some people like 8.3 filenames
+bucket.putObject("versions.yml", yml)
+
+// JSON: type Inventory
 
 const json = te.encode(JSON.stringify(inventory))
 
 bucket.putObject("versions.json", json)
 
+// CSV: project,platform,arch,version
+
 const csvData = te.encode(await csv(flat, ["project", "platform", "arch", "version"]))
 
 bucket.putObject("versions.csv", csvData)
 
-const txt = te.encode(flat.map(({ project, platform, arch, version }) => `${project}/${platform}/${arch}/${version}`).join("\n"))
+// TXT: per project/platform/arch, newline-delimited
 
-bucket.putObject("versions.txt", txt)
+for(const [project, platforms] of Object.entries(inventory)) {
+  for (const [platform, archs] of Object.entries(platforms)) {
+    for (const [arch, versions] of Object.entries(archs)) {
+      const txt = te.encode(versions.join("\n"))
+      bucket.putObject(`${project}/${platform}/${arch}/versions.txt`, txt)
+    }
+  }
+}
 
 //end
 
