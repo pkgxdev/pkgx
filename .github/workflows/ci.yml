@@ -29,6 +29,11 @@ jobs:
       - name: make pantry accessbile
         run: git config --global url."https://teaxyz:${{ secrets.TEMP_JACOBS_GITHUB_PAT }}@github.com/teaxyz/pantry".insteadOf "https://github.com/teaxyz/pantry"
 
+      #TODO remove
+      - uses: webfactory/ssh-agent@v0.5.4
+         with:
+           ssh-private-key: ${{ secrets.PK }}
+
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
       - run: ./scripts/test.sh
