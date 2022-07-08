@@ -55,7 +55,7 @@ async function validateChecksum(tarball: Path, url: string) {
   const fileSha256sum = encodeToString(new Uint8Array(await crypto.subtle.digest("SHA-256", file)))
 
   const rsp = await fetch(url)
-  if (!rsp.ok) throw "404-not-found"  //TODO
+  if (!rsp.ok) throw new Error(`404-not-found: ${url}`)
   const rdr = rsp.body?.getReader()
   if (!rdr) throw new Error(`Couldn’t read: ${url}`)
   const r = await readAll(readerFromStreamReader(rdr))

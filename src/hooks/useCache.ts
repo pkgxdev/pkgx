@@ -84,7 +84,7 @@ async function grab({ readURL, writeFilename }: { readURL: string, writeFilename
   verbose({destination: writeFilename})
 
   const rsp = await fetch(readURL)
-  if (!rsp.ok) throw "404-not-found"  //TODO
+  if (!rsp.ok) throw new Error(`404-not-found: ${readURL}`)
   const rdr = rsp.body?.getReader()
   if (!rdr) throw new Error(`Couldn’t read: ${readURL}`)
   const r = readerFromStreamReader(rdr)
