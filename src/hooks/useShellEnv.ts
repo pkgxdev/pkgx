@@ -24,7 +24,7 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
 
     if (!installation) {
       pending.push(requirement)
-    } else for (const key of EnvKeys)
+    } else for (const key of EnvKeys) {
       for (const suffix of suffixes(key)!) {
         if (!vars[key]) vars[key] = []
         vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
@@ -37,6 +37,7 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
         vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
         vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
       }
+    }
   }
 
   const defaults: Env = {}
