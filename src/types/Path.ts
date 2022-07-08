@@ -170,7 +170,11 @@ export default class Path {
   }
 
   static mktemp(): Path {
-    const rv = Deno.makeTempDirSync({ prefix: "tea" })
+    const dir = "/opt/tea.xyz/tmp"
+    Deno.mkdirSync(dir, {recursive: true})
+    const rv = Deno.makeTempDirSync({
+      prefix: "tea", dir
+    })
     return new Path(rv)
   }
 
