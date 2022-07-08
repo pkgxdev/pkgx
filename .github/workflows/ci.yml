@@ -26,9 +26,8 @@ jobs:
       TEA_SECRET: ${{ secrets.TEA_SECRET }}
     steps:
       #TMP until we go public
-      - uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.PK }}
+      - name: make pantry accessbile
+        run: git config --global url."https://teaxyz:${{ secrets.TEMP_JACOBS_GITHUB_PAT }}@github.com/teaxyz/pantry".insteadOf "https://github.com/teaxyz/pantry"
 
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0

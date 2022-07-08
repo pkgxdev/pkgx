@@ -20,7 +20,7 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
   const pending: PackageRequirement[] = []
 
   for (const requirement of requirements) {
-    const installation = await cellar.resolve(requirement)
+    const installation = await cellar.resolve(requirement).swallow(/^not-found:/)
 
     if (!installation) {
       pending.push(requirement)

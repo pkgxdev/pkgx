@@ -16,7 +16,7 @@ Change how your team works.
 &nbsp;
 
 
-# tea/cli 0.3.0
+# tea/cli 0.3.1
 
 tea is a universal virtual‑environment manager:
 
@@ -528,7 +528,7 @@ If you got this error message, you need to install tea:
 |   Project   | Version |  Lock  |
 |-------------|---------|--------|
 | deno.land   | ^1.18   | 1.20.3 |
-| tea.xyz     | ^0      | 0.3.0  |
+| tea.xyz     | ^0      | 0.3.1  |
 
 
 [pantry]: ../../../../pantry

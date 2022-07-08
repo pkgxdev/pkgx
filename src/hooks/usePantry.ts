@@ -202,7 +202,7 @@ async function installIfNecessary() {
     const cwd = prefix.parent().parent().mkpath()
     //FIXME before release, use https://
     await run({
-      cmd: ["git", "clone", "git@github.com:teaxyz/pantry.git"],
+      cmd: ["git", "clone", "https://github.com/teaxyz/pantry"],
       cwd
     })
   }
