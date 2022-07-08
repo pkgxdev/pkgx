@@ -53,18 +53,20 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
   const versions = await pantry.getVersions(project)
 
   /// This builds _all_ minors we can find. For now, let's just build the new stuff
-  // if (project.constraint.raw == "*") {
-  //   const reqs = new Set(versions.map(v => `${v.major}.${v.minor}`))
-  //   for (const req of reqs) {
-  //     const build = { project: project.project, constraint: new semver.Range(req) }
-  //     try {
-  //       await buildIfNeeded({ project: build, install })
-  //     } catch (error) {
-  //       console.verbose({ couldntBuild: { project, req }, error })
-  //     }
-  //   }
-  //   return
-  // }
+  /// Belay that. We need to build all the _majors_ we can find (for stuff like nodejs.org)
+  if (project.constraint.raw == "*") {
+    // const reqs = new Set(versions.map(v => `${v.major}.${v.minor}`)) // All minors
+    const reqs = new Set(versions.map(v => `${v.major}`)) // All majors
+    for (const req of reqs) {
+      const build = { project: project.project, constraint: new semver.Range(req) }
+      try {
+        await buildIfNeeded({ project: build, install })
+      } catch (error) {
+        console.verbose({ couldntBuild: { project, req }, error })
+      }
+    }
+    return
+  }
 
   const version = semver.maxSatisfying(versions, project.constraint)
   if (!version) throw "no-version-found"
