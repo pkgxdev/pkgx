@@ -11,7 +11,7 @@ import useFlags from "hooks/useFlags.ts"
 export interface VirtualEnv {
   srcroot: Path
   requirements: PackageRequirement[]
-  requirementsFile: Path
+  requirementsFile: Path  //NOTE maybe incorrect
   version?: SemVer
 }
 
@@ -38,18 +38,30 @@ export default async function useVirtualEnv(): Promise<VirtualEnv> {
     const requirementsFile = srcroot.join(filename).isFile()
     if (!requirementsFile) return
     const subset = await fn(requirementsFile)
-    if (subset) return { ...subset, requirementsFile, srcroot }
+    if (subset) {
+      const requirements = subset.requirements ?? await domagic(srcroot) ?? []
+      return { ...subset, requirements, requirementsFile, srcroot }
+    }
   }
 
   let bp: VirtualEnv | undefined
   if (bp = await attempt("package.json", extractFromJSON)) return bp
   if (bp = await attempt("README.md", extractFromMarkdown)) return bp
-  if (bp = await domagic(srcroot)) return bp
+
+  const requirements = await domagic(srcroot)
+  if (requirements) return {
+    requirements,
+    requirementsFile: srcroot.join(".null"),
+    srcroot
+  }
 
   throw "not-found:virtual-env"
 }
 
-type VirtualEnvSubset = Omit<VirtualEnv, 'srcroot' | 'requirementsFile'>
+type VirtualEnvSubset = {
+  requirements: PackageRequirement[] | undefined
+  version: SemVer | undefined
+}
 
 //TODO support windows newlines
 //TODO use a markdown parser lol
@@ -58,7 +70,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   const lines = text.split("\n")
 
   const findTable = (header: string) => {
-    const rows: [string, string][] = []
+    let rows: [string, string][] | undefined = undefined
     let found: 'nope' | 'header' | 'table' = 'nope'
     done: for (const line of lines) {
       switch (found) {
@@ -69,6 +81,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
       case 'table': {
         const match = line.match(/^\|([^|]+)\|([^|]+)\|/)
         if (!match) break done
+        if (!rows) rows = []
         rows.push([match[1].trim(), match[2].trim()])
       } break
       case 'nope':
@@ -81,7 +94,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   }
 
   const requirements = (() => {
-    return findTable("Dependencies").compactMap(([project, constraint]) => {
+    return findTable("Dependencies")?.compactMap(([project, constraint]) => {
       switch (project) {
       case "cc":
       case "c++":
@@ -97,7 +110,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   })()
 
   const fromMetadataTable = () => flatMap(
-    findTable("Metadata").find(([key, value]) => key.toLowerCase() == "version" && value),
+    findTable("Metadata")?.find(([key, value]) => key.toLowerCase() == "version" && value),
     ([,x]) => new SemVer(x)
   )
 
@@ -108,9 +121,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
 
   const version = fromMetadataTable() ?? fromFirstHeader()
 
-  if (requirements.chuzzle() || version) {
-    return { requirements, version }
-  }
+  return { requirements, version }
 }
 
 async function extractFromJSON(path: Path): Promise<VirtualEnvSubset | undefined> {
@@ -118,11 +129,11 @@ async function extractFromJSON(path: Path): Promise<VirtualEnvSubset | undefined
   if (!isPlainObject(json)) throw "bad-json"
   if (!json.tea) return
   const requirements = (() => {
-    if (!json.tea.dependencies) return []
+    if (!json.tea.dependencies) return
     if (!isPlainObject(json.tea?.dependencies)) throw "bad-json"
     return parsePackageRequirements(json.tea.dependencies)
   })()
-  const version = json.version
+  const version = flatMap(json.version, x => new SemVer(x))
   return { requirements, version }
 }
 
@@ -138,7 +149,8 @@ function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
   return rv
 }
 
-async function domagic(srcroot: Path): Promise<VirtualEnv | undefined> {
+//TODO get version too
+async function domagic(srcroot: Path): Promise<PackageRequirement[] | undefined> {
   let path: Path | undefined
 
   const requirements = await (async () => {
@@ -169,7 +181,5 @@ async function domagic(srcroot: Path): Promise<VirtualEnv | undefined> {
     }
   })()
 
-  if (requirements) return {
-    srcroot, requirements, requirementsFile: path!
-  }
+  return requirements
 }
