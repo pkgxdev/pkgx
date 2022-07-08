@@ -12,6 +12,7 @@ args:
 import { S3 } from "s3";
 import { stringify as yaml } from "deno/encoding/yaml.ts"
 import { stringify as csv } from "deno/encoding/csv.ts"
+import { Inventory } from "../src/hooks/useInventory.ts";
 
 const s3 = new S3({
   accessKeyID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
@@ -75,11 +76,3 @@ for(const [project, platforms] of Object.entries(inventory)) {
 }
 
 //end
-
-type Inventory = {
-  [project: string]: {
-    [platform: string]: {
-      [arch: string]: string[]
-    }
-  }
-}
