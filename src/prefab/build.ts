@@ -18,6 +18,10 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
   const sh = await pantry.getBuildScript(pkg)
   const { platform } = usePlatform()
 
+  if (env.pending.length) {
+    throw {uninstalled: env.pending}
+  }
+
   /// FIXME: no one likes this. `set -o pipefail` is the reason for this requirement.
   const shell = platform === "linux" ? "bash" : "sh"
 

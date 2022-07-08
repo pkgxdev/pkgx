@@ -30,12 +30,11 @@ jobs:
       commence: ${{ steps.rev-parse.outputs.result == 'commence' }}
     steps:
       - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
 
       #TMP until we go public
-      - uses: webfactory/ssh-agent@v0.5.4
-        with:
-          ssh-private-key: ${{ secrets.PK }}
+      - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
+
+      - uses: teaxyz/setup@v0
 
       - id: extract
         name: determine current version
