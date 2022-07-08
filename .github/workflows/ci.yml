@@ -31,8 +31,8 @@ jobs:
 
       #TODO remove
       - uses: webfactory/ssh-agent@v0.5.4
-         with:
-           ssh-private-key: ${{ secrets.PK }}
+        with:
+          ssh-private-key: ${{ secrets.PK }}
 
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
