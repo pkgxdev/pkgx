@@ -8,7 +8,7 @@ const rawArgs = useArgs(Deno.args)
 const { silent, verbose, magic, verbosity } = useFlags()
 
 if (verbose) {
-  const version = '0.1.0' //FIXME
+  const version = '0.0.0-α'
   console.log(`tea ${version}`)
 }
 
