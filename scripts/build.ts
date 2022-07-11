@@ -40,15 +40,14 @@ for (const req of args[0].map(parsePackageRequirement)) {
   const pkg = { project: req.project, version }
   console.debug(pkg)
   const deps = await pantry.getDeps({ pkg, wbuild: true })
-  const graph = await hydrate(deps)
 
-  console.debug(deps, graph)
+  console.debug({ deps })
 
   if (!skipExtract) {
     await prepare(pkg)
   }
 
-  const path = await build({ pkg, deps: graph })
+  const path = await build({ pkg, deps })
   await link({ path, pkg })
 }
 
