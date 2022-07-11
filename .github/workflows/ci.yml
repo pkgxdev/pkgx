@@ -31,15 +31,9 @@ jobs:
       - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
 
       - uses: teaxyz/setup@v0
-      - run: ./scripts/test.sh
+        with:
+          target: test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Typecheck ./scripts/*
-        run: |
-          eval "$(tea -Eds)"
-          for x in scripts/*.ts; do
-            deno check --import-map=import-map.json $x
-          done
-        env:
-          VERBOSE: -1
+      - run: tea typecheck

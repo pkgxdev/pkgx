@@ -523,12 +523,39 @@ Start a [discussion] and we’ll get back to you.
 If you got this error message, you need to install tea:
 `sh <(curl https://tea.xyz)`.
 
+
 ## Dependencies
 
 |   Project   | Version |
 |-------------|---------|
 | deno.land   | ^1.18   |
 | tea.xyz     | ^0      |
+
+
+# Scripts
+
+## Test
+
+```sh
+export TMPDIR=${TMPDIR:-/tmp}
+
+deno test \
+ --allow-net \
+ --allow-read \
+ --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR \
+ --allow-run \
+ --import-map=$SRCROOT/import-map.json \
+ --allow-write="$TMPDIR" \
+ $SRCROOT/tests/*.ts
+```
+
+## Typecheck
+
+```sh
+for x in scripts/*.ts src/app.ts; do
+  deno check --import-map=$SRCROOT/import-map.json $x
+done
+```
 
 
 [pantry]: ../../../../pantry
