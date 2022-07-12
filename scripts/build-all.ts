@@ -34,7 +34,7 @@ const s3 = new S3({
 
 const bucket = s3.getBucket(Deno.env.get("S3_BUCKET")!);
 
-const results = {
+const results: { built: string[], failed: string[] } = {
   built: [],
   failed: []
 }
@@ -106,9 +106,9 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
   try {
     const path = await build({ pkg, deps: graph })
     await link({ path, pkg })
-    results.built.add(`${pkg.project}-${pkg.version.version}`)
+    results.built.push(`${pkg.project}-${pkg.version.version}`)
   } catch (error) {
-    results.failed.add(`${pkg.project}-${pkg.version.version}`)
+    results.failed.push(`${pkg.project}-${pkg.version.version}`)
     console.verbose({ failedToBuild: pkg, error })
   } finally {
     /// HACK: can't clean up `go` srcdir because it's a required part of the install
