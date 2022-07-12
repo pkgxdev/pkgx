@@ -1,6 +1,6 @@
 import { Package, PackageRequirement, Path, PlainObject, SemVer, semver } from "types"
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
-import { run, flatMap, isNumber, isPlainObject, isString, isArray } from "utils"
+import { run, flatMap, isNumber, isPlainObject, isString, isArray, undent } from "utils"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 import { join } from "deno/path/mod.ts";
@@ -120,7 +120,18 @@ export default function usePantry(): Response {
 
   const getBuildScript = async (pkg: Package) => {
     const yml = await entry(pkg).yml()
-    const raw = validateString(validatePlainObject(yml.build).script)
+    let raw = validateString(validatePlainObject(yml.build).script)
+
+    const wd = yml.build["working-directory"]
+    if (wd) {
+      raw = undent`
+        mkdir ${wd}
+        cd ${wd}
+
+        ${raw}
+        `
+    }
+
     return remapTokens(raw, pkg)
   }
 
