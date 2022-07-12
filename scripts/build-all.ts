@@ -34,6 +34,11 @@ const s3 = new S3({
 
 const bucket = s3.getBucket(Deno.env.get("S3_BUCKET")!);
 
+const results: { built: string[], failed: string[] } = {
+  built: [],
+  failed: []
+}
+
 for await (const project of projects) {
   try {
     const req = { project, constraint: new semver.Range('*') }
@@ -101,7 +106,9 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
   try {
     const path = await build({ pkg, deps: graph })
     await link({ path, pkg })
+    results.built.push(`${pkg.project}-${pkg.version.version}`)
   } catch (error) {
+    results.failed.push(`${pkg.project}-${pkg.version.version}`)
     console.verbose({ failedToBuild: pkg, error })
   } finally {
     /// HACK: can't clean up `go` srcdir because it's a required part of the install
@@ -110,6 +117,10 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
     }
   }
 }
+
+console.verbose({ results })
+
+//end
 
 async function prepare(pkg: Package) {
   const dstdir = useCellar().mkpath(pkg).join("src")
