@@ -2,7 +2,15 @@ import { PackageRequirement } from "types"
 import useCellar from "hooks/useCellar.ts"
 
 type Env = Record<string, string[]>
-export const EnvKeys = ['PATH', 'MANPATH', 'PKG_CONFIG_PATH', "LIBRARY_PATH", "CPATH", "XDG_DATA_DIRS"]
+export const EnvKeys = [
+  'PATH',
+  'MANPATH',
+  'PKG_CONFIG_PATH',
+  'LIBRARY_PATH',
+  'CPATH',
+  'XDG_DATA_DIRS',
+  'CMAKE_PREFIX_PATH'
+]
 
 interface Response {
   vars: Env
@@ -37,6 +45,12 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
         vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
         vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
       }
+
+      //TODO only if cmake is in deps
+      if (!vars.CMAKE_PREFIX_PATH) vars.CMAKE_PREFIX_PATH = []
+      vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
+
+      //TODO PKG_CONFIG_PATH only if pkg-config is in deps
     }
   }
 
@@ -68,5 +82,7 @@ function suffixes(key: string) {
       return []  // we handle these specially
     case 'XDG_DATA_DIRS':
       return ['share']
+    default:
+      return []
   }
 }
