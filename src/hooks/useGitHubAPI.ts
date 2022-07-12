@@ -26,12 +26,11 @@ export default function useGitHubAPI(): Response {
     return releases.compactMap(({ tag_name, name }) => {
       const raw_version = (tag_name ?? name ?? "")
       if (ignoredVersions?.some(v => raw_version.match(v))) { return undefined }
-      const munged_raw = raw_version.replace(/-/, '+')
 
       // This isn't great, but per-package versions.ts support will allow us to use strict parsing throughout
       // coerce is much looser, and misses things like build IDs and
       // pre-release identifiers
-      return flatMap(munged_raw, x => semver.parse(x) || semver.coerce(x))
+      return flatMap(raw_version, x => semver.parse(x) || semver.coerce(x.replace(/-/, '+')))
     }, { throws: true })
   }
   return { getVersions }
