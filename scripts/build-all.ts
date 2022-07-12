@@ -8,7 +8,7 @@ args:
   - --allow-run
   - --allow-read=/opt
   - --allow-write=/opt
-  - --allow-env=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,S3_BUCKET,GITHUB_TOKEN,VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,LIBRARY_PATH,CPATH,XDG_DATA_DIRS
+  - --allow-env=AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,S3_BUCKET,GITHUB_TOKEN,VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,LIBRARY_PATH,CPATH,XDG_DATA_DIRS,CMAKE_PREFIX_PATH
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
@@ -22,9 +22,9 @@ import useCache from "hooks/useCache.ts"
 import useCellar from "hooks/useCellar.ts"
 import useSourceUnarchiver from "hooks/useSourceUnarchiver.ts"
 import { S3 } from "s3";
+import { lsPantry } from "./bottle-all.ts";
 
 const pantry = usePantry();
-const projects = await pantry.ls()
 
 const s3 = new S3({
   accessKeyID: Deno.env.get("AWS_ACCESS_KEY_ID")!,
@@ -39,7 +39,7 @@ const results: { built: string[], failed: string[] } = {
   failed: []
 }
 
-for await (const project of projects) {
+for await (const project of lsPantry()) {
   try {
     const req = { project, constraint: new semver.Range('*') }
     await buildIfNeeded({ project: req, install: false })
