@@ -146,6 +146,7 @@ export default function usePantry(): Response {
       { from: "version.build", to: pkg.version.build.join('+') },
       { from: "hw.arch", to: platform.arch },
       { from: "hw.target", to: platform.target },
+      { from: "hw.platform", to: platform.platform },
       { from: "prefix", to: prefix.string },
       { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() }
     ].reduce((acc, map) => acc.replace(new RegExp(`{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
