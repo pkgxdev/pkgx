@@ -122,7 +122,7 @@ export default function usePantry(): Response {
     const wd = yml.build["working-directory"]
     if (wd) {
       raw = undent`
-        mkdir ${wd}
+        mkdir -p ${wd}
         cd ${wd}
 
         ${raw}
