@@ -1,5 +1,5 @@
-import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp } from "is_what"
-export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp }
+import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean } from "is_what"
+export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean }
 
 ///////////////////////////////////////////////////////////////////////// HTTP
 import { cache, File, Policy, configure } from "mxcl/deno-cache"

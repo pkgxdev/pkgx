@@ -1,6 +1,6 @@
 import { Package, PackageRequirement, Path, PlainObject, SemVer, semver } from "types"
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
-import { run, flatMap, isNumber, isPlainObject, isString, isArray, undent } from "utils"
+import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean } from "utils"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 
@@ -132,8 +132,14 @@ export default function usePantry(): Response {
     const env = yml.build.env
     if (isPlainObject(env)) {
       const expanded_env = Object.entries(env).map(([key,value]) => {
-        if (!isString(value)) throw new Error("invalid-env-value")
-        value = remapTokens(value, pkg)
+        if (!isPrimitive(value)) throw new Error("invalid-env-value")
+        if (isBoolean(value)) {
+          value = value ? "1" : "0"
+        } else if (value === undefined || value === null) {
+          value = "0"
+        } else if (isString(value)) {
+          value = remapTokens(value, pkg)
+        }
         return `export ${key}=${value}`
       }).join("\n")
       raw = `${expanded_env}\n\n${raw}`
