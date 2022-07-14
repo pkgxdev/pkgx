@@ -150,6 +150,7 @@ export default function usePantry(): Response {
       { from: "version", to: pkg.version.toString() },
       { from: "version.major", to: pkg.version.major.toString() },
       { from: "version.minor", to: pkg.version.minor.toString() },
+      { from: "version.patch", to: pkg.version.patch.toString() },
       { from: "version.build", to: pkg.version.build.join('+') },
       { from: "hw.arch", to: platform.arch },
       { from: "hw.target", to: platform.target },
