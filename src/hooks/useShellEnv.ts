@@ -19,6 +19,8 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
   const vars: Env = {}
   const pending: PackageRequirement[] = []
 
+  const has_pkg_config = !!requirements.find(({project}) => project === 'pkg-config')
+
   for (const requirement of requirements) {
     const installation = await cellar.resolve(requirement).swallow(/^not-found:/)
 
@@ -31,9 +33,9 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
       }
 
       // if the tool provides no pkg-config files then fall back on old-school specification methods
-      if (!vars.PKG_CONFIG_PATH?.chuzzle()) {
-        vars.LIBRARY_PATH = []
-        vars.CPATH = []
+      if (!vars.PKG_CONFIG_PATH?.chuzzle() || !has_pkg_config) {
+        if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
+        if (!vars.CPATH) vars.CPATH = []
         vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
         vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
       }
