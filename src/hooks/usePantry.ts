@@ -156,7 +156,7 @@ export default function usePantry(): Response {
       { from: "hw.platform", to: platform.platform },
       { from: "prefix", to: prefix.string },
       { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() }
-    ].reduce((acc, map) => acc.replace(new RegExp(`{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
+    ].reduce((acc, map) => acc.replace(new RegExp(`\\$?{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
   }
 
   const update = async () => {
