@@ -129,6 +129,16 @@ export default function usePantry(): Response {
         `
     }
 
+    const env = yml.build.env
+    if (isPlainObject(env)) {
+      const expanded_env = Object.entries(env).map(([key,value]) => {
+        if (!isString(value)) throw new Error("invalid-env-value")
+        value = remapTokens(value, pkg)
+        return `export ${key}=${value}`
+      }).join("\n")
+      raw = `${expanded_env}\n\n${raw}`
+    }
+
     return remapTokens(raw, pkg)
   }
 
