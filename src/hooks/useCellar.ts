@@ -23,7 +23,7 @@ export default function useCellar(): Return {
   const prefix = Path.root.join("opt")
 
   const ls = async (project: string) => {
-    if (prefix.join(project).isDirectory() == false) return []
+    if (!prefix.join(project).isDirectory()) return []
 
     const rv: Installation[] = []
     for await (const [path, entry] of prefix.join(project).ls()) {

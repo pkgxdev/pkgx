@@ -151,12 +151,12 @@ export default class Path {
 
   /// Returns true if the path represents an actual directory.
   /// NOTE we use `stat`, so if the file is a synlink it is resolved, usually this is what you want
-  isDirectory(): boolean {
+  isDirectory(): Path | undefined {
     try {
-      return Deno.statSync(this.string).isDirectory
+      return Deno.statSync(this.string).isDirectory ? this : undefined
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
-        return false
+        return undefined
       } else {
         throw err
       }
