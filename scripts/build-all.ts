@@ -13,7 +13,6 @@ args:
 ---*/
 
 import usePantry from "hooks/usePantry.ts"
-import hydrate from "prefab/hydrate.ts"
 import build from "prefab/build.ts"
 import doInstall from "prefab/install.ts"
 import { lvl1 as link } from "prefab/link.ts"
@@ -95,16 +94,15 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
     console.verbose({ building: project })
   }
 
-  const deps = await pantry.getDeps({ pkg, wbuild: true })
-  const graph = await hydrate(deps)
+  const deps = await pantry.getDeps(pkg)
 
-  for (const dep of graph) {
+  for (const dep of [...deps.build, ...deps.runtime]) {
     await buildIfNeeded({ project: dep, install: true })
   }
 
   await prepare(pkg)
   try {
-    const path = await build({ pkg, deps: graph })
+    const path = await build({ pkg, deps })
     await link({ path, pkg })
     results.built.push(`${pkg.project}-${pkg.version.version}`)
   } catch (error) {

@@ -5,16 +5,11 @@ import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 
 
-interface GetDepsOptions {
-  pkg: Package | PackageRequirement
-  wbuild?: boolean
-}
-
 interface Response {
   getDistributable(rq: Package): Promise<{ url: string, stripComponents?: number }>
   /// returns sorted versions
   getVersions(rq: PackageRequirement | Package): Promise<SemVer[]>
-  getDeps(opts: GetDepsOptions): Promise<PackageRequirement[]>
+  getDeps(pkg: Package | PackageRequirement): Promise<{ runtime: PackageRequirement[], build: PackageRequirement[] }>
   getBuildScript(pkg: Package): Promise<string>
   update(): Promise<void>
   getProvides(rq: PackageRequirement | Package): Promise<string[]>
@@ -74,9 +69,12 @@ export default function usePantry(): Response {
     }
   }
 
-  const getDeps = async ({pkg, wbuild}: GetDepsOptions) => {
+  const getDeps = async (pkg: Package | PackageRequirement) => {
     const yml =  await entry(pkg).yml()
-    return go(yml.dependencies).concat(go(wbuild && yml.build?.dependencies))
+    return {
+      runtime: go(yml.dependencies),
+      build: go(yml.build?.dependencies)
+    }
     // deno-lint-ignore no-explicit-any
     function go(node: any) {
       if (!node) return []

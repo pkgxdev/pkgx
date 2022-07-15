@@ -12,7 +12,7 @@ export default async function hydrate(reqs: PackageRequirement[]): Promise<Packa
   while (stack.length > 0) {
     const curr = stack.shift()!
 
-    for (const dep of await pantry.getDeps({ pkg: curr })) {
+    for (const dep of (await pantry.getDeps(curr)).runtime) {
       if (dep.project in set) {
         const intersection = semver_intersection(set[dep.project]!, dep.constraint)
         // ^^ throws if no intersection possible

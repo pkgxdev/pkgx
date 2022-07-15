@@ -12,7 +12,6 @@ args:
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 
-import hydrate from "prefab/hydrate.ts"
 import build from "prefab/build.ts"
 import { lvl1 as link } from "prefab/link.ts"
 import usePantry from "hooks/usePantry.ts"
@@ -39,7 +38,7 @@ for (const req of args[0].map(parsePackageRequirement)) {
   if (!version) throw "no-version-found"
   const pkg = { project: req.project, version }
   console.debug(pkg)
-  const deps = await pantry.getDeps({ pkg, wbuild: true })
+  const deps = await pantry.getDeps(pkg)
 
   console.debug({ deps })
 
