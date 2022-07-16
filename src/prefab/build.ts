@@ -3,7 +3,8 @@ import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
 import useShellEnv from "hooks/useShellEnv.ts"
 import { run, undent } from "utils"
-import usePlatform from "hooks/usePlatform.ts";
+import usePlatform from "hooks/usePlatform.ts"
+import hydrate from "prefab/hydrate.ts"
 
 interface Options {
   pkg: Package
@@ -15,9 +16,11 @@ interface Options {
 
 export default async function build({ pkg, deps }: Options): Promise<Path> {
   const pantry = usePantry()
-  const dst = useCellar().mkpath(pkg)
+  const cellar = useCellar()
+  const dst = cellar.mkpath(pkg)
   const src = dst.join("src")
-  const env = await useShellEnv([...deps.build, ...deps.runtime])
+  const runtime_deps = await filterAndHydrate(deps.runtime)
+  const env = await useShellEnv([...deps.build, ...runtime_deps])
   const sh = await pantry.getBuildScript(pkg)
   const { platform } = usePlatform()
 
@@ -49,6 +52,26 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
   ] )
 
   return dst
+}
+
+//TODO only supplement PKG_CONFIG_PATH for now
+async function filterAndHydrate(pkgs: PackageRequirement[]): Promise<PackageRequirement[]> {
+  const set = new Set(pkgs.map(({project}) => project))
+  const cellar = useCellar()
+  const a = await hydrate(pkgs)
+  const b = await Promise.all(a.map(hasPkgConfig))
+  return b.compactMap(x => x)
+
+  async function hasPkgConfig(pkg: PackageRequirement) {
+    // we don’t want to remove explicit deps!
+    if (set.has(pkg.project)) return pkg
+
+    // if a transitive dep then let's see if we need to add its env
+    const a = await cellar.resolve(pkg)
+    if (a.path.join("lib/pkgconfig").isDirectory()) return pkg
+    if (a.path.join("lib").isDirectory()) return pkg
+    if (a.path.join("include").isDirectory()) return pkg
+  }
 }
 
 function expand(env: Record<string, string[]>) {
