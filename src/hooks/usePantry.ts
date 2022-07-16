@@ -130,20 +130,34 @@ export default function usePantry(): Response {
     const env = yml.build.env
     if (isPlainObject(env)) {
       const expanded_env = Object.entries(env).map(([key,value]) => {
-        if (!isPrimitive(value)) throw new Error("invalid-env-value")
-        if (isBoolean(value)) {
-          value = value ? "1" : "0"
-        } else if (value === undefined || value === null) {
-          value = "0"
-        } else if (isString(value)) {
-          value = remapTokens(value, pkg)
+        if (isArray(value)) {
+          value = value.map(transform).join(" ")
+        } else {
+          value = transform(value)
         }
-        return `export ${key}=${value}`
+        // weird POSIX string escaping/concat stuff
+        // eg. export FOO="bar ""$baz"" bun"
+        let rv = `export ${key}="${value.replace(/"/g, '""')}"`
+        if (rv.startsWith("")) rv = rv.slice(1)  //FIXME lol better pls
+        if (rv.endsWith("")) rv = rv.slice(0,-1) //FIXME lol better pls
+        return rv
       }).join("\n")
       raw = `${expanded_env}\n\n${raw}`
     }
 
     return remapTokens(raw, pkg)
+
+    function transform(value: any): string {
+      if (!isPrimitive(value)) throw new Error("invalid-env-value")
+      if (isBoolean(value)) {
+        return value ? "1" : "0"
+      } else if (value === undefined || value === null) {
+        return "0"
+      } else if (isString(value)) {
+        return remapTokens(value, pkg)
+      }
+      throw new Error("unexpected-error")
+    }
   }
 
   const remapTokens = (input: string, pkg: Package) => {
