@@ -26,10 +26,12 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
 
     if (!installation) {
       pending.push(requirement)
-    } else for (const key of EnvKeys) {
-      for (const suffix of suffixes(key)!) {
-        if (!vars[key]) vars[key] = []
-        vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
+    } else {
+      for (const key of EnvKeys) {
+        for (const suffix of suffixes(key)!) {
+          if (!vars[key]) vars[key] = []
+          vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
+        }
       }
 
       // if the tool provides no pkg-config files then fall back on old-school specification methods
