@@ -95,16 +95,10 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
 
   const requirements = (() => {
     return findTable("Dependencies")?.compactMap(([project, constraint]) => {
-      switch (project) {
-      case "cc":
-      case "c++":
-      case "tea.xyz":
-        return //FIXME
-      default:
-        return {
-          project,
-          constraint: new semver.Range(constraint)
-        }
+      if (project.startsWith("tea.xyz")) return //FIXME
+      return {
+        project,
+        constraint: new semver.Range(constraint)
       }
     })
   })()

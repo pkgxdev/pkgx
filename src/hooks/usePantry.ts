@@ -80,12 +80,29 @@ export default function usePantry(): Response {
       if (!node) return []
       const rv: PackageRequirement[] = []
       const deps = validatePlainObject(node)
-      for (const [project, rawconstraint] of Object.entries(deps)) {
-        if (project == "cc") continue //FIXME
-        if (project == "c++") continue //FIXME
-        if (project == "tea.xyz") continue //FIXME
-        console.debug(project, rawconstraint)
+      const isMac = usePlatform().platform == 'darwin'
+
+      //FIXME duplicated in usePackageYAML()
+      for (let [project, rawconstraint] of Object.entries(deps)) {
+
+        console.debug({project, constraint: rawconstraint})
+
+        //<FIXME>
+        if (project == "tea.xyz/gx/cc" || project == "tea.xyz/gx/c++") {
+          // if (isMac) continue  //FIXME detect command-line-tools
+          project = "llvm.org"
+          rawconstraint = "*"
+        }
+        if (project == "tea.xyz/gx/make") {
+          if (isMac) continue  //FIXME detect command-line-tools
+          project = "gnu.org/make"
+          rawconstraint = "*"
+        }
+        if (project == "tea.xyz") continue
+        //</FIXME>
+
         const constraint = new semver.Range(`${rawconstraint}`)
+        console.debug(project, constraint)
         rv.push({ project, constraint })
       }
       return rv
@@ -137,10 +154,11 @@ export default function usePantry(): Response {
         }
         // weird POSIX string escaping/concat stuff
         // eg. export FOO="bar ""$baz"" bun"
-        let rv = `export ${key}="${value.replace(/"/g, '""')}"`
-        if (rv.startsWith("")) rv = rv.slice(1)  //FIXME lol better pls
-        if (rv.endsWith("")) rv = rv.slice(0,-1) //FIXME lol better pls
-        return rv
+        value = `"${value.trim().replace(/"/g, '""')}"`
+        while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
+        while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
+
+        return `export ${key}=${value}`
       }).join("\n")
       raw = `${expanded_env}\n\n${raw}`
     }
@@ -149,12 +167,15 @@ export default function usePantry(): Response {
 
     function transform(value: any): string {
       if (!isPrimitive(value)) throw new Error("invalid-env-value")
+
       if (isBoolean(value)) {
         return value ? "1" : "0"
       } else if (value === undefined || value === null) {
         return "0"
       } else if (isString(value)) {
         return remapTokens(value, pkg)
+      } else if (isNumber(value)) {
+        return value.toString()
       }
       throw new Error("unexpected-error")
     }

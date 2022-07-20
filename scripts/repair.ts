@@ -8,6 +8,7 @@ args:
   - --allow-net
   - --allow-read=/opt
   - --allow-write=/opt
+  - --allow-run  # uses `/bin/ln`
   - --import-map={{ srcroot }}/import-map.json
 ---
 */

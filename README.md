@@ -16,7 +16,7 @@ Change how your team works.
 &nbsp;
 
 
-# tea/cli 0.3.5
+# tea/cli 0.3.6
 
 tea is a universal virtual‑environment manager:
 
@@ -74,7 +74,8 @@ $ open tea.white-paper.pdf
 
 > <details><summary><i>PSA:</i> Stop using Docker</summary><br>
 >
-> Docker is great for deployment, but it sucks for dev.
+> Docker is great for deployment and cross compilation, but… let’s face it: it
+> sucks for dev.
 >
 > *Docker stifles builders*.
 > It constricts you; you’re immalleable; tech marches onwards but your docker
