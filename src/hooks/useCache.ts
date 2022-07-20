@@ -11,9 +11,13 @@ interface DownloadOptions {
 }
 
 interface Response {
+  /// destination for bottle downloads
   bottle(pkg: Package): Path
+  /// key used when downloading from our S3 bottle storage
   s3Key(pkg: Package): string
+  /// download source or bottle
   download(opts: DownloadOptions): Promise<Path>
+  /// lists all packages with bottles in the cache
   ls(): Promise<Package[]>
 }
 
