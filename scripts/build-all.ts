@@ -21,7 +21,7 @@ import useCache from "hooks/useCache.ts"
 import useCellar from "hooks/useCellar.ts"
 import useSourceUnarchiver from "hooks/useSourceUnarchiver.ts"
 import { S3 } from "s3";
-import { lsPantry } from "./bottle-all.ts";
+import { lsPantry } from "./_shared.ts";
 
 const pantry = usePantry();
 

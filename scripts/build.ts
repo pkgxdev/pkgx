@@ -15,11 +15,9 @@ args:
 import build from "prefab/build.ts"
 import { lvl1 as link } from "prefab/link.ts"
 import usePantry from "hooks/usePantry.ts"
-import useCache from "hooks/useCache.ts"
-import useCellar from "hooks/useCellar.ts"
-import useSourceUnarchiver from "hooks/useSourceUnarchiver.ts"
-import { parsePackageRequirement, semver, Package } from "types"
+import { parsePackageRequirement, semver } from "types"
 import { Command } from "cliffy/command/mod.ts"
+import { prepare } from "./_shared.ts";
 
 const { args, options: { skipExtract } } = await new Command()
   .name("tea-build")
@@ -50,16 +48,4 @@ for (const req of args[0].map(parsePackageRequirement)) {
 
   const path = await build({ pkg, deps, prebuild })
   await link({ path, pkg })
-}
-
-export async function prepare(pkg: Package) {
-  const dstdir = useCellar().mkpath(pkg).join("src")
-  const { url, stripComponents } = await pantry.getDistributable(pkg)
-  const { download } = useCache()
-  const zip = await download({ pkg, url, type: 'src' })
-  await useSourceUnarchiver().unarchive({
-    dstdir,
-    zipfile: zip,
-    stripComponents
-  })
 }

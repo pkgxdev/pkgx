@@ -13,10 +13,9 @@ args:
 ---*/
 
 import usePantry from "hooks/usePantry.ts"
-import { bottle } from "./bottle.ts";
+import { bottle, lsPantry } from "./_shared.ts";
 import { semver } from "types";
 import useCellar from "hooks/useCellar.ts";
-import { join } from "deno/path/mod.ts";
 
 const pantry = usePantry();
 
@@ -31,18 +30,6 @@ for await (const project of lsPantry()) {
       await bottle(version)
     } catch (error) {
       console.verbose({ couldntBottle: { project, version }, error })
-    }
-  }
-}
-
-export async function* lsPantry(path = ""): AsyncGenerator<string, void, void> {
-  for await (const p of Deno.readDir(`/opt/tea.xyz/var/pantry/projects/${path}`)) {
-    if (p.name === "package.yml") {
-      yield path
-    } else if (p.isDirectory) {
-      for await (const p1 of lsPantry(join(path, p.name))) {
-        if (p1) { yield p1 }
-      }
     }
   }
 }
