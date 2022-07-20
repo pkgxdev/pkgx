@@ -1,6 +1,6 @@
 import { Package, PackageRequirement, Path, PlainObject, SemVer } from "types"
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
-import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString } from "utils"
+import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString, validateArray } from "utils"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 import { validatePackageRequirement } from "utils/lvl2.ts"
@@ -46,7 +46,10 @@ export default function usePantry(): Response {
 
     async function github(): Promise<boolean> {
       const yml = await files.yml()
-      const ignoredVersions = yml['ignore-versions']?.map((v: string) => new RegExp(v))
+      const ignoredVersions = flatMap(flatMap(
+        yml['ignore-versions'],
+        x => validateArray<string>(x)),
+        x => x.map(v => new RegExp(v)))
       try {
         const { user, repo } = get()
         rv = await useGitHubAPI().getVersions({ user, repo, ignoredVersions })

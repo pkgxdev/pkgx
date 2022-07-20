@@ -15,6 +15,12 @@ export function validatePlainObject(input: any): PlainObject {
   return input
 }
 
+// deno-lint-ignore no-explicit-any
+export function validateArray<T>(input: any): Array<T> {
+  if (!isArray(input)) throw new Error(`not-array: ${JSON.stringify(input)}`)
+  return input
+}
+
 ///////////////////////////////////////////////////////////////////////// HTTP
 import { cache, File, Policy, configure } from "mxcl/deno-cache"
 
