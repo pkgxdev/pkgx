@@ -5,7 +5,7 @@ export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, 
 import { cache, File, Policy, configure } from "mxcl/deno-cache"
 
 //FIXME lol better
-configure({ directory: "/opt/tea.xyz/var/www2" })
+configure({ directory: "/opt/tea.xyz/var/www" })
 
 export function download(
   url: string | URL,
