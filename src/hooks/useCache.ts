@@ -49,12 +49,12 @@ export default function useCache(): Response {
   }
 
   const ls = async () => {
-    const { arch } = usePlatform()
+    const { arch, platform } = usePlatform()
 
     const rv = []
 
     for await (const file of prefix.ls()) {
-      const match = file[1].name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)\\+${arch}\\.tar\\.gz$`)
+      const match = file[1].name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)\\+${platform}\\+${arch}\\.tar\\.gz$`)
       if (!match) { continue }
       const [_, p, v] = match
       // Gotta undo the package name manipulation to get the package from the bottle
