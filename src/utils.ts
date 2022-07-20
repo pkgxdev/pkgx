@@ -1,5 +1,19 @@
-import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean } from "is_what"
+import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean, PlainObject } from "is_what"
 export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean }
+
+
+
+// deno-lint-ignore no-explicit-any
+export function validateString(input: any): string {
+  if (typeof input != 'string') throw new Error(`not-string: ${input}`)
+  return input
+}
+
+// deno-lint-ignore no-explicit-any
+export function validatePlainObject(input: any): PlainObject {
+  if (!isPlainObject(input)) throw new Error(`not-plain-obj: ${JSON.stringify(input)}`)
+  return input
+}
 
 ///////////////////////////////////////////////////////////////////////// HTTP
 import { cache, File, Policy, configure } from "mxcl/deno-cache"

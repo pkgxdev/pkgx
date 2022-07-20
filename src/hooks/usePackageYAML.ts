@@ -1,6 +1,6 @@
-import { PackageRequirement, PlainObject, semver, Path } from "types"
-import { isPlainObject, isString, isArray } from "utils"
-import usePlatform from "hooks/usePlatform.ts"
+import { PackageRequirement, PlainObject, Path } from "types"
+import { isPlainObject, isString, isArray, validatePlainObject } from "utils"
+import { validatePackageRequirement } from "utils/lvl2.ts"
 
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
@@ -13,53 +13,16 @@ export default function usePackageYAML(yaml: unknown): Return1 {
   if (!isPlainObject(yaml)) throw "bad-yaml"
 
   const getDeps = (wbuild: boolean) => {
-    const isMac = usePlatform().platform == 'darwin'
-
     return [...go(yaml.dependencies), ...go(wbuild && yaml.build?.dependencies)]
     // deno-lint-ignore no-explicit-any
     function go(node: any) {
       if (!node) return []
-      const rv: PackageRequirement[] = []
-      const deps = validatePlainObject(node)
-      for (let [project, rawconstraint] of Object.entries(deps)) {
-
-        console.debug({project, constraint: rawconstraint})
-
-        //<FIXME>
-        if (project == "tea.xyz/gx/cc" || project == "tea.xyz/gx/c++") {
-          if (isMac && hasCLT()) continue  //FIXME this should not be here, in pantry obv.
-          project = "llvm.org"
-          rawconstraint = "*"
-        }
-        if (project == "tea.xyz/gx/make") {
-          if (isMac && hasCLT()) continue  //FIXME as above
-          project = "gnu.org/make"
-          rawconstraint = "*"
-        }
-        if (project == "tea.xyz") continue
-        //</FIXME>
-
-        const constraint = new semver.Range(`${rawconstraint}`)
-
-        console.debug({project, constraint})
-
-        rv.push({ project, constraint })
-      }
-      return rv
-
-      function hasCLT() {
-        return !!Path.root.join('Library/Developer/CommandLineTools/bin/clang').isFile()
-      }
+      return Object.entries(validatePlainObject(node))
+        .compactMap(([project, constraint]) => validatePackageRequirement({ project, constraint }))
     }
   }
 
   return { getDeps, yaml }
-}
-
-// deno-lint-ignore no-explicit-any
-function validatePlainObject(input: any): PlainObject {
-  if (!isPlainObject(input)) throw "not-plain-obj"
-  return input
 }
 
 interface Return2 extends Return1 {

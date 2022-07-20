@@ -8,13 +8,14 @@ import hydrate from "prefab/hydrate.ts"
 
 interface Options {
   pkg: Package
+  prebuild: () => Promise<void>
   deps: {
     build: PackageRequirement[]
     runtime: PackageRequirement[]
   }
 }
 
-export default async function build({ pkg, deps }: Options): Promise<Path> {
+export default async function build({ pkg, deps, prebuild }: Options): Promise<Path> {
   const pantry = usePantry()
   const cellar = useCellar()
   const dst = cellar.mkpath(pkg)
@@ -25,8 +26,11 @@ export default async function build({ pkg, deps }: Options): Promise<Path> {
   const { platform } = usePlatform()
 
   if (env.pending.length) {
-    throw {uninstalled: env.pending}
+    console.error({uninstalled: env.pending})
+    throw new Error("uninstalled")
   }
+
+  await prebuild()
 
   /// FIXME: no one likes this. `set -o pipefail` is the reason for this requirement.
   const shell = platform === "linux" ? "bash" : "sh"

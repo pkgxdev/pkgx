@@ -6,7 +6,7 @@ args:
   - run
   - --allow-net
   - --allow-run
-  - --allow-read=/opt
+  - --allow-read
   - --allow-write=/opt
   - --allow-env=VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN,CPATH,LIBRARY_PATH,XDG_DATA_DIRS,CMAKE_PREFIX_PATH
   - --import-map={{ srcroot }}/import-map.json
@@ -35,18 +35,20 @@ for (const req of args[0].map(parsePackageRequirement)) {
   console.debug({ req })
   const versions = await pantry.getVersions(req)
   const version = semver.maxSatisfying(versions, req.constraint)
-  if (!version) throw "no-version-found"
+  if (!version) throw new Error("no-version-found")
   const pkg = { project: req.project, version }
   console.debug(pkg)
   const deps = await pantry.getDeps(pkg)
 
   console.debug({ deps })
 
-  if (!skipExtract) {
-    await prepare(pkg)
+  const prebuild = async () => {
+    if (!skipExtract) {
+      await prepare(pkg)
+    }
   }
 
-  const path = await build({ pkg, deps })
+  const path = await build({ pkg, deps, prebuild })
   await link({ path, pkg })
 }
 

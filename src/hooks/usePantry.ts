@@ -1,8 +1,9 @@
-import { Package, PackageRequirement, Path, PlainObject, SemVer, semver } from "types"
+import { Package, PackageRequirement, Path, PlainObject, SemVer } from "types"
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
-import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean } from "utils"
+import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString } from "utils"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
+import { validatePackageRequirement } from "utils/lvl2.ts"
 
 
 interface Response {
@@ -78,34 +79,8 @@ export default function usePantry(): Response {
     // deno-lint-ignore no-explicit-any
     function go(node: any) {
       if (!node) return []
-      const rv: PackageRequirement[] = []
-      const deps = validatePlainObject(node)
-      const isMac = usePlatform().platform == 'darwin'
-
-      //FIXME duplicated in usePackageYAML()
-      for (let [project, rawconstraint] of Object.entries(deps)) {
-
-        console.debug({project, constraint: rawconstraint})
-
-        //<FIXME>
-        if (project == "tea.xyz/gx/cc" || project == "tea.xyz/gx/c++") {
-          // if (isMac) continue  //FIXME detect command-line-tools
-          project = "llvm.org"
-          rawconstraint = "*"
-        }
-        if (project == "tea.xyz/gx/make") {
-          if (isMac) continue  //FIXME detect command-line-tools
-          project = "gnu.org/make"
-          rawconstraint = "*"
-        }
-        if (project == "tea.xyz") continue
-        //</FIXME>
-
-        const constraint = new semver.Range(`${rawconstraint}`)
-        console.debug(project, constraint)
-        rv.push({ project, constraint })
-      }
-      return rv
+      return Object.entries(validatePlainObject(node))
+        .compactMap(([project, constraint]) => validatePackageRequirement({ project, constraint }))
     }
   }
 
@@ -223,18 +198,6 @@ export default function usePantry(): Response {
   return { getVersions, getDeps, getDistributable, getBuildScript, update, getProvides }
 }
 
-
-// deno-lint-ignore no-explicit-any
-function validateString(input: any): string {
-  if (typeof input != 'string') throw new Error(`not-string: ${input}`)
-  return input
-}
-
-// deno-lint-ignore no-explicit-any
-function validatePlainObject(input: any): PlainObject {
-  if (!isPlainObject(input)) throw "not-plain-obj"
-  return input
-}
 
 // deno-lint-ignore no-explicit-any
 function coerceNumber(input: any) {
