@@ -26,15 +26,15 @@ export default function useCache(): Response {
   }
 
   const bottle = (pkg: Package) => {
-    const { arch } = usePlatform()
-    return prefix.join(`${stem(pkg)}+${arch}.tar.gz`)
+    const { arch, platform } = usePlatform()
+    return prefix.join(`${stem(pkg)}+${platform}+${arch}.tar.gz`)
   }
 
   const download = async ({ url: readURL, pkg, type = 'bottle' }: DownloadOptions) => {
     const filename = (() => {
       switch(type!) {
-      case 'src': return stem(pkg) + Path.extname(readURL)
-      case 'bottle': return bottle(pkg).string
+        case 'src': return stem(pkg) + Path.extname(readURL)
+        case 'bottle': return bottle(pkg).string
       }
     })()
     const writeFilename = prefix.join(filename)
