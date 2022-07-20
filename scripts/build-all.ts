@@ -64,10 +64,14 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
     for (const req of reqs) {
       const build = { project: project.project, constraint: new semver.Range(req) }
       try {
-        await buildIfNeeded({ project: build, install })
+        await buildIfNeeded({ project: build, install: false })
       } catch (error) {
         console.verbose({ couldntBuild: { project, req }, error })
       }
+    }
+    if (install) {
+      const version = semver.maxSatisfying(versions, project.constraint)!
+      await doInstall({ project: project.project, version })
     }
     return
   }
@@ -100,9 +104,9 @@ async function buildIfNeeded({ project, install }: BuildOptions) {
     await buildIfNeeded({ project: dep, install: true })
   }
 
-  await prepare(pkg)
   try {
-    const path = await build({ pkg, deps })
+    const prebuild = async () => { await prepare(pkg) }
+    const path = await build({ pkg, deps, prebuild })
     await link({ path, pkg })
     results.built.push(`${pkg.project}-${pkg.version.version}`)
   } catch (error) {
