@@ -1,12 +1,13 @@
 #!/bin/sh
 
-DENO=/opt/deno.land/v1/bin/deno  #FIXME
 SRCROOT=$(cd $(dirname $0)/.. && pwd)
 OUTPUT=/usr/local/bin/tea  #FIXME
+DENO=deno #FIXME
 
 cat <<EOF> $OUTPUT
 #!/bin/sh
-exec $DENO \\
+PATH=/opt/deno.land/v1/bin:$PATH #FIXME
+exec deno \\
   run \\
   --allow-read --allow-write=/opt --allow-net --allow-run --allow-env \\
   --import-map='$SRCROOT/import-map.json' \\
@@ -14,4 +15,4 @@ exec $DENO \\
   "\$@"
 EOF
 
-chmod u+x /usr/local/bin/tea
+chmod u+x $OUTPUT
