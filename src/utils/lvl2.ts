@@ -2,13 +2,10 @@
 
 import usePlatform from "hooks/usePlatform.ts"
 import { PackageRequirement, PlainObject, Path, semver } from "types"
-import { isString } from "utils"
 
 export function validatePackageRequirement(input: PlainObject): PackageRequirement | undefined {
   let { constraint: rawconstraint, project } = input
   const isMac = usePlatform().platform == 'darwin'
-
-  if (!isString(rawconstraint) && !isString(project))
 
   console.debug({project, constraint: rawconstraint})
 

@@ -32,42 +32,48 @@ export default function usePantry(): Response {
       if (foo.length > 5) throw "use-versions.txt-if-more-than-5-versions"
       return foo.map(x => new SemVer(x))
     }
-    let rv: SemVer[]
-    if (await txt()) return rv!
-    if (await github()) return rv!.sort()
-    throw "no-versions"
 
-    async function txt(): Promise<boolean> {
-      if (!files.versions.isReadableFile()) return false
-      const txt = await files.versions.read()
-      rv = txt.split(/\w+/).map(x => new SemVer(x)).sort()
-      return true
-    }
+    return (await get())
+      .filter(x => x.prerelease.length == 0)
 
-    async function github(): Promise<boolean> {
-      const yml = await files.yml()
-      const ignoredVersions = flatMap(flatMap(
-        yml['ignore-versions'],
-        x => validateArray<string>(x)),
-        x => x.map(v => new RegExp(v)))
-      try {
-        const { user, repo } = get()
-        rv = await useGitHubAPI().getVersions({ user, repo, ignoredVersions })
+    async function get() {
+      let rv: SemVer[]
+      if (await txt()) return rv!
+      if (await github()) return rv!.sort().filter(x => x.prerelease.length === 0)
+      throw "no-versions"
+
+      async function txt(): Promise<boolean> {
+        if (!files.versions.isReadableFile()) return false
+        const txt = await files.versions.read()
+        rv = txt.split(/\w+/).map(x => new SemVer(x)).sort()
         return true
-      } catch (err) {
-        if (err === "not-github") return false
-        throw err
       }
 
-      function get() {
-        if (isString(yml.versions?.github)) {
-          const [user, repo] = yml.versions.github.split("/")
-          return { user, repo }
-        } else {
-          const url = new URL(getRawDistributableURL(yml))
-          if (url.host != "github.com") throw "not-github"
-          const [, user, repo] = url.pathname.split("/")
-          return { user, repo }
+      async function github(): Promise<boolean> {
+        const yml = await files.yml()
+        const ignoredVersions = flatMap(flatMap(
+          yml['ignore-versions'],
+          x => validateArray<string>(x)),
+          x => x.map(v => new RegExp(v)))
+        try {
+          const { user, repo } = get()
+          rv = await useGitHubAPI().getVersions({ user, repo, ignoredVersions })
+          return true
+        } catch (err) {
+          if (err === "not-github") return false
+          throw err
+        }
+
+        function get() {
+          if (isString(yml.versions?.github)) {
+            const [user, repo] = yml.versions.github.split("/")
+            return { user, repo }
+          } else {
+            const url = new URL(getRawDistributableURL(yml))
+            if (url.host != "github.com") throw "not-github"
+            const [, user, repo] = url.pathname.split("/")
+            return { user, repo }
+          }
         }
       }
     }
@@ -211,7 +217,6 @@ function coerceNumber(input: any) {
 async function installIfNecessary() {
   if (!prefix.exists()) {
     const cwd = prefix.parent().parent().mkpath()
-    //FIXME before release, use https://
     await run({
       cmd: ["git", "clone", "https://github.com/teaxyz/pantry"],
       cwd

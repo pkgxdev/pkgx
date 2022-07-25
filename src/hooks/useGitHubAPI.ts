@@ -1,6 +1,6 @@
 import { RELOAD_POLICY } from "mxcl/deno-cache";
 import { semver, SemVer } from "types"
-import { flatMap, GET, isArray } from "utils"
+import { GET, isArray } from "utils"
 
 //TODO pagination
 
