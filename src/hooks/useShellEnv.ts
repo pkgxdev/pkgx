@@ -2,7 +2,15 @@ import { PackageRequirement } from "types"
 import useCellar from "hooks/useCellar.ts"
 
 type Env = Record<string, string[]>
-export const EnvKeys = ['PATH', 'MANPATH', 'PKG_CONFIG_PATH', "LIBRARY_PATH", "CPATH", "XDG_DATA_DIRS"]
+export const EnvKeys = [
+  'PATH',
+  'MANPATH',
+  'PKG_CONFIG_PATH',
+  'LIBRARY_PATH',
+  'LD_LIBRARY_PATH',
+  'CPATH',
+  'XDG_DATA_DIRS',
+]
 
 interface Response {
   vars: Env
@@ -44,6 +52,11 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
     }
   }
 
+  // not usually needed, but some configure scripts barf otherwise
+  if (vars.LIBRARY_PATH) {
+    vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
+  }
+
   const defaults: Env = {}
   const combined: Env = {}
   const combinedStrings: Record<string, string> = {}
@@ -68,9 +81,12 @@ function suffixes(key: string) {
     case 'PKG_CONFIG_PATH':
       return ['share/pkgconfig', 'lib/pkgconfig']
     case 'LIBRARY_PATH':
+    case 'LD_LIBRARY_PATH':
     case 'CPATH':
       return []  // we handle these specially
     case 'XDG_DATA_DIRS':
       return ['share']
+    default:
+      throw new Error("unhandled")
   }
 }

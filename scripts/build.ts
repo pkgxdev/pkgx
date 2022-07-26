@@ -8,7 +8,7 @@ args:
   - --allow-run
   - --allow-read
   - --allow-write=/opt
-  - --allow-env=VERBOSE,DEBUG,MAGIC,PATH,MANPATH,PKG_CONFIG_PATH,GITHUB_TOKEN,CPATH,LIBRARY_PATH,XDG_DATA_DIRS,CMAKE_PREFIX_PATH
+  - --allow-env
   - --import-map={{ srcroot }}/import-map.json
 ---*/
 

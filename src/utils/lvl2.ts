@@ -11,12 +11,12 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
 
   //<FIXME>
   if (project == "tea.xyz/gx/cc" || project == "tea.xyz/gx/c++") {
-    if (isMac && hasCLT()) return  //FIXME this should not be here, in pantry obv.
+    if (detect()) return  //FIXME this should not be here, in pantry obv.
     project = "llvm.org"
     rawconstraint = "*"
   }
   if (project == "tea.xyz/gx/make") {
-    if (isMac && hasCLT()) return  //FIXME as above
+    if (detect()) return  //FIXME as above
     project = "gnu.org/make"
     rawconstraint = "*"
   }
@@ -29,7 +29,16 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
 
   return { project, constraint }
 
-  function hasCLT() {
-    return !!Path.root.join('Library/Developer/CommandLineTools/usr/bin/clang').isFile()
+  function detect() {
+    //FIXME HACKS GALORE
+    // we will fix properly with `detect.ts` and bootstrapping support
+    // most of this is so we can bootstrap the tea bottles even though things like make require make to build themselves
+    if (isMac && Path.root.join('Library/Developer/CommandLineTools/usr/bin/clang').isFile()) {
+      return true
+    } else if (isMac && Deno.env.get("GITHUB_ACTIONS")) {
+      return true
+    } else {
+      return false
+    }
   }
 }
