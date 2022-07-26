@@ -152,6 +152,7 @@ function getVerbosity({v, verbose, silent}: {v?: number, verbose?: boolean, sile
   const env = flatMap(flatMap(Deno.env.get("VERBOSE"), parseInt), chuzzle)
   if (isNumber(env)) return env + 1
   if (Deno.env.get("DEBUG") == '1') return Verbosity.debug
+  if (Deno.env.get("GITHUB_ACTIONS") == 'true' && Deno.env.get("RUNNER_DEBUG") == '1') return Verbosity.debug
   return Verbosity.normal
 }
 
