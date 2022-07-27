@@ -54,6 +54,18 @@ export function parsePackageRequirement(input: string): PackageRequirement {
   }
 }
 
+export function parsePackage(input: string): Package {
+  const splat = input.split('@') //FIXME we do specs with eg. foo^1
+  if (splat.length == 2) {
+    return {
+      project: splat[0],
+      version: new SemVer(splat[1])
+    }
+  } else {
+    throw "invalid-pkgspec"
+  }
+}
+
 /////////////////////////////////////////////////////////////////////// semver
 import SemVer, * as semver from "semver"
 

@@ -11,9 +11,14 @@ interface Response {
   /// returns sorted versions
   getVersions(rq: PackageRequirement | Package): Promise<SemVer[]>
   getDeps(pkg: Package | PackageRequirement): Promise<{ runtime: PackageRequirement[], build: PackageRequirement[] }>
-  getBuildScript(pkg: Package): Promise<string>
+  getScript(pkg: Package, key: 'build' | 'test'): Promise<string>
   update(): Promise<void>
   getProvides(rq: PackageRequirement | Package): Promise<string[]>
+
+  //TODO take `T` and then type check it
+  getYAML(rq: PackageRequirement | Package): Promise<[PlainObject, Path]>
+
+  prefix(rq: PackageRequirement | Package): Path
 }
 
 interface Entry {
@@ -79,6 +84,12 @@ export default function usePantry(): Response {
     }
   }
 
+  const getYAML = async (pkg: Package | PackageRequirement): Promise<[PlainObject, Path]> => {
+    const foo = entry(pkg)
+    const yml = await foo.yml()
+    return [yml, foo.dir.join("package.yml")]
+  }
+
   const getDeps = async (pkg: Package | PackageRequirement) => {
     const yml =  await entry(pkg).yml()
     return {
@@ -114,12 +125,15 @@ export default function usePantry(): Response {
     return { url, stripComponents }
   }
 
-  const getBuildScript = async (pkg: Package) => {
+  const getScript = async (pkg: Package, key: 'build' | 'test') => {
     const yml = await entry(pkg).yml()
-    let raw = validateString(validatePlainObject(yml.build).script)
+    const obj = validatePlainObject(yml[key])
 
-    const wd = yml.build["working-directory"]
+    let raw = validateString(obj.script)
+
+    let wd = obj["working-directory"]
     if (wd) {
+      wd = remapTokens(wd, pkg)
       raw = undent`
         mkdir -p ${wd}
         cd ${wd}
@@ -128,7 +142,7 @@ export default function usePantry(): Response {
         `
     }
 
-    const env = yml.build.env
+    const env = obj.env
     if (isPlainObject(env)) {
       const expanded_env = Object.entries(env).map(([key,value]) => {
         if (isArray(value)) {
@@ -179,7 +193,8 @@ export default function usePantry(): Response {
       { from: "hw.target", to: platform.target },
       { from: "hw.platform", to: platform.platform },
       { from: "prefix", to: prefix.string },
-      { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() }
+      { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() },
+      { from: "pkg.pantry-prefix", to: getPrefix(pkg).string }
     ].reduce((acc, map) => acc.replace(new RegExp(`\\$?{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
   }
 
@@ -204,7 +219,12 @@ export default function usePantry(): Response {
     })
   }
 
-  return { getVersions, getDeps, getDistributable, getBuildScript, update, getProvides }
+  const getPrefix = (pkg: Package | PackageRequirement) => prefix.join(pkg.project)
+
+  return { getVersions, getDeps, getDistributable, getScript, update, getProvides,
+    getYAML,
+    prefix: getPrefix
+  }
 }
 
 

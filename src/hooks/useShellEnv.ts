@@ -90,3 +90,12 @@ function suffixes(key: string) {
       throw new Error("unhandled")
   }
 }
+
+export function expand(env: Record<string, string[]>) {
+  let rv = ''
+  for (let [key, value] of Object.entries(env)) {
+    if (key == 'PATH') value = value.concat("/usr/bin:/bin:/usr/sbin:/sbin") //FIXME
+    rv += `export ${key}='${value.join(":")}'\n`
+  }
+  return rv
+}

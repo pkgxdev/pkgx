@@ -1,7 +1,7 @@
 import { Path, Package, PackageRequirement, semver } from "types"
 import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
-import useShellEnv from "hooks/useShellEnv.ts"
+import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { run, undent } from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import hydrate from "prefab/hydrate.ts"
@@ -22,7 +22,7 @@ export default async function build({ pkg, deps, prebuild }: Options): Promise<P
   const src = dst.join("src")
   const runtime_deps = await filterAndHydrate(deps.runtime)
   const env = await useShellEnv([...deps.build, ...runtime_deps])
-  const sh = await pantry.getBuildScript(pkg)
+  const sh = await pantry.getScript(pkg, 'build')
   const { platform } = usePlatform()
 
   if (env.pending.length) {
@@ -76,15 +76,6 @@ async function filterAndHydrate(pkgs: PackageRequirement[]): Promise<PackageRequ
     if (a.path.join("lib").isDirectory()) return pkg
     if (a.path.join("include").isDirectory()) return pkg
   }
-}
-
-function expand(env: Record<string, string[]>) {
-  let rv = ''
-  for (let [key, value] of Object.entries(env)) {
-    if (key == 'PATH') value = value.concat("/usr/bin:/bin:/usr/sbin:/sbin") //FIXME
-    rv += `export ${key}='${value.join(":")}'\n`
-  }
-  return rv
 }
 
 async function* exefiles(prefix: Path) {
