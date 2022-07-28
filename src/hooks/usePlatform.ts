@@ -21,10 +21,19 @@ export default function usePlatform(): Return {
   const { os: platform, target } = Deno.build
 
   const finalizeInstall = async (install: Installation) => {
-    switch (platform) {
-      case 'darwin':
-        /// for now, prevent gatekeeper prompts FIXME sign everything!
-        await run({ cmd: ['xattr', '-rd', 'com.apple.quarantine', install.path.string] })
+    if (platform == 'darwin') {
+      /// for now, prevent gatekeeper prompts FIXME sign everything!
+
+      // using find because it doesn’t error if it fails
+      // and it does fail if the file isn’t writable, but we don’t want to make everything writable
+      // unless we are forced into that in the future
+
+      const cmd = [
+        'find', install.path, '-xattrname', 'com.apple.quarantine',
+          '-exec', 'xattr', '-d', 'com.apple.quarantine', '{}', ';'
+      ]
+
+      await run({ cmd })
     }
   }
 
