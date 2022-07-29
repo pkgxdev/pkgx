@@ -50,8 +50,13 @@ export default async function build({ pkg, deps, prebuild }: Options): Promise<P
   }).chmod(0o500)
 
   await run({ cmd })
+
+  // the fix step requires the transitive runtime deps also
+  // because we need to set rpaths for everything all the way down
+  const wet = await hydrate(deps.runtime)
+
   await fix(dst, [
-    ...deps.runtime,
+    ...wet,
     {project: pkg.project, constraint: new semver.Range(`=${pkg.version}`)}
   ] )
 
