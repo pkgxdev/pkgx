@@ -58,7 +58,7 @@ export default async function build({ pkg, deps, prebuild }: Options): Promise<P
   await fix(dst, [
     ...wet,
     {project: pkg.project, constraint: new semver.Range(`=${pkg.version}`)}
-  ] )
+  ])
 
   return dst
 }

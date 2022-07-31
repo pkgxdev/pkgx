@@ -29,7 +29,9 @@ export default function usePlatform(): Return {
       // unless we are forced into that in the future
 
       const cmd = [
-        'find', install.path, '-xattrname', 'com.apple.quarantine',
+        'find', install.path,
+          '-xattrname', 'com.apple.quarantine',
+          '-perm', '-0200',  // only if we can write (prevents error messages)
           '-exec', 'xattr', '-d', 'com.apple.quarantine', '{}', ';'
       ]
 
