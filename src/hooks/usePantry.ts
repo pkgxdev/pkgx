@@ -225,6 +225,11 @@ async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
   }
 }
 
+//SRC https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
+}
+
 async function handleComplexVersions(versions: PlainObject): Promise<SemVerExtended[]> {
   const [user, repo, ...types] = validateString(versions.github).split("/")
   const type = types?.join("/").chuzzle() ?? 'releases'
@@ -238,8 +243,8 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
     return arr.map(input => {
       let rx = validateString(input)
       if (!(rx.startsWith("/") && rx.endsWith("/"))) {
+        rx = escapeRegExp(rx)
         rx = rx.replace(/(x|y|z)\b/g, '\\d+')
-        rx = rx.replace(/\./g, '\\.')
         rx = `^${rx}$`
       } else {
         rx = rx.slice(1, -1)
@@ -282,18 +287,18 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
     name = strip(name)
 
     if (ignore.some(x => x.test(name))) {
-      console.debug({ignoring: name})
+      console.debug({ignoring: name, reason: 'explicit'})
     } else {
       const v = await parser(name)
       if (!v) {
-        console.warn({unparsable: name})
+        console.warn({ignoring: name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
         const vv = v as SemVerExtended
         console.verbose({ found: v.toString(), from: name })
         vv.pkgraw = name
         rv.push(vv)
       } else {
-        console.debug({ignoring: name})
+        console.debug({ignoring: name, reason: 'prerelease'})
       }
     }
   }
