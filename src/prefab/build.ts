@@ -110,7 +110,7 @@ async function setRpath(exename: Path, pkgs: PackageRequirement[]) {
 
   try {
     await run({
-      cmd: ["patchelf", "--set-rpath", rpath, exename]
+      cmd: ["patchelf", "--force-rpath", "--set-rpath", rpath, exename]
     })
   } catch (e) {
     console.warn(e)
