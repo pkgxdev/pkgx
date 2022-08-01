@@ -174,3 +174,9 @@ export async function run(opts: RunOptions) {
 // for output that the user requested, everything from console.* might be silenced
 const encoder = new TextEncoder()
 export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
+
+
+///////////////////////////////////////////////////////////////////////// misc
+export function panic<T>(): T {
+  throw new Error()
+}

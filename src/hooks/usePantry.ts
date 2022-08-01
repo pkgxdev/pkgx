@@ -1,15 +1,17 @@
-import { Package, PackageRequirement, Path, PlainObject, SemVer } from "types"
+// deno-lint-ignore-file no-cond-assign
+import { semver, Package, PackageRequirement, Path, PlainObject, SemVer } from "types"
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
-import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString, validateArray } from "utils"
+import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString, validateArray, panic } from "utils"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 import { validatePackageRequirement } from "utils/lvl2.ts"
 
+type SemVerExtended = SemVer & {pkgraw: string}
 
 interface Response {
   getDistributable(rq: Package): Promise<{ url: string, stripComponents?: number }>
   /// returns sorted versions
-  getVersions(rq: PackageRequirement | Package): Promise<SemVer[]>
+  getVersions(rq: PackageRequirement | Package): Promise<SemVerExtended[]>
   getDeps(pkg: Package | PackageRequirement): Promise<{ runtime: PackageRequirement[], build: PackageRequirement[] }>
   getScript(pkg: Package, key: 'build' | 'test'): Promise<string>
   update(): Promise<void>
@@ -30,60 +32,6 @@ interface Entry {
 const prefix = new Path("/opt/tea.xyz/var/pantry/projects")
 
 export default function usePantry(): Response {
-  const getVersions = async (pkg: PackageRequirement) => {
-    const files = entry(pkg)
-    const foo = (await files.yml()).versions
-    if (isArray(foo)) {
-      if (foo.length > 5) throw "use-versions.txt-if-more-than-5-versions"
-      return foo.map(x => new SemVer(x))
-    }
-
-    return (await get())
-      .filter(x => x.prerelease.length == 0)
-
-    async function get() {
-      let rv: SemVer[]
-      if (await txt()) return rv!
-      if (await github()) return rv!.sort().filter(x => x.prerelease.length === 0)
-      throw "no-versions"
-
-      async function txt(): Promise<boolean> {
-        if (!files.versions.isReadableFile()) return false
-        const txt = await files.versions.read()
-        rv = txt.split(/\w+/).map(x => new SemVer(x)).sort()
-        return true
-      }
-
-      async function github(): Promise<boolean> {
-        const yml = await files.yml()
-        const ignoredVersions = flatMap(flatMap(
-          yml['ignore-versions'],
-          x => validateArray<string>(x)),
-          x => x.map(v => new RegExp(v)))
-        try {
-          const { user, repo } = get()
-          rv = await useGitHubAPI().getVersions({ user, repo, ignoredVersions })
-          return true
-        } catch (err) {
-          if (err === "not-github") return false
-          throw err
-        }
-
-        function get() {
-          if (isString(yml.versions?.github)) {
-            const [user, repo] = yml.versions.github.split("/")
-            return { user, repo }
-          } else {
-            const url = new URL(getRawDistributableURL(yml))
-            if (url.host != "github.com") throw "not-github"
-            const [, user, repo] = url.pathname.split("/")
-            return { user, repo }
-          }
-        }
-      }
-    }
-  }
-
   const getYAML = async (pkg: Package | PackageRequirement): Promise<[PlainObject, Path]> => {
     const foo = entry(pkg)
     const yml = await foo.yml()
@@ -189,6 +137,8 @@ export default function usePantry(): Response {
       { from: "version.minor", to: pkg.version.minor.toString() },
       { from: "version.patch", to: pkg.version.patch.toString() },
       { from: "version.build", to: pkg.version.build.join('+') },
+      { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
+      { from: "version.raw", to: (pkg.version as any).pkgraw },
       { from: "hw.arch", to: platform.arch },
       { from: "hw.target", to: platform.target },
       { from: "hw.platform", to: platform.platform },
@@ -255,4 +205,97 @@ function entry(pkg: Package | PackageRequirement): Entry {
   }
   const versions = dir.join("versions.txt")
   return { dir, yml, versions }
+}
+
+async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
+  const files = entry(pkg)
+  const versions = await files.yml().then(x => x.versions)
+
+  if (isArray(versions)) {
+    return versions.map(raw => {
+      const v = semver.parse(raw) ?? panic()
+      const vv = v as SemVerExtended
+      vv.pkgraw = validateString(raw)
+      return vv
+    })
+  } else if (isPlainObject(versions)) {
+    return handleComplexVersions(versions)
+  } else {
+    throw new Error()
+  }
+}
+
+async function handleComplexVersions(versions: PlainObject): Promise<SemVerExtended[]> {
+  const [user, repo, ...types] = validateString(versions.github).split("/")
+  const type = types?.join("/").chuzzle() ?? 'releases'
+
+  const ignore = (() => {
+    const arr = (() => {
+      if (!versions.ignore) return []
+      if (isString(versions.ignore)) return [versions.ignore]
+      return validateArray(versions.ignore)
+    })()
+    return arr.map(input => {
+      let rx = validateString(input)
+      if (!(rx.startsWith("/") && rx.endsWith("/"))) {
+        rx = rx.replace(/(x|y|z)\b/g, '\\d+')
+        rx = rx.replace(/\./g, '\\.')
+        rx = `^${rx}$`
+      } else {
+        rx = rx.slice(1, -1)
+      }
+      return new RegExp(rx)
+    })
+  })()
+
+  const strip: (x: string) => string = (() => {
+    const s = versions.strip
+    if (!isString(s)) return x => x
+    if (!(s.startsWith("/") && s.endsWith("/"))) throw new Error()
+    const rx = new RegExp(s.slice(1, -1))
+    return x => x.replace(rx, '')
+  })()
+
+  switch (type) {
+  case 'releases':
+  case 'releases/tags':
+  case 'tags':
+    break
+  default:
+    throw new Error()
+  }
+
+  const rsp = await useGitHubAPI().getVersions({ user, repo, type })
+
+  const parser = (input: string) => {
+    let v: SemVer | null
+    if (v = semver.parse(input)) return v
+    input = input.trim()
+    let rv: RegExpExecArray | null
+    if (rv = /^v?(\d+\.\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0`)
+    if (rv = /^v?(\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0.0`)
+  }
+
+  const rv: SemVerExtended[] = []
+  for (let name of rsp) {
+
+    name = strip(name)
+
+    if (ignore.some(x => x.test(name))) {
+      console.debug({ignoring: name})
+    } else {
+      const v = await parser(name)
+      if (!v) {
+        console.warn({unparsable: name})
+      } else if (v.prerelease.length <= 0) {
+        const vv = v as SemVerExtended
+        console.verbose({ found: v.toString(), from: name })
+        vv.pkgraw = name
+        rv.push(vv)
+      } else {
+        console.debug({ignoring: name})
+      }
+    }
+  }
+  return rv
 }
