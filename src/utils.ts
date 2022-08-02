@@ -169,6 +169,14 @@ export async function run(opts: RunOptions) {
   if (!exit.success) throw new Error("run-error")
 }
 
+export async function runAndGetOutput(opts: RunOptions): Promise<string> {
+  const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
+  const cwd = opts.cwd?.toString()
+  const proc = Deno.run({ ...opts, cwd, cmd, stdout: "piped" })
+  const out = await proc.output()
+  const txt = new TextDecoder().decode(out)
+  return txt
+}
 
 /////////////////////////////////////////////////////////////////////////// io
 // for output that the user requested, everything from console.* might be silenced

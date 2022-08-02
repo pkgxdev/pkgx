@@ -2,7 +2,7 @@ import { Path, Package, PackageRequirement, semver } from "types"
 import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
-import { run, undent } from "utils"
+import { run, runAndGetOutput, undent } from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import hydrate from "prefab/hydrate.ts"
 
@@ -106,11 +106,17 @@ async function fix(prefix: Path, pkgs: PackageRequirement[]) {
 //TODO this is not resilient to upgrades (obv)
 async function setRpath(exename: Path, pkgs: PackageRequirement[]) {
   const cellar = useCellar()
-  const rpath = (await Promise.all(pkgs.map(pkg => prefix(pkg)))).join(":")
+  const our_rpaths = await Promise.all(pkgs.map(pkg => prefix(pkg)))
 
   try {
+    const their_rpaths = (await runAndGetOutput({
+      cmd: ["patchelf", "--print-rpath", exename],
+    })).split("\n")
+
+    const rpaths = [...our_rpaths, ...their_rpaths].join(":")
+
     await run({
-      cmd: ["patchelf", "--force-rpath", "--set-rpath", rpath, exename]
+      cmd: ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
     })
   } catch (e) {
     console.warn(e)
