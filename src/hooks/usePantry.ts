@@ -216,7 +216,7 @@ async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
 
   if (isArray(versions)) {
     return versions.map(raw => {
-      const v = semver.parse(raw) ?? panic()
+      const v = parser(validateString(raw)) ?? panic()
       const vv = v as SemVerExtended
       vv.pkgraw = validateString(raw)
       return vv
@@ -275,15 +275,6 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
 
   const rsp = await useGitHubAPI().getVersions({ user, repo, type })
 
-  const parser = (input: string) => {
-    let v: SemVer | null
-    if (v = semver.parse(input)) return v
-    input = input.trim()
-    let rv: RegExpExecArray | null
-    if (rv = /^v?(\d+\.\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0`)
-    if (rv = /^v?(\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0.0`)
-  }
-
   const rv: SemVerExtended[] = []
   for (let name of rsp) {
 
@@ -298,6 +289,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
       } else if (v.prerelease.length <= 0) {
         const vv = v as SemVerExtended
         console.verbose({ found: v.toString(), from: name })
+        if (name[0] == 'v') name = name.slice(1) // semver.parse strips this, so we do too
         vv.pkgraw = name
         rv.push(vv)
       } else {
@@ -306,4 +298,13 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
     }
   }
   return rv
+}
+
+const parser = (input: string) => {
+  let v: SemVer | null
+  if (v = semver.parse(input)) return v
+  input = input.trim()
+  let rv: RegExpExecArray | null
+  if (rv = /^v?(\d+\.\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0`)
+  if (rv = /^v?(\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0.0`)
 }
