@@ -149,9 +149,12 @@ export default function usePantry(): Response {
   }
 
   const update = async () => {
-    await run({
-      cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
-    })
+    //FIXME real fix is: don’t use git!
+    if (Path.root.join("opt/git-scm.org/v*").isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
+      await run({
+        cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
+      })
+    }
   }
 
   const getProvides = async (pkg: Package | PackageRequirement) => {
