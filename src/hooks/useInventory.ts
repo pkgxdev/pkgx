@@ -22,9 +22,10 @@ export default function useInventory(): Response {
 
     const releases = await rsp.text()
 
-    return releases.split("\n").compactMap((version: string) => {
-      if (semver.satisfies(version, constraint)) { return semver.parse(version) }
-    })
+    return releases.split("\n").compactMap(vstr => {
+      const v = new SemVer(vstr)
+      if (semver.satisfies(v, constraint)) return v
+    }, { throws: true })
   }
   return { getVersions }
 }
