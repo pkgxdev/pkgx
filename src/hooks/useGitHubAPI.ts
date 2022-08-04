@@ -27,7 +27,7 @@ async function getVersions({ user, repo, type }: GetVersionsOptions): Promise<st
   //TODO we can use ETags to check if the data we have cached is still valid
 
   if (type.startsWith("releases")) {
-    const json = await GET<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases?per_page=100`, RELOAD_POLICY)
+    const json = await GET<GHRelease[]>(`https://api.github.com/repos/${user}/${repo}/releases?per_page=100`)
     if (!isArray(json)) throw "unexpected json"
     return json.map(({ tag_name, name }) => type == 'releases/tags' ? tag_name : name)
   } else {

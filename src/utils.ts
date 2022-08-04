@@ -38,10 +38,17 @@ export function download(
   return cache(url, policy, ns)
 }
 
-export async function GET<T>(url: string, policy: Policy | undefined = undefined): Promise<T> {
-  const foo = await download(url, policy)
-  const txt = await Deno.readTextFile(foo.path)
-  const json = JSON.parse(txt)
+export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
+  if (isString(url)) url = new URL(url)
+  if (url.host == "api.github.com") {
+    const token = Deno.env.get("GITHUB_TOKEN")
+    if (token) {
+      headers ??= new Headers()
+      headers.append("Authorization", `bearer ${token}`)
+    }
+  }
+  const rsp = await fetch(url, { headers })
+  const json = await rsp.json()
   return json as T
 }
 
