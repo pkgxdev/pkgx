@@ -15,7 +15,7 @@ export interface Inventory {
 export default function useInventory(): Response {
   const getVersions = async ({ project, constraint }: PackageRequirement) => {
     const { platform, arch } = usePlatform()
-    const url = `https://s3.amazonaws.com/dist.tea.xyz/${project}/${platform}/${arch}/versions.txt`
+    const url = `https://dist.tea.xyz/${project}/${platform}/${arch}/versions.txt`
     const rsp = await fetch(url)
 
     if (!rsp.ok) throw new Error(`404-not-found: ${url}`) //FIXME
