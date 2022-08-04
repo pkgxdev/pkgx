@@ -1,4 +1,4 @@
-import { Path, Verbosity } from "types"
+import { PackageRequirement, Path, Verbosity, semver } from "types"
 
 interface Options {
   dstdir: Path
@@ -20,7 +20,13 @@ export class Unarchiver {
   supports(_filename: Path): boolean {
     return false
   }
+
+  dependencies(): PackageRequirement[] {
+    return []
+  }
 }
+
+const constraint = new semver.Range("*")
 
 export class TarballUnarchiver extends Unarchiver {
   private stripComponents?: number
@@ -51,6 +57,30 @@ export class TarballUnarchiver extends Unarchiver {
       return false
     }
   }
+
+  dependencies() {
+    const rv = [{
+      project: "gnu.org/tar",
+      constraint
+    }]
+    switch (this.opts.zipfile.extname()) {
+    case ".tbz":
+    case ".tar.bz2":
+      rv.push({
+        project: "sourceware.org/bzip2",
+        constraint
+      })
+      break
+    case ".txz":
+    case ".tar.xz":
+      rv.push({
+        project: "tukaani.org/xz",
+        constraint
+      })
+      break
+    }
+    return rv
+  }
 }
 
 export class ZipUnarchiver extends Unarchiver {
@@ -75,5 +105,12 @@ export class ZipUnarchiver extends Unarchiver {
 
   static supports(filename: Path): boolean {
     return filename.extname() == ".zip"
+  }
+
+  dependencies() {
+    return [{
+      project: "info-zip.org/unzip",
+      constraint
+    }]
   }
 }

@@ -18,7 +18,7 @@ export default async function resolve(reqs: PackageRequirement[]): Promise<Packa
     } else {
       const versions = await inventory.getVersions({ project, constraint })
       const version = semver.maxSatisfying(versions, constraint)
-      if (!version) throw "no-version"
+      if (!version) { console.error({ project, constraint, versions }); throw new Error() }
       rv.push({ version, project })
     }
   }
