@@ -5,6 +5,8 @@ export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, 
 
 // deno-lint-ignore no-explicit-any
 export function validateString(input: any): string {
+  if (typeof input == 'boolean') return input ? 'true' : 'false'
+  if (typeof input == 'number') return input.toString()
   if (typeof input != 'string') throw new Error(`not-string: ${input}`)
   return input
 }
