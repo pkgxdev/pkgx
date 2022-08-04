@@ -11,7 +11,7 @@
     "cliffy/": "https://deno.land/x/cliffy@v0.23.0/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "encodeToString": "https://deno.land/std@0.97.0/encoding/hex.ts",
-    "mxcl/deno-cache": "https://raw.githubusercontent.com/mxcl/deno-cache/0.2.14/mod.ts",
+    "mxcl/deno-cache": "https://raw.githubusercontent.com/mxcl/deno-cache/0.2.15/mod.ts",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts"
   }
 }
