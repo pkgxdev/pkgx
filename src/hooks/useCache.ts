@@ -1,6 +1,5 @@
-import { copy, readerFromStreamReader } from "deno/streams/mod.ts"
 import { Package, Path, semver } from "types"
-import { packageSort } from "utils"
+import { download, packageSort } from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import * as _ from "utils" // console.verbose
 
@@ -87,16 +86,6 @@ async function grab({ readURL, writeFilename }: { readURL: string, writeFilename
   verbose({downloading: readURL})
   verbose({destination: writeFilename})
 
-  console.log("FETCHING", readURL)
-  const rsp = await fetch(readURL)
-  if (!rsp.ok) throw new Error(`${rsp.status}: ${readURL}`)
-  const rdr = rsp.body?.getReader()
-  if (!rdr) throw new Error(`Couldn’t read: ${readURL}`)
-  const r = readerFromStreamReader(rdr)
-  const f = await Deno.open(writeFilename.mkparent().string, {create: true, write: true})
-  try {
-    await copy(r, f)
-  } finally {
-    f.close()
-  }
+  const file = await download(readURL)
+  await Deno.link(file.path, writeFilename.string)
 }
