@@ -75,38 +75,45 @@ export default function usePantry(): Response {
 
   const getScript = async (pkg: Package, key: 'build' | 'test') => {
     const yml = await entry(pkg).yml()
-    const obj = validatePlainObject(yml[key])
+    const node = yml[key]
+    let raw = ''
 
-    let raw = validateString(obj.script)
+    if (isString(node)) {
+      raw = node
+    } else {
+      const obj = validatePlainObject(yml[key])
 
-    let wd = obj["working-directory"]
-    if (wd) {
-      wd = remapTokens(wd, pkg)
-      raw = undent`
-        mkdir -p ${wd}
-        cd ${wd}
+      raw = validateString(obj.script)
 
-        ${raw}
-        `
-    }
+      let wd = obj["working-directory"]
+      if (wd) {
+        wd = remapTokens(wd, pkg)
+        raw = undent`
+          mkdir -p ${wd}
+          cd ${wd}
 
-    const env = obj.env
-    if (isPlainObject(env)) {
-      const expanded_env = Object.entries(env).map(([key,value]) => {
-        if (isArray(value)) {
-          value = value.map(transform).join(" ")
-        } else {
-          value = transform(value)
-        }
-        // weird POSIX string escaping/concat stuff
-        // eg. export FOO="bar ""$baz"" bun"
-        value = `"${value.trim().replace(/"/g, '""')}"`
-        while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
-        while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
+          ${raw}
+          `
+      }
 
-        return `export ${key}=${value}`
-      }).join("\n")
-      raw = `${expanded_env}\n\n${raw}`
+      const env = obj.env
+      if (isPlainObject(env)) {
+        const expanded_env = Object.entries(env).map(([key,value]) => {
+          if (isArray(value)) {
+            value = value.map(transform).join(" ")
+          } else {
+            value = transform(value)
+          }
+          // weird POSIX string escaping/concat stuff
+          // eg. export FOO="bar ""$baz"" bun"
+          value = `"${value.trim().replace(/"/g, '""')}"`
+          while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
+          while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
+
+          return `export ${key}=${value}`
+        }).join("\n")
+        raw = `${expanded_env}\n\n${raw}`
+      }
     }
 
     return remapTokens(raw, pkg)
