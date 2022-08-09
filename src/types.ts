@@ -71,7 +71,12 @@ import SemVer, * as semver from "semver"
 
 function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
   if (a.raw == b.raw) return a
-  throw "unimpl" //TODO
+  if (a.raw == '*') return b
+  if (b.raw == '*') return a
+
+  console.error(a, b)
+
+  throw new Error(`unimpl:${a.raw}:${b.raw}`) //TODO
 }
 
 export { SemVer, semver, semver_intersection }

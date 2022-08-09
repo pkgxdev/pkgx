@@ -3,6 +3,8 @@ import { Package, PackageRequirement, semver, Installation } from "types"
 import useCellar from "hooks/useCellar.ts"
 import useInventory from "hooks/useInventory.ts";
 
+/// NOTE resolves to bottles
+
 /// contract there are no duplicate projects
 
 export default async function resolve(reqs: PackageRequirement[]): Promise<Package[]> {

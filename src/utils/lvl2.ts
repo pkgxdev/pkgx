@@ -7,7 +7,7 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
   let { constraint: rawconstraint, project } = input
   const isMac = usePlatform().platform == 'darwin'
 
-  console.debug({project, constraint: rawconstraint})
+  //TODO console.debug({project, rawconstraint})
 
   //<FIXME>
   if (project == "tea.xyz/gx/cc" || project == "tea.xyz/gx/c++") {
@@ -25,7 +25,7 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
 
   const constraint = new semver.Range(`${rawconstraint}`)
 
-  console.debug({project, constraint})
+  //TODO console.debug({project, constraint: constraint.toString()})
 
   return { project, constraint }
 
