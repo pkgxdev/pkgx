@@ -83,7 +83,7 @@ async function filterAndHydrate(pkgs: PackageRequirement[]): Promise<PackageRequ
     if (a.path.join("lib/pkgconfig").isDirectory()) return pkg
     if (a.path.join("lib").isDirectory()) return pkg
     if (a.path.join("include").isDirectory()) return pkg
-    if (a.path.join("bin")) return pkg
+    if (a.path.join("bin").isDirectory()) return pkg
   }
 }
 
