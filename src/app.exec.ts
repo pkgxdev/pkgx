@@ -8,6 +8,7 @@ import useCellar from "hooks/useCellar.ts"
 import { PackageRequirement, Path } from "types"
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
 import useExecutableMarkdown from "hooks/useExecutableMarkdown.ts"
+import useFlags from "hooks/useFlags.ts"
 
 type Options = {
   args: string[]
@@ -17,6 +18,7 @@ type Options = {
 
 export default async function exec({ args, ...opts }: Options) {
   const cellar = useCellar()
+  const flags = useFlags()
 
   if (args.length < 1) throw "contract violation"
 
@@ -37,6 +39,9 @@ export default async function exec({ args, ...opts }: Options) {
   if (opts.env) {
     env["SRCROOT"] = opts.env.srcroot.string
     if (opts.env.version) env["VERSION"] = opts.env.version.toString()
+  }
+  if (flags.json) {
+    env["JSON"] = "1"
   }
 
   const cmd = [...args]

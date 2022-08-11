@@ -8,6 +8,7 @@ export type Mode = 'exec' | 'dump' | 'help'
 interface Flags {
   verbosity: Verbosity
   magic: boolean
+  json: boolean
 }
 
 interface ConvenienceFlags {
@@ -24,8 +25,10 @@ export default function useFlags(): Flags & ConvenienceFlags {
     //FIXME scripts/* need this to happen but its yucky
     flags = {
       verbosity: getVerbosity({}),
-      magic: getMagic(undefined)
+      magic: getMagic(undefined),
+      json: Deno.env.get("JSON") == '1' //FIXME use the lib
     }
+    applyVerbosity()
   }
 
   return {
@@ -87,6 +90,9 @@ export function useArgs(args: string[]): ReturnValue {
       name: "exec",
       aliases: ["x"],
       type: "string"
+    }, {
+      name: "json",
+      aliases: ["j"]
     }]
   }) as { flags: {
     verbose?: boolean,
@@ -98,24 +104,21 @@ export function useArgs(args: string[]): ReturnValue {
     muggle?: boolean,
     cd?: string,
     exec?: string,
+    json: boolean
   }, unknown: string[], literal: string[] }
 
-  const { flags: { verbose, silent, help, env, dump, v, muggle, cd, exec }, unknown, literal } = parsedArgs
+  const { flags: { verbose, json, silent, help, env, dump, v, muggle, cd, exec }, unknown, literal } = parsedArgs
 
   flags = {
     verbosity: getVerbosity({ v, verbose, silent}),
-    magic: getMagic(muggle)
+    magic: getMagic(muggle),
+    json
   }
 
-  function noop() {}
-  if (flags.verbosity < Verbosity.debug) console.debug = noop
-  if (flags.verbosity < Verbosity.loud) console.verbose = noop
-  if (flags.verbosity < Verbosity.normal) {
-    console.log = noop
-    console.error = noop
-  }
+  applyVerbosity()
 
-  console.debug({ parsedArgs })
+  console.debug({ "raw-args": Deno.args })
+  console.debug({ "parsed-args": parsedArgs })
 
   if ((exec?1:0) + (help?1:0) + (dump?1:0) > 1) throw "usage:invalid"
 
@@ -161,4 +164,14 @@ function getMagic(muggle: boolean | undefined): boolean {
   const env = Deno.env.get("MAGIC")
   if (env === "0") return false
   return true
+}
+
+function applyVerbosity() {
+  function noop() {}
+  if (flags.verbosity < Verbosity.debug) console.debug = noop
+  if (flags.verbosity < Verbosity.loud) console.verbose = noop
+  if (flags.verbosity < Verbosity.normal) {
+    console.log = noop
+    console.error = noop
+  }
 }
