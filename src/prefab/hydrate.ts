@@ -26,6 +26,10 @@ export default async function hydrate(
     const [pkg, n] = stack.shift()!
 
     for (const dep of await get_deps(pkg)) {
+
+      /// avoid infinite cycles until we understand “bootstrap” projects
+      if (dep.project == 'llvm.org' || dep.project == 'gnu.org/make') continue
+
       if (dep.project in constraints) {
         constraints[dep.project] = semver_intersection(constraints[dep.project]!, dep.constraint)
       } else {
