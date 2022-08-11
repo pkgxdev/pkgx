@@ -70,13 +70,10 @@ export function parsePackage(input: string): Package {
 import SemVer, * as semver from "semver"
 
 function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
-  if (a.raw == b.raw) return a
-  if (a.raw == '*') return b
-  if (b.raw == '*') return a
-
+  if (a.intersects(b)) return a
+  if (b.intersects(a)) return b
   console.error(a, b)
-
-  throw new Error(`unimpl:${a.raw}:${b.raw}`) //TODO
+  throw new Error()
 }
 
 export { SemVer, semver, semver_intersection }
