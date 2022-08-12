@@ -1,4 +1,4 @@
-import { PackageRequirement } from "types"
+import { PackageRequirement, Path } from "types"
 import useCellar from "hooks/useCellar.ts"
 
 type Env = Record<string, string[]>
@@ -10,6 +10,7 @@ export const EnvKeys = [
   'LD_LIBRARY_PATH',
   'CPATH',
   'XDG_DATA_DIRS',
+  'CMAKE_PREFIX_PATH'
 ]
 
 interface Response {
@@ -27,7 +28,8 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
   const vars: Env = {}
   const pending: PackageRequirement[] = []
 
-  const has_pkg_config = !!requirements.find(({project}) => project === 'pkg-config')
+  const has_pkg_config = !!requirements.find(({project}) => project === 'freedesktop.org/pkg-config')
+  const has_cmake = !!requirements.find(({project}) => project === 'cmake.org')
 
   for (const requirement of requirements) {
     const installation = await cellar.resolve(requirement).swallow(/^not-found:/)
@@ -43,11 +45,16 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
       }
 
       // if the tool provides no pkg-config files then fall back on old-school specification methods
-      if (!vars.PKG_CONFIG_PATH?.chuzzle() || !has_pkg_config) {
+      if (true) { //!vars.PKG_CONFIG_PATH?.chuzzle() || !has_pkg_config) {
         if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
         if (!vars.CPATH) vars.CPATH = []
         vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
         vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
+      }
+
+      if (has_cmake) {
+        if (!vars.CMAKE_PREFIX_PATH) vars.CMAKE_PREFIX_PATH = []
+        vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
       }
     }
   }
@@ -80,12 +87,13 @@ function suffixes(key: string) {
       return ["share/man"]
     case 'PKG_CONFIG_PATH':
       return ['share/pkgconfig', 'lib/pkgconfig']
+    case 'XDG_DATA_DIRS':
+      return ['share']
     case 'LIBRARY_PATH':
     case 'LD_LIBRARY_PATH':
     case 'CPATH':
+    case 'CMAKE_PREFIX_PATH':
       return []  // we handle these specially
-    case 'XDG_DATA_DIRS':
-      return ['share']
     default:
       throw new Error("unhandled")
   }
