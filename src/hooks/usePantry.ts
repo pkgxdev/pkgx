@@ -262,11 +262,20 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
   })()
 
   const strip: (x: string) => string = (() => {
-    const s = versions.strip
-    if (!isString(s)) return x => x
-    if (!(s.startsWith("/") && s.endsWith("/"))) throw new Error()
-    const rx = new RegExp(s.slice(1, -1))
-    return x => x.replace(rx, '')
+    let rxs = versions.strip
+    if (!rxs) return x => x
+    if (!isArray(rxs)) rxs = [rxs]
+    rxs = rxs.map((rx: any) => {
+      if (!isString(rx)) throw new Error()
+      if (!(rx.startsWith("/") && rx.endsWith("/"))) throw new Error()
+      return new RegExp(rx.slice(1, -1))
+    })
+    return x => {
+      for (const rx of rxs) {
+        x = x.replace(rx, "")
+      }
+      return x
+    }
   })()
 
   switch (type) {
