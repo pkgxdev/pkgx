@@ -60,6 +60,8 @@ export function useArgs(args: string[]): ReturnValue {
   if (flags) throw "contract-violated"
 
   const parsedArgs = parseFlags(args, {
+    /// passes args after the script argument to the script
+    stopEarly: true,
     flags: [{
       name: "v",
       collect: true,
