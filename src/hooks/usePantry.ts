@@ -78,14 +78,10 @@ export default function usePantry(): Response {
     const node = yml[key]
     let raw = ''
 
-    if (isString(node)) {
-      raw = node
-    } else {
-      const obj = validatePlainObject(yml[key])
+    if (isPlainObject(node)) {
+      raw = validateString(node.script)
 
-      raw = validateString(obj.script)
-
-      let wd = obj["working-directory"]
+      let wd = node["working-directory"]
       if (wd) {
         wd = remapTokens(wd, pkg)
         raw = undent`
@@ -96,7 +92,7 @@ export default function usePantry(): Response {
           `
       }
 
-      const env = obj.env
+      const env = node.env
       if (isPlainObject(env)) {
         const expanded_env = Object.entries(env).map(([key,value]) => {
           if (isArray(value)) {
@@ -114,6 +110,8 @@ export default function usePantry(): Response {
         }).join("\n")
         raw = `${expanded_env}\n\n${raw}`
       }
+    } else {
+      raw = validateString(node)
     }
 
     return remapTokens(raw, pkg)
