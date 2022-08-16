@@ -41,6 +41,8 @@ for (const pkg of await useCache().ls()) {
     const basename = key.split("/").pop()
     const body = new TextEncoder().encode(`${sha256sum}  ${basename}`)
 
+    console.log({ uploading: key });
+
     await bucket.putObject(key, contents);
     await bucket.putObject(`${key}.sha256sum`, body);
 

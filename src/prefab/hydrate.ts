@@ -44,7 +44,7 @@ export default async function hydrate(
     }
   }
 
-  console.debug(counts)
+//FIXME  console.debug(counts)
 
   return Object.entries(counts)
     .sort(([,a], [,b]) => a < b ? 1 : a > b ? -1 : 0)

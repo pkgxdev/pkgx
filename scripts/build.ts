@@ -17,7 +17,7 @@ import { lvl1 as link } from "prefab/link.ts"
 import usePantry from "hooks/usePantry.ts"
 import { parsePackageRequirement, semver } from "types"
 import { Command } from "cliffy/command/mod.ts"
-import { prepare } from "./_shared.ts";
+import { prepare } from "./_shared.ts"
 
 const { args, options: { skipExtract } } = await new Command()
   .name("tea-build")

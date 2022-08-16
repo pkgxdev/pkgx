@@ -32,7 +32,7 @@ export default function useCellar(): Return {
         if (await looksEmpty(path)) continue
         const version = new SemVer(entry.name)
         rv.push({path, pkg: {project, version}})
-      } catch (err) {
+      } catch {
         //TODO only semver errors
       }
     }
@@ -49,6 +49,7 @@ export default function useCellar(): Return {
       const installations = await ls(pkg.project)
       const versions = installations.map(({ pkg: {version}}) => version)
       const version = semver.maxSatisfying(versions, pkg.constraint)
+      console.debug({ installations, versions, version })
       if (version) {
         const path = installations.find(({pkg: {version: v}}) => semver.eq(v, version))!.path
         return { path, pkg: { project: pkg.project, version } }
