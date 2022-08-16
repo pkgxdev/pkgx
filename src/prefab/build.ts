@@ -99,32 +99,52 @@ async function* exefiles(prefix: Path) {
 
 /// fix rpaths or install names for executables and dynamic libraries
 async function fix(prefix: Path, pkgs: PackageRequirement[]) {
-  if (usePlatform().platform != 'linux') return
-  // ^^ TODO we need to do this on mac too
-
   for await (const exename of exefiles(prefix)) {
-    await setRpath(exename, pkgs)
+    await set_rpaths(exename, pkgs)
   }
 }
 
 //TODO this is not resilient to upgrades (obv)
-async function setRpath(exename: Path, pkgs: PackageRequirement[]) {
+//NOTE solution is to have the rpath reference major version (or more specific if poss)
+//  and then have virtual env manager be more specific via (DY)?LD_LIBRARY_PATH
+async function set_rpaths(exename: Path, pkgs: PackageRequirement[]) {
   const cellar = useCellar()
   const our_rpaths = await Promise.all(pkgs.map(pkg => prefix(pkg)))
 
+  const cmd = await (async () => {
+    switch (usePlatform().platform) {
+    case 'linux': {
+      //FIXME we need this for perl
+      // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
+      const their_rpaths = (await runAndGetOutput({
+        cmd: ["patchelf", "--print-rpath", exename],
+      })).split("\n")
+
+      const rpaths =[...their_rpaths, ...our_rpaths].join(':')
+
+      //FIXME use runtime-path since then LD_LIBRARY_PATH takes precedence which our virtual env manager requires
+      return ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
+    }
+    case 'darwin':
+      //FIXME we need to set DYLD_LIBRARY_PATH for virtual envs to work on macOS
+      //FIXME we need to remove any rpaths set by the build tool
+      //FIXME we need to undo any install-name paths and instead set them with rpath
+      //FIXME set a sensible id for enduser
+      return [
+        "install_name_tool",
+        ...our_rpaths.flatMap(rpath => ["-add_rpath", rpath]),
+        exename
+      ]
+    case 'windows':
+      throw new Error()
+    }
+  })()
+
   try {
-    const their_rpaths = (await runAndGetOutput({
-      cmd: ["patchelf", "--print-rpath", exename],
-    })).split("\n")
-
-    const rpaths = [...our_rpaths, ...their_rpaths].join(":")
-
-    await run({
-      cmd: ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
-    })
+    await run({ cmd })
   } catch (e) {
+    //FIXME check the file magic bits to see if we can actually rpath these files lol
     console.warn(e)
-    //FIXME we skip all errors as we are not checking if files are executables rather than eg. scripts
   }
 
   async function prefix(pkg: PackageRequirement) {

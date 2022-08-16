@@ -128,7 +128,11 @@ export default class Path {
   }
 
   isExecutableFile(): Path | undefined {
-    return this.isFile() /*FIXME*/ ? this : undefined
+    if (!this.isFile()) return
+    const info = Deno.statSync(this.string)
+    if (!info.mode) throw new Error()
+    const is_exe = (info.mode & 0o111) > 0
+    if (is_exe) return this
   }
 
   isReadableFile(): Path | undefined {
