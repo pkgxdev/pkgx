@@ -92,7 +92,9 @@ async function* exefiles(prefix: Path) {
     const d = prefix.join(basename).isDirectory()
     if (!d) continue
     for await (const [exename] of d.ls()) {
-      if (exename.isExecutableFile()) yield exename
+      //TODO not good enough since sofiles often do not have x set
+      // if (exename.isExecutableFile()) yield exename
+      yield exename
     }
   }
 }
