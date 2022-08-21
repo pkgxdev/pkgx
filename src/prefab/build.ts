@@ -135,6 +135,10 @@ async function set_rpaths(exename: Path, pkgs: PackageRequirement[]) {
       return [
         "install_name_tool",
         ...our_rpaths.flatMap(rpath => ["-add_rpath", rpath]),
+        // we can't trust the id the build system picked
+        // we need dependents to correctly link to this dylib
+        // and they often use the `id` to do so
+        "-id", exename,
         exename
       ]
     case 'windows':
