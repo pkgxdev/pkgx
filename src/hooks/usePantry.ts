@@ -12,6 +12,7 @@ interface Response {
   getDistributable(rq: Package): Promise<{ url: string, stripComponents?: number }>
   /// returns sorted versions
   getVersions(rq: PackageRequirement | Package): Promise<SemVerExtended[]>
+  /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
   getDeps(pkg: Package | PackageRequirement): Promise<{ runtime: PackageRequirement[], build: PackageRequirement[] }>
   getScript(pkg: Package, key: 'build' | 'test'): Promise<string>
   update(): Promise<void>

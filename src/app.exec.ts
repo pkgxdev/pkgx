@@ -49,8 +49,8 @@ export default async function exec({ args, ...opts }: Options) {
 
 /////////////////////////////////////////////////////////////
   async function install(dry: PackageRequirement[]) {
-    const wet = await hydrate(dry)  ; console.debug({wet})
-    const gas = await resolve(wet)  ; console.debug({gas})
+    const wet = await hydrate(dry)      ; console.debug({wet})
+    const gas = await resolve(wet)      ; console.debug({gas})
     for (const pkg of gas) {
       if (await cellar.isInstalled(pkg)) continue
       console.info({ installing: pkg })
