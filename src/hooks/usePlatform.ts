@@ -1,8 +1,11 @@
 import { Installation } from "types";
 import { run } from "utils";
 
+export const SupportedPlatforms = ["darwin", "linux", "windows"] as const;
+export type SupportedPlatform = typeof SupportedPlatforms[number]
+
 interface Return {
-  platform: 'darwin' | 'linux' | 'windows'
+  platform: SupportedPlatform
   arch: 'x86-64' | 'aarch64'
   target: string
   buildIdentifiers: string[]

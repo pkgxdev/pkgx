@@ -3,7 +3,7 @@ import { semver, Package, PackageRequirement, Path, PlainObject, SemVer } from "
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
 import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString, validateArray, panic } from "utils"
 import useCellar from "hooks/useCellar.ts"
-import usePlatform from "hooks/usePlatform.ts"
+import usePlatform, { SupportedPlatform, SupportedPlatforms } from "hooks/usePlatform.ts"
 import { validatePackageRequirement } from "utils/lvl2.ts"
 
 type SemVerExtended = SemVer & {pkgraw: string}
@@ -77,10 +77,9 @@ export default function usePantry(): Response {
   const getScript = async (pkg: Package, key: 'build' | 'test') => {
     const yml = await entry(pkg).yml()
     const node = yml[key]
-    let raw = ''
 
     if (isPlainObject(node)) {
-      raw = validateString(node.script)
+      let raw = remapTokens(validateString(node.script), pkg)
 
       let wd = node["working-directory"]
       if (wd) {
@@ -95,63 +94,12 @@ export default function usePantry(): Response {
 
       const env = node.env
       if (isPlainObject(env)) {
-        const expanded_env = Object.entries(env).map(([key,value]) => {
-          if (isArray(value)) {
-            value = value.map(transform).join(" ")
-          } else {
-            value = transform(value)
-          }
-          // weird POSIX string escaping/concat stuff
-          // eg. export FOO="bar ""$baz"" bun"
-          value = `"${value.trim().replace(/"/g, '""')}"`
-          while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
-          while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
-
-          return `export ${key}=${value}`
-        }).join("\n")
-        raw = `${expanded_env}\n\n${raw}`
+        raw = `${expand_env(env, pkg)}\n\n${raw}`
       }
+      return raw
     } else {
-      raw = validateString(node)
+      return remapTokens(validateString(node), pkg)
     }
-
-    return remapTokens(raw, pkg)
-
-    function transform(value: any): string {
-      if (!isPrimitive(value)) throw new Error("invalid-env-value")
-
-      if (isBoolean(value)) {
-        return value ? "1" : "0"
-      } else if (value === undefined || value === null) {
-        return "0"
-      } else if (isString(value)) {
-        return remapTokens(value, pkg)
-      } else if (isNumber(value)) {
-        return value.toString()
-      }
-      throw new Error("unexpected-error")
-    }
-  }
-
-  const remapTokens = (input: string, pkg: Package) => {
-    const platform = usePlatform()
-    const prefix = useCellar().mkpath(pkg)
-
-    return [
-      { from: "version", to: pkg.version.toString() },
-      { from: "version.major", to: pkg.version.major.toString() },
-      { from: "version.minor", to: pkg.version.minor.toString() },
-      { from: "version.patch", to: pkg.version.patch.toString() },
-      { from: "version.build", to: pkg.version.build.join('+') },
-      { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
-      { from: "version.raw", to: (pkg.version as any).pkgraw },
-      { from: "hw.arch", to: platform.arch },
-      { from: "hw.target", to: platform.target },
-      { from: "hw.platform", to: platform.platform },
-      { from: "prefix", to: prefix.string },
-      { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() },
-      { from: "pkg.pantry-prefix", to: getPrefix(pkg).string }
-    ].reduce((acc, map) => acc.replace(new RegExp(`\\$?{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
   }
 
   const update = async () => {
@@ -177,8 +125,6 @@ export default function usePantry(): Response {
       }
     })
   }
-
-  const getPrefix = (pkg: Package | PackageRequirement) => prefix.join(pkg.project)
 
   return { getVersions, getDeps, getDistributable, getScript, update, getProvides,
     getYAML,
@@ -323,3 +269,72 @@ const parser = (input: string) => {
   if (rv = /^v?(\d+\.\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0`)
   if (rv = /^v?(\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0.0`)
 }
+
+function expand_env(env_: PlainObject, pkg: Package): string {
+  const env = {...env_}
+  const stack = Object.entries(env).flatMap(([key, value]) => {
+    if (SupportedPlatforms.includes(key as SupportedPlatform)) {
+      if (key == usePlatform().platform) {
+        return Object.entries(validatePlainObject(value))
+      } else {
+        return []
+      }
+    } else {
+      return [[key, value]]
+    }
+  })
+
+  return stack.map(([key,value]) => {
+    if (isArray(value)) {
+      value = value.map(transform).join(" ")
+    } else {
+      value = transform(value)
+    }
+    // weird POSIX string escaping/concat stuff
+    // eg. export FOO="bar ""$baz"" bun"
+    value = `"${value.trim().replace(/"/g, '""')}"`
+    while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
+    while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
+
+    return `export ${key}=${value}`
+  }).join("\n")
+
+  // deno-lint-ignore no-explicit-any
+  function transform(value: any): string {
+    if (!isPrimitive(value)) throw new Error("invalid-env-value")
+
+    if (isBoolean(value)) {
+      return value ? "1" : "0"
+    } else if (value === undefined || value === null) {
+      return "0"
+    } else if (isString(value)) {
+      return remapTokens(value, pkg)
+    } else if (isNumber(value)) {
+      return value.toString()
+    }
+    throw new Error("unexpected-error")
+  }
+}
+
+const remapTokens = (input: string, pkg: Package) => {
+  const platform = usePlatform()
+  const prefix = useCellar().mkpath(pkg)
+
+  return [
+    { from: "version", to: pkg.version.toString() },
+    { from: "version.major", to: pkg.version.major.toString() },
+    { from: "version.minor", to: pkg.version.minor.toString() },
+    { from: "version.patch", to: pkg.version.patch.toString() },
+    { from: "version.build", to: pkg.version.build.join('+') },
+    { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
+    { from: "version.raw", to: (pkg.version as any).pkgraw },
+    { from: "hw.arch", to: platform.arch },
+    { from: "hw.target", to: platform.target },
+    { from: "hw.platform", to: platform.platform },
+    { from: "prefix", to: prefix.string },
+    { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() },
+    { from: "pkg.pantry-prefix", to: getPrefix(pkg).string }
+  ].reduce((acc, map) => acc.replace(new RegExp(`\\$?{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
+}
+
+const getPrefix = (pkg: Package | PackageRequirement) => prefix.join(pkg.project)
