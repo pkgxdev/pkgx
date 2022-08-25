@@ -1,4 +1,4 @@
-import Path from "./types/Path.ts"
+import Path  from "./types/Path.ts"
 export { Path }
 
 import { PlainObject } from "is_what"

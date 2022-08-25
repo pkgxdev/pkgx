@@ -10,7 +10,8 @@ export const EnvKeys = [
   'LD_LIBRARY_PATH',
   'CPATH',
   'XDG_DATA_DIRS',
-  'CMAKE_PREFIX_PATH'
+  'CMAKE_PREFIX_PATH',
+  'DYLD_LIBRARY_PATH'
 ]
 
 interface Response {
@@ -62,6 +63,7 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
   // not usually needed, but some configure scripts barf otherwise
   if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
+    vars.DYLD_LIBRARY_PATH = vars.LIBRARY_PATH
   }
 
   const defaults: Env = {}
@@ -91,6 +93,7 @@ function suffixes(key: string) {
       return ['share']
     case 'LIBRARY_PATH':
     case 'LD_LIBRARY_PATH':
+    case 'DYLD_LIBRARY_PATH':
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
       return []  // we handle these specially

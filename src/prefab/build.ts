@@ -2,9 +2,11 @@ import { Path, Package, PackageRequirement, semver } from "types"
 import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
-import { run, runAndGetOutput, undent } from "utils"
+import { run, undent } from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import hydrate from "prefab/hydrate.ts"
+import fix_pkg_config_files from "prefab/fix-pkg-config-files.ts"
+import fix_rpaths from "./fix-rpaths.ts";
 
 interface Options {
   pkg: Package
@@ -55,10 +57,14 @@ export default async function build({ pkg, deps, prebuild }: Options): Promise<P
   // because we need to set rpaths for everything all the way down
   const wet = await hydrate(deps.runtime)
 
-  await fix(dst, [
+  const installation = { pkg, path: dst }
+
+  await fix_rpaths(installation, [
     ...wet,
     {project: pkg.project, constraint: new semver.Range(`=${pkg.version}`)}
   ])
+
+  await fix_pkg_config_files({ path: dst, pkg })
 
   return dst
 }
@@ -84,76 +90,5 @@ async function filterAndHydrate(pkgs: PackageRequirement[]): Promise<PackageRequ
     if (a.path.join("lib").isDirectory()) return pkg
     if (a.path.join("include").isDirectory()) return pkg
     if (a.path.join("bin").isDirectory()) return pkg
-  }
-}
-
-async function* exefiles(prefix: Path) {
-  for (const basename of ["bin", "lib"]) { //TODO the rest
-    const d = prefix.join(basename).isDirectory()
-    if (!d) continue
-    for await (const [exename] of d.ls()) {
-      //TODO not good enough since sofiles often do not have x set
-      // if (exename.isExecutableFile()) yield exename
-      yield exename
-    }
-  }
-}
-
-/// fix rpaths or install names for executables and dynamic libraries
-async function fix(prefix: Path, pkgs: PackageRequirement[]) {
-  for await (const exename of exefiles(prefix)) {
-    await set_rpaths(exename, pkgs)
-  }
-}
-
-//TODO this is not resilient to upgrades (obv)
-//NOTE solution is to have the rpath reference major version (or more specific if poss)
-//  and then have virtual env manager be more specific via (DY)?LD_LIBRARY_PATH
-async function set_rpaths(exename: Path, pkgs: PackageRequirement[]) {
-  const cellar = useCellar()
-  const our_rpaths = await Promise.all(pkgs.map(pkg => prefix(pkg)))
-
-  const cmd = await (async () => {
-    switch (usePlatform().platform) {
-    case 'linux': {
-      //FIXME we need this for perl
-      // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
-      const their_rpaths = (await runAndGetOutput({
-        cmd: ["patchelf", "--print-rpath", exename],
-      })).split("\n")
-
-      const rpaths =[...their_rpaths, ...our_rpaths].join(':')
-
-      //FIXME use runtime-path since then LD_LIBRARY_PATH takes precedence which our virtual env manager requires
-      return ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
-    }
-    case 'darwin':
-      //FIXME we need to set DYLD_LIBRARY_PATH for virtual envs to work on macOS
-      //FIXME we need to remove any rpaths set by the build tool
-      //FIXME we need to undo any install-name paths and instead set them with rpath
-      //FIXME set a sensible id for enduser
-      return [
-        "install_name_tool",
-        ...our_rpaths.flatMap(rpath => ["-add_rpath", rpath]),
-        // we can't trust the id the build system picked
-        // we need dependents to correctly link to this dylib
-        // and they often use the `id` to do so
-        "-id", exename,
-        exename
-      ]
-    case 'windows':
-      throw new Error()
-    }
-  })()
-
-  try {
-    await run({ cmd })
-  } catch (e) {
-    //FIXME check the file magic bits to see if we can actually rpath these files lol
-    console.warn(e)
-  }
-
-  async function prefix(pkg: PackageRequirement) {
-    return (await cellar.resolve(pkg)).path.join("lib").string
   }
 }

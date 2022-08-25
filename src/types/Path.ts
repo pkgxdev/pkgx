@@ -228,6 +228,12 @@ export default class Path {
     }
   }
 
+  cp({into}: {into: Path}): Path {
+    const dst = into.join(this.basename())
+    Deno.copyFileSync(this.string, dst.string)
+    return dst
+  }
+
   rm({recursive} = {recursive: false}) {
     if (this.exists()) {
       Deno.removeSync(this.string, { recursive })
@@ -346,7 +352,17 @@ export default class Path {
     if (this.string.startsWith(base.string)) {
       return pathComps.slice(baseComps.length).join("/")
     } else {
-      throw new Error("unimpl")
+      const newPathComps = [...pathComps]
+      const newBaseComps = [...baseComps]
+
+      while (newPathComps[0] == newBaseComps[0]) {
+        newPathComps.shift()
+        newBaseComps.shift()
+      }
+
+      const relComps = Array.from({ length: newBaseComps.length } , () => "..")
+      relComps.push(...newPathComps)
+      return relComps.join("/")
     }
   }
 }
