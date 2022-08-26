@@ -15,9 +15,11 @@ interface Options {
     build: PackageRequirement[]
     runtime: PackageRequirement[]
   }
+  /// additional env to set, will override (REPLACE) any calculated env
+  env?: Record<string, string[]>
 }
 
-export default async function build({ pkg, deps, prebuild }: Options): Promise<Path> {
+export default async function build({ pkg, deps, prebuild, env: add_env }: Options): Promise<Path> {
   const pantry = usePantry()
   const cellar = useCellar()
   const dst = cellar.mkpath(pkg)
@@ -36,6 +38,12 @@ export default async function build({ pkg, deps, prebuild }: Options): Promise<P
 
   /// FIXME: no one likes this. `set -o pipefail` is the reason for this requirement.
   const shell = platform === "linux" ? "bash" : "sh"
+
+  if (add_env) {
+    for (const [key, value] of Object.entries(add_env)) {
+      env.vars[key] = value
+    }
+  }
 
   const cmd = dst.join("build.sh").write({ force: true, text: undent`
     #!/bin/${shell}

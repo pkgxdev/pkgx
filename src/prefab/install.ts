@@ -31,9 +31,8 @@ export default async function install(pkg: Package): Promise<Installation> {
   try {
     await validateChecksum(tarball, `${url}.sha256sum`)
   } catch (err) {
-    console.error({ checksumMismatch: err.message })
     tarball.rm()
-    throw "checksum-mismatch"
+    throw err
   }
 
   const cmd = new TarballUnarchiver({
@@ -61,5 +60,9 @@ async function validateChecksum(tarball: Path, url: string) {
   const r = await readAll(readerFromStreamReader(rdr))
   const remoteSha256Sum = new TextDecoder().decode(r).split(' ')[0]
 
-  if (remoteSha256Sum !== fileSha256sum) throw "checksum-mismatch"
+  console.verbose({ checksum: remoteSha256Sum })
+
+  if (remoteSha256Sum !== fileSha256sum) {
+    throw new Error(`expected: ${remoteSha256Sum}`)
+  }
 }
