@@ -173,13 +173,19 @@ export default class Path {
     }
   }
 
-  static mktemp(): Path {
-    const dir = "/opt/tea.xyz/tmp"
-    Deno.mkdirSync(dir, {recursive: true})
-    const rv = Deno.makeTempDirSync({
-      prefix: "tea", dir
-    })
+  static mktmp({ prefix = 'tea' }): Path {
+    const parts = new Path('/opt/tea.xyz/tmp').join(prefix).split()
+    parts[0].mkpath()
+    const dir = parts[0].string
+    prefix = parts[1]
+    const rv = Deno.makeTempDirSync({prefix, dir})
     return new Path(rv)
+  }
+
+  split(): [Path, string] {
+    const d = this.parent()
+    const b = this.basename()
+    return [d, b]
   }
 
   /// this static version provided so you can extnames for URLs etc.

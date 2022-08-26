@@ -28,7 +28,7 @@ export default async function exec({ args, ...opts }: Options) {
   if (filename?.extname() == '.md') {
     const target = args[1]
     const sh = await useExecutableMarkdown({ filename }).findScript(target)
-    const path = Path.mktemp().join('script').write({ text: undent`
+    const path = Path.mktmp().join('script').write({ text: undent`
       #!/bin/sh
       ${sh}
       ` }).chmod(0o500).string
