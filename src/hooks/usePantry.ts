@@ -272,19 +272,32 @@ const parser = (input: string) => {
 
 function expand_env(env_: PlainObject, pkg: Package): string {
   const env = {...env_}
-  const stack = Object.entries(env).flatMap(([key, value]) => {
-    if (SupportedPlatforms.includes(key as SupportedPlatform)) {
-      if (key == usePlatform().platform) {
-        return Object.entries(validatePlainObject(value))
-      } else {
-        return []
-      }
-    } else {
-      return [[key, value]]
-    }
-  })
+  const sys = usePlatform()
 
-  return stack.map(([key,value]) => {
+  for (const [key, value] of Object.entries(env)) {
+    const match = key.match(/^(darwin|linux)(\/(x86-64|aarch64))?$/)
+    if (!match) continue
+    delete env[key]
+    const [, os, arch] = match
+    if (os != sys.platform) continue
+    if (arch && arch != sys.arch) continue
+
+    const dict = validatePlainObject(value)
+    for (const [key, value] of Object.entries(dict)) {
+      // if user specifies an array then we assume we are supplementing
+      // otherwise we are replacing. If this is too magical let us know
+      if (isArray(value)) {
+        if (!env[key]) env[key] = []
+        else if (!isArray(env[key])) env[key] = [env[key]]
+        //TODO if all-platforms version comes after the specific then order accordingly
+        env[key].push(...value)
+      } else {
+        env[key] = value
+      }
+    }
+  }
+
+  return Object.entries(env).map(([key,value]) => {
     if (isArray(value)) {
       value = value.map(transform).join(" ")
     } else {
