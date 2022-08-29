@@ -43,7 +43,7 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
       //TODO this isn't enough, we need to de-dupe etc and that
       const rpaths = [...their_rpaths, ...our_rpaths]
         .compactMap(x => x.chuzzle())  // somehow we can get empties from the above
-        .map(x => transform(new Path(x), installation))
+        .map(x => transform(x, installation))
         .uniq()
         .join(':')
         ?? []
@@ -222,7 +222,12 @@ async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
 // convert a full version path to a major’d version path
 // this so we are resilient to upgrades without requiring us to rewrite binaries on install
 // since rewriting binaries would invalidate our signatures
-function transform(input: Path, installation: Installation) {
+function transform(input_: string, installation: Installation) {
+  // we leave these alone, trusting the build tool knew what it was doing
+  if (input_.startsWith("$ORIGIN")) return input_
+
+  const input = new Path(input_)
+
   if (input.string.startsWith(installation.path.parent().string)) {
     // don’t transform stuff that links to this actual package
     return input
