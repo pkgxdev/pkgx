@@ -14,6 +14,7 @@ if (import.meta.main) {
 
 /// fix rpaths or install names for executables and dynamic libraries
 export default async function fix_rpaths(installation: Installation, pkgs: PackageRequirement[]) {
+  console.info("doing SLOW rpath fixes…")
   for await (const [exename, type] of exefiles(installation.path)) {
     await set_rpaths(exename, type, pkgs, installation)
   }
@@ -24,9 +25,8 @@ const platform = usePlatform().platform
 
 //TODO it's an error if any binary has bad rpaths before bottling
 //NOTE we should have a `safety-inspector` step before bottling to check for this sort of thing
-
-
 //  and then have virtual env manager be more specific via (DY)?LD_LIBRARY_PATH
+//FIXME somewhat inefficient for eg. git since git is mostly hardlinks to the same file
 async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequirement[], installation: Installation) {
   const cellar = useCellar()
   const our_rpaths = await Promise.all(pkgs.map(pkg => prefix(pkg)))
@@ -38,9 +38,15 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
       // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
       const their_rpaths = (await runAndGetOutput({
         cmd: ["patchelf", "--print-rpath", exename],
-      })).split("\n")
+      })).split(":")
 
-      const rpaths =[...their_rpaths, ...our_rpaths].join(':')
+      //TODO this isn't enough, we need to de-dupe etc and that
+      const rpaths = [...their_rpaths, ...our_rpaths]
+        .compactMap(x => x.chuzzle())  // somehow we can get empties from the above
+        .map(x => transform(new Path(x), installation))
+        .uniq()
+        .join(':')
+        ?? []
 
       //FIXME use runtime-path since then LD_LIBRARY_PATH takes precedence which our virtual env manager requires
       return ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
@@ -59,8 +65,9 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
         // we need dependents to correctly link to this dylib
         // and they often use the `id` to do so
         // we tried setting it to @rpath/project/dir/lib but that was probematic since linked executables wouldn’t find the libs at *runtime*
+        //TODO possibly should transform to the major of this…
         args.push(...[
-          "-id", exename
+          "-id", exename!
         ])
       }
 
@@ -74,7 +81,8 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
             const relname = dylib.relative({ to: exename.parent() })
             return `@loader_path/${relname}`
           } else {
-            return `@rpath/${dylib.relative({ to: cellar.prefix })}`
+            const transformed = transform(dylib, installation)
+            return `@rpath/${transformed.relative({ to: cellar.prefix })}`
           }
         })()
 
@@ -82,8 +90,6 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
       }
 
       if (args.length == 1) return []
-
-      console.log(exename, await get_rpaths(exename))
 
       // install_name_tool barfs if the rpath already exists
       if (!(await get_rpaths(exename)).includes(rpath)) {
@@ -169,12 +175,14 @@ async function get_bad_otool_listings(exename: Path, type: 'exe' | 'lib'): Promi
   return rv
 }
 
+//FIXME pretty slow since we execute `file` for every file
+// eg. perl has hundreds of `.pm` files in its `lib`
 async function* exefiles(prefix: Path): AsyncGenerator<[Path, 'exe' | 'lib']> {
-  for (const basename of ["bin", "lib"]) { //TODO the rest and possibly recursively
+  for (const basename of ["bin", "lib", "libexec"]) {
     const d = prefix.join(basename).isDirectory()
     if (!d) continue
-    for await (const [exename, { isFile }] of d.ls()) {
-      if (!isFile) continue
+    for await (const [exename, { isFile, isSymlink }] of d.walk()) {
+      if (!isFile || isSymlink) continue
       const type = await exetype(exename)
       if (type) yield [exename, type]
     }
@@ -208,5 +216,18 @@ async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
     return 'lib'
   default:
     return false
+  }
+}
+
+// convert a full version path to a major’d version path
+// this so we are resilient to upgrades without requiring us to rewrite binaries on install
+// since rewriting binaries would invalidate our signatures
+function transform(input: Path, installation: Installation) {
+  if (input.string.startsWith(installation.path.parent().string)) {
+    // don’t transform stuff that links to this actual package
+    return input
+  } else {
+    //FIXME not very robust lol
+    return new Path(input.string.replace(/v(\d+)\.\d+\.\d+/, 'v$1'))
   }
 }

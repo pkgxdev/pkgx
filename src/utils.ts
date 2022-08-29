@@ -63,6 +63,7 @@ declare global {
     compactPush(item: T | undefined | null): void
     compactUnshift(item: T | undefined | null): void
     chuzzle(): Array<T> | undefined
+    uniq(): Array<T>
   }
 
   interface String {
@@ -81,6 +82,16 @@ String.prototype.chuzzle = function() {
 
 export function chuzzle(input: number) {
   return Number.isNaN(input) ? undefined : input
+}
+
+Array.prototype.uniq = function<T>(): Array<T> {
+  const set = new Set<T>()
+  return this.compactMap(x => {
+    const s = x.toString()
+    if (set.has(s)) return
+    set.add(s)
+    return x
+  })
 }
 
 Array.prototype.compactMap = function<T, S>(body: (t: T) => S | null | undefined | false, opts: { throws: boolean }) {

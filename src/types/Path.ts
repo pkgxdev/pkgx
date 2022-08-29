@@ -173,6 +173,21 @@ export default class Path {
     }
   }
 
+  async *walk(): AsyncIterable<[Path, Deno.DirEntry]> {
+    const stack: Path[] = [this]
+    while (stack.length > 0) {
+      const dir = stack.pop()!
+      const it = Deno.readDir(dir.string)
+      for await (const entry of it) {
+        const path = dir.join(entry.name)
+        yield [path, entry]
+        if (entry.isDirectory) {
+          stack.push(path)
+        }
+      }
+    }
+  }
+
   static mktmp({ prefix }: { prefix: string } = { prefix: 'tea' }): Path {
     const parts = new Path('/opt/tea.xyz/tmp').join(prefix).split()
     parts[0].mkpath()

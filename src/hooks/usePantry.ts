@@ -319,7 +319,7 @@ function expand_env(env_: PlainObject, pkg: Package): string {
 
   // deno-lint-ignore no-explicit-any
   function transform(value: any): string {
-    if (!isPrimitive(value)) throw new Error("invalid-env-value")
+    if (!isPrimitive(value)) throw new Error(`invalid-env-value: ${JSON.stringify(value)}`)
 
     if (isBoolean(value)) {
       return value ? "1" : "0"
