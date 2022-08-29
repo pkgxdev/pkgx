@@ -13,7 +13,11 @@ interface Response {
   /// returns sorted versions
   getVersions(rq: PackageRequirement | Package): Promise<SemVerExtended[]>
   /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
-  getDeps(pkg: Package | PackageRequirement): Promise<{ runtime: PackageRequirement[], build: PackageRequirement[] }>
+  getDeps(pkg: Package | PackageRequirement): Promise<{
+    runtime: PackageRequirement[],
+    build: PackageRequirement[],
+    test: PackageRequirement[]
+  }>
   getScript(pkg: Package, key: 'build' | 'test'): Promise<string>
   update(): Promise<void>
   getProvides(rq: PackageRequirement | Package): Promise<string[]>
@@ -43,7 +47,8 @@ export default function usePantry(): Response {
     const yml =  await entry(pkg).yml()
     return {
       runtime: go(yml.dependencies),
-      build: go(yml.build?.dependencies)
+      build: go(yml.build?.dependencies),
+      test: go(yml.test?.dependencies)
     }
     // deno-lint-ignore no-explicit-any
     function go(node: any) {
