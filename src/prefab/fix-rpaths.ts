@@ -112,7 +112,15 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
   })()
 
   if (cmd.length) {
-    await run({ cmd })
+    try {
+      await run({ cmd })
+    } catch (err) {
+      console.warn(err)
+      //FIXME allowing this error because on Linux:
+      //    patchelf: cannot find section '.dynamic'. The input file is most likely statically linked
+      // happens with eg. gofmt
+      // and we don't yet have a good way to detect and skip such files
+    }
   }
 
   async function prefix(pkg: PackageRequirement) {
