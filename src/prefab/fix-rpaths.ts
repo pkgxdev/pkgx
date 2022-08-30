@@ -211,9 +211,13 @@ async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
   case 'application/x-executable':
     if (platform == 'darwin') {
       //FIXME on darwin the `file` utility returns x-mach-binary for both binary types
-      if (path.extname() == ".dylib") return 'lib'
-      if (path.parent().components().includes('lib')) return 'lib'
-      return 'exe'
+      switch (path.extname()) {
+        case ".dylib": return 'lib'
+        case ".o": return false
+      default:
+        if (path.parent().components().includes('lib')) return 'lib'
+        return 'exe'
+      }
     } else {
       return 'exe'
     }
