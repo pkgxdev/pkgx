@@ -173,6 +173,7 @@ export default class Path {
     }
   }
 
+  //FIXME probs can be infinite
   async *walk(): AsyncIterable<[Path, Deno.DirEntry]> {
     const stack: Path[] = [this]
     while (stack.length > 0) {

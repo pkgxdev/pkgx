@@ -1,6 +1,6 @@
 import useCellar from "../hooks/useCellar.ts"
 import usePlatform from "../hooks/usePlatform.ts"
-import { Path, PackageRequirement, Installation } from "types"
+import { Path, PackageRequirement, Installation, semver } from "types"
 import { runAndGetOutput,run } from "utils"
 
 
@@ -34,10 +34,22 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
   const cmd = await (async () => {
     switch (platform) {
     case 'linux': {
+      //TODO we should only use our patchelf
+      const patchelf = await (async () => {
+        const pkg = await cellar.isInstalled({
+          project: "nixos.org/patchelf", constraint: new semver.Range("*")
+        })
+        if (pkg) {
+          return pkg.path.join("bin/patchelf").string
+        } else {
+          return "patchelf"
+        }
+      })()
+
       //FIXME we need this for perl
       // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
       const their_rpaths = (await runAndGetOutput({
-        cmd: ["patchelf", "--print-rpath", exename],
+        cmd: [patchelf, "--print-rpath", exename],
       })).split(":")
 
       //TODO this isn't enough, we need to de-dupe etc and that
@@ -49,7 +61,7 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
         ?? []
 
       //FIXME use runtime-path since then LD_LIBRARY_PATH takes precedence which our virtual env manager requires
-      return ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
+      return [patchelf, "--force-rpath", "--set-rpath", rpaths, exename]
     }
     case 'darwin': {
       const rpath = cellar.prefix.relative({ to: exename.parent() })
