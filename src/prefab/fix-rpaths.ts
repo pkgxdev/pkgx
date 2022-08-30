@@ -193,6 +193,14 @@ async function* exefiles(prefix: Path): AsyncGenerator<[Path, 'exe' | 'lib']> {
 
 //FIXME lol use https://github.com/sindresorhus/file-type when we can
 async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
+  // speed this up a bit
+  switch (path.extname()) {
+    case ".py":
+    case ".pyc":
+    case ".pl":
+      return false
+  }
+
   const out = await runAndGetOutput({
     cmd: ["file", "--mime-type", path.string]
   })
