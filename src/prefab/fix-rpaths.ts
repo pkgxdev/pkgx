@@ -73,7 +73,10 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
 
       for (const old_path of await get_bad_otool_listings(exename, type) ?? []) {
         const dylib = await find_dylib(old_path, installation)
-        if (!dylib) throw new Error()
+        if (!dylib) {
+          console.error({old_path, installation, exename, type})
+          throw new Error()
+        }
         //TODO ^^ probs should look through deps too
 
         const new_path = (() => {
@@ -81,8 +84,9 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
             const relname = dylib.relative({ to: exename.parent() })
             return `@loader_path/${relname}`
           } else {
-            const transformed = transform(dylib, installation)
-            return `@rpath/${transformed.relative({ to: cellar.prefix })}`
+            const transformed = transform(dylib.string, installation)
+            const rel_path = new Path(transformed).relative({ to: cellar.prefix })
+            return `@rpath/${rel_path}`
           }
         })()
 
@@ -150,9 +154,7 @@ async function find_dylib(name: string, installation: Installation) {
 async function get_bad_otool_listings(exename: Path, type: 'exe' | 'lib'): Promise<string[]> {
   const cellar = useCellar()
 
-  const lines = (await runAndGetOutput({
-    cmd: ["otool", "-L", exename]
-  }))
+  const lines = (await runAndGetOutput({cmd: ["otool", "-L", exename]}))
     .trim()
     .split("\n")
     .slice(type == 'lib' ? 2 : 1)  // dylibs list themselves on 1st and 2nd lines
@@ -189,6 +191,7 @@ async function* exefiles(prefix: Path): AsyncGenerator<[Path, 'exe' | 'lib']> {
   }
 }
 
+//FIXME lol use https://github.com/sindresorhus/file-type when we can
 async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
   const out = await runAndGetOutput({
     cmd: ["file", "--mime-type", path.string]
@@ -208,7 +211,9 @@ async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
   case 'application/x-executable':
     if (platform == 'darwin') {
       //FIXME on darwin the `file` utility returns x-mach-binary for both binary types
-      return path.extname() == ".dylib" ? 'lib' : 'exe'
+      if (path.extname() == ".dylib") return 'lib'
+      if (path.parent().components().includes('lib')) return 'lib'
+      return 'exe'
     } else {
       return 'exe'
     }
@@ -222,17 +227,15 @@ async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
 // convert a full version path to a major’d version path
 // this so we are resilient to upgrades without requiring us to rewrite binaries on install
 // since rewriting binaries would invalidate our signatures
-function transform(input_: string, installation: Installation) {
-  // we leave these alone, trusting the build tool knew what it was doing
-  if (input_.startsWith("$ORIGIN")) return input_
-
-  const input = new Path(input_)
-
-  if (input.string.startsWith(installation.path.parent().string)) {
+function transform(input: string, installation: Installation) {
+  if (input.startsWith("$ORIGIN")) {
+    // we leave these alone, trusting the build tool knew what it was doing
+    return input
+  } else if (input.startsWith(installation.path.parent().string)) {
     // don’t transform stuff that links to this actual package
     return input
   } else {
     //FIXME not very robust lol
-    return new Path(input.string.replace(/v(\d+)\.\d+\.\d+/, 'v$1'))
+    return input.replace(/v(\d+)\.\d+\.\d+/, 'v$1')
   }
 }

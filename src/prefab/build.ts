@@ -36,9 +36,6 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
 
   await prebuild()
 
-  /// FIXME: no one likes this. `set -o pipefail` is the reason for this requirement.
-  const shell = platform === "linux" ? "bash" : "sh"
-
   if (add_env) {
     for (const [key, value] of Object.entries(add_env)) {
       env.vars[key] = value
@@ -46,7 +43,7 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
   }
 
   const cmd = dst.join("build.sh").write({ force: true, text: undent`
-    #!/bin/${shell}
+    #!/bin/bash
 
     set -e
     set -o pipefail

@@ -188,6 +188,10 @@ export default class Path {
     }
   }
 
+  components(): string[] {
+    return this.string.split('/')
+  }
+
   static mktmp({ prefix }: { prefix: string } = { prefix: 'tea' }): Path {
     const parts = new Path('/opt/tea.xyz/tmp').join(prefix).split()
     parts[0].mkpath()
