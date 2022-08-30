@@ -3,7 +3,6 @@ import usePantry from "hooks/usePantry.ts"
 import useCellar from "hooks/useCellar.ts"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { run, undent } from "utils"
-import usePlatform from "hooks/usePlatform.ts"
 import hydrate from "prefab/hydrate.ts"
 import fix_pkg_config_files from "prefab/fix-pkg-config-files.ts"
 import fix_rpaths from "./fix-rpaths.ts";
@@ -27,7 +26,10 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
   const runtime_deps = await filterAndHydrate(deps.runtime)
   const env = await useShellEnv([...deps.build, ...runtime_deps])
   const sh = await pantry.getScript(pkg, 'build')
-  const { platform } = usePlatform()
+
+  if (cellar.prefix.string != "/opt") {
+    throw new Error("build only works in /opt")
+  }
 
   if (env.pending.length) {
     console.error({uninstalled: env.pending})
