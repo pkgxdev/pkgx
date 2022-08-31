@@ -14,6 +14,12 @@ if (import.meta.main) {
 
 /// fix rpaths or install names for executables and dynamic libraries
 export default async function fix_rpaths(installation: Installation, pkgs: PackageRequirement[]) {
+  if (installation.pkg.project == "go.dev") {
+    console.info("skipping rpath fixes for go.dev")
+    // skipping because for some reason patchelf breaks the go binary
+    // resulting in the only output being: `Segmentation Fault`
+    return
+  }
   console.info("doing SLOW rpath fixes…")
   for await (const [exename, type] of exefiles(installation.path)) {
     await set_rpaths(exename, type, pkgs, installation)
