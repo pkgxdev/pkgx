@@ -1,5 +1,5 @@
-import { Installation } from "types";
-import { run } from "utils";
+import { Installation, Path } from "types";
+import { run, runAndGetOutput } from "utils";
 
 export const SupportedPlatforms = ["darwin", "linux", "windows"] as const;
 export type SupportedPlatform = typeof SupportedPlatforms[number]
@@ -10,6 +10,7 @@ interface Return {
   target: string
   buildIdentifiers: string[]
 
+  systemLibPath: () => Promise<Path[]>
   finalizeInstall: (install: Installation) => Promise<void>
 }
 
@@ -22,6 +23,16 @@ export default function usePlatform(): Return {
     }
   })()
   const { os: platform, target } = Deno.build
+
+  const systemLibPath = async () => {
+    switch (Deno.build.os) {
+      // deno-lint-ignore no-case-declarations
+      case 'darwin':
+        const sdkPath = await runAndGetOutput({ cmd: ["xcrun", "--sdk", "macosx", "--show-sdk-path"] })
+        return [new Path(sdkPath.trim())]
+      default: return []
+    }
+  }
 
   const finalizeInstall = async (install: Installation) => {
     if (platform == 'darwin') {
@@ -47,6 +58,7 @@ export default function usePlatform(): Return {
     arch,
     target,
     buildIdentifiers: [platform, arch],
+    systemLibPath,
     finalizeInstall,
   }
 }

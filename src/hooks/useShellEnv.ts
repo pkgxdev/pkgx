@@ -1,5 +1,6 @@
-import { PackageRequirement, Path } from "types"
+import { PackageRequirement } from "types"
 import useCellar from "hooks/useCellar.ts"
+import usePlatform from "hooks/usePlatform.ts";
 
 type Env = Record<string, string[]>
 export const EnvKeys = [
@@ -39,7 +40,8 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
       pending.push(requirement)
     } else {
       for (const key of EnvKeys) {
-        for (const suffix of suffixes(key)!) {
+        for (const suffix of await suffixes(key)!) {
+          console.log({suffix, key, vars})
           if (!vars[key]) vars[key] = []
           vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
         }
@@ -81,7 +83,7 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
   return { vars, defaults, combined, combinedStrings, pending }
 }
 
-function suffixes(key: string) {
+async function suffixes(key: string) {
   switch (key) {
     case 'PATH':
       return ["bin", "sbin"]
@@ -92,6 +94,7 @@ function suffixes(key: string) {
     case 'XDG_DATA_DIRS':
       return ['share']
     case 'LIBRARY_PATH':
+      return (await usePlatform().systemLibPath()).map(p => p.string)
     case 'LD_LIBRARY_PATH':
     case 'DYLD_LIBRARY_PATH':
     case 'CPATH':
