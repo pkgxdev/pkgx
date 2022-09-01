@@ -1,5 +1,6 @@
 import { PackageRequirement, Path } from "types"
 import useCellar from "hooks/useCellar.ts"
+import usePlatform from "hooks/usePlatform.ts"
 
 type Env = Record<string, string[]>
 export const EnvKeys = [
@@ -58,12 +59,6 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
         vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
       }
     }
-  }
-
-  // not usually needed, but some configure scripts barf otherwise
-  if (vars.LIBRARY_PATH) {
-    vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
-    vars.DYLD_LIBRARY_PATH = vars.LIBRARY_PATH
   }
 
   const defaults: Env = {}
