@@ -33,12 +33,11 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
     //FIXME HACKS GALORE
     // we will fix properly with `detect.ts` and bootstrapping support
     // most of this is so we can bootstrap the tea bottles even though things like make require make to build themselves
-    if (isMac && Path.root.join('Library/Developer/CommandLineTools/usr/bin/clang').isFile()) {
-      return true
-    } else if (isMac && Deno.env.get("GITHUB_ACTIONS")) {
-      return true
-    } else {
-      return false
+    if (isMac) {
+      return Path.root.join('Library/Developer/CommandLineTools/usr/bin/clang').isFile() ||
+       Path.root.join('usr/bin/clang').isFile() ||
+       Deno.env.get("GITHUB_ACTIONS")
     }
+    return false
   }
 }
