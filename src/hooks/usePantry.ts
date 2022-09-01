@@ -281,9 +281,10 @@ function expand_env(env_: PlainObject, pkg: Package): string {
 
   for (const [key, value] of Object.entries(env)) {
     const match = key.match(/^(darwin|linux)(\/(x86-64|aarch64))?$/)
+    console.log(match)
     if (!match) continue
     delete env[key]
-    const [, os, arch] = match
+    const [, os, , arch] = match
     if (os != sys.platform) continue
     if (arch && arch != sys.arch) continue
 
