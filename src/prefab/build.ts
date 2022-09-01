@@ -62,12 +62,15 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
 
   // the fix step requires the transitive runtime deps also
   // because we need to set rpaths for everything all the way down
-  const wet = await hydrate(deps.runtime)
+  const wet = await hydrate(deps.runtime, async (pkg, dry) => {
+    const { runtime, build } = await pantry.getDeps(pkg)
+    return dry ? [...build, ...runtime] : runtime
+  })
 
   const installation = { pkg, path: dst }
 
   await fix_rpaths(installation, [
-    ...wet,
+    ...wet.pkgs,
     {project: pkg.project, constraint: new semver.Range(`=${pkg.version}`)}
   ])
 
@@ -78,10 +81,14 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
 
 //TODO only supplement PKG_CONFIG_PATH for now
 async function filterAndHydrate(pkgs: PackageRequirement[]): Promise<PackageRequirement[]> {
+  const pantry = usePantry()
   const set = new Set(pkgs.map(({project}) => project))
   const cellar = useCellar()
-  const a = await hydrate(pkgs)
-  const b = await Promise.all(a.map(hasPkgConfig))
+  const a = await hydrate(pkgs, async (pkg, dry) => {
+    const { runtime, build } = await pantry.getDeps(pkg)
+    return dry ? [...build, ...runtime] : runtime
+  })
+  const b = await Promise.all(a.pkgs.map(hasPkgConfig))
   return b.compactMap(x => x)
 
   async function hasPkgConfig(pkg: PackageRequirement) {

@@ -9,6 +9,7 @@ import { PackageRequirement, Path } from "types"
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
 import useExecutableMarkdown from "hooks/useExecutableMarkdown.ts"
 import useFlags from "hooks/useFlags.ts"
+import usePantry from "./hooks/usePantry.ts"
 
 type Options = {
   args: string[]
@@ -49,8 +50,9 @@ export default async function exec({ args, ...opts }: Options) {
 
 /////////////////////////////////////////////////////////////
   async function install(dry: PackageRequirement[]) {
-    const wet = await hydrate(dry)      ; console.debug({wet})
-    const gas = await resolve(wet)      ; console.debug({gas})
+    const get = (x: PackageRequirement) => usePantry().getDeps(x).then(x => x.runtime)
+    const wet = await hydrate(dry, get)   ; console.debug({wet})
+    const gas = await resolve(wet.pkgs)   ; console.debug({gas})
     for (const pkg of gas) {
       if (await cellar.isInstalled(pkg)) continue
       console.info({ installing: pkg })
