@@ -1,4 +1,5 @@
 import { PackageRequirement } from "../types.ts"
+import { isArray } from "utils"
 
 
 //TODO linktime cyclic dependencies cannot be allowed
@@ -29,10 +30,12 @@ interface ReturnValue {
 /// dependencies. Throws if there is a cycle in the input.
 /// ignores changes in dependencies based on versions
 export default async function hydrate(
-  dry: PackageRequirement[],
+  dry: PackageRequirement[] | PackageRequirement,
   get_deps: (pkg: PackageRequirement, dry: boolean) => Promise<PackageRequirement[]>,
 ): Promise<ReturnValue>
 {
+  if (!isArray(dry)) dry = [dry]
+
   const graph: Record<string, Node> = {}
   const bootstrap = new Set<string>()
   const initial_set = new Set(dry.map(x => x.project))

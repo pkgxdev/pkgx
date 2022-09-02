@@ -1,4 +1,4 @@
-import { PackageRequirement, Path } from "types"
+import { Installation, PackageRequirement } from "types"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 
@@ -23,42 +23,48 @@ interface Response {
   pending: PackageRequirement[]
 }
 
-//TODO | Installation[] (quicker)
-
-export default async function useShellEnv(requirements: PackageRequirement[]): Promise<Response> {
+export default async function useShellEnv(requirements: PackageRequirement[] | Installation[]): Promise<Response> {
   const cellar = useCellar()
   const vars: Env = {}
   const pending: PackageRequirement[] = []
   const isNotMac = usePlatform().platform != 'darwin'
 
-  const has_pkg_config = !!requirements.find(({project}) => project === 'freedesktop.org/pkg-config')
-  const has_cmake = !!requirements.find(({project}) => project === 'cmake.org')
-
-  for (const requirement of requirements) {
-    const installation = await cellar.resolve(requirement).swallow(/^not-found:/)
-
-    if (!installation) {
-      pending.push(requirement)
+  const pkgs = (await Promise.all(requirements.map(async rq => {
+    if ("constraint" in rq) {
+      const installation = await cellar.isInstalled(rq)
+      if (!installation) {
+        pending.push(rq)
+      } else {
+        return installation
+      }
     } else {
-      for (const key of EnvKeys) {
-        for (const suffix of suffixes(key)!) {
-          if (!vars[key]) vars[key] = []
-          vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
-        }
-      }
+      return rq
+    }
+  }))).compactMap(x => x)
 
-      // if the tool provides no pkg-config files then fall back on old-school specification methods
-      if (true) { //!vars.PKG_CONFIG_PATH?.chuzzle() || !has_pkg_config) {
-        if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
-        if (!vars.CPATH) vars.CPATH = []
-        vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
-        vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
-      }
+  const projects = new Set([...pkgs.map(x => x.pkg.project), ...pending.map(x=>x.project)])
+  const has_pkg_config = projects.has('freedesktop.org/pkg-config')
+  const has_cmake = projects.has('cmake.org')
 
-      if (has_cmake) {
-        if (!vars.CMAKE_PREFIX_PATH) vars.CMAKE_PREFIX_PATH = []
-        vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
+  for (const installation of pkgs) {
+    for (const key of EnvKeys) {
+      for (const suffix of suffixes(key)!) {
+        if (!vars[key]) vars[key] = []
+        vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
       }
+    }
+
+    // if the tool provides no pkg-config files then fall back on old-school specification methods
+    if (true) { //!vars.PKG_CONFIG_PATH?.chuzzle() || !has_pkg_config) {
+      if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
+      if (!vars.CPATH) vars.CPATH = []
+      vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
+      vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
+    }
+
+    if (has_cmake) {
+      if (!vars.CMAKE_PREFIX_PATH) vars.CMAKE_PREFIX_PATH = []
+      vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
     }
   }
 
