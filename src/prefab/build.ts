@@ -99,7 +99,8 @@ async function filterAndHydrate(pkgs: PackageRequirement[]): Promise<PackageRequ
     //TODO should only add specific things eg. PATH or PKG_CONFIG_PATH
     // rationale: libs should know how to link their deps or the build system needs to do it itself
     //   if we add those LIBRARY_PATHs we're asking for unexpected shit to happen
-    const a = await cellar.resolve(pkg)
+    const a = await cellar.isInstalled(pkg)
+    if (!a) return
     if (a.path.join("lib/pkgconfig").isDirectory()) return pkg
     if (a.path.join("lib").isDirectory()) return pkg
     if (a.path.join("include").isDirectory()) return pkg
