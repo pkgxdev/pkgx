@@ -3,30 +3,10 @@ import { semver, Package, PackageRequirement, Path, PlainObject, SemVer } from "
 import useGitHubAPI from "hooks/useGitHubAPI.ts"
 import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString, validateArray, panic } from "utils"
 import useCellar from "hooks/useCellar.ts"
-import usePlatform, { SupportedPlatform, SupportedPlatforms } from "hooks/usePlatform.ts"
+import usePlatform from "hooks/usePlatform.ts"
 import { validatePackageRequirement } from "utils/lvl2.ts"
 
 type SemVerExtended = SemVer & {pkgraw: string}
-
-interface Response {
-  getDistributable(rq: Package): Promise<{ url: string, stripComponents?: number }>
-  /// returns sorted versions
-  getVersions(rq: PackageRequirement | Package): Promise<SemVerExtended[]>
-  /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
-  getDeps(pkg: Package | PackageRequirement): Promise<{
-    runtime: PackageRequirement[],
-    build: PackageRequirement[],
-    test: PackageRequirement[]
-  }>
-  getScript(pkg: Package, key: 'build' | 'test'): Promise<string>
-  update(): Promise<void>
-  getProvides(rq: PackageRequirement | Package): Promise<string[]>
-
-  //TODO take `T` and then type check it
-  getYAML(rq: PackageRequirement | Package): Promise<[PlainObject, Path]>
-
-  prefix(rq: PackageRequirement | Package): Path
-}
 
 interface Entry {
   dir: Path
@@ -36,105 +16,113 @@ interface Entry {
 
 const prefix = new Path("/opt/tea.xyz/var/pantry/projects")
 
-export default function usePantry(): Response {
-  const getYAML = async (pkg: Package | PackageRequirement): Promise<[PlainObject, Path]> => {
-    const foo = entry(pkg)
-    const yml = await foo.yml()
-    return [yml, foo.dir.join("package.yml")]
-  }
-
-  const getDeps = async (pkg: Package | PackageRequirement) => {
-    const yml =  await entry(pkg).yml()
-    return {
-      runtime: go(yml.dependencies),
-      build: go(yml.build?.dependencies),
-      test: go(yml.test?.dependencies)
-    }
-    // deno-lint-ignore no-explicit-any
-    function go(node: any) {
-      if (!node) return []
-      return Object.entries(validatePlainObject(node))
-        .compactMap(([project, constraint]) => validatePackageRequirement({ project, constraint }))
-    }
-  }
-
-  const getRawDistributableURL = (yml: PlainObject) => validateString(
-      isPlainObject(yml.distributable)
-        ? yml.distributable.url
-        : yml.distributable)
-
-  const getDistributable = async (pkg: Package) => {
-    const yml = await entry(pkg).yml()
-    let url = getRawDistributableURL(yml)
-    let stripComponents: number | undefined
-    if (isPlainObject(yml.distributable)) {
-      url = validateString(yml.distributable.url)
-      stripComponents = flatMap(yml.distributable["strip-components"], coerceNumber)
-    } else {
-      url = validateString(yml.distributable)
-    }
-
-    url = remapTokens(url, pkg)
-
-    return { url, stripComponents }
-  }
-
-  const getScript = async (pkg: Package, key: 'build' | 'test') => {
-    const yml = await entry(pkg).yml()
-    const node = yml[key]
-
-    if (isPlainObject(node)) {
-      let raw = remapTokens(validateString(node.script), pkg)
-
-      let wd = node["working-directory"]
-      if (wd) {
-        wd = remapTokens(wd, pkg)
-        raw = undent`
-          mkdir -p ${wd}
-          cd ${wd}
-
-          ${raw}
-          `
-      }
-
-      const env = node.env
-      if (isPlainObject(env)) {
-        raw = `${expand_env(env, pkg)}\n\n${raw}`
-      }
-      return raw
-    } else {
-      return remapTokens(validateString(node), pkg)
-    }
-  }
-
-  const update = async () => {
-    //FIXME real fix is: don’t use git!
-    if (Path.root.join("opt/git-scm.org/v*").isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
-      await run({
-        cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
-      })
-    }
-  }
-
-  const getProvides = async (pkg: Package | PackageRequirement) => {
-    const yml = await entry(pkg).yml()
-    const node = yml["provides"]
-    if (!isArray(node)) throw "bad-yaml"
-
-    return node.compactMap(x => {
-      if (isPlainObject(x)) {
-        x = x["executable"]
-      }
-      if (isString(x)) {
-        return x.startsWith("bin/") && x.slice(4)
-      }
-    })
-  }
-
-  return { getVersions, getDeps, getDistributable, getScript, update, getProvides,
+export default function usePantry() {
+  return {
+    getVersions,
+    getDeps,
+    getDistributable,
+    getScript,
+    update,
+    getProvides,
     getYAML,
     prefix: getPrefix
   }
+}
+
+//TODO take `T` and then type check it
+const getYAML = async (pkg: Package | PackageRequirement): Promise<[PlainObject, Path]> => {
+  const foo = entry(pkg)
+  const yml = await foo.yml()
+  return [yml, foo.dir.join("package.yml")]
+}
+
+/// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
+const getDeps = async (pkg: Package | PackageRequirement) => {
+  const yml =  await entry(pkg).yml()
+  return {
+    runtime: go(yml.dependencies),
+    build: go(yml.build?.dependencies),
+    test: go(yml.test?.dependencies)
+  }
+  // deno-lint-ignore no-explicit-any
+  function go(node: any) {
+    if (!node) return []
+    return Object.entries(validatePlainObject(node))
+      .compactMap(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+  }
+}
+
+const getRawDistributableURL = (yml: PlainObject) => validateString(
+    isPlainObject(yml.distributable)
+      ? yml.distributable.url
+      : yml.distributable)
+
+const getDistributable = async (pkg: Package) => {
+  const yml = await entry(pkg).yml()
+  let url = getRawDistributableURL(yml)
+  let stripComponents: number | undefined
+  if (isPlainObject(yml.distributable)) {
+    url = validateString(yml.distributable.url)
+    stripComponents = flatMap(yml.distributable["strip-components"], coerceNumber)
+  } else {
+    url = validateString(yml.distributable)
+  }
+
+  url = remapTokens(url, pkg)
+
+  return { url, stripComponents }
+}
+
+const getScript = async (pkg: Package, key: 'build' | 'test') => {
+  const yml = await entry(pkg).yml()
+  const node = yml[key]
+
+  if (isPlainObject(node)) {
+    let raw = remapTokens(validateString(node.script), pkg)
+
+    let wd = node["working-directory"]
+    if (wd) {
+      wd = remapTokens(wd, pkg)
+      raw = undent`
+        mkdir -p ${wd}
+        cd ${wd}
+
+        ${raw}
+        `
+    }
+
+    const env = node.env
+    if (isPlainObject(env)) {
+      raw = `${expand_env(env, pkg)}\n\n${raw}`
+    }
+    return raw
+  } else {
+    return remapTokens(validateString(node), pkg)
+  }
+}
+
+const update = async () => {
+  //FIXME real fix is: don’t use git!
+  if (Path.root.join("opt/git-scm.org/v*").isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
+    await run({
+      cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
+    })
+  }
+}
+
+const getProvides = async (pkg: Package | PackageRequirement) => {
+  const yml = await entry(pkg).yml()
+  const node = yml["provides"]
+  if (!isArray(node)) throw "bad-yaml"
+
+  return node.compactMap(x => {
+    if (isPlainObject(x)) {
+      x = x["executable"]
+    }
+    if (isString(x)) {
+      return x.startsWith("bin/") && x.slice(4)
+    }
+  })
 }
 
 
@@ -167,6 +155,7 @@ function entry(pkg: Package | PackageRequirement): Entry {
   return { dir, yml, versions }
 }
 
+/// returns sorted versions
 async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
   const files = entry(pkg)
   const versions = await files.yml().then(x => x.versions)
