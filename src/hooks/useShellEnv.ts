@@ -29,6 +29,7 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
   const cellar = useCellar()
   const vars: Env = {}
   const pending: PackageRequirement[] = []
+  const isNotMac = usePlatform().platform != 'darwin'
 
   const has_pkg_config = !!requirements.find(({project}) => project === 'freedesktop.org/pkg-config')
   const has_cmake = !!requirements.find(({project}) => project === 'cmake.org')
@@ -60,6 +61,13 @@ export default async function useShellEnv(requirements: PackageRequirement[]): P
       }
     }
   }
+
+   // needed since on Linux library paths aren’t automatically included when linking
+   // so otherwise linked binfiles will not run
+   if (vars.LIBRARY_PATH && isNotMac) {
+    vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
+  }
+
 
   const defaults: Env = {}
   const combined: Env = {}
