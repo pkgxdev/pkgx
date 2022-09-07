@@ -7,21 +7,21 @@ interface Return {
   /// returns the installation directory, creating it if necessary
   mkpath(pkg: Package): Path
   /// if package is installed, returns its installation
-  resolve(pkg: Package | PackageRequirement): Promise<Installation>
+  resolve(pkg: Package | PackageRequirement | Path): Promise<Installation>
   /// returns all installed versions of a project
   ls(project: string): Promise<Installation[]>
-  /// typically: /opt
+  /// typically: ~/.tea
   prefix: Path
 
-  /// eg. /opt/deno.land
+  /// eg. ~/.tea/deno.land
   shelf(project: string): Path
 
   isInstalled(pkg: Package | PackageRequirement): Promise<Installation | undefined>
 }
 
-export default function useCellar(): Return {
-  const prefix = Path.root.join("opt")
+const prefix = new Path(Deno.execPath()).readlink().parent().parent().parent().parent()
 
+export default function useCellar(): Return {
   const ls = async (project: string) => {
     if (!prefix.join(project).isDirectory()) return []
 
@@ -39,8 +39,15 @@ export default function useCellar(): Return {
     return rv.sort((a, b) => packageSort(a.pkg, b.pkg))
   }
 
-  const resolve = async (pkg: Package | PackageRequirement) => {
-    if ("version" in pkg) {
+  const resolve = async (pkg: Package | PackageRequirement | Path) => {
+    if (pkg instanceof Path) {
+      const path = pkg
+      const version = new SemVer(path.basename())
+      const project = path.parent().relative({ to: prefix })
+      return {
+        path, pkg: { project, version }
+      }
+    } else if ("version" in pkg) {
       const path = prefix.join(pkg.project).join(`v${pkg.version}`)
       if (path.isDirectory() && !path.join(".building").exists()) {
         return { path, pkg }

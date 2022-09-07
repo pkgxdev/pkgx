@@ -23,21 +23,8 @@ export function validateArray<T>(input: any): Array<T> {
   return input
 }
 
+
 ///////////////////////////////////////////////////////////////////////// HTTP
-import { cache, File, Policy, configure } from "mxcl/deno-cache"
-
-//FIXME lol better
-configure({ directory: "/opt/tea.xyz/var/www" })
-
-export function download(
-  url: string | URL,
-  policy?: Policy,
-  ns?: string,
-): Promise<File> {
-  console.verbose({downloading: url})
-  return cache(url, policy, ns)
-}
-
 export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
   if (isString(url)) url = new URL(url)
   if (url.host == "api.github.com") {

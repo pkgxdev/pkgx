@@ -1,4 +1,5 @@
 import { Path } from "types"
+import useCellar from "hooks/useCellar.ts"
 
 export async function shout({ tea: args, cwd }: { tea: string[], cwd?: Path }) {
   const srcroot = Deno.env.get("SRCROOT")
@@ -6,7 +7,7 @@ export async function shout({ tea: args, cwd }: { tea: string[], cwd?: Path }) {
     'deno',
     'run',
     '--allow-env', '--allow-read', '--allow-run',
-    '--allow-write=/opt',
+    `--allow-write=${useCellar().prefix}`,
     `--import-map=${srcroot}/import-map.json`,
     `${srcroot}/src/app.ts`,
     ...args

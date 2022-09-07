@@ -40,34 +40,32 @@ async function set_rpaths(exename: Path, type: 'exe' | 'lib', pkgs: PackageRequi
   const cmd = await (async () => {
     switch (platform) {
     case 'linux': {
-      //TODO we should only use our patchelf
-      const patchelf = await (async () => {
-        const pkg = await cellar.isInstalled({
-          project: "nixos.org/patchelf", constraint: new semver.Range("*")
-        })
-        if (pkg) {
-          return pkg.path.join("bin/patchelf").string
-        } else {
-          return "patchelf"
-        }
-      })()
-
       //FIXME we need this for perl
       // however really we should just have an escape hatch *just* for stuff that sets its own rpaths
       const their_rpaths = (await runAndGetOutput({
-        cmd: [patchelf, "--print-rpath", exename],
-      })).split(":")
+          cmd: ["patchelf", "--print-rpath", exename],
+        }))
+        .split(":")
+        .compactMap(x => x.chuzzle())
+        //^^ split has ridiculous empty string behavior
 
-      //TODO this isn't enough, we need to de-dupe etc and that
       const rpaths = [...their_rpaths, ...our_rpaths]
-        .compactMap(x => x.chuzzle())  // somehow we can get empties from the above
-        .map(x => transform(x, installation))
+        .map(x => {
+          const transformed = transform(x, installation)
+          if (transformed.startsWith("$ORIGIN")) {
+            console.warn("has own special rpath", transformed)
+            return transformed
+          } else {
+            const rel_path = new Path(transformed).relative({ to: exename.parent() })
+            return `$ORIGIN/${rel_path}`
+          }
+        })
         .uniq()
         .join(':')
         ?? []
 
       //FIXME use runtime-path since then LD_LIBRARY_PATH takes precedence which our virtual env manager requires
-      return [patchelf, "--force-rpath", "--set-rpath", rpaths, exename]
+      return ["patchelf", "--force-rpath", "--set-rpath", rpaths, exename]
     }
     case 'darwin': {
       const rpath = cellar.prefix.relative({ to: exename.parent() })

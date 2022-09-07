@@ -194,7 +194,7 @@ export default class Path {
   }
 
   static mktmp({ prefix }: { prefix: string } = { prefix: 'tea' }): Path {
-    const parts = new Path('/opt/tea.xyz/tmp').join(prefix).split()
+    const parts = tmp.join(prefix).split()
     parts[0].mkpath()
     const dir = parts[0].string
     prefix = parts[1]
@@ -274,7 +274,10 @@ export default class Path {
   }
 
   mkpath(): Path {
-    fs.ensureDirSync(this.string)
+    if (!(this.isSymlink() && this.isDirectory())) {
+      // if it's a symlink and a directory ensureDirSync fails
+      fs.ensureDirSync(this.string)
+    }
     return this
   }
 
@@ -392,3 +395,8 @@ export default class Path {
     }
   }
 }
+
+let tmp = new Path('/tmp')
+const set_tmp = (path: Path) => tmp = path
+
+export { set_tmp }

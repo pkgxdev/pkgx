@@ -2,6 +2,12 @@ import { parseFlags } from "cliffy/flags/mod.ts"
 import { flatMap, chuzzle } from "utils"
 import { Path, Verbosity, PackageRequirement, parsePackageRequirement } from "types"
 import { isNumber } from "utils"
+import { set_tmp } from "../types/Path.ts"
+import useCellar from "hooks/useCellar.ts"
+
+// doing here as this is the only file all our scripts import
+set_tmp(useCellar().prefix.join('tea.xyz/tmp'))
+
 
 export type Mode = 'exec' | 'dump' | 'help'
 

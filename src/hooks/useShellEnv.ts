@@ -27,7 +27,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
   const cellar = useCellar()
   const vars: Env = {}
   const pending: PackageRequirement[] = []
-  const isNotMac = usePlatform().platform != 'darwin'
+  const isMac = usePlatform().platform == 'darwin'
 
   const pkgs = (await Promise.all(requirements.map(async rq => {
     if ("constraint" in rq) {
@@ -70,8 +70,11 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
 
    // needed since on Linux library paths aren’t automatically included when linking
    // so otherwise linked binfiles will not run
-   if (vars.LIBRARY_PATH && isNotMac) {
+   if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
+    if (isMac) {
+      vars.DYLD_LIBRARY_PATH = vars.LIBRARY_PATH
+    }
   }
 
 
@@ -81,7 +84,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
   for (const key of EnvKeys) {
     const defaultValue = Deno.env.get(key)
       ?.split(":")
-      ?.filter(x => !x.startsWith("/opt")) ?? [] //FIXME /opt is not ours
+      ?.filter(x => !x.startsWith(cellar.prefix.string)) ?? [] //FIXME not great
     defaults[key] = defaultValue
     combined[key] = (vars[key] ?? []).concat(defaultValue)
     combinedStrings[key] = combined[key].join(":")

@@ -2,6 +2,7 @@ import { Package, Path, semver } from "types"
 import * as utils from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import * as _ from "utils" // console.verbose
+import useCellar from "hooks/useCellar.ts"
 
 interface DownloadOptions {
   url: string
@@ -9,10 +10,10 @@ interface DownloadOptions {
   type?: 'src' | 'bottle'
 }
 
-const prefix = new Path("/opt/tea.xyz/var/www")
+const prefix = new Path(`${useCellar().prefix}/tea.xyz/var/www`)
 
 export default function useCache() {
-  return { download, bottle, ls, s3Key }
+  return { download, bottle, ls, s3Key, prefix, download_script }
 }
 
 const stem = (pkg: Package) => {
@@ -44,6 +45,11 @@ const download = async ({ url: readURL, pkg, type = 'bottle' }: DownloadOptions)
     await grab({ readURL, writeFilename })
   }
   return writeFilename
+}
+
+const download_script = async (url: URL) => {
+  const file = await dl(url)
+  return new Path(file.path)
 }
 
 /// lists all packages with bottles in the cache
@@ -80,6 +86,21 @@ async function grab({ readURL, writeFilename }: { readURL: string, writeFilename
   verbose({downloading: readURL})
   verbose({destination: writeFilename})
 
-  const file = await utils.download(readURL)
+  const file = await dl(readURL)
   await Deno.link(file.path, writeFilename.string)
+}
+
+
+///////////////////////////////////////////////////////////////////////// HTTP
+import { cache, File, Policy, configure } from "mxcl/deno-cache"
+
+//FIXME lol better
+configure({ directory: prefix.string })
+
+function dl(
+  url: string | URL,
+  policy?: Policy,
+  ns?: string,
+): Promise<File> {
+  return cache(url, policy, ns)
 }

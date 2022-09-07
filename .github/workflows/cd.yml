@@ -102,7 +102,11 @@ jobs:
       - name: Compile
         run: |
           deno compile \
-            --allow-read --allow-write=/opt --allow-net --allow-run --allow-env \
+            --allow-read \
+            --allow-write \
+            --allow-net \
+            --allow-run \
+            --allow-env \
             --import-map=./import-map.json \
             --output ./tea.out \
             --target ${{ matrix.deno-target }} \

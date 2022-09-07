@@ -16,7 +16,7 @@ Change how your team works.
 &nbsp;
 
 
-# tea/cli 0.4.3
+# tea/cli 0.5.0
 
 tea is a universal virtual‑environment manager:
 
@@ -33,7 +33,7 @@ deno 1.22.1
 > ^D
 
 $ env
-PATH=/opt/deno.land/v1.20.3/bin:/usr/bin:/bin
+PATH=~/.tea/deno.land/v1.20.3/bin:/usr/bin:/bin
 SRCROOT=/src/my-project
 VERSION=…
 …
@@ -204,7 +204,7 @@ Installing tea is easy:
 
 ```sh
 sh <(curl https://tea.xyz)
-# • barely touches anything (/opt/tea.xyz, /usr/local/bin/tea)
+# • only install files in `~/.tea`
 # • makes you confirm you’re cool before it does that
 ```
 
@@ -247,9 +247,7 @@ will work for everyone, everywhere.
 
 > <details><summary><i>Uninstalling tea</i></summary><br>
 >
-> tea installs everything to `/opt` though other things may live there too, so
-> don’t delete indiscriminately.
-> We also install `/usr/local/bin/tea`.
+> tea only installs to `~/.tea`
 > There’s also a one-liner added to your `~/.zshrc` you should remove.
 > </details>
 
@@ -396,7 +394,7 @@ Which would go like this:
 $ pwd
 /src
 $ tea ./script.ts my-arg
-tea: /opt/deno.land/v1.18/bin/deno run \
+tea: ~/.tea/deno.land/v1.18/bin/deno run \
   --allow-net \
   --import-map=/src/import-map.json \
   /src/script.ts \
@@ -476,14 +474,16 @@ your checkout, (installing deno first ofc).
 
 ## What are you doing to my computer?
 
-We install compartmentalized packages to `/opt`,we create one symlink
-(`/usr/local/bin/tea`) and we add one line to your `.zshrc`.
+We install compartmentalized packages to `~/.tea`.
+
+We then suggest you add our one-liner to your shell `.rc` and a symlink
+for `/usr/local/bin/tea`.
 
 ## I thought you were decentralized and web3 and shit
 
 tea is creating new technologies that will change how open source is funded.
-This software is an essential part of that endeavor and is released
-prior to our protocol in order to bootstrap the open source revolution.
+tea/cli is an essential part of that endeavor and is released
+prior to our protocol in order to bootstrap our holistic vision.
 
 We don’t subscribe to any particular “web” at tea.xyz, our blockchain
 component will be an implementation detail that you won’t need to think about

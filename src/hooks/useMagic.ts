@@ -2,8 +2,9 @@ import useFlags, { ReturnValue, Mode } from "hooks/useFlags.ts"
 import { PackageRequirement, Path, semver } from "types"
 import useVirtualEnv, { VirtualEnv } from "hooks/useVirtualEnv.ts"
 import useExecutableMarkdown from "hooks/useExecutableMarkdown.ts"
-import { download, flatMap } from "utils"
+import { flatMap } from "utils"
 import { usePackageYAMLFrontMatter } from "./usePackageYAML.ts";
+import useCache from "hooks/useCache.ts"
 
 type Args = Omit<ReturnValue, 'cd'>
 
@@ -26,9 +27,7 @@ async function muggle(input: Args): Promise<ProcessedArgs> {
     try {
       const url = new URL(arg0)
       if (url.protocol == 'file') return new Path(url.pathname)
-      const file = await download(url)
-      input.args.std[0] = file.path
-      return new Path(file.path)
+      return await useCache().download_script(url)
     } catch {
       return Path.cwd().join(arg0).isFile()
     }
@@ -70,9 +69,7 @@ async function magic(input: Args): Promise<ProcessedArgs> {
     try {
       const url = new URL(arg0)
       if (url.protocol == 'file') return new Path(url.pathname)
-      const file = await download(url)
-      input.args.std[0] = file.path
-      return new Path(file.path)
+      return await useCache().download_script(url)
     } catch {
       return Path.cwd().join(arg0).isFile()
     }

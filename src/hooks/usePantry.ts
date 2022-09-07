@@ -14,7 +14,7 @@ interface Entry {
   versions: Path
 }
 
-const prefix = new Path("/opt/tea.xyz/var/pantry/projects")
+const prefix = new Path(`${useCellar().prefix}/tea.xyz/var/pantry/projects`)
 
 export default function usePantry() {
   return {
@@ -103,7 +103,8 @@ const getScript = async (pkg: Package, key: 'build' | 'test') => {
 
 const update = async () => {
   //FIXME real fix is: don’t use git!
-  if (Path.root.join("opt/git-scm.org/v*").isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
+  const git = useCellar().prefix.join('git-scm.org/v*')
+  if (git.isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
     await run({
       cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
     })
@@ -326,23 +327,27 @@ function expand_env(env_: PlainObject, pkg: Package): string {
 
 const remapTokens = (input: string, pkg: Package) => {
   const platform = usePlatform()
-  const prefix = useCellar().mkpath(pkg)
+  const cellar = useCellar()
+  const prefix = cellar.mkpath(pkg)
 
   return [
-    { from: "version", to: pkg.version.toString() },
-    { from: "version.major", to: pkg.version.major.toString() },
-    { from: "version.minor", to: pkg.version.minor.toString() },
-    { from: "version.patch", to: pkg.version.patch.toString() },
-    { from: "version.build", to: pkg.version.build.join('+') },
+    { from: "version",           to: pkg.version.toString() },
+    { from: "version.major",     to: pkg.version.major.toString() },
+    { from: "version.minor",     to: pkg.version.minor.toString() },
+    { from: "version.patch",     to: pkg.version.patch.toString() },
+    { from: "version.build",     to: pkg.version.build.join('+') },
     { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
-    { from: "version.raw", to: (pkg.version as any).pkgraw },
-    { from: "hw.arch", to: platform.arch },
-    { from: "hw.target", to: platform.target },
-    { from: "hw.platform", to: platform.platform },
-    { from: "prefix", to: prefix.string },
-    { from: "hw.concurrency", to: navigator.hardwareConcurrency.toString() },
-    { from: "pkg.pantry-prefix", to: getPrefix(pkg).string }
-  ].reduce((acc, map) => acc.replace(new RegExp(`\\$?{{\\s*${map.from}\\s*}}`, "g"), map.to), input)
+    { from: "version.raw",       to: (pkg.version as any).pkgraw },
+    { from: "hw.arch",           to: platform.arch },
+    { from: "hw.target",         to: platform.target },
+    { from: "hw.platform",       to: platform.platform },
+    { from: "prefix",            to: prefix.string },
+    { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
+    { from: "pkg.pantry-prefix", to: getPrefix(pkg).string },
+    { from: "tea.prefix",        to: cellar.prefix.string }
+  ].reduce((acc, {from, to}) =>
+    acc.replace(new RegExp(`\\$?{{\\s*${from}\\s*}}`, "g"), to),
+    input)
 }
 
 const getPrefix = (pkg: Package | PackageRequirement) => prefix.join(pkg.project)

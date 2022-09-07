@@ -1,6 +1,7 @@
 import { PackageRequirement, PlainObject, Path } from "types"
 import { isPlainObject, isString, isArray, validatePlainObject } from "utils"
 import { validatePackageRequirement } from "utils/lvl2.ts"
+import useCellar from "hooks/useCellar.ts"
 
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
@@ -30,8 +31,10 @@ interface Return2 extends Return1 {
 }
 
 export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<Return2> {
+  const cellar = useCellar()
   const yaml = await script.readYAMLFrontMatter()
   const rv = usePackageYAML(yaml)
+
   const getArgs = () => {
     const fn1 = () => {
       if (rv.yaml.args === undefined) return []
@@ -52,5 +55,6 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
     return input
       .replace(/{{\s*srcroot\s*}}/ig, srcroot!.string)
       .replace(/{{\s*home\s*}}/ig, Path.home().string)
+      .replace(/{{\s*tea.prefix\s*}}/ig, cellar.prefix.string)
   }
 }
