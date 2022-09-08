@@ -181,7 +181,10 @@ async function get_bad_otool_listings(exename: Path, type: 'exe' | 'lib'): Promi
   const lines = (await runAndGetOutput({cmd: ["otool", "-L", exename]}))
     .trim()
     .split("\n")
-    .slice(type == 'lib' ? 2 : 1)  // dylibs list themselves on 1st and 2nd lines
+    .slice(exename.extname() == '.dylib' ? 2 : 1)
+    // ^^ dylibs list themselves on 1st and 2nd lines
+    // NOTE that if the file is named .so then this is not true even though it is still a dylib
+    // NOBODY KNOW WHY
 
   const rv: string[] = []
   for (const line of lines) {
