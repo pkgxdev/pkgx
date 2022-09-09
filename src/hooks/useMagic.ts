@@ -58,12 +58,6 @@ async function muggle(input: Args): Promise<ProcessedArgs> {
 async function magic(input: Args): Promise<ProcessedArgs> {
   const mode = input.mode ?? 'exec'
   const arg0 = input.args.std[0]
-  let env: VirtualEnv | undefined
-
-  if (input.args.env) {
-    env = await useVirtualEnv()
-    if (!env) throw "no env found"
-  }
 
   const script = await (async () => {
     try {
@@ -74,6 +68,13 @@ async function magic(input: Args): Promise<ProcessedArgs> {
       return Path.cwd().join(arg0).isFile()
     }
   })()
+
+  let env: VirtualEnv | undefined
+  if (input.args.env) {
+    const cwd = script ? script.parent() : Path.cwd()
+    env = await useVirtualEnv({ cwd })
+    if (!env) throw "no env found"
+  }
 
   if (script) {
     //NOTE if you specify a script it won’t add the env automatically—even if there’s one present

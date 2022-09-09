@@ -15,16 +15,16 @@ export interface VirtualEnv {
   version?: SemVer
 }
 
-export default async function useVirtualEnv(): Promise<VirtualEnv> {
+export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: Path.cwd() }): Promise<VirtualEnv> {
   const { magic } = useFlags()
 
   if (!magic) {
-    const reqs = extractFromJSON(Path.cwd().join("package.json"))
+    const reqs = extractFromJSON(cwd.join("package.json"))
     if (!reqs) throw "package.json not found"
   }
 
   const srcroot = (() => {
-    let dir = Path.cwd()
+    let dir = cwd
     while (dir.neq(Path.root)) {
       for (const vcs of [".git", ".svn", ".hg"]) {
         if (dir.join(vcs).isDirectory()) return dir
