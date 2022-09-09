@@ -55,6 +55,10 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
 
     ${expand(env.vars)}
 
+    ${/*FIXME hardcoded paths*/ ''}
+    export PATH=/opt/tea.xyz/var/pantry/scripts/brewkit:"$PATH"
+    export PATH='/opt/tea.xyz/v*/bin':"$PATH"
+
     ${sh}
     `
   }).chmod(0o500)

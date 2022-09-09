@@ -219,7 +219,7 @@ async function* exefiles(prefix: Path): AsyncGenerator<[Path, 'exe' | 'lib']> {
 }
 
 //FIXME lol use https://github.com/sindresorhus/file-type when we can
-async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
+export async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
   // speed this up a bit
   switch (path.extname()) {
     case ".py":
@@ -244,20 +244,20 @@ async function exetype(path: Path): Promise<'exe' | 'lib' | false> {
   case 'application/x-pie-executable':
   case 'application/x-mach-binary':
   case 'application/x-executable':
-    if (platform == 'darwin') {
-      //FIXME on darwin the `file` utility returns x-mach-binary for both binary types
-      switch (path.extname()) {
-        case ".dylib":
-        case ".so": // lol python has .so files even on macOS
-          return 'lib'
-        case ".o": return false
-      default:
-        if (path.parent().components().includes('lib')) return 'lib'
-        return 'exe'
-      }
-    } else {
+    if (platform != 'darwin') return 'exe'
+
+    //FIXME on darwin the `file` utility returns x-mach-binary for both binary types
+    switch (path.extname()) {
+    case ".dylib":
+    case ".so": // lol python has .so files even on macOS
+      return 'lib'
+    case ".o":
+      return false
+    default:
+      if (path.parent().components().includes('lib')) return 'lib'
       return 'exe'
     }
+    return false
   case 'application/x-sharedlib':
     return 'lib'
   default:

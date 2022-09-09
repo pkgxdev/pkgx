@@ -19,6 +19,8 @@ interface Return {
   isInstalled(pkg: Package | PackageRequirement): Promise<Installation | undefined>
 }
 
+// this works if tea is installed correctly to /opt/tea.xyz/vx/bin or we
+// are a source installation running off a tea installed deno at /opt/deno.land/vx/bin
 const prefix = new Path(Deno.execPath()).readlink().parent().parent().parent().parent()
 
 export default function useCellar(): Return {
