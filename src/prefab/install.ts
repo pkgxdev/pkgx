@@ -22,7 +22,7 @@ export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
   const { finalizeInstall } = usePlatform()
   const { s3Key, download } = useCache()
-  const url = `https:///dist.tea.xyz/${s3Key(pkg)}`
+  const url = `https://dist.tea.xyz/${s3Key(pkg)}`
   const { prefix: dstdir, ...cellar } = useCellar()
   const { verbosity } = useFlags()
 
