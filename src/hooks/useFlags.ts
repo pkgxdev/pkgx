@@ -9,7 +9,7 @@ import useCellar from "hooks/useCellar.ts"
 set_tmp(useCellar().prefix.join('tea.xyz/tmp'))
 
 
-export type Mode = 'exec' | ['dump', 'env' | 'help' | 'version']
+export type Mode = 'exec' | ['dump', 'env' | 'help' | 'version' | 'prefix']
 
 interface Flags {
   verbosity: Verbosity
@@ -106,6 +106,8 @@ export function useArgs(args: string[]): ReturnValue {
       aliases: ["j"]
     }, {
       name: "version"
+    }, {
+      name: "prefix",
     }]
   }) as { flags: {
     verbose?: boolean,
@@ -119,10 +121,11 @@ export function useArgs(args: string[]): ReturnValue {
     exec?: string,
     json: boolean,
     version: boolean,
-    d: boolean
+    d: boolean,
+    prefix: boolean
   }, unknown: string[], literal: string[] }
 
-  const { flags: { d, version, verbose, json, silent, help, env, dump, v, muggle, cd, exec }, unknown, literal } = parsedArgs
+  const { flags: { d, version, prefix, verbose, json, silent, help, env, dump, v, muggle, cd, exec }, unknown, literal } = parsedArgs
 
   flags = {
     verbosity: getVerbosity({ v, verbose, silent}),
@@ -154,6 +157,7 @@ export function useArgs(args: string[]): ReturnValue {
   }
 
   function getMode(): { mode?: Mode } {
+    if (dump == "prefix" || prefix) return { mode: ['dump', 'prefix'] }
     if (dump == "version" || version) return { mode: ['dump','version'] }
     if (dump == "help" || help) return { mode: ['dump','help'] }
     if (dump == "env" || dump === true || d) return { mode: ['dump','env'] }

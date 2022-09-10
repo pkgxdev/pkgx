@@ -16,7 +16,7 @@ Change how your team works.
 &nbsp;
 
 
-# tea/cli 0.5.2
+# tea/cli 0.5.3
 
 tea is a universal virtual‑environment manager:
 
@@ -543,7 +543,7 @@ export TMPDIR=${TMPDIR:-/tmp}
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR \
+ --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR,TEA_PREFIX \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
  --allow-write="$TMPDIR" \

@@ -110,13 +110,16 @@ async function magic(input: Args): Promise<ProcessedArgs> {
     }
   } else if (!arg0) {
     // in fact, no arguments were specified at all
-    if (!await maybe_env()) throw "no environment found"  //TODO show usage, usage in general should show env info
-    // ^^ if no env can be found then we're stuck
+
+    if (mode[1] == "env" && !await maybe_env()) {
+      throw "no environment found"  //TODO show usage, usage in general should show env info
+      // ^^ if no env can be found for modes we need an env
+    }
 
     // k, we’re inferring executable markdown
     return {
       mode,
-      pkgs: env!.requirements,
+      pkgs: env?.requirements ?? [],
       args: flatMap(env?.requirementsFile, x=>[x.string]) ?? [],
       env
     }
@@ -150,7 +153,7 @@ async function magic(input: Args): Promise<ProcessedArgs> {
   }
 
   async function maybe_env() {
-    return env ?? (env = await useVirtualEnv())
+    return env ?? (env = await useVirtualEnv().swallow(/not-found/))
   }
 }
 
