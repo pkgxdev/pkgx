@@ -4,7 +4,7 @@ import useCellar from "hooks/useCellar.ts"
 import useShellEnv, { expand } from "hooks/useShellEnv.ts"
 import { run, undent } from "utils"
 import fix_pkg_config_files from "prefab/fix-pkg-config-files.ts"
-import fix_rpaths from "./fix-rpaths.ts";
+import fix_rpaths from "./fix-rpaths.ts"
 
 interface Options {
   pkg: Package
@@ -58,7 +58,7 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
 
     ${/*FIXME hardcoded paths*/ ''}
     export PATH=/opt/tea.xyz/var/pantry/scripts/brewkit:"$PATH"
-    export PATH='/opt/tea.xyz/v*/bin':"$PATH"
+    export PATH=/opt/tea.xyz/v0/bin:"$PATH"
 
     ${sh}
     `

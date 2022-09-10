@@ -6,13 +6,7 @@ import help from "./app.help.ts"
 
 const rawArgs = useArgs(Deno.args)
 const { silent, verbose, magic, verbosity } = useFlags()
-
-if (verbose) {
-  const version = '0.0.0-α'
-  console.log(`tea ${version}`)
-}
-
-console.debug({ rawArgs })
+const version = '0.0.0-α'
 
 if (rawArgs.cd) {
   const chdir = rawArgs.cd
@@ -23,24 +17,19 @@ if (rawArgs.cd) {
 try {
   const { mode, ...args } = await useMagic(rawArgs)
 
-  if (magic && (mode != 'help' || verbosity > 1)) {
-    const foo = { ...args, mode, chdir: rawArgs.cd }
-    console.verbose({"transformed-args": foo })
-  }
-
-  switch (mode) {
-  case "dump":
-    await dump(args)
-    break
-
-  case "exec":
+  if (mode == "exec") {
+    console.verbose(`tea ${version}`)
     await exec(args)
-    break
-
-  case "help":
-    await help()
-    break
-  }
+  } else switch (mode[1]) {
+    case "env":
+      await dump(args)
+      break
+    case "help":
+      await help()
+      break
+    case "version":
+      console.log(`tea ${version}`)
+    }
 } catch (err) {
   if (silent) {
     Deno.exit(1)

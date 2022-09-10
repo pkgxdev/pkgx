@@ -164,3 +164,12 @@ jobs:
           tag_name: ${{ env.TAG }}
           files: artifacts/*.tar.gz
           fail_on_unmatched_files: true
+
+     #FIXME do specific version obv.
+      - uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          DISTRIBUTION: ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
+          PATHS: "/tea.xyz/*/v${{ env.TAG }}/"
+          AWS_REGION: "us-east-1"
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
