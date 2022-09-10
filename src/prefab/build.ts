@@ -29,7 +29,8 @@ export default async function build({ pkg, deps, prebuild, env: add_env }: Optio
   const sh = await pantry.getScript(pkg, 'build')
 
   if (cellar.prefix.string != "/opt") {
-    throw new Error("build only works in /opt")
+    console.error({ TEA_PREFIX: cellar.prefix.string })
+    throw new Error("builds go to /opt (try TEA_PREFIX=/opt)")
   }
 
   if (env.pending.length) {
