@@ -5,6 +5,7 @@ import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
 import { Path } from "types"
+import { print } from "utils"
 
 const rawArgs = useArgs(Deno.args)
 const { silent } = useFlags()
@@ -30,10 +31,10 @@ try {
       await help()
       break
     case "version":
-      console.log(`tea ${version}`)
+      await print(`tea ${version}`)
       break
     case "prefix":
-      console.log(useCellar().prefix.string)
+      await print(useCellar().prefix.string)
     }
 } catch (err) {
   if (silent) {
