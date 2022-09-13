@@ -42,7 +42,9 @@ const download = async ({ url: readURL, pkg, type = 'bottle' }: DownloadOptions)
     console.info({alreadyDownloaded: writeFilename})
   } else {
     console.info({downloading: readURL})
-    await grab({ readURL, writeFilename })
+    //FIXME: big hacks
+    const privateRepo = pkg.project === "tea.xyz"
+    await grab({ readURL, writeFilename, privateRepo })
   }
   return writeFilename
 }
@@ -78,7 +80,7 @@ const s3Key = (pkg: Package) => {
   return `${pkg.project}/${platform}/${arch}/v${pkg.version.version}.tar.gz`
 }
 
-async function grab({ readURL, writeFilename }: { readURL: string, writeFilename: Path }) {
+async function grab({ readURL, writeFilename, privateRepo = false }: { readURL: string, writeFilename: Path, privateRepo: boolean }) {
   const { verbose } = console
 
   if (writeFilename.isReadableFile()) return
@@ -86,6 +88,17 @@ async function grab({ readURL, writeFilename }: { readURL: string, writeFilename
   verbose({downloading: readURL})
   verbose({destination: writeFilename})
 
+  //TODO: remove; special casing for private tea repos
+  if (privateRepo) {
+    const url = new URL(readURL)
+    if (url.host != "github.com") { throw new Error("unknown private domain") }
+    const token = Deno.env.get("GITHUB_TOKEN")
+    if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
+    const rsp = await fetch(url, { headers: { authorization: `bearer ${token}`} })
+    const file = await Deno.open(writeFilename.string, { create: true, write: true })
+    await rsp.body?.pipeTo(file.writable)
+    return
+  }
   const file = await dl(readURL)
   await Deno.link(file.path, writeFilename.string)
 }
