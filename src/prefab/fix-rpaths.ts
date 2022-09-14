@@ -181,7 +181,7 @@ async function get_bad_otool_listings(exename: Path, type: 'exe' | 'lib'): Promi
   const lines = (await runAndGetOutput({cmd: ["otool", "-L", exename]}))
     .trim()
     .split("\n")
-    .slice(exename.extname() == '.dylib' ? 2 : 1)
+    .slice(1)
     // ^^ dylibs list themselves on 1st and 2nd lines
     // NOTE that if the file is named .so then this is not true even though it is still a dylib
     // NOBODY KNOW WHY
@@ -192,6 +192,14 @@ async function get_bad_otool_listings(exename: Path, type: 'exe' | 'lib'): Promi
     const match = line.match(/\t(.+) \(compatibility version/)
     if (!match) throw new Error()
     const dylib = match[1]
+    if (type == 'lib' && dylib.split("/").slice(-1)[0] == exename.basename()) {
+      // the dylib has an `id`, note that not all dylibs have ids (somehow)
+      // note the only place we found this true was python
+      //FIXME the above check is not really sufficient but ids may be expressed as relative or absolute paths
+      // and their base is not always clear
+      continue
+    }
+
     if (dylib.startsWith(cellar.prefix.string)) {
       rv.push(dylib)
     }
