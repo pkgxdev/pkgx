@@ -375,8 +375,8 @@ export default class Path {
   }
 
   relative({ to: base }: { to: Path }): string {
-    const pathComps = ['/'].concat(this.string.split("/"))
-    const baseComps = ['/'].concat(base.string.split("/"))
+    const pathComps = ['/'].concat(this.string.split("/").filter(x=>x))
+    const baseComps = ['/'].concat(base.string.split("/").filter(x=>x))
 
     if (this.string.startsWith(base.string)) {
       return pathComps.slice(baseComps.length).join("/")

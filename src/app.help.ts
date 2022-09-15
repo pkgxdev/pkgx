@@ -47,6 +47,7 @@ export default async function help() {
       aliases:
         --help,-h                   --dump=usage
         --version,-v                --dump=version                            𐄂
+        --prefix                    --dump=prefix
 
       flags:
         --env,-E                    inject virtual environment     ✨
