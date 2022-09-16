@@ -120,10 +120,12 @@ async function grab({ readURL: url, writeFilename: dst, privateRepo = false }: {
   case 304:
     console.verbose("304: not modified")
     return  // not modified
-  case 404:
-    throw new Error(`404: ${url}`)
   default:
-    throw new Error()
+    if (useFlags().numpty && writeFilename.isFile()) {
+      return
+    } else {
+      throw new Error(`${rsp.status}: ${url}`)
+    }
   }
 }
 

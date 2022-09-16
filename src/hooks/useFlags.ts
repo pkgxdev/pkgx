@@ -15,6 +15,7 @@ interface Flags {
   verbosity: Verbosity
   magic: boolean
   json: boolean
+  numpty: boolean
 }
 
 interface ConvenienceFlags {
@@ -32,7 +33,8 @@ export default function useFlags(): Flags & ConvenienceFlags {
     flags = {
       verbosity: getVerbosity({}),
       magic: getMagic(undefined),
-      json: Deno.env.get("JSON") == '1' //FIXME use the lib
+      json: !!Deno.env.get("JSON"),
+      numpty: !!Deno.env.get("NUMPTY")
     }
     applyVerbosity()
   }
@@ -130,7 +132,8 @@ export function useArgs(args: string[]): ReturnValue {
   flags = {
     verbosity: getVerbosity({ v, verbose, silent}),
     magic: getMagic(muggle),
-    json
+    json: json ?? !!Deno.env.get("JSON"),
+    numpty: !!Deno.env.get("NUMPTY")
   }
 
   applyVerbosity()
