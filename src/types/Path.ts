@@ -394,6 +394,10 @@ export default class Path {
       return relComps.join("/")
     }
   }
+
+  [Symbol.for("Deno.customInspect")]() {
+    return this.string
+  }
 }
 
 let tmp = new Path('/tmp')
