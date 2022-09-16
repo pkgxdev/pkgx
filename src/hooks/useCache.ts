@@ -3,6 +3,7 @@ import * as utils from "utils"
 import usePlatform from "hooks/usePlatform.ts"
 import * as _ from "utils" // console.verbose
 import useCellar from "hooks/useCellar.ts"
+import useFlags from "hooks/useFlags.ts"
 
 interface DownloadOptions {
   url: URL
@@ -106,7 +107,7 @@ async function grab({ readURL: url, writeFilename: dst, privateRepo = false }: {
     const rdr = rsp.body?.getReader()
     if (!rdr) throw new Error()
     const r = readerFromStreamReader(rdr)
-    const f = await Deno.open(dst.string, {create: true, write: true})
+    const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
       await copy(r, f)
     } finally {
@@ -114,7 +115,7 @@ async function grab({ readURL: url, writeFilename: dst, privateRepo = false }: {
     }
 
     //TODO etags too
-    utils.flatMap(rsp.headers.get("Last-Modified"), text => mtime_entry.write({ text }))
+    utils.flatMap(rsp.headers.get("Last-Modified"), text => mtime_entry.write({ text, force: true }))
 
   } break
   case 304:
