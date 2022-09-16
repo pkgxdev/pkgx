@@ -59,16 +59,18 @@ const getRawDistributableURL = (yml: PlainObject) => validateString(
 
 const getDistributable = async (pkg: Package) => {
   const yml = await entry(pkg).yml()
-  let url = getRawDistributableURL(yml)
+  let urlstr = getRawDistributableURL(yml)
   let stripComponents: number | undefined
   if (isPlainObject(yml.distributable)) {
-    url = validateString(yml.distributable.url)
+    urlstr = validateString(yml.distributable.url)
     stripComponents = flatMap(yml.distributable["strip-components"], coerceNumber)
   } else {
-    url = validateString(yml.distributable)
+    urlstr = validateString(yml.distributable)
   }
 
-  url = remapTokens(url, pkg)
+  urlstr = remapTokens(urlstr, pkg)
+
+  const url = new URL(urlstr)
 
   return { url, stripComponents }
 }
