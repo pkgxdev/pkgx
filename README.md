@@ -16,7 +16,7 @@ Change how your team works.
 &nbsp;
 
 
-# tea/cli 0.5.5
+# tea/cli 0.5.6
 
 tea is a universal virtual‑environment manager:
 

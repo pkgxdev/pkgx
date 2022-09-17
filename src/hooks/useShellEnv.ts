@@ -1,4 +1,4 @@
-import { Installation, PackageRequirement } from "types"
+import { Installation, PackageRequirement, Path } from "types"
 import useCellar from "hooks/useCellar.ts"
 import usePlatform from "hooks/usePlatform.ts"
 
@@ -77,6 +77,13 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
     }
   }
 
+  const tea = tea_PATH()
+  //FIXME we add these paths so “binutils” and POSIX-utils are available
+  // but these PATHs will almost certainly contain other things that will
+  // interfere with our ability to create reproducibility
+  //NOTE /usr/local/bin is explicitly NOT ADDED
+  if (!vars.PATH) vars.PATH = []
+  vars.PATH.push('/usr/bin', '/bin', '/usr/sbin', '/sbin', tea.string)
 
   const defaults: Env = {}
   const combined: Env = {}
@@ -116,10 +123,13 @@ function suffixes(key: string) {
 
 export function expand(env: Record<string, string[]>) {
   let rv = ''
-  for (let [key, value] of Object.entries(env)) {
-    if (key == 'PATH') value = value.concat("/usr/bin:/bin:/usr/sbin:/sbin") //FIXME
+  for (const [key, value] of Object.entries(env)) {
     if (value.length == 0) continue
     rv += `export ${key}='${value.join(":")}'\n`
   }
   return rv
+}
+
+function tea_PATH() {
+  return useCellar().prefix.join('tea.xyz/v*/bin')
 }
