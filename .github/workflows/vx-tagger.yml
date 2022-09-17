@@ -1,0 +1,13 @@
+on:
+  release:
+    types: [published, updated]
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: sersoft-gmbh/running-release-tags-action@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          update-full-release: true
+        if: github.event.release.prerelease == false
