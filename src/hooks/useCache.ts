@@ -1,9 +1,7 @@
 import { Package, Path, semver } from "types"
 import * as utils from "utils"
 import usePlatform from "hooks/usePlatform.ts"
-import * as _ from "utils" // console.verbose
-import useCellar from "hooks/useCellar.ts"
-import useFlags from "hooks/useFlags.ts"
+import useDownload from "hooks/useDownload.ts"
 
 interface DownloadOptions {
   url: URL
@@ -11,10 +9,10 @@ interface DownloadOptions {
   type?: 'src' | 'bottle'
 }
 
-const prefix = new Path(`${useCellar().prefix}/tea.xyz/var/www`)
+const { prefix } = useDownload()
 
 export default function useCache() {
-  return { download, bottle, ls, s3Key, prefix, download_script }
+  return { download: my_download, bottle, ls, s3Key, prefix, download_script }
 }
 
 const stem = (pkg: Package) => {
@@ -30,23 +28,31 @@ const bottle = (pkg: Package) => {
 }
 
 /// download source or bottle
-const download = async ({ url: readURL, pkg, type = 'bottle' }: DownloadOptions) => {
+const my_download = async ({ url, pkg, type = 'bottle' }: DownloadOptions) => {
   const filename = (() => {
     switch(type) {
-      case 'src': return stem(pkg) + Path.extname(readURL.pathname)
+      case 'src': return stem(pkg) + Path.extname(url.pathname)
       case 'bottle': return bottle(pkg).string
     }
   })()
-  const writeFilename = prefix.join(filename)
-  const privateRepo = pkg.project === "tea.xyz" //FIXME: big hacks
-  await grab({ readURL, writeFilename, privateRepo })
-  return writeFilename
+  const download = useDownload().download
+  const dst = prefix.join(filename)
+  const headers: HeadersInit = {}
+
+  if (pkg.project === "tea.xyz") {
+    //FIXME: big hacks
+    if (url.host != "github.com") { throw new Error("unknown private domain") }
+    const token = Deno.env.get("GITHUB_TOKEN")
+    if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
+    headers["Authorization"] = `bearer ${token}`
+  }
+
+  return await download({ src: url, dst, headers })
 }
 
 const download_script = async (url: URL) => {
-  const writeFilename = hash_key(url).join(new Path(url.pathname).basename())
-  await grab({ readURL: url, writeFilename, privateRepo: false })
-  return writeFilename
+  const { download } = useDownload()
+  return await download({ src: url })
 }
 
 /// lists all packages with bottles in the cache
@@ -73,74 +79,4 @@ const ls = async () => {
 const s3Key = (pkg: Package) => {
   const { platform, arch } = usePlatform()
   return `${pkg.project}/${platform}/${arch}/v${pkg.version.version}.tar.gz`
-}
-
-import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
-
-async function grab({ readURL: url, writeFilename: dst, privateRepo = false }: { readURL: URL, writeFilename: Path, privateRepo: boolean }) {
-
-  if (url.protocol === "file:") throw new Error()
-
-  const { verbose } = console
-
-  verbose({src: url, dst})
-
-  const headers: HeadersInit = {}
-
-  //TODO: remove; special casing for private tea repos
-  if (privateRepo) {
-    if (url.host != "github.com") { throw new Error("unknown private domain") }
-    const token = Deno.env.get("GITHUB_TOKEN")
-    if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
-    headers["Authorization"] = `bearer ${token}`
-  }
-
-  const mtime_entry = hash_key(url).join("mtime")
-  if (mtime_entry.isFile() && dst.isReadableFile()) {
-    headers["If-Modified-Since"] = await mtime_entry.read()
-  }
-
-  const rsp = await fetch(url, { headers })
-
-  switch (rsp.status) {
-  case 200: {
-    const rdr = rsp.body?.getReader()
-    if (!rdr) throw new Error()
-    const r = readerFromStreamReader(rdr)
-    const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
-    try {
-      await copy(r, f)
-    } finally {
-      f.close()
-    }
-
-    //TODO etags too
-    utils.flatMap(rsp.headers.get("Last-Modified"), text => mtime_entry.write({ text, force: true }))
-
-  } break
-  case 304:
-    console.verbose("304: not modified")
-    return  // not modified
-  default:
-    if (useFlags().numpty && dst.isFile()) {
-      return
-    } else {
-      throw new Error(`${rsp.status}: ${url}`)
-    }
-  }
-}
-
-import { createHash } from "deno/hash/mod.ts"
-
-function hash_key(url: URL): Path {
-  function hash(url: URL) {
-    const formatted = `${url.pathname}${url.search ? "?" + url.search : ""}`;
-    return createHash("sha256").update(formatted).toString();
-  }
-
-  return prefix
-    .join(url.protocol.slice(0, -1))
-    .join(url.hostname)
-    .join(hash(url))
-    .mkpath()
 }

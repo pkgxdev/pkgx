@@ -404,3 +404,11 @@ let tmp = new Path('/tmp')
 const set_tmp = (path: Path) => tmp = path
 
 export { set_tmp }
+
+declare global {
+  interface URL {
+    path(): Path
+  }
+}
+
+URL.prototype.path = function() { return new Path(this.pathname) }

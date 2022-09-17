@@ -6,9 +6,9 @@ import { Installation } from "types"
 import { TarballUnarchiver } from "utils/Unarchiver.ts"
 import useFlags from "hooks/useFlags.ts"
 import { run } from "utils"
-import { crypto } from "deno/crypto/mod.ts";
-import { readAll, readerFromStreamReader } from "deno/streams/mod.ts";
-import { encodeToString } from "encodeToString";
+import { crypto } from "deno/crypto/mod.ts"
+import { encodeToString } from "encodeToString"
+import useDownload from "hooks/useDownload.ts"
 
 
 // # NOTE
@@ -29,7 +29,8 @@ export default async function install(pkg: Package): Promise<Installation> {
   const tarball = await download({ url, pkg: { project, version } })
 
   try {
-    await validateChecksum(tarball, `${url}.sha256sum`)
+    const sha_url = new URL(`${url}.sha256sum`)
+    await validateChecksum(tarball, sha_url, pkg)
   } catch (err) {
     tarball.rm()
     throw err
@@ -49,20 +50,30 @@ export default async function install(pkg: Package): Promise<Installation> {
   return install
 }
 
-async function validateChecksum(tarball: Path, url: string) {
-  const file = Deno.readFileSync(tarball.string)
-  const fileSha256sum = encodeToString(new Uint8Array(await crypto.subtle.digest("SHA-256", file)))
+//TODO strictly the checksum file needs to be rewritten
+//TODO so instead download to default cache path and write a checksum file for all bottles/srcs
+//FIXME there is a potential attack here since download streams to a file
+//  and AFTER we read back out of the file, a malicious actor could rewrite the file
+//  in that gap. Also it’s less efficient.
 
-  const rsp = await fetch(url)
-  if (!rsp.ok) throw new Error(`404-not-found: ${url}`)
-  const rdr = rsp.body?.getReader()
-  if (!rdr) throw new Error(`Couldn’t read: ${url}`)
-  const r = await readAll(readerFromStreamReader(rdr))
-  const remoteSha256Sum = new TextDecoder().decode(r).split(' ')[0]
+async function validateChecksum(tarball: Path, url: URL, pkg: Package) {
+  const { download } = useDownload()
+  const dst = new Path(`${useCache().bottle(pkg)}.sha256sum`)
 
-  console.verbose({ checksum: remoteSha256Sum })
+  const local = Deno.open(tarball.string, { read: true })
+    .then(file => crypto.subtle.digest("SHA-256", file.readable))
+    .then(buf => encodeToString(new Uint8Array(buf)))
 
-  if (remoteSha256Sum !== fileSha256sum) {
-    throw new Error(`expected: ${remoteSha256Sum}`)
+  const remote = download({ src: url, dst, force: true }).then(async dl => {
+    const txt = await dl.read()
+    return txt.split(' ')[0]
+  })
+
+  const [remote_SHA, local_SHA] = await Promise.all([remote, local])
+
+  console.verbose({ remote_SHA, local_SHA })
+
+  if (remote_SHA != local_SHA) {
+    throw new Error(`expected: ${remote_SHA}`)
   }
 }
