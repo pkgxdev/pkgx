@@ -28,13 +28,15 @@ SRCROOT="$(cd $(dirname "$0")/.. && pwd)"
 cat <<EOF> "$OUTPUT"
 #!/bin/sh
 
-if test -L "\$0"; then
-  TEA_BIN="\$(readlink \$0)"
-else
-  TEA_BIN="\$0"
+if test -z "$TEA_PREFIX"; then
+  if test -L "\$0"; then
+    TEA_BIN="\$(readlink \$0)"
+  else
+    TEA_BIN="\$0"
+  fi
+  TEA_PREFIX=\$(cd \$(dirname "\$TEA_BIN")/../../.. && pwd)
 fi
 
-TEA_PREFIX=\$(cd \$(dirname "\$TEA_BIN")/../../.. && pwd)
 SRC_PREFIX="$SRCROOT"
 
 exec \$TEA_PREFIX/deno.land/v1/bin/deno \

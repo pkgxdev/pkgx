@@ -122,7 +122,7 @@ async function grab({ readURL: url, writeFilename: dst, privateRepo = false }: {
     console.verbose("304: not modified")
     return  // not modified
   default:
-    if (useFlags().numpty && writeFilename.isFile()) {
+    if (useFlags().numpty && dst.isFile()) {
       return
     } else {
       throw new Error(`${rsp.status}: ${url}`)
