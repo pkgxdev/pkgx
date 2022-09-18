@@ -1,8 +1,33 @@
+#!/usr/bin/env -S tea -E
+
+/*
+---
+args:
+  - deno
+  - run
+  - --allow-net
+  - --allow-env=TEA_PREFIX,VERBOSE,DEBUG,MAGIC,GITHUB_ACTIONS,JSON,NUMPTY
+  - --allow-read={{ tea.prefix }}
+  - --allow-write={{ tea.prefix }}
+  - --allow-run  # uses `/bin/ln`
+  - --import-map={{ srcroot }}/import-map.json
+---
+*/
+
 import useCellar from "hooks/useCellar.ts"
+import useFlags from "hooks/useFlags.ts"
 import { Installation } from "types"
-import link from "./link.ts"
+import link from "prefab/link.ts"
+
+useFlags()
 
 //TODO ripe for optimization, give it a shot and PR! Yes! YOU!
+
+if (import.meta.main) {
+  for (const project of Deno.args) {
+    await repairLinks(project)
+  }
+}
 
 export default async function repairLinks(project: string) {
   const cellar = useCellar()
