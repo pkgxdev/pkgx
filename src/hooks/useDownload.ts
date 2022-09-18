@@ -25,12 +25,18 @@ async function download({ src, dst, headers, force }: DownloadOptions): Promise<
   if (!force && mtime_entry.isFile() && dst.isReadableFile()) {
     headers ??= {}
     headers["If-Modified-Since"] = await mtime_entry.read()
+    console.info({querying: src.toString()})
+  } else {
+    console.info({downloading: src.toString()})
   }
 
   const rsp = await fetch(src, {headers})
 
   switch (rsp.status) {
   case 200: {
+    if ("If-Modified-Since" in (headers ?? {})) {
+      console.info({downloading: src})
+    }
     const rdr = rsp.body?.getReader()
     if (!rdr) throw new Error()
     const r = readerFromStreamReader(rdr)

@@ -64,7 +64,9 @@ async function validateChecksum(tarball: Path, url: URL, pkg: Package) {
     .then(file => crypto.subtle.digest("SHA-256", file.readable))
     .then(buf => encodeToString(new Uint8Array(buf)))
 
-  const remote = download({ src: url, dst, force: true }).then(async dl => {
+  const remote = console.silence(() =>
+    download({ src: url, dst, force: true })
+  ).then(async dl => {
     const txt = await dl.read()
     return txt.split(' ')[0]
   })

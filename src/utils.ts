@@ -60,6 +60,9 @@ declare global {
   interface Console {
     // deno-lint-ignore no-explicit-any
     verbose(...args: any[]): void
+
+    /// prohibits standard logging unless verbosity is loud or above
+    silence<T>(body: () => Promise<T>): Promise<T>
   }
 }
 
@@ -107,6 +110,18 @@ Array.prototype.chuzzle = function<T>() {
 }
 
 console.verbose = console.log
+
+console.silence = async function<T>(body: () => Promise<T>) {
+  const originals = [console.log, console.info]
+  try {
+    console.log = () => {}
+    console.info = () => {}
+    return await body()
+  } finally {
+    console.log = originals[0]
+    console.info = originals[1]
+  }
+}
 
 Array.prototype.compactPush = function<T>(item: T | null | undefined) {
   if (item) this.push(item)
