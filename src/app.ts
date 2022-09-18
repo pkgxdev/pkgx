@@ -1,15 +1,17 @@
 import useFlags, { useArgs } from "hooks/useFlags.ts"
 import useCellar from "hooks/useCellar.ts"
 import useMagic from "hooks/useMagic.ts"
+import useVirtualEnv from "hooks/useVirtualEnv.ts";
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
 import { Path } from "types"
 import { print } from "utils"
 
+
 const rawArgs = useArgs(Deno.args)
 const { silent } = useFlags()
-const version = '0.0.0-α'
+const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() })).version?.toString()}+dev`
 
 if (rawArgs.cd) {
   const chdir = rawArgs.cd
