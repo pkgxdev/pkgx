@@ -43,8 +43,8 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
   }))).compactMap(x => x)
 
   const projects = new Set([...pkgs.map(x => x.pkg.project), ...pending.map(x=>x.project)])
-  const has_pkg_config = projects.has('freedesktop.org/pkg-config')
   const has_cmake = projects.has('cmake.org')
+  const archaic = true
 
   for (const installation of pkgs) {
     for (const key of EnvKeys) {
@@ -54,8 +54,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
       }
     }
 
-    // if the tool provides no pkg-config files then fall back on old-school specification methods
-    if (true) { //!vars.PKG_CONFIG_PATH?.chuzzle() || !has_pkg_config) {
+    if (archaic) {
       if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
       if (!vars.CPATH) vars.CPATH = []
       vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
@@ -82,6 +81,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
   // but these PATHs will almost certainly contain other things that will
   // interfere with our ability to create reproducibility
   //NOTE /usr/local/bin is explicitly NOT ADDED
+  //TODO provide stub packages that exec the actual tools so we can exclude these PATHs
   if (!vars.PATH) vars.PATH = []
   vars.PATH.push('/usr/bin', '/bin', '/usr/sbin', '/sbin', tea.string)
 
