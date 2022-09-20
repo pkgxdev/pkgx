@@ -21,7 +21,6 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
     project = "gnu.org/make"
     rawconstraint = "*"
   }
-  if (project == "tea.xyz") return
   //</FIXME>
 
   const constraint = new semver.Range(`${rawconstraint}`)
