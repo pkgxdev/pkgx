@@ -221,7 +221,7 @@ export function parse_pkg_requirement(input: string): PackageRequirement {
 }
 
 export function parse_pkg(input: string): Package {
-  const splat = input.split(/(@|=)/) //FIXME we do specs with eg. foo^1
+  const splat = input.split(/[@=]/)
   if (splat.length == 2) {
     return {
       project: splat[0],
