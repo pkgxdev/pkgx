@@ -1,5 +1,5 @@
 import useFlags, { useArgs } from "hooks/useFlags.ts"
-import { useCellar, useMagic, useVirtualEnv } from "hooks"
+import { usePrefix, useMagic, useVirtualEnv } from "hooks"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
@@ -33,7 +33,7 @@ try {
       await print(`tea ${version}`)
       break
     case "prefix":
-      await print(useCellar().prefix.string)
+      await print(usePrefix().string)
     }
 } catch (err) {
   if (silent) {
@@ -45,7 +45,7 @@ try {
 
 function announce() {
   const self = new Path(Deno.execPath())
-  const prefix = useCellar().prefix.string
+  const prefix = usePrefix().string
 
   if (self.basename() == "deno") {
     console.verbose({ deno: self.string, prefix, import: import.meta })

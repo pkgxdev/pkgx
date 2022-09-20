@@ -1,5 +1,5 @@
 import { Installation, PackageRequirement } from "types"
-import { useCellar } from "hooks"
+import { usePrefix, useCellar } from "hooks"
 import { host } from "utils"
 
 type Env = Record<string, string[]>
@@ -91,7 +91,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
   for (const key of EnvKeys) {
     const defaultValue = Deno.env.get(key)
       ?.split(":")
-      ?.filter(x => !x.startsWith(cellar.prefix.string)) ?? [] //FIXME not great
+      ?.filter(x => !x.startsWith(usePrefix().string)) ?? [] //FIXME not great
     defaults[key] = defaultValue
     combined[key] = (vars[key] ?? []).concat(defaultValue)
     combinedStrings[key] = combined[key].join(":")
@@ -131,5 +131,5 @@ export function expand(env: Record<string, string[]>) {
 }
 
 function tea_PATH() {
-  return useCellar().prefix.join('tea.xyz/v*/bin')
+  return usePrefix().join('tea.xyz/v*/bin')
 }

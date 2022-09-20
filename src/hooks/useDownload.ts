@@ -1,5 +1,5 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
-import { useCellar, useFlags } from "hooks"
+import { useFlags, usePrefix } from "hooks"
 import { flatmap } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import Path from "path"
@@ -74,7 +74,7 @@ function hash_key(url: URL): Path {
     return new Sha256().update(formatted).toString()
   }
 
-  return useDownload().prefix
+  return usePrefix()
     .join(url.protocol.slice(0, -1))
     .join(url.hostname)
     .join(hash(url))
@@ -82,6 +82,6 @@ function hash_key(url: URL): Path {
 }
 
 export default function useDownload() {
-  const prefix = useCellar().prefix.join("tea.xyz/var/www")
+  const prefix = usePrefix().join("tea.xyz/var/www")
   return { download, prefix, hash_key }
 }

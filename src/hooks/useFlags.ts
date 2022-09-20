@@ -3,11 +3,11 @@ import { flatmap, chuzzle } from "utils"
 import { Verbosity, PackageRequirement } from "types"
 import { isNumber } from "is_what"
 import { set_tmp } from "path"
-import { useCellar } from "hooks"
+import { usePrefix } from "hooks"
 import Path from "path"
 
 // doing here as this is the only file all our scripts import
-set_tmp(useCellar().prefix.join('tea.xyz/tmp'))
+set_tmp(usePrefix().join('tea.xyz/tmp'))
 
 
 export type Mode = 'exec' | ['dump', 'env' | 'help' | 'version' | 'prefix']

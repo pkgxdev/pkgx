@@ -1,5 +1,6 @@
 import { Package, PackageRequirement, Installation } from "types"
-import { compare_pkg } from "utils"
+import { compare_pkg, pkg_str } from "utils"
+import { usePrefix } from "hooks"
 import Path from "path"
 import SemVer, * as semver from "semver"
 
@@ -12,8 +13,6 @@ interface Return {
   resolve(pkg: Package | PackageRequirement | Path): Promise<Installation>
   /// returns all installed versions of a project
   ls(project: string): Promise<Installation[]>
-  /// typically: ~/.tea
-  prefix: Path
 
   /// eg. ~/.tea/deno.land
   shelf(project: string): Path
@@ -22,20 +21,7 @@ interface Return {
 }
 
 export default function useCellar(): Return {
-  const prefix = (() => {
-    //NOTE doesn't work for scripts as Deno.run doesn't push through most env :/
-    const env = Deno.env.get("TEA_PREFIX")
-    if (env) {
-      return new Path(env)
-    } else {
-      // calculate from our PATH
-      // NOTE expands symlinks (we don't want recursive expansion, but seemingly
-      // deno does this for us 😒)
-      // this works if tea is installed correctly to /opt/tea.xyz/vx/bin or we
-      // are a source installation running off a tea installed deno at /opt/deno.land/vx/bin
-      return new Path(Deno.execPath()).readlink().parent().parent().parent().parent()
-    }
-  })()
+  const prefix = usePrefix()
 
   const ls = async (project: string) => {
     if (!prefix.join(project).isDirectory()) return []
@@ -77,7 +63,7 @@ export default function useCellar(): Return {
         return { path, pkg: { project: pkg.project, version } }
       }
     }
-    throw new Error(`not-found:${str(pkg)}`)
+    throw new Error(`not-found:${pkg_str(pkg)}`)
   }
 
   const shelf = (project: string) => {
@@ -92,7 +78,7 @@ export default function useCellar(): Return {
     return resolution
   }
 
-  return { resolve, ls, mkpath, prefix, shelf, isInstalled }
+  return { resolve, ls, mkpath, shelf, isInstalled }
 }
 
 
@@ -108,12 +94,4 @@ async function looksEmpty(path: Path): Promise<boolean> {
     }
   }
   return true
-}
-
-function str(pkg: Package | PackageRequirement): string {
-  if ("constraint" in pkg) {
-    return `${pkg.project}@${pkg.constraint}`
-  } else {
-    return `${pkg.project}@${pkg.version}`
-  }
 }

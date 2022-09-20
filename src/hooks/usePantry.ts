@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic } from "utils"
-import { useCellar, useGitHubAPI } from "hooks"
+import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import SemVer, * as semver from "semver"
@@ -15,7 +15,7 @@ interface Entry {
   versions: Path
 }
 
-const prefix = new Path(`${useCellar().prefix}/tea.xyz/var/pantry/projects`)
+const prefix = new Path(`${usePrefix()}/tea.xyz/var/pantry/projects`)
 
 export default function usePantry() {
   return {
@@ -106,7 +106,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test') => {
 
 const update = async () => {
   //FIXME real fix is: don’t use git!
-  const git = useCellar().prefix.join('git-scm.org/v*')
+  const git = usePrefix().join('git-scm.org/v*')
   if (git.isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
     await run({
       cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
@@ -348,7 +348,7 @@ const remapTokens = (input: string, pkg: Package) => {
     { from: "prefix",            to: prefix.string },
     { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
     { from: "pkg.pantry-prefix", to: getPrefix(pkg).string },
-    { from: "tea.prefix",        to: cellar.prefix.string }
+    { from: "tea.prefix",        to: usePrefix().string }
   ].reduce((acc, {from, to}) =>
     acc.replace(new RegExp(`\\$?{{\\s*${from}\\s*}}`, "g"), to),
     input)

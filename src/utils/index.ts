@@ -238,6 +238,15 @@ export function compare_pkg(a: Package, b: Package): number {
     : (a.project < b.project ? -1 : 1)
 }
 
+export function pkg_str(pkg: Package | PackageRequirement): string {
+  if ("constraint" in pkg) {
+    return `${pkg.project}@${pkg.constraint}`
+  } else {
+    return `${pkg.project}@${pkg.version}`
+  }
+}
+
+
 /////////////////////////////////////////////////////////////////////// semver
 import SemVer, * as semver from "semver"
 

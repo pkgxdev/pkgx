@@ -1,4 +1,4 @@
-import { useCache, useCellar, useFlags, useDownload } from "hooks"
+import { usePrefix, useCache, useCellar, useFlags, useDownload } from "hooks"
 import { run, TarballUnarchiver, host } from "utils"
 import { encode } from "deno/encoding/hex.ts"
 import { crypto } from "deno/crypto/mod.ts"
@@ -18,8 +18,9 @@ export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
   const { s3Key, download } = useCache()
   const url = new URL(`https://dist.tea.xyz/${s3Key(pkg)}`)
-  const { prefix: dstdir, ...cellar } = useCellar()
+  const cellar = useCellar()
   const { verbosity } = useFlags()
+  const dstdir = usePrefix()
 
   const tarball = await download({ url, pkg: { project, version } })
 

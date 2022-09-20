@@ -1,7 +1,7 @@
 import { PackageRequirement } from "types"
 import { isPlainObject, isString, isArray, PlainObject } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
-import { useCellar } from "hooks"
+import { usePrefix } from "hooks"
 import { validate_plain_obj } from "utils"
 import Path from "path"
 
@@ -33,7 +33,6 @@ interface Return2 extends Return1 {
 }
 
 export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<Return2> {
-  const cellar = useCellar()
   const yaml = await script.readYAMLFrontMatter()
   const rv = usePackageYAML(yaml)
 
@@ -57,6 +56,6 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
     return input
       .replace(/{{\s*srcroot\s*}}/ig, srcroot!.string)
       .replace(/{{\s*home\s*}}/ig, Path.home().string)
-      .replace(/{{\s*tea.prefix\s*}}/ig, cellar.prefix.string)
+      .replace(/{{\s*tea.prefix\s*}}/ig, usePrefix().string)
   }
 }
