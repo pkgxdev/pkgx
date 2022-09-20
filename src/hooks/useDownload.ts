@@ -43,6 +43,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     const rdr = rsp.body?.getReader()
     if (!rdr) throw new Error()
     const r = readerFromStreamReader(rdr)
+    dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
       await copy(r, f)
