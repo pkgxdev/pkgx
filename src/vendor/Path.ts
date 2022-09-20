@@ -1,7 +1,7 @@
 import { parse as parseYaml } from "deno/encoding/yaml.ts"
 import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
-import { PlainObject } from "types"
+import { PlainObject } from "is_what"
 
 // based on https://github.com/mxcl/Path.swift
 

@@ -1,7 +1,9 @@
-import { PackageRequirement, PlainObject, Path } from "types"
-import { isPlainObject, isString, isArray, validatePlainObject } from "utils"
-import { validatePackageRequirement } from "utils/lvl2.ts"
-import useCellar from "hooks/useCellar.ts"
+import { PackageRequirement } from "types"
+import { isPlainObject, isString, isArray, PlainObject } from "is_what"
+import { validatePackageRequirement } from "utils/hacks.ts"
+import { useCellar } from "hooks"
+import { validate_plain_obj } from "utils"
+import Path from "path"
 
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
@@ -18,8 +20,8 @@ export default function usePackageYAML(yaml: unknown): Return1 {
     // deno-lint-ignore no-explicit-any
     function go(node: any) {
       if (!node) return []
-      return Object.entries(validatePlainObject(node))
-        .compactMap(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+      return Object.entries(validate_plain_obj(node))
+        .compact_map(([project, constraint]) => validatePackageRequirement({ project, constraint }))
     }
   }
 

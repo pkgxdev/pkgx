@@ -1,10 +1,7 @@
-import { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean, PlainObject } from "is_what"
-export { isString, isPlainObject, isDate, isEmptyArray, isEmptyObject, isArray, isNumber, isPositiveNumber, isRegExp, isPrimitive, isBoolean }
-
-
+import { isString, isPlainObject, isArray, isRegExp, PlainObject } from "is_what"
 
 // deno-lint-ignore no-explicit-any
-export function validateString(input: any): string {
+export function validate_str(input: any): string {
   if (typeof input == 'boolean') return input ? 'true' : 'false'
   if (typeof input == 'number') return input.toString()
   if (typeof input != 'string') throw new Error(`not-string: ${input}`)
@@ -12,13 +9,13 @@ export function validateString(input: any): string {
 }
 
 // deno-lint-ignore no-explicit-any
-export function validatePlainObject(input: any): PlainObject {
+export function validate_plain_obj(input: any): PlainObject {
   if (!isPlainObject(input)) throw new Error(`not-plain-obj: ${JSON.stringify(input)}`)
   return input
 }
 
 // deno-lint-ignore no-explicit-any
-export function validateArray<T>(input: any): Array<T> {
+export function validate_arr<T>(input: any): Array<T> {
   if (!isArray(input)) throw new Error(`not-array: ${JSON.stringify(input)}`)
   return input
 }
@@ -46,9 +43,9 @@ export { outdent as undent }
 
 declare global {
   interface Array<T> {
-    compactMap<S>(body: (t: T) => S | null | undefined | false, opts?: { throws: boolean }): Array<S>
-    compactPush(item: T | undefined | null): void
-    compactUnshift(item: T | undefined | null): void
+    compact_map<S>(body: (t: T) => S | null | undefined | false, opts?: { throws: boolean }): Array<S>
+    compact_push(item: T | undefined | null): void
+    compact_unshift(item: T | undefined | null): void
     chuzzle(): Array<T> | undefined
     uniq(): Array<T>
   }
@@ -76,7 +73,7 @@ export function chuzzle(input: number) {
 
 Array.prototype.uniq = function<T>(): Array<T> {
   const set = new Set<T>()
-  return this.compactMap(x => {
+  return this.compact_map(x => {
     const s = x.toString()
     if (set.has(s)) return
     set.add(s)
@@ -84,7 +81,7 @@ Array.prototype.uniq = function<T>(): Array<T> {
   })
 }
 
-Array.prototype.compactMap = function<T, S>(body: (t: T) => S | null | undefined | false, opts: { throws: boolean }) {
+Array.prototype.compact_map = function<T, S>(body: (t: T) => S | null | undefined | false, opts: { throws: boolean }) {
   const rv: Array<S> = []
   for (const e of this) {
     if (!opts?.throws) {
@@ -123,15 +120,15 @@ console.silence = async function<T>(body: () => Promise<T>) {
   }
 }
 
-Array.prototype.compactPush = function<T>(item: T | null | undefined) {
+Array.prototype.compact_push = function<T>(item: T | null | undefined) {
   if (item) this.push(item)
 }
 
-Array.prototype.compactUnshift = function<T>(item: T | null | undefined) {
+Array.prototype.compact_unshift = function<T>(item: T | null | undefined) {
   if (item) this.unshift(item)
 }
 
-export function flatMap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined): NonNullable<S> | undefined {
+export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined): NonNullable<S> | undefined {
   if (t) return body(t) ?? undefined
 }
 
@@ -141,12 +138,12 @@ declare global {
   }
 }
 
-Promise.prototype.swallow = function(grizzle: unknown) {
+Promise.prototype.swallow = function(gristle: unknown) {
   return this.catch((err: unknown) => {
     if (err instanceof Error) err = err.message
-    if (isRegExp(grizzle) && isString(err)) {
-      if (!err.match(grizzle)) throw err
-    } else if (err !== grizzle) {
+    if (isRegExp(gristle) && isString(err)) {
+      if (!err.match(gristle)) throw err
+    } else if (err !== gristle) {
       throw err
     }
     return undefined
@@ -161,19 +158,13 @@ export async function attempt<T>(body: () => Promise<T>, opts: {swallow: unknown
   }
 }
 
-export function packageSort(a: Package, b: Package): number {
-  return a.project === b.project
-    ? a.version.compare(b.version)
-    : (a.project < b.project ? -1 : 1)
-}
-
 /////////////////////////////////////////////////////////////////// Unarchiver
-import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./utils/Unarchiver.ts"
+import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./Unarchiver.ts"
 export { Unarchiver, TarballUnarchiver, ZipUnarchiver }
 
 
 ////////////////////////////////////////////////////////////////////////// run
-import { Package, Path } from "types"
+import Path from "path"
 
 interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'> {
   cmd: (string | Path)[] | Path
@@ -191,7 +182,7 @@ export async function run(opts: RunOptions) {
   if (!exit.success) throw new Error("run-error")
 }
 
-export async function runAndGetOutput(opts: RunOptions): Promise<string> {
+export async function backticks(opts: RunOptions): Promise<string> {
   const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
   const cwd = opts.cwd?.toString()
   console.verbose({ cwd, ...opts, cmd })
@@ -210,4 +201,83 @@ export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
 ///////////////////////////////////////////////////////////////////////// misc
 export function panic<T>(): T {
   throw new Error()
+}
+
+///////////////////////////////////////////////////////////////////////// pkgs
+import { Package, PackageRequirement } from "types"
+
+export function parse_pkg_requirement(input: string): PackageRequirement {
+  const match = input.match(/^(.*?)([\^=~<>@].+)?$/)
+  if (!match) throw new Error()
+
+  if (match[2] && match[2].startsWith("@")) {
+    match[2] = match[2].slice(1)
+  }
+
+  return {
+    project: match[1],
+    constraint: new semver.Range(match[2] ?? "*")
+  }
+}
+
+export function parse_pkg(input: string): Package {
+  const splat = input.split(/(@|=)/) //FIXME we do specs with eg. foo^1
+  if (splat.length == 2) {
+    return {
+      project: splat[0],
+      version: new SemVer(splat[1])
+    }
+  } else {
+    throw new Error("invalid-pkgspec")
+  }
+}
+
+export function compare_pkg(a: Package, b: Package): number {
+  return a.project === b.project
+    ? a.version.compare(b.version)
+    : (a.project < b.project ? -1 : 1)
+}
+
+/////////////////////////////////////////////////////////////////////// semver
+import SemVer, * as semver from "semver"
+
+export function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
+  if (a.intersects(b)) return a
+  if (b.intersects(a)) return b
+  console.error(a, b)
+  throw new Error()
+}
+
+///////////////////////////////////////////////////////////////////// platform
+// when we support more variants of these that require specification
+// we will tuple a version in with each eg. 'darwin' | ['windows', 10 | 11 | '*']
+export const SupportedPlatforms = ["darwin", "linux", "windows"] as const
+export type SupportedPlatform = typeof SupportedPlatforms[number]
+
+export type SupportedArchitectures = 'x86-64' | 'aarch64'
+
+interface HostReturnValue {
+  platform: SupportedPlatform
+  arch: SupportedArchitectures
+  target: string
+  build_ids: [SupportedPlatform, SupportedArchitectures]
+}
+
+export function host(): HostReturnValue {
+  const arch = (() => {
+    switch (Deno.build.arch) {
+      case "aarch64": return "aarch64"
+      case "x86_64": return "x86-64"
+      // ^^ ∵ https://en.wikipedia.org/wiki/X86-64 and semver.org prohibits underscores
+    }
+  })()
+
+  const { os: platform, target } = Deno.build
+
+  return {
+    platform,
+    arch,
+    target,
+    build_ids: [platform, arch]
+  }
 }

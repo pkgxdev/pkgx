@@ -1,10 +1,11 @@
 // deno-lint-ignore-file no-cond-assign
-import { semver, Package, PackageRequirement, Path, PlainObject, SemVer } from "types"
-import useGitHubAPI from "hooks/useGitHubAPI.ts"
-import { run, flatMap, isNumber, isPlainObject, isString, isArray, isPrimitive, undent, isBoolean, validatePlainObject, validateString, validateArray, panic } from "utils"
-import useCellar from "hooks/useCellar.ts"
-import usePlatform from "hooks/usePlatform.ts"
-import { validatePackageRequirement } from "utils/lvl2.ts"
+import { Package, PackageRequirement } from "types"
+import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic } from "utils"
+import { useCellar, useGitHubAPI } from "hooks"
+import { validatePackageRequirement } from "utils/hacks.ts"
+import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
+import SemVer, * as semver from "semver"
+import Path from "path"
 
 type SemVerExtended = SemVer & {pkgraw: string}
 
@@ -47,12 +48,12 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
   // deno-lint-ignore no-explicit-any
   function go(node: any) {
     if (!node) return []
-    return Object.entries(validatePlainObject(node))
-      .compactMap(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+    return Object.entries(validate_plain_obj(node))
+      .compact_map(([project, constraint]) => validatePackageRequirement({ project, constraint }))
   }
 }
 
-const getRawDistributableURL = (yml: PlainObject) => validateString(
+const getRawDistributableURL = (yml: PlainObject) => validate_str(
     isPlainObject(yml.distributable)
       ? yml.distributable.url
       : yml.distributable)
@@ -62,10 +63,10 @@ const getDistributable = async (pkg: Package) => {
   let urlstr = getRawDistributableURL(yml)
   let stripComponents: number | undefined
   if (isPlainObject(yml.distributable)) {
-    urlstr = validateString(yml.distributable.url)
-    stripComponents = flatMap(yml.distributable["strip-components"], coerceNumber)
+    urlstr = validate_str(yml.distributable.url)
+    stripComponents = flatmap(yml.distributable["strip-components"], coerceNumber)
   } else {
-    urlstr = validateString(yml.distributable)
+    urlstr = validate_str(yml.distributable)
   }
 
   urlstr = remapTokens(urlstr, pkg)
@@ -80,7 +81,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test') => {
   const node = yml[key]
 
   if (isPlainObject(node)) {
-    let raw = remapTokens(validateString(node.script), pkg)
+    let raw = remapTokens(validate_str(node.script), pkg)
 
     let wd = node["working-directory"]
     if (wd) {
@@ -99,7 +100,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test') => {
     }
     return raw
   } else {
-    return remapTokens(validateString(node), pkg)
+    return remapTokens(validate_str(node), pkg)
   }
 }
 
@@ -118,7 +119,7 @@ const getProvides = async (pkg: Package | PackageRequirement) => {
   const node = yml["provides"]
   if (!isArray(node)) throw "bad-yaml"
 
-  return node.compactMap(x => {
+  return node.compact_map(x => {
     if (isPlainObject(x)) {
       x = x["executable"]
     }
@@ -165,9 +166,9 @@ async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
 
   if (isArray(versions)) {
     return versions.map(raw => {
-      const v = parser(validateString(raw)) ?? panic()
+      const v = parser(validate_str(raw)) ?? panic()
       const vv = v as SemVerExtended
-      vv.pkgraw = validateString(raw)
+      vv.pkgraw = validate_str(raw)
       return vv
     })
   } else if (isPlainObject(versions)) {
@@ -183,17 +184,17 @@ function escapeRegExp(string: string) {
 }
 
 async function handleComplexVersions(versions: PlainObject): Promise<SemVerExtended[]> {
-  const [user, repo, ...types] = validateString(versions.github).split("/")
+  const [user, repo, ...types] = validate_str(versions.github).split("/")
   const type = types?.join("/").chuzzle() ?? 'releases'
 
   const ignore = (() => {
     const arr = (() => {
       if (!versions.ignore) return []
       if (isString(versions.ignore)) return [versions.ignore]
-      return validateArray(versions.ignore)
+      return validate_arr(versions.ignore)
     })()
     return arr.map(input => {
-      let rx = validateString(input)
+      let rx = validate_str(input)
       if (!(rx.startsWith("/") && rx.endsWith("/"))) {
         rx = escapeRegExp(rx)
         rx = rx.replace(/(x|y|z)\b/g, '\\d+')
@@ -209,6 +210,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
     let rxs = versions.strip
     if (!rxs) return x => x
     if (!isArray(rxs)) rxs = [rxs]
+    // deno-lint-ignore no-explicit-any
     rxs = rxs.map((rx: any) => {
       if (!isString(rx)) throw new Error()
       if (!(rx.startsWith("/") && rx.endsWith("/"))) throw new Error()
@@ -269,18 +271,17 @@ const parser = (input: string) => {
 
 function expand_env(env_: PlainObject, pkg: Package): string {
   const env = {...env_}
-  const sys = usePlatform()
+  const sys = host()
 
   for (const [key, value] of Object.entries(env)) {
     const match = key.match(/^(darwin|linux)(\/(x86-64|aarch64))?$/)
-    console.log(match)
     if (!match) continue
     delete env[key]
     const [, os, , arch] = match
     if (os != sys.platform) continue
     if (arch && arch != sys.arch) continue
 
-    const dict = validatePlainObject(value)
+    const dict = validate_plain_obj(value)
     for (const [key, value] of Object.entries(dict)) {
       // if user specifies an array then we assume we are supplementing
       // otherwise we are replacing. If this is too magical let us know
@@ -328,7 +329,7 @@ function expand_env(env_: PlainObject, pkg: Package): string {
 }
 
 const remapTokens = (input: string, pkg: Package) => {
-  const platform = usePlatform()
+  const sys = host()
   const cellar = useCellar()
   const prefix = cellar.mkpath(pkg)
 
@@ -339,10 +340,11 @@ const remapTokens = (input: string, pkg: Package) => {
     { from: "version.patch",     to: pkg.version.patch.toString() },
     { from: "version.build",     to: pkg.version.build.join('+') },
     { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
+    // deno-lint-ignore no-explicit-any
     { from: "version.raw",       to: (pkg.version as any).pkgraw },
-    { from: "hw.arch",           to: platform.arch },
-    { from: "hw.target",         to: platform.target },
-    { from: "hw.platform",       to: platform.platform },
+    { from: "hw.arch",           to: sys.arch },
+    { from: "hw.target",         to: sys.target },
+    { from: "hw.platform",       to: sys.platform },
     { from: "prefix",            to: prefix.string },
     { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
     { from: "pkg.pantry-prefix", to: getPrefix(pkg).string },

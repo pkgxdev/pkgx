@@ -1,5 +1,6 @@
-import { PackageRequirement, semver, SemVer } from "types"
-import usePlatform from "./usePlatform.ts";
+import { PackageRequirement } from "types"
+import { host } from "utils"
+import SemVer, * as semver from "semver"
 
 interface Response {
   getVersions(pkg: PackageRequirement): Promise<SemVer[]>
@@ -14,7 +15,7 @@ export interface Inventory {
 }
 export default function useInventory(): Response {
   const getVersions = async ({ project, constraint }: PackageRequirement) => {
-    const { platform, arch } = usePlatform()
+    const { platform, arch } = host()
     const url = `https://dist.tea.xyz/${project}/${platform}/${arch}/versions.txt`
     const rsp = await fetch(url)
 
@@ -22,7 +23,7 @@ export default function useInventory(): Response {
 
     const releases = await rsp.text()
 
-    return releases.split("\n").compactMap(vstr => {
+    return releases.split("\n").compact_map(vstr => {
       const v = new SemVer(vstr)
       if (semver.satisfies(v, constraint)) return v
     }, { throws: true })

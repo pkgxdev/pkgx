@@ -1,10 +1,11 @@
+import { PackageRequirement } from "types"
+import { flatmap } from "utils"
 import useFlags, { ReturnValue, Mode } from "hooks/useFlags.ts"
-import { PackageRequirement, Path, semver } from "types"
 import useVirtualEnv, { VirtualEnv } from "hooks/useVirtualEnv.ts"
-import useExecutableMarkdown from "hooks/useExecutableMarkdown.ts"
-import { flatMap } from "utils"
-import { usePackageYAMLFrontMatter } from "./usePackageYAML.ts";
-import useCache from "hooks/useCache.ts"
+import { useExecutableMarkdown, useCache } from "hooks"
+import { usePackageYAMLFrontMatter } from "hooks/usePackageYAML.ts"
+import Path from "path"
+import * as semver from "semver"
 
 type Args = Omit<ReturnValue, 'cd'>
 
@@ -120,7 +121,7 @@ async function magic(input: Args): Promise<ProcessedArgs> {
     return {
       mode,
       pkgs: env?.requirements ?? [],
-      args: flatMap(env?.requirementsFile, x=>[x.string]) ?? [],
+      args: flatmap(env?.requirementsFile, x=>[x.string]) ?? [],
       env
     }
   } else if (await maybe_env()) {

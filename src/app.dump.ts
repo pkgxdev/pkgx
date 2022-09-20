@@ -1,7 +1,6 @@
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
+import { useShellEnv, usePantry } from "hooks"
 import { print, undent } from "utils"
-import useShellEnv from "hooks/useShellEnv.ts"
-import usePantry from "hooks/usePantry.ts"
 
 interface Options {
   env: VirtualEnv | undefined

@@ -1,6 +1,6 @@
-import { Installation, PackageRequirement, Path } from "types"
-import useCellar from "hooks/useCellar.ts"
-import usePlatform from "hooks/usePlatform.ts"
+import { Installation, PackageRequirement } from "types"
+import { useCellar } from "hooks"
+import { host } from "utils"
 
 type Env = Record<string, string[]>
 export const EnvKeys = [
@@ -27,7 +27,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
   const cellar = useCellar()
   const vars: Env = {}
   const pending: PackageRequirement[] = []
-  const isMac = usePlatform().platform == 'darwin'
+  const isMac = host().platform == 'darwin'
 
   const pkgs = (await Promise.all(requirements.map(async rq => {
     if ("constraint" in rq) {
@@ -40,7 +40,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
     } else {
       return rq
     }
-  }))).compactMap(x => x)
+  }))).compact_map(x => x)
 
   const projects = new Set([...pkgs.map(x => x.pkg.project), ...pending.map(x=>x.project)])
   const has_cmake = projects.has('cmake.org')
@@ -50,15 +50,15 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
     for (const key of EnvKeys) {
       for (const suffix of suffixes(key)!) {
         if (!vars[key]) vars[key] = []
-        vars[key].compactUnshift(installation.path.join(suffix).compact()?.string)
+        vars[key].compact_unshift(installation.path.join(suffix).compact()?.string)
       }
     }
 
     if (archaic) {
       if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
       if (!vars.CPATH) vars.CPATH = []
-      vars.LIBRARY_PATH.compactUnshift(installation.path.join("lib").compact()?.string)
-      vars.CPATH.compactUnshift(installation.path.join("include").compact()?.string)
+      vars.LIBRARY_PATH.compact_unshift(installation.path.join("lib").compact()?.string)
+      vars.CPATH.compact_unshift(installation.path.join("include").compact()?.string)
     }
 
     if (has_cmake) {

@@ -1,4 +1,6 @@
-import { PackageRequirement, Path, Verbosity, semver } from "types"
+import { PackageRequirement, Verbosity } from "types"
+import Path from "path"
+import * as semver from "semver"
 
 interface Options {
   dstdir: Path

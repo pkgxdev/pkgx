@@ -1,5 +1,5 @@
-import { PackageRequirement } from "../types.ts"
-import { isArray } from "utils"
+import { PackageRequirement } from "types"
+import { isArray } from "is_what"
 
 
 //TODO linktime cyclic dependencies cannot be allowed
@@ -80,7 +80,7 @@ export default async function hydrate(
     .map(({pkg}) => pkg)
 
   //TODO strictly we need to record precisely the bootstrap version constraint
-  const bootstrap_required = new Set(pkgs.compactMap(({project}) => bootstrap.has(project) && project))
+  const bootstrap_required = new Set(pkgs.compact_map(({project}) => bootstrap.has(project) && project))
 
   return {
     pkgs,

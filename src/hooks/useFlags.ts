@@ -1,9 +1,10 @@
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { flatMap, chuzzle } from "utils"
-import { Path, Verbosity, PackageRequirement, parsePackageRequirement } from "types"
-import { isNumber } from "utils"
-import { set_tmp } from "../types/Path.ts"
-import useCellar from "hooks/useCellar.ts"
+import { flatmap, chuzzle } from "utils"
+import { Verbosity, PackageRequirement } from "types"
+import { isNumber } from "is_what"
+import { set_tmp } from "path"
+import { useCellar } from "hooks"
+import Path from "path"
 
 // doing here as this is the only file all our scripts import
 set_tmp(useCellar().prefix.join('tea.xyz/tmp'))
@@ -145,8 +146,8 @@ export function useArgs(args: string[]): ReturnValue {
 
   // TEA_DIR must be absolute for security reasons
   const getcd = () =>
-    flatMap(cd, x => Path.cwd().join(x)) ??
-    flatMap(Deno.env.get("TEA_DIR"), x => new Path(x))
+    flatmap(cd, x => Path.cwd().join(x)) ??
+    flatmap(Deno.env.get("TEA_DIR"), x => new Path(x))
 
   return {
     ...getMode(),
@@ -175,7 +176,7 @@ function getVerbosity({v, verbose, silent}: {v?: number, verbose?: boolean, sile
   if (verbose === true) return 2
   if (isNumber(verbose)) return verbose
   if (silent) return Verbosity.quiet
-  const env = flatMap(flatMap(Deno.env.get("VERBOSE"), parseInt), chuzzle)
+  const env = flatmap(flatmap(Deno.env.get("VERBOSE"), parseInt), chuzzle)
   if (isNumber(env)) return env + 1
   if (Deno.env.get("DEBUG") == '1') return Verbosity.debug
   if (Deno.env.get("GITHUB_ACTIONS") == 'true' && Deno.env.get("RUNNER_DEBUG") == '1') return Verbosity.debug

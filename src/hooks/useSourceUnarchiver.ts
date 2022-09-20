@@ -1,6 +1,7 @@
 import { run, Unarchiver, TarballUnarchiver, ZipUnarchiver } from "utils"
-import useFlags from "hooks/useFlags.ts"
-import { Path, Verbosity } from "types"
+import { useFlags } from "hooks"
+import { Verbosity } from "types"
+import Path from "path"
 
 //FIXME assuming strip 1 on components is going to trip people up
 

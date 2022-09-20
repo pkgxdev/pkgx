@@ -1,11 +1,12 @@
-// lvl2 utilities can use hooks etc.
-
-import usePlatform from "hooks/usePlatform.ts"
-import { PackageRequirement, PlainObject, Path, semver } from "types"
+import { PackageRequirement } from "types"
+import { PlainObject } from "is_what"
+import { host } from "utils"
+import Path from "path"
+import * as semver from "semver"
 
 export function validatePackageRequirement(input: PlainObject): PackageRequirement | undefined {
   let { constraint: rawconstraint, project } = input
-  const isMac = usePlatform().platform == 'darwin'
+  const isMac = host().platform == 'darwin'
 
   //TODO console.debug({project, rawconstraint})
 

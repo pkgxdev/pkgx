@@ -1,26 +1,21 @@
-import useCache from "hooks/useCache.ts"
-import { Package, Path } from "types"
-import usePlatform from "hooks/usePlatform.ts"
-import useCellar from "hooks/useCellar.ts"
-import { Installation } from "types"
-import { TarballUnarchiver } from "utils/Unarchiver.ts"
-import useFlags from "hooks/useFlags.ts"
-import { run } from "utils"
+import { useCache, useCellar, useFlags, useDownload } from "hooks"
+import { run, TarballUnarchiver, host } from "utils"
+import { encode } from "deno/encoding/hex.ts"
 import { crypto } from "deno/crypto/mod.ts"
-import { encodeToString } from "encodeToString"
-import useDownload from "hooks/useDownload.ts"
-
+import { Installation } from "types"
+import { Package } from "types"
+import Path from "path"
 
 // # NOTE
 // *only installs binaries*
-// > to install from source you must use `$SRCROOT/scripts/build.ts`
+// > to install from source you must use `$SRCROOT../pantry/scripts/build.ts`
 
 // # contract
 // - if already installed, will extract over the top
+// - files not in the newer archive will not be deleted
 
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
-  const { finalizeInstall } = usePlatform()
   const { s3Key, download } = useCache()
   const url = new URL(`https://dist.tea.xyz/${s3Key(pkg)}`)
   const { prefix: dstdir, ...cellar } = useCellar()
@@ -30,7 +25,7 @@ export default async function install(pkg: Package): Promise<Installation> {
 
   try {
     const sha_url = new URL(`${url}.sha256sum`)
-    await validateChecksum(tarball, sha_url, pkg)
+    await sumcheck(tarball, sha_url, pkg)
   } catch (err) {
     tarball.rm()
     throw err
@@ -45,7 +40,7 @@ export default async function install(pkg: Package): Promise<Installation> {
 
   const install = await cellar.resolve(pkg)
 
-  await finalizeInstall(install)
+  await unquarantine(install)
 
   return install
 }
@@ -56,16 +51,16 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function validateChecksum(tarball: Path, url: URL, pkg: Package) {
+async function sumcheck(tarball: Path, url: URL, pkg: Package) {
   const { download } = useDownload()
   const dst = new Path(`${useCache().bottle(pkg)}.sha256sum`)
 
   const local = Deno.open(tarball.string, { read: true })
     .then(file => crypto.subtle.digest("SHA-256", file.readable))
-    .then(buf => encodeToString(new Uint8Array(buf)))
+    .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 
   const remote = console.silence(() =>
-    download({ src: url, dst, force: true })
+    download({ src: url, dst, ephemeral: true })
   ).then(async dl => {
     const txt = await dl.read()
     return txt.split(' ')[0]
@@ -78,4 +73,23 @@ async function validateChecksum(tarball: Path, url: URL, pkg: Package) {
   if (remote_SHA != local_SHA) {
     throw new Error(`expected: ${remote_SHA}`)
   }
+}
+
+async function unquarantine(install: Installation) {
+  if (host().platform != 'darwin') return
+
+  /// for now, prevent gatekeeper prompts FIXME sign everything!
+
+  // using find because it doesn’t error if it fails
+  // and it does fail if the file isn’t writable, but we don’t want to make everything writable
+  // unless we are forced into that in the future
+
+  const cmd = [
+    'find', install.path,
+      '-xattrname', 'com.apple.quarantine',
+      '-perm', '-0200',  // only if we can write (prevents error messages)
+      '-exec', 'xattr', '-d', 'com.apple.quarantine', '{}', ';'
+  ]
+
+  await run({ cmd })
 }

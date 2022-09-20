@@ -1,5 +1,7 @@
-import { Path, Package, PackageRequirement, SemVer, semver, Installation } from "types"
-import { packageSort } from "utils"
+import { Package, PackageRequirement, Installation } from "types"
+import { compare_pkg } from "utils"
+import Path from "path"
+import SemVer, * as semver from "semver"
 
 //TODO useCellar should take a project name and then all functions operate on that
 
@@ -49,7 +51,7 @@ export default function useCellar(): Return {
         //TODO only semver errors
       }
     }
-    return rv.sort((a, b) => packageSort(a.pkg, b.pkg))
+    return rv.sort((a, b) => compare_pkg(a.pkg, b.pkg))
   }
 
   const resolve = async (pkg: Package | PackageRequirement | Path) => {

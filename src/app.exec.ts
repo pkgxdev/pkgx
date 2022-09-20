@@ -1,15 +1,9 @@
-import { run, undent } from "utils"
-import hydrate from "./prefab/hydrate.ts"
-import resolve from "./prefab/resolve.ts"
-import base_install from "./prefab/install.ts"
-import { lvl1 as link } from "./prefab/link.ts"
-import useShellEnv from "hooks/useShellEnv.ts"
-import useCellar from "hooks/useCellar.ts"
-import { PackageRequirement, Path } from "types"
+import { useFlags, useCellar, useShellEnv, usePantry, useExecutableMarkdown } from "hooks"
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
-import useExecutableMarkdown from "hooks/useExecutableMarkdown.ts"
-import useFlags from "hooks/useFlags.ts"
-import usePantry from "./hooks/usePantry.ts"
+import { run, undent } from "utils"
+import { PackageRequirement } from "types"
+import { hydrate, resolve, install as base_install, link } from "prefab"
+import Path from "path"
 
 type Options = {
   args: string[]

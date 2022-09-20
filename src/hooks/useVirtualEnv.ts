@@ -1,7 +1,10 @@
 // deno-lint-ignore-file no-cond-assign
-import { PackageRequirement, Path, PlainObject, semver, SemVer } from "types"
-import { flatMap, isPlainObject } from "utils"
-import useFlags from "hooks/useFlags.ts"
+import { PackageRequirement } from "types"
+import { flatmap } from "utils"
+import { isPlainObject, PlainObject } from "is_what"
+import { useFlags } from "hooks"
+import SemVer, * as semver from "semver"
+import Path from "path"
 
 //TODO
 // determine srcroot by going up directories until we find a .git, .svn or .hg directory
@@ -94,7 +97,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   }
 
   const requirements = (() => {
-    return findTable("Dependencies")?.compactMap(([project, constraint]) => {
+    return findTable("Dependencies")?.compact_map(([project, constraint]) => {
       if (project.startsWith("tea.xyz")) return //FIXME
       return {
         project,
@@ -103,12 +106,12 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
     })
   })()
 
-  const fromMetadataTable = () => flatMap(
+  const fromMetadataTable = () => flatmap(
     findTable("Metadata")?.find(([key, value]) => key.toLowerCase() == "version" && value),
     ([,x]) => new SemVer(x)
   )
 
-  const fromFirstHeader = () => flatMap(
+  const fromFirstHeader = () => flatmap(
     lines.find(line => line.match(/^\s*#\s+.+$/)),
     semver.coerce
   )
@@ -127,7 +130,7 @@ async function extractFromJSON(path: Path): Promise<VirtualEnvSubset | undefined
     if (!isPlainObject(json.tea?.dependencies)) throw "bad-json"
     return parsePackageRequirements(json.tea.dependencies)
   })()
-  const version = flatMap(json.version, x => new SemVer(x))
+  const version = flatmap(json.version, x => new SemVer(x))
   return { requirements, version }
 }
 

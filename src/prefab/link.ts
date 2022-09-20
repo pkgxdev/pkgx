@@ -1,27 +1,22 @@
-import { Package, semver, SemVer, Path, Bluff, Installation } from "types"
-import * as _ from "utils"
-import useCellar from "hooks/useCellar.ts"
+import { Package, Installation } from "types"
+import { useCellar } from "hooks"
+import Path from "path"
+import SemVer, * as semver from "semver"
 
-export default async function link(pkg: Package) {
-  const installation = useCellar().resolve(pkg)
-  await lvl1(installation)
-}
-
-export async function lvl1(installation: Bluff<Installation>) {
-  const versions = Promise.resolve(installation)
-    .then(async ({ pkg }) => {
-      const foo = await useCellar().ls(pkg.project)
-      return foo.map(({pkg: {version}, path}) => [version, path] as [SemVer, Path])
-    })
-  await lvl2(installation, versions)
-}
-
-export async function lvl2(installation: Bluff<Installation>, versions: Bluff<[SemVer, Path][]>) {
-  installation = await installation // GD I❤️TS
-  versions = (await versions).sort(([a],[b]) => semver.compare(a,b))
+export default async function link(pkg: Package | Installation) {
+  let installation: Installation
+  if ("version" in pkg) {
+    installation = await useCellar().resolve(pkg)
+  } else {
+    installation = pkg
+    pkg = installation.pkg
+  }
+  const versions = (await useCellar()
+    .ls(installation.pkg.project))
+    .map(({pkg: {version}, path}) => [version, path] as [SemVer, Path])
+    .sort(([a],[b]) => semver.compare(a,b))
 
   const shelf = installation.path.parent()
-  const pkg = installation.pkg
   const newest = versions.slice(-1)[0]
   const vMm = `${pkg.version.major}.${pkg.version.minor}`
   const minorRange = new semver.Range(vMm)

@@ -1,5 +1,5 @@
-import { Path } from "types"
-import useCellar from "hooks/useCellar.ts"
+import Path from "path"
+import { useCellar } from "hooks"
 
 export async function shout({ tea: args, cwd }: { tea: string[], cwd?: Path }) {
   const srcroot = Deno.env.get("SRCROOT")

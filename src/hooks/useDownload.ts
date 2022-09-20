@@ -1,30 +1,33 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
-import { createHash } from "deno/hash/mod.ts"
-import { Path } from "types"
-import { flatMap } from "utils"
-import useCellar from "hooks/useCellar.ts"
-import useFlags from "hooks/useFlags.ts"
-
-const prefix = useCellar().prefix.join("tea.xyz/var/www")
+import { useCellar, useFlags } from "hooks"
+import { flatmap } from "utils"
+import { Sha256 } from "deno/hash/sha256.ts"
+import Path from "path"
 
 interface DownloadOptions {
   src: URL
   dst?: Path  /// default is our own unique cache path
   headers?: Record<string, string>
-  force?: boolean  /// always download, do not send if-modified-since
+  ephemeral?: boolean  /// always download, do not rely on cache
 }
 
-async function download({ src, dst, headers, force }: DownloadOptions): Promise<Path> {
+async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<Path> {
   console.verbose({src: src, dst})
 
+  const hash = (() => {
+    let memo: Path
+    return () => memo ?? (memo = hash_key(src))
+  })()
+  const mtime_entry = () => hash().join("mtime")
+
   const { numpty } = useFlags()
-  dst ??= hash_key(src).join(src.path().basename())
+  dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
-  const mtime_entry = hash_key(src).join("mtime")
-  if (!force && mtime_entry.isFile() && dst.isReadableFile()) {
+
+  if (!ephemeral && mtime_entry().isFile() && dst.isReadableFile()) {
     headers ??= {}
-    headers["If-Modified-Since"] = await mtime_entry.read()
+    headers["If-Modified-Since"] = await mtime_entry().read()
     console.info({querying: src.toString()})
   } else {
     console.info({downloading: src.toString()})
@@ -48,8 +51,8 @@ async function download({ src, dst, headers, force }: DownloadOptions): Promise<
     }
 
     //TODO etags too
-    flatMap(rsp.headers.get("Last-Modified"), text =>
-      mtime_entry.write({ text, force: true }))
+    flatmap(rsp.headers.get("Last-Modified"), text =>
+      mtime_entry().write({ text, force: true }))
 
     return dst
   }
@@ -67,11 +70,11 @@ async function download({ src, dst, headers, force }: DownloadOptions): Promise<
 
 function hash_key(url: URL): Path {
   function hash(url: URL) {
-    const formatted = `${url.pathname}${url.search ? "?" + url.search : ""}`;
-    return createHash("sha256").update(formatted).toString();
+    const formatted = `${url.pathname}${url.search ? "?" + url.search : ""}`
+    return new Sha256().update(formatted).toString()
   }
 
-  return prefix
+  return useDownload().prefix
     .join(url.protocol.slice(0, -1))
     .join(url.hostname)
     .join(hash(url))
@@ -79,5 +82,6 @@ function hash_key(url: URL): Path {
 }
 
 export default function useDownload() {
+  const prefix = useCellar().prefix.join("tea.xyz/var/www")
   return { download, prefix, hash_key }
 }
