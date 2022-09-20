@@ -1,4 +1,5 @@
-import { GET, isArray, undent, validateArray, validateString } from "utils"
+import { GET, undent, validate_arr, validate_str } from "utils"
+import { isArray } from "is_what"
 
 //TODO pagination
 
@@ -66,7 +67,7 @@ async function getVersions({ user, repo, type }: GetVersionsOptions): Promise<st
     }
 
     // deno-lint-ignore no-explicit-any
-    const foo = validateArray(json?.data?.repository?.refs?.nodes).map((x: any) => validateString(x?.name))
+    const foo = validate_arr(json?.data?.repository?.refs?.nodes).map((x: any) => validate_str(x?.name))
 
     return foo
   }

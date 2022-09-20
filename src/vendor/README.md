@@ -1,5 +1,7 @@
 # Path.ts
 
+Note not actually vendored yet as we haven’t yet published this package.
+
 Goals:
 
 1. Chainable

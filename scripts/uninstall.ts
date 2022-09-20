@@ -12,16 +12,16 @@ args:
 ---
 */
 
-import { parsePackageRequirement } from "types"
-import useCellar from "hooks/useCellar.ts"
-import repairLinks from "./repair.ts"
+import { parse_pkg_requirement } from "utils"
+import { useCellar } from "hooks"
+import repair from "./repair.ts"
 
-const pkgs = Deno.args.map(parsePackageRequirement);  console.verbose({ received: pkgs })
+const pkgs = Deno.args.map(parse_pkg_requirement);  console.verbose({ received: pkgs })
 const { resolve } = useCellar()
 
 for (const pkg of pkgs) {
   console.info({ uninstalling: pkg })
   const installation = await resolve(pkg)
   installation.path.rm({ recursive: true })
-  await repairLinks(pkg.project)  //FIXME this is overkill, be precise
+  await repair(pkg.project)  //FIXME this is overkill, be precise
 }

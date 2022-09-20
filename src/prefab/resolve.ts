@@ -1,11 +1,10 @@
 // deno-lint-ignore-file no-cond-assign
-import { Package, PackageRequirement, semver, Installation } from "types"
-import useCellar from "hooks/useCellar.ts"
-import useInventory from "hooks/useInventory.ts";
+import { Package, PackageRequirement, Installation } from "types"
+import { useCellar, useInventory } from "hooks"
+import * as semver from "semver"
 
 /// NOTE resolves to bottles
-
-/// contract there are no duplicate projects
+/// NOTE contract there are no duplicate projects
 
 export default async function resolve(reqs: PackageRequirement[]): Promise<Package[]> {
   const inventory = useInventory()

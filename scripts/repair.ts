@@ -14,16 +14,13 @@ args:
 ---
 */
 
-import useCellar from "hooks/useCellar.ts"
-import useFlags from "hooks/useFlags.ts"
+import { useCellar, useFlags } from "hooks"
 import { Installation } from "types"
-import link from "prefab/link.ts"
-
-useFlags()
-
-//TODO ripe for optimization, give it a shot and PR! Yes! YOU!
+import { link } from "prefab"
 
 if (import.meta.main) {
+  useFlags()
+
   for (const project of Deno.args) {
     await repairLinks(project)
   }

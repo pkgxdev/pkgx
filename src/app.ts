@@ -1,13 +1,10 @@
 import useFlags, { useArgs } from "hooks/useFlags.ts"
-import useCellar from "hooks/useCellar.ts"
-import useMagic from "hooks/useMagic.ts"
-import useVirtualEnv from "hooks/useVirtualEnv.ts";
+import { useCellar, useMagic, useVirtualEnv } from "hooks"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
-import { Path } from "types"
+import Path from "path"
 import { print } from "utils"
-
 
 const rawArgs = useArgs(Deno.args)
 const { silent } = useFlags()

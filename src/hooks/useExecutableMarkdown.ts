@@ -1,4 +1,4 @@
-import { Path } from "types"
+import Path from "path"
 
 interface Return {
   /// throws if not found

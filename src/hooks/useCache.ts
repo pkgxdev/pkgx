@@ -1,7 +1,8 @@
-import { Package, Path, semver } from "types"
+import { useDownload } from "hooks"
+import { Package } from "types"
+import Path from "path"
+import * as semver from "semver"
 import * as utils from "utils"
-import usePlatform from "hooks/usePlatform.ts"
-import useDownload from "hooks/useDownload.ts"
 
 interface DownloadOptions {
   url: URL
@@ -23,7 +24,7 @@ const stem = (pkg: Package) => {
 
 /// destination for bottle downloads
 const bottle = (pkg: Package) => {
-  const { arch, platform } = usePlatform()
+  const { arch, platform } = utils.host()
   return prefix.join(`${stem(pkg)}+${platform}+${arch}.tar.gz`)
 }
 
@@ -57,7 +58,7 @@ const download_script = async (url: URL) => {
 
 /// lists all packages with bottles in the cache
 const ls = async () => {
-  const { arch, platform } = usePlatform()
+  const { arch, platform } = utils.host()
 
   const rv = []
 
@@ -72,11 +73,11 @@ const ls = async () => {
     rv.push({ project, version })
   }
 
-  return rv.sort(utils.packageSort)
+  return rv.sort(utils.compare_pkg)
 }
 
 /// key used when downloading from our S3 bottle storage
 const s3Key = (pkg: Package) => {
-  const { platform, arch } = usePlatform()
+  const { platform, arch } = utils.host()
   return `${pkg.project}/${platform}/${arch}/v${pkg.version.version}.tar.gz`
 }

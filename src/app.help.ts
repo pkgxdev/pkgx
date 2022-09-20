@@ -1,4 +1,4 @@
-import useFlags from "hooks/useFlags.ts"
+import { useFlags } from "hooks"
 import { print, undent } from "utils"
 
 export default async function help() {
