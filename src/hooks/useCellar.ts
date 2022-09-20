@@ -21,22 +21,22 @@ interface Return {
   isInstalled(pkg: Package | PackageRequirement): Promise<Installation | undefined>
 }
 
-const prefix = (() => {
-  //NOTE doesn't work for scripts as Deno.run doesn't push through most env :/
-  const env = Deno.env.get("TEA_PREFIX")
-  if (env) {
-    return new Path(env)
-  } else {
-    // calculate from our PATH
-    // NOTE expands symlinks (we don't want recursive expansion, but seemingly
-    // deno does this for us 😒)
-    // this works if tea is installed correctly to /opt/tea.xyz/vx/bin or we
-    // are a source installation running off a tea installed deno at /opt/deno.land/vx/bin
-    return new Path(Deno.execPath()).readlink().parent().parent().parent().parent()
-  }
-})()
-
 export default function useCellar(): Return {
+  const prefix = (() => {
+    //NOTE doesn't work for scripts as Deno.run doesn't push through most env :/
+    const env = Deno.env.get("TEA_PREFIX")
+    if (env) {
+      return new Path(env)
+    } else {
+      // calculate from our PATH
+      // NOTE expands symlinks (we don't want recursive expansion, but seemingly
+      // deno does this for us 😒)
+      // this works if tea is installed correctly to /opt/tea.xyz/vx/bin or we
+      // are a source installation running off a tea installed deno at /opt/deno.land/vx/bin
+      return new Path(Deno.execPath()).readlink().parent().parent().parent().parent()
+    }
+  })()
+
   const ls = async (project: string) => {
     if (!prefix.join(project).isDirectory()) return []
 
