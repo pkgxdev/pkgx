@@ -21,7 +21,7 @@ export default function usePackageYAML(yaml: unknown): Return1 {
     function go(node: any) {
       if (!node) return []
       return Object.entries(validate_plain_obj(node))
-        .compact_map(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+        .compact(([project, constraint]) => validatePackageRequirement({ project, constraint }))
     }
   }
 

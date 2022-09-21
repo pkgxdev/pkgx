@@ -13,6 +13,7 @@ export interface Inventory {
     }
   }
 }
+
 export default function useInventory(): Response {
   const getVersions = async ({ project, constraint }: PackageRequirement) => {
     const { platform, arch } = host()
@@ -23,10 +24,10 @@ export default function useInventory(): Response {
 
     const releases = await rsp.text()
 
-    return releases.split("\n").compact_map(vstr => {
+    return releases.split("\n").compact(vstr => {
       const v = new SemVer(vstr)
       if (semver.satisfies(v, constraint)) return v
-    }, { throws: true })
+    }, { rescue: true })
   }
   return { getVersions }
 }

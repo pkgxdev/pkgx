@@ -6,17 +6,19 @@ import * as semver from "semver"
 /// NOTE resolves to bottles
 /// NOTE contract there are no duplicate projects
 
-export default async function resolve(reqs: PackageRequirement[]): Promise<Package[]> {
+export default async function resolve(reqs: (Package | PackageRequirement)[]): Promise<Package[]> {
   const inventory = useInventory()
   const cellar = useCellar()
   const rv: Package[] = []
   let installation: Installation | undefined
   for (const req of reqs) {
-    const { project, constraint } = req
-    if (installation = await cellar.isInstalled(req)) {
-      // if we have a version that matches this constraint installed then we use it
+    if ("version" in req) {
+      rv.push(req)
+    } else if (installation = await cellar.has(req)) {
+      // if something is already installed that satisfies the constraint then use it
       rv.push(installation.pkg)
     } else {
+      const { project, constraint } = req
       const versions = await inventory.getVersions({ project, constraint })
       const version = semver.maxSatisfying(versions, constraint)
       if (!version) { console.error({ project, constraint, versions }); throw new Error() }

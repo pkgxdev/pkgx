@@ -12,11 +12,11 @@ args:
 ---
 */
 
-import { parse_pkg_requirement } from "utils"
+import { pkg } from "utils"
 import { useCellar } from "hooks"
 import repair from "./repair.ts"
 
-const pkgs = Deno.args.map(parse_pkg_requirement);  console.verbose({ received: pkgs })
+const pkgs = Deno.args.map(pkg.parse);  console.verbose({ received: pkgs })
 const { resolve } = useCellar()
 
 for (const pkg of pkgs) {

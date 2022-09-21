@@ -73,7 +73,7 @@ const ls = async () => {
     rv.push({ project, version })
   }
 
-  return rv.sort(utils.compare_pkg)
+  return rv.sort(utils.pkg.compare)
 }
 
 /// key used when downloading from our S3 bottle storage

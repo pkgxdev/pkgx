@@ -97,7 +97,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   }
 
   const requirements = (() => {
-    return findTable("Dependencies")?.compact_map(([project, constraint]) => {
+    return findTable("Dependencies")?.compact(([project, constraint]) => {
       if (project.startsWith("tea.xyz")) return //FIXME
       return {
         project,

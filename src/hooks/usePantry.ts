@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement } from "types"
-import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic } from "utils"
+import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
@@ -15,7 +15,7 @@ interface Entry {
   versions: Path
 }
 
-const prefix = new Path(`${usePrefix()}/tea.xyz/var/pantry/projects`)
+const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 export default function usePantry() {
   return {
@@ -26,7 +26,19 @@ export default function usePantry() {
     update,
     getProvides,
     getYAML,
-    prefix: getPrefix
+    prefix: getPrefix,
+    resolve
+  }
+}
+
+async function resolve(spec: Package | PackageRequirement): Promise<Package> {
+  if ("version" in spec) {
+    return spec
+  } else {
+    const versions = await getVersions(spec)
+    const version = semver.maxSatisfying(versions, spec.constraint)
+    if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
+    return { project: spec.project, version };
   }
 }
 
@@ -49,7 +61,7 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
   function go(node: any) {
     if (!node) return []
     return Object.entries(validate_plain_obj(node))
-      .compact_map(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+      .compact(([project, constraint]) => validatePackageRequirement({ project, constraint }))
   }
 }
 
@@ -119,7 +131,7 @@ const getProvides = async (pkg: Package | PackageRequirement) => {
   const node = yml["provides"]
   if (!isArray(node)) throw "bad-yaml"
 
-  return node.compact_map(x => {
+  return node.compact(x => {
     if (isPlainObject(x)) {
       x = x["executable"]
     }

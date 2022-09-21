@@ -43,7 +43,7 @@ export { outdent as undent }
 
 declare global {
   interface Array<T> {
-    compact_map<S>(body: (t: T) => S | null | undefined | false, opts?: { throws: boolean }): Array<S>
+    compact<S>(body?: (t: T) => S | null | undefined | false, opts?: { rescue: boolean }): Array<S>
     compact_push(item: T | undefined | null): void
     compact_unshift(item: T | undefined | null): void
     chuzzle(): Array<T> | undefined
@@ -73,7 +73,7 @@ export function chuzzle(input: number) {
 
 Array.prototype.uniq = function<T>(): Array<T> {
   const set = new Set<T>()
-  return this.compact_map(x => {
+  return this.compact(x => {
     const s = x.toString()
     if (set.has(s)) return
     set.add(s)
@@ -81,17 +81,14 @@ Array.prototype.uniq = function<T>(): Array<T> {
   })
 }
 
-Array.prototype.compact_map = function<T, S>(body: (t: T) => S | null | undefined | false, opts: { throws: boolean }) {
+Array.prototype.compact = function<T, S>(body?: (t: T) => S | null | undefined | false, opts?: { rescue: boolean }) {
   const rv: Array<S> = []
   for (const e of this) {
-    if (!opts?.throws) {
-      const f = body(e)
+    try {
+      const f = body ? body(e) : e
       if (f) rv.push(f)
-    } else {
-      try {
-        const f = body(e)
-        if (f) rv.push(f)
-      } catch {/*noop*/}
+    } catch (err) {
+      if (opts === undefined || opts.rescue === false) throw err
     }
   }
   return rv
@@ -204,51 +201,11 @@ export function panic<T>(): T {
 }
 
 ///////////////////////////////////////////////////////////////////////// pkgs
-import { Package, PackageRequirement } from "types"
-
-export function parse_pkg_requirement(input: string): PackageRequirement {
-  const match = input.match(/^(.*?)([\^=~<>@].+)?$/)
-  if (!match) throw new Error()
-
-  if (match[2] && match[2].startsWith("@")) {
-    match[2] = match[2].slice(1)
-  }
-
-  return {
-    project: match[1],
-    constraint: new semver.Range(match[2] ?? "*")
-  }
-}
-
-export function parse_pkg(input: string): Package {
-  const splat = input.split(/[@=]/)
-  if (splat.length == 2) {
-    return {
-      project: splat[0],
-      version: new SemVer(splat[1])
-    }
-  } else {
-    throw new Error("invalid-pkgspec")
-  }
-}
-
-export function compare_pkg(a: Package, b: Package): number {
-  return a.project === b.project
-    ? a.version.compare(b.version)
-    : (a.project < b.project ? -1 : 1)
-}
-
-export function pkg_str(pkg: Package | PackageRequirement): string {
-  if ("constraint" in pkg) {
-    return `${pkg.project}@${pkg.constraint}`
-  } else {
-    return `${pkg.project}@${pkg.version}`
-  }
-}
-
+import * as pkg from "./pkg.ts"
+export { pkg }
 
 /////////////////////////////////////////////////////////////////////// semver
-import SemVer, * as semver from "semver"
+import * as semver from "semver"
 
 export function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
   if (a.intersects(b)) return a

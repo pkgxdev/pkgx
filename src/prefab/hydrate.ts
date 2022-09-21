@@ -1,5 +1,7 @@
-import { PackageRequirement } from "types"
+import { PackageRequirement, Package } from "types"
 import { isArray } from "is_what"
+import * as semver from "semver"
+import "utils"
 
 
 //TODO linktime cyclic dependencies cannot be allowed
@@ -30,11 +32,19 @@ interface ReturnValue {
 /// dependencies. Throws if there is a cycle in the input.
 /// ignores changes in dependencies based on versions
 export default async function hydrate(
-  dry: PackageRequirement[] | PackageRequirement,
+  input: (PackageRequirement | Package)[] | (PackageRequirement | Package),
   get_deps: (pkg: PackageRequirement, dry: boolean) => Promise<PackageRequirement[]>,
 ): Promise<ReturnValue>
 {
-  if (!isArray(dry)) dry = [dry]
+  if (!isArray(input)) input = [input]
+
+  const dry = input.map(spec => {
+    if ("version" in spec) {
+      return {project: spec.project, constraint: new semver.Range(`=${spec.version}`)}
+    } else {
+      return spec
+    }
+  })
 
   const graph: Record<string, Node> = {}
   const bootstrap = new Set<string>()
@@ -80,7 +90,7 @@ export default async function hydrate(
     .map(({pkg}) => pkg)
 
   //TODO strictly we need to record precisely the bootstrap version constraint
-  const bootstrap_required = new Set(pkgs.compact_map(({project}) => bootstrap.has(project) && project))
+  const bootstrap_required = new Set(pkgs.compact(({project}) => bootstrap.has(project) && project))
 
   return {
     pkgs,

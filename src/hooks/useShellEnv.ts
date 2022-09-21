@@ -31,7 +31,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
 
   const pkgs = (await Promise.all(requirements.map(async rq => {
     if ("constraint" in rq) {
-      const installation = await cellar.isInstalled(rq)
+      const installation = await cellar.has(rq)
       if (!installation) {
         pending.push(rq)
       } else {
@@ -40,7 +40,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
     } else {
       return rq
     }
-  }))).compact_map(x => x)
+  }))).compact(x => x)
 
   const projects = new Set([...pkgs.map(x => x.pkg.project), ...pending.map(x=>x.project)])
   const has_cmake = projects.has('cmake.org')

@@ -15,7 +15,7 @@ args:
 ---*/
 
 import { link, install, resolve } from "prefab"
-import { parse_pkg_requirement } from "utils"
+import { pkg } from "utils"
 import { useFlags } from "hooks"
 
 useFlags()
@@ -23,7 +23,7 @@ useFlags()
 const pkgs = Deno.args.map(project => {
   const match = project.match(/projects\/(.+)\/package.yml/)
   return match ? match[1] : project
-}).map(parse_pkg_requirement)
+}).map(pkg.parse)
 
 // resolve and install precise versions that are available in available inventories
 for await (const pkg of await resolve(pkgs)) {

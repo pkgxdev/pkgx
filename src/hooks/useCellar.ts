@@ -1,12 +1,12 @@
 import { Package, PackageRequirement, Installation } from "types"
-import { compare_pkg, pkg_str } from "utils"
+import { pkg as pkgutils } from "utils"
 import { usePrefix } from "hooks"
 import Path from "path"
 import SemVer, * as semver from "semver"
 
 export default function useCellar() {
   return {
-    isInstalled,
+    has,
     ls,
     keg,
     resolve,
@@ -15,21 +15,22 @@ export default function useCellar() {
 }
 
 /// returns the `Installation` if the pkg is installed
-async function isInstalled(pkg: Package | PackageRequirement) {
-  const resolution = await resolve(pkg).swallow(/^not-found:/)
-  if (resolution && !await vacant(resolution.path)) {
-    return resolution
-  }
-}
+const has = (pkg: Package | PackageRequirement | Path) => resolve(pkg).swallow(/^not-found:/)
 
-/// returns all installed versions of a project
+/// eg. ~/.tea/deno.land
+const shelf = (project: string) => usePrefix().join(project)
+
+/// eg. ~/.tea/deno.land/v1.2.3
+const keg = (pkg: Package) => shelf(pkg.project).join(`v${pkg.version}`)
+
+/// returns a project’s installations (sorted by version)
 async function ls(project: string) {
-  const prefix = usePrefix()
+  const d = shelf(project)
 
-  if (!prefix.join(project).isDirectory()) return []
+  if (!d.isDirectory()) return []
 
   const rv: Installation[] = []
-  for await (const [path, entry] of prefix.join(project).ls()) {
+  for await (const [path, entry] of d.ls()) {
     try {
       if (!entry.isDirectory) continue
       const version = new SemVer(entry.name)
@@ -39,7 +40,7 @@ async function ls(project: string) {
       //TODO only semver errors
     }
   }
-  return rv.sort((a, b) => compare_pkg(a.pkg, b.pkg))
+  return rv.sort((a, b) => pkgutils.compare(a.pkg, b.pkg))
 }
 
 /// if package is installed, returns its installation
@@ -54,7 +55,7 @@ async function resolve(pkg: Package | PackageRequirement | Path) {
         path, pkg: { project, version }
       }
     } else if ("version" in pkg) {
-      const path = prefix.join(pkg.project).join(`v${pkg.version}`)
+      const path = keg(pkg)
       return { path, pkg }
     } else {
       const installations = await ls(pkg.project)
@@ -66,19 +67,13 @@ async function resolve(pkg: Package | PackageRequirement | Path) {
         return { path, pkg: { project: pkg.project, version } }
       }
     }
-    throw new Error(`not-found:${pkg_str(pkg)}`)
+    throw new Error(`not-found:${pkgutils.str(pkg)}`)
   })()
   if (await vacant(installation.path)) {
-    throw new Error(`not-found:${pkg_str(installation.pkg)}`)
+    throw new Error(`not-found:${pkgutils.str(installation.pkg)}`)
   }
   return installation
 }
-
-/// eg. ~/.tea/deno.land
-const shelf = (project: string) => usePrefix().join(project)
-
-/// returns the installation directory
-const keg = (pkg: Package) => shelf(pkg.project).join(`v${pkg.version}`)
 
 /// if we ignore transient files, is there a package here?
 async function vacant(path: Path): Promise<boolean> {
