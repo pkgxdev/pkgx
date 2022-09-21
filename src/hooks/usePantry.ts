@@ -331,7 +331,7 @@ function expand_env(env_: PlainObject, pkg: Package): string {
 const remapTokens = (input: string, pkg: Package) => {
   const sys = host()
   const cellar = useCellar()
-  const prefix = cellar.mkpath(pkg)
+  const prefix = cellar.keg(pkg)
 
   return [
     { from: "version",           to: pkg.version.toString() },
