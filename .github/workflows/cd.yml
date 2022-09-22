@@ -65,93 +65,15 @@ jobs:
     uses: ./.github/workflows/ci.yml
     secrets: inherit
 
-  cd:
-    needs: [check, ci]
-    runs-on: ubuntu-latest
-    env:
-      VERSION: ${{ needs.check.outputs.version }}
-      FILENAME: /opt/tea-${{ needs.check.outputs.version }}+${{ matrix.build-id }}.tar.gz
-    strategy:
-      matrix:
-        include:
-          - deno-target: x86_64-apple-darwin
-            build-id: darwin+x86-64
-            tea-prefix: darwin/x86-64
-          - deno-target: aarch64-apple-darwin
-            build-id: darwin+aarch64
-            tea-prefix: darwin/aarch64
-          - deno-target: x86_64-unknown-linux-gnu
-            tea-prefix: linux/x86-64
-            build-id: linux+x86-64
-    steps:
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x #FIXME
-
-      - uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - uses: actions/checkout@v3
-
-      # embed version
-      - run: sed -i "s/^const version = .*$/const version = '$VERSION'/" src/app.ts
-
-      - name: Compile
-        run: |
-          deno compile \
-            --allow-read \
-            --allow-write \
-            --allow-net \
-            --allow-run \
-            --allow-env \
-            --import-map=./import-map.json \
-            --output ./tea.out \
-            --target ${{ matrix.deno-target }} \
-            ./src/app.ts
-
-      - run: |
-          sudo mkdir -p /opt/tea.xyz/v$VERSION/bin
-          mv tea.out /opt/tea.xyz/v$VERSION/bin/tea
-          cd /opt
-          tar czf $FILENAME tea.xyz
-
-      # TODO v'*' should be a (non permanent) redirect
-
-      - run: |
-          aws s3 cp \
-            $FILENAME \
-            s3://${{ secrets.AWS_S3 }}/tea.xyz/${{ matrix.tea-prefix }}/v$VERSION.tar.gz \
-            --metadata-directive REPLACE \
-            --cache-control max-age=31536000,immutable
-          aws s3 cp \
-            $FILENAME \
-            s3://${{ secrets.AWS_S3 }}/tea.xyz/${{ matrix.tea-prefix }}/v'*'.tar.gz \
-            --metadata-directive REPLACE \
-            --cache-control no-cache,must-revalidate
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: tarballs
-          path: ${{ env.FILENAME }}
-          if-no-files-found: error
-
   release:
     permissions:
       contents: write
-    needs: [cd, check]
+    needs: [check, ci]
     runs-on: ubuntu-latest
     env:
       TAG: v${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v3
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: tarballs
-          path: artifacts
 
       #TODO find a release action that will tag atomically
       # the GitHub API does this so it is frankly unacceptable the action refuses
@@ -162,16 +84,6 @@ jobs:
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.TAG }}
-          files: artifacts/*.tar.gz
           fail_on_unmatched_files: true
           token: ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
           # ^^ using our own PAT since otherwise vx-tagger won’t run
-
-     #FIXME do specific version obv.
-      - uses: chetan/invalidate-cloudfront-action@v2
-        env:
-          DISTRIBUTION: ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
-          PATHS: "/tea.xyz/*/v${{ env.TAG }}/"
-          AWS_REGION: "us-east-1"
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
