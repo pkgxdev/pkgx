@@ -1,7 +1,6 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
 import { useCellar, useInventory } from "hooks"
-import * as semver from "semver"
 
 /// NOTE resolves to bottles
 /// NOTE contract there are no duplicate projects
@@ -19,9 +18,11 @@ export default async function resolve(reqs: (Package | PackageRequirement)[]): P
       rv.push(installation.pkg)
     } else {
       const { project, constraint } = req
-      const versions = await inventory.getVersions({ project, constraint })
-      const version = semver.maxSatisfying(versions, constraint)
-      if (!version) { console.error({ project, constraint, versions }); throw new Error() }
+      const version = await inventory.select({ project, constraint })
+      if (!version) {
+        console.error({ project, constraint, version })
+        throw new Error()
+      }
       rv.push({ version, project })
     }
   }

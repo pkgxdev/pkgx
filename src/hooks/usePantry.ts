@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
@@ -6,8 +5,6 @@ import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import SemVer, * as semver from "semver"
 import Path from "path"
-
-type SemVerExtended = SemVer & {pkgraw: string}
 
 interface Entry {
   dir: Path
@@ -36,7 +33,7 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
     return spec
   } else {
     const versions = await getVersions(spec)
-    const version = semver.maxSatisfying(versions, spec.constraint)
+    const version = spec.constraint.max(versions)
     if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
     return { project: spec.project, version };
   }
@@ -172,17 +169,14 @@ function entry(pkg: Package | PackageRequirement): Entry {
 }
 
 /// returns sorted versions
-async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
+async function getVersions(pkg: PackageRequirement): Promise<SemVer[]> {
   const files = entry(pkg)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
-    return versions.map(raw => {
-      const v = parser(validate_str(raw)) ?? panic()
-      const vv = v as SemVerExtended
-      vv.pkgraw = validate_str(raw)
-      return vv
-    })
+    return versions.map(raw =>
+      semver.parse(validate_str(raw)) ?? panic()
+    )
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
@@ -195,7 +189,7 @@ function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
 }
 
-async function handleComplexVersions(versions: PlainObject): Promise<SemVerExtended[]> {
+async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   const [user, repo, ...types] = validate_str(versions.github).split("/")
   const type = types?.join("/").chuzzle() ?? 'releases'
 
@@ -247,7 +241,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
 
   const rsp = await useGitHubAPI().getVersions({ user, repo, type })
 
-  const rv: SemVerExtended[] = []
+  const rv: SemVer[] = []
   for (let name of rsp) {
 
     name = strip(name)
@@ -255,30 +249,18 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
     if (ignore.some(x => x.test(name))) {
       console.debug({ignoring: name, reason: 'explicit'})
     } else {
-      const v = await parser(name)
+      const v = semver.parse(name)
       if (!v) {
         console.warn({ignoring: name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
-        const vv = v as SemVerExtended
         console.verbose({ found: v.toString(), from: name })
-        if (name[0] == 'v') name = name.slice(1) // semver.parse strips this, so we do too
-        vv.pkgraw = name
-        rv.push(vv)
+        rv.push(v)
       } else {
         console.debug({ignoring: name, reason: 'prerelease'})
       }
     }
   }
   return rv
-}
-
-const parser = (input: string) => {
-  let v: SemVer | null
-  if (v = semver.parse(input)) return v
-  input = input.trim()
-  let rv: RegExpExecArray | null
-  if (rv = /^v?(\d+\.\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0`)
-  if (rv = /^v?(\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0.0`)
 }
 
 function expand_env(env_: PlainObject, pkg: Package): string {
@@ -353,7 +335,7 @@ const remapTokens = (input: string, pkg: Package) => {
     { from: "version.build",     to: pkg.version.build.join('+') },
     { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
     // deno-lint-ignore no-explicit-any
-    { from: "version.raw",       to: (pkg.version as any).pkgraw },
+    { from: "version.raw",       to: (pkg.version as any).raw },
     { from: "hw.arch",           to: sys.arch },
     { from: "hw.target",         to: sys.target },
     { from: "hw.platform",       to: sys.platform },

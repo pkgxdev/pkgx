@@ -9,6 +9,7 @@ import "utils"
 //   eg a tool that lists a directory may depend on a tool that identifies the
 //   mime types of files which could depend on the listing tool
 //FIXME actually we are not refining the constraints currently
+//TODO we are not actually restricting subsequent asks, eg. deno^1 but then deno^1.2
 
 
 interface ReturnValue {
@@ -70,7 +71,6 @@ export default async function hydrate(
             const new_node = new Node(dep, node)
             graph[dep.project] = new_node
             await ascend(new_node, new Set([...children, dep.project]))
-
           }
         }
       }

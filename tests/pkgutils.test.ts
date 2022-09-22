@@ -1,6 +1,7 @@
-import { assertEquals } from "deno/testing/asserts.ts"
+import { assert, assertEquals } from "deno/testing/asserts.ts"
+import SemVer, { Range } from "utils/semver.ts"
 import * as pkg from "utils/pkg.ts"
-import SemVer, { Range, Comparator } from "semver"
+
 
 Deno.test("pkg.str", async test => {
   let out: string
@@ -34,16 +35,13 @@ Deno.test("pkg.str", async test => {
   }
 
   await test.step("range of one version", () => {
-    out = pkg.str({
-      project: "test",
-      constraint: new Range(new Comparator("=1.2.3"))
-    })
-    assertEquals(out, `test@1.2.3`)
+    const constraint = new Range("1.2.3")
 
     out = pkg.str({
       project: "test",
-      constraint: new Range("=1.2.3")
+      constraint
     })
+    assert(constraint.single())
     assertEquals(out, `test@1.2.3`)
   })
 })

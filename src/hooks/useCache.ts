@@ -1,7 +1,7 @@
 import { useDownload } from "hooks"
 import { Package } from "types"
 import Path from "path"
-import * as semver from "semver"
+import SemVer from "semver"
 import * as utils from "utils"
 
 interface DownloadOptions {
@@ -67,7 +67,7 @@ const ls = async () => {
     const [_, p, v] = match
     // Gotta undo the package name manipulation to get the package from the bottle
     const project = p.replaceAll("∕", "/")
-    const version = semver.parse(v)
+    const version = new SemVer(v)
     if (!version) { continue }
     rv.push({ project, version })
   }
@@ -78,5 +78,5 @@ const ls = async () => {
 /// key used when downloading from our S3 bottle storage
 const s3Key = (pkg: Package) => {
   const { platform, arch } = utils.host()
-  return `${pkg.project}/${platform}/${arch}/v${pkg.version.version}.tar.gz`
+  return `${pkg.project}/${platform}/${arch}/v${pkg.version}.tar.gz`
 }

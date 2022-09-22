@@ -125,8 +125,12 @@ Array.prototype.compact_unshift = function<T>(item: T | null | undefined) {
   if (item) this.unshift(item)
 }
 
-export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined): NonNullable<S> | undefined {
-  if (t) return body(t) ?? undefined
+export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined, opts?: {rescue?: boolean}): NonNullable<S> | undefined {
+  try {
+    if (t) return body(t) ?? undefined
+  } catch (err) {
+    if (!opts?.rescue) throw err
+  }
 }
 
 declare global {
@@ -203,16 +207,6 @@ export function panic<T>(): T {
 ///////////////////////////////////////////////////////////////////////// pkgs
 import * as pkg from "./pkg.ts"
 export { pkg }
-
-/////////////////////////////////////////////////////////////////////// semver
-import * as semver from "semver"
-
-export function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
-  if (a.intersects(b)) return a
-  if (b.intersects(a)) return b
-  console.error(a, b)
-  throw new Error()
-}
 
 ///////////////////////////////////////////////////////////////////// platform
 // when we support more variants of these that require specification

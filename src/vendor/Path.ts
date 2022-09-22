@@ -273,6 +273,13 @@ export default class Path {
     return this
   }
 
+  isEmpty(): Path | undefined {
+    for (const _ of Deno.readDirSync(this.string)) {
+      return
+    }
+    return this
+  }
+
   mkpath(): Path {
     if (!(this.isSymlink() && this.isDirectory())) {
       // if it's a symlink and a directory ensureDirSync fails
@@ -322,8 +329,13 @@ export default class Path {
   //TODO would be nice to validate the output against a type
   //TODO shouldn't be part of this module since we want to publish it
   async readYAML(): Promise<unknown> {
-    const txt = await this.read()
-    return parseYaml(txt)
+    try {
+      const txt = await this.read()
+      return parseYaml(txt)
+    } catch (err) {
+      console.error(this) //because deno errors are shit
+      throw err
+    }
   }
 
   //TODO shouldn't be part of this module since we want to publish it
