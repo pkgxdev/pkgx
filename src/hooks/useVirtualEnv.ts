@@ -113,7 +113,7 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
 
   const fromFirstHeader = () => flatmap(
     lines.find(line => line.match(/^\s*#\s+.+$/)),
-    semver.coerce
+    semver.parse
   )
 
   const version = fromMetadataTable() ?? fromFirstHeader()

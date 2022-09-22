@@ -68,7 +68,7 @@ const ls = async () => {
     const [_, p, v] = match
     // Gotta undo the package name manipulation to get the package from the bottle
     const project = p.replaceAll("∕", "/")
-    const version = semver.coerce(v)
+    const version = semver.parse(v)
     if (!version) { continue }
     rv.push({ project, version })
   }
