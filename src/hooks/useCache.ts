@@ -40,9 +40,8 @@ const my_download = async ({ url, pkg, type = 'bottle' }: DownloadOptions) => {
   const dst = prefix.join(filename)
   const headers: HeadersInit = {}
 
-  if (pkg.project === "tea.xyz") {
-    //FIXME: big hacks
-    if (url.host != "github.com") { throw new Error("unknown private domain") }
+  //FIXME: big hacks
+  if (pkg.project === "tea.xyz" && url.host === "github.com") {
     const token = Deno.env.get("GITHUB_TOKEN")
     if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
     headers["Authorization"] = `bearer ${token}`
