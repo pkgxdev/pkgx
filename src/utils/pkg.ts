@@ -9,7 +9,7 @@ export function parse(input: string): PackageRequirement | Package {
   if (match[2].startsWith("@") || match[2].startsWith("=")) {
     return {
       project: match[1],
-      version: new SemVer(match[2])
+      version: new SemVer(match[2].replace(/^@/, ""))
     }
   } else {
     return {
