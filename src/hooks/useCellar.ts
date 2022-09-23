@@ -2,7 +2,7 @@ import { Package, PackageRequirement, Installation } from "types"
 import { pkg as pkgutils } from "utils"
 import { usePrefix } from "hooks"
 import Path from "path"
-import SemVer, * as semver from "semver"
+import SemVer from "semver"
 
 export default function useCellar() {
   return {
