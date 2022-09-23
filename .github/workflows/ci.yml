@@ -38,4 +38,4 @@ jobs:
 
       - run: tea typecheck
 
-      - run: npx ts-prune --error
+      - run: tea deno lint
