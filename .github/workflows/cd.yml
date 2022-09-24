@@ -164,6 +164,8 @@ jobs:
           tag_name: ${{ env.TAG }}
           files: artifacts/*.tar.gz
           fail_on_unmatched_files: true
+          token: ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
+          # ^^ using our own PAT since otherwise vx-tagger won’t run
 
      #FIXME do specific version obv.
       - uses: chetan/invalidate-cloudfront-action@v2
