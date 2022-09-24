@@ -2,6 +2,9 @@ import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
 import { useFlags, usePrefix } from "hooks"
 import { flatmap } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
+import { encode } from "deno/encoding/hex.ts"
+import { crypto } from "deno/crypto/mod.ts"
+
 import Path from "path"
 
 const prefix = usePrefix().join("tea.xyz/var/www")
@@ -31,6 +34,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     headers ??= {}
     headers["If-Modified-Since"] = await mtime_entry().read()
     console.info({querying: src.toString()})
+
   } else {
     console.info({downloading: src.toString()})
   }
@@ -40,11 +44,17 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   switch (rsp.status) {
   case 200: {
     if ("If-Modified-Since" in (headers ?? {})) {
-      console.info({downloading: src})
+      console.info({downloadingBsdk: src})
     }
+
+    console.log("got status 200 while downloading")
     const rdr = rsp.body?.getReader()
     if (!rdr) throw new Error()
     const r = readerFromStreamReader(rdr)
+
+    console.info({})
+    sumcheckEfficient(rsp.body!)
+    
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
@@ -60,15 +70,83 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     return dst
   }
   case 304:
+    console.log("got status 304 while downloading")
+    console.log({dst})
     console.verbose("304: not modified")
     return dst
   default:
+    console.log("got status default while downloading")
+
     if (numpty && dst.isFile()) {
       return dst
     } else {
       throw new Error(`${rsp.status}: ${src}`)
     }
   }
+}
+
+function _append(a: Uint8Array, b: Uint8Array, numOfByteRead: number) {
+  // deno-lint-ignore no-var
+  var c = new Uint8Array(a.length + numOfByteRead);
+  c.set(a, 0);
+  c.set(b.slice(0, numOfByteRead), a.length);
+  return c;
+}
+
+// deno.reader -> deno.fsfile
+function sumcheckEfficient(readable: ReadableStream<Uint8Array>) {
+  console.log({readable})
+  const rdr = readable.getReader()
+  if (!rdr) throw new Error()
+  const r = readerFromStreamReader(rdr)
+  
+  console.log("hey downloading...")
+
+  // const buffer = new Uint8Array(5)
+  let buf = new Uint8Array(100);
+  let chunk = new Uint8Array(0);
+  
+  r.read(buf).then(async function readByte(numOfByteRead) {
+    if (numOfByteRead) {
+      chunk = _append(chunk, buf, numOfByteRead);
+      r.read(buf).then(readByte);
+    } else {
+      const local = crypto.subtle.digest("SHA-256", chunk)
+        .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
+    
+        const [local_SHA] = await Promise.all([local])
+        console.log({local_SHA: local_SHA})
+
+
+    }
+  });
+
+
+  // const content = await r.read(buffer)
+  
+  // const local = crypto.subtle.digest("SHA-256", buffer)
+  //   .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
+  
+  // const [local_SHA] = await Promise.all([local])
+
+
+  // console.log({local_SHA: local_SHA})
+
+
+  // const remote = console.silence(() =>
+  //   download({ src: url, dst, ephemeral: true })
+  // ).then(async dl => {
+  //   const txt = await dl.read()
+  //   return txt.split(' ')[0]
+  // })
+
+  // const [remote_SHA, local_SHA] = await Promise.all([remote, local])
+
+  // console.verbose({ remote_SHA, local_SHA })
+
+  // if (remote_SHA != local_SHA) {
+  //   throw new Error(`expected: ${remote_SHA}`)
+  // }
 }
 
 function hash_key(url: URL): Path {
