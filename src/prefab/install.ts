@@ -29,6 +29,7 @@ export default async function install(pkg: Package): Promise<Installation> {
     await sumcheck(tarball, sha_url, pkg)
   } catch (err) {
     tarball.rm()
+    console.error("we deleted the invalid tarball. try again?")
     throw err
   }
 

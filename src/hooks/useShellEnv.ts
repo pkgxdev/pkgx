@@ -1,5 +1,5 @@
 import { Installation, PackageRequirement } from "types"
-import { usePrefix, useCellar } from "hooks"
+import { usePrefix } from "hooks"
 import { host } from "utils"
 
 type Env = Record<string, string[]>
@@ -20,33 +20,17 @@ interface Response {
   defaults: Env
   combined: Env
   combinedStrings: Record<string, string>
-  pending: PackageRequirement[]
 }
 
-export default async function useShellEnv(requirements: PackageRequirement[] | Installation[]): Promise<Response> {
-  const cellar = useCellar()
+export default function useShellEnv(installations: Installation[], pending: PackageRequirement[] = []): Response {
   const vars: Env = {}
-  const pending: PackageRequirement[] = []
   const isMac = host().platform == 'darwin'
 
-  const pkgs = (await Promise.all(requirements.map(async rq => {
-    if ("constraint" in rq) {
-      const installation = await cellar.has(rq)
-      if (!installation) {
-        pending.push(rq)
-      } else {
-        return installation
-      }
-    } else {
-      return rq
-    }
-  }))).compact(x => x)
-
-  const projects = new Set([...pkgs.map(x => x.pkg.project), ...pending.map(x=>x.project)])
+  const projects = new Set([...installations.map(x => x.pkg.project), ...pending.map(x=>x.project)])
   const has_cmake = projects.has('cmake.org')
   const archaic = true
 
-  for (const installation of pkgs) {
+  for (const installation of installations) {
     for (const key of EnvKeys) {
       for (const suffix of suffixes(key)!) {
         if (!vars[key]) vars[key] = []
@@ -76,7 +60,8 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
     }
   }
 
-  const tea = tea_PATH()
+  //FIXME figure out correct tea-path not assuming 'v*'
+  const tea = usePrefix().join('tea.xyz/v*/bin')
   //FIXME we add these paths so “binutils” and POSIX-utils are available
   // but these PATHs will almost certainly contain other things that will
   // interfere with our ability to create reproducibility
@@ -97,7 +82,7 @@ export default async function useShellEnv(requirements: PackageRequirement[] | I
     combinedStrings[key] = combined[key].join(":")
   }
 
-  return { vars, defaults, combined, combinedStrings, pending }
+  return { vars, defaults, combined, combinedStrings }
 }
 
 function suffixes(key: string) {
@@ -128,8 +113,4 @@ export function expand(env: Record<string, string[]>) {
     rv += `export ${key}='${value.join(":")}'\n`
   }
   return rv
-}
-
-function tea_PATH() {
-  return usePrefix().join('tea.xyz/v*/bin')
 }

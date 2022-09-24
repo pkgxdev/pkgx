@@ -204,6 +204,11 @@ export function panic<T>(): T {
   throw new Error()
 }
 
+// deno-lint-ignore no-explicit-any
+export function tuplize<T extends any[]>(...elements: T) {
+  return elements
+}
+
 ///////////////////////////////////////////////////////////////////////// pkgs
 import * as pkg from "./pkg.ts"
 export { pkg }

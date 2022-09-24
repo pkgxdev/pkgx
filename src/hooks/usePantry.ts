@@ -1,4 +1,4 @@
-import { Package, PackageRequirement } from "types"
+import { Package, PackageRequirement, Installation } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
@@ -85,12 +85,12 @@ const getDistributable = async (pkg: Package) => {
   return { url, stripComponents }
 }
 
-const getScript = async (pkg: Package, key: 'build' | 'test') => {
+const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
   const yml = await entry(pkg).yml()
   const node = yml[key]
 
   if (isPlainObject(node)) {
-    let raw = remapTokens(validate_str(node.script), pkg)
+    let raw = remapTokens(validate_str(node.script), pkg, deps)
 
     let wd = node["working-directory"]
     if (wd) {
@@ -105,11 +105,11 @@ const getScript = async (pkg: Package, key: 'build' | 'test') => {
 
     const env = node.env
     if (isPlainObject(env)) {
-      raw = `${expand_env(env, pkg)}\n\n${raw}`
+      raw = `${expand_env(env, pkg, deps)}\n\n${raw}`
     }
     return raw
   } else {
-    return remapTokens(validate_str(node), pkg)
+    return remapTokens(validate_str(node), pkg, deps)
   }
 }
 
@@ -263,7 +263,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   return rv
 }
 
-function expand_env(env_: PlainObject, pkg: Package): string {
+function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
   const env = {...env_}
   const sys = host()
 
@@ -314,7 +314,7 @@ function expand_env(env_: PlainObject, pkg: Package): string {
     } else if (value === undefined || value === null) {
       return "0"
     } else if (isString(value)) {
-      return remapTokens(value, pkg)
+      return remapTokens(value, pkg, deps)
     } else if (isNumber(value)) {
       return value.toString()
     }
@@ -322,28 +322,34 @@ function expand_env(env_: PlainObject, pkg: Package): string {
   }
 }
 
-const remapTokens = (input: string, pkg: Package) => {
+const remapTokens = (input: string, pkg: Package, deps?: Installation[]) => {
   const sys = host()
   const cellar = useCellar()
   const prefix = cellar.keg(pkg)
 
-  return [
+  const map = [
     { from: "version",           to: pkg.version.toString() },
     { from: "version.major",     to: pkg.version.major.toString() },
     { from: "version.minor",     to: pkg.version.minor.toString() },
     { from: "version.patch",     to: pkg.version.patch.toString() },
     { from: "version.build",     to: pkg.version.build.join('+') },
     { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
-    // deno-lint-ignore no-explicit-any
-    { from: "version.raw",       to: (pkg.version as any).raw },
+    { from: "version.raw",       to: pkg.version.raw },
     { from: "hw.arch",           to: sys.arch },
     { from: "hw.target",         to: sys.target },
     { from: "hw.platform",       to: sys.platform },
     { from: "prefix",            to: prefix.string },
     { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
-    { from: "pkg.pantry-prefix", to: getPrefix(pkg).string },
     { from: "tea.prefix",        to: usePrefix().string }
-  ].reduce((acc, {from, to}) =>
+  ]
+
+  for (const dep of deps ?? []) {
+    map.push({ from: `deps.${dep.pkg.project}.prefix`, to: dep.path.string })
+    map.push({ from: `deps.${dep.pkg.project}.version`, to: dep.pkg.version.toString() })
+    map.push({ from: `deps.${dep.pkg.project}.version.major`, to: dep.pkg.version.major.toString() })
+  }
+
+  return map.reduce((acc, {from, to}) =>
     acc.replace(new RegExp(`\\$?{{\\s*${from}\\s*}}`, "g"), to),
     input)
 }
