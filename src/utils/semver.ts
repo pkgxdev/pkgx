@@ -105,6 +105,12 @@ export class Range {
           return [v1, v2]
         }
 
+        if (input.startsWith("=") || input.startsWith("@")) {
+          const v1 = parse(input.slice(1))!
+          const v2 = new SemVer([v1.major, v1.minor, v1.patch + 1])
+          return [v1, v2]
+        }
+
         let match = input.match(/^\d+(\.\d+(\.\d+)?)?$/)
         if (match) {
           const v1 = parse(match[0])!

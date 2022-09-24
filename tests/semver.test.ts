@@ -38,5 +38,13 @@ Deno.test("semver", async test => {
 
     const b = new semver.Range("^0.15")
     assertEquals(b.toString(), "^0.15")
+
+    const c = new semver.Range("=1.2.3")
+    assert(c.satisfies(new SemVer("1.2.3")))
+    assertFalse(c.satisfies(new SemVer("1.2.4")))
+
+    const d = new semver.Range("@1.2.3")
+    assert(d.satisfies(new SemVer("1.2.3")))
+    assertFalse(d.satisfies(new SemVer("1.2.4")))
   })
 })
