@@ -1,8 +1,8 @@
-import { useFlags, useCellar, useShellEnv, usePantry, useExecutableMarkdown } from "hooks"
-import { VirtualEnv } from "hooks/useVirtualEnv.ts"
-import { run, undent } from "utils"
-import { PackageRequirement } from "types"
+import { useFlags, useShellEnv, usePantry, useExecutableMarkdown } from "hooks"
 import { hydrate, resolve, install as base_install, link } from "prefab"
+import { VirtualEnv } from "hooks/useVirtualEnv.ts"
+import { PackageRequirement } from "types"
+import { run, undent } from "utils"
 import Path from "path"
 
 type Options = {
@@ -12,12 +12,11 @@ type Options = {
 }
 
 export default async function exec({ args, ...opts }: Options) {
-  const cellar = useCellar()
   const flags = useFlags()
 
   if (args.length < 1) throw "contract violation"
 
-  await install(opts.pkgs)
+  const installations = await install(opts.pkgs)
 
   const filename = Path.cwd().join(args[0]).isFile()
   if (filename?.extname() == '.md') {
@@ -30,7 +29,7 @@ export default async function exec({ args, ...opts }: Options) {
     args = [path, ...args.slice(2)]
   }
 
-  const env = (await useShellEnv(opts.pkgs)).combinedStrings
+  const env = useShellEnv(installations).combinedStrings
   if (opts.env) {
     env["SRCROOT"] = opts.env.srcroot.string
     if (opts.env.version) env["VERSION"] = opts.env.version.toString()
@@ -41,17 +40,19 @@ export default async function exec({ args, ...opts }: Options) {
 
   const cmd = [...args]
   await run({ cmd, env })  //TODO implement `execvp`
+}
 
 /////////////////////////////////////////////////////////////
-  async function install(dry: PackageRequirement[]) {
-    const get = (x: PackageRequirement) => usePantry().getDeps(x).then(x => x.runtime)
-    const wet = await hydrate(dry, get)   ; console.debug({wet})
-    const gas = await resolve(wet.pkgs)   ; console.debug({gas})
-    for (const pkg of gas) {
-      if (await cellar.has(pkg)) continue
-      console.info({ installing: pkg })
-      const installation = await base_install(pkg)
-      await link(installation)
-    }
+async function install(dry: PackageRequirement[]) {
+  const get = (x: PackageRequirement) => usePantry().getDeps(x).then(x => x.runtime)
+  const wet = await hydrate(dry, get)   ; console.debug({wet})
+  const gas = await resolve(wet.pkgs)   ; console.debug({gas})
+
+  for (const pkg of gas.pending) {
+    console.info({ installing: pkg })
+    const installation = await base_install(pkg)
+    await link(installation)
+    gas.installed.push(installation)
   }
+  return gas.installed
 }

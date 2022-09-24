@@ -1,4 +1,4 @@
-import { PackageRequirement } from "types"
+import { Package, PackageRequirement } from "types"
 import { host } from "utils"
 import SemVer from "semver"
 
@@ -10,9 +10,9 @@ export interface Inventory {
   }
 }
 
-const select = async ({ project, constraint }: PackageRequirement) => {
+const select = async (rq: PackageRequirement | Package) => {
   const { platform, arch } = host()
-  const url = `https://dist.tea.xyz/${project}/${platform}/${arch}/versions.txt`
+  const url = `https://dist.tea.xyz/${rq.project}/${platform}/${arch}/versions.txt`
   const rsp = await fetch(url)
 
   if (!rsp.ok) throw new Error(`404-not-found: ${url}`) //FIXME
@@ -20,9 +20,15 @@ const select = async ({ project, constraint }: PackageRequirement) => {
   const releases = await rsp.text()
   const versions = releases.split("\n").map(x => new SemVer(x))
 
-  console.debug({ project, versions })
+  if (versions.length < 1) throw new Error()
 
-  return constraint.max(versions)
+  console.debug({ project: rq.project, versions })
+
+  if ("constraint" in rq) {
+    return rq.constraint.max(versions)
+  } else if (versions.find(x => x.eq(rq.version))) {
+    return rq.version
+  }
 }
 
 export default function useInventory() {

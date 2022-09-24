@@ -41,7 +41,7 @@ export default async function hydrate(
 
   const dry = input.map(spec => {
     if ("version" in spec) {
-      return {project: spec.project, constraint: new semver.Range(`=${spec.version}`)}
+      return {project: spec.project, constraint: new semver.Range(spec.version.toString())}
     } else {
       return spec
     }
