@@ -340,6 +340,7 @@ const remapTokens = (input: string, pkg: Package, deps?: Installation[]) => {
     { from: "hw.platform",       to: sys.platform },
     { from: "prefix",            to: prefix.string },
     { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
+    { from: "pkg.pantry-prefix", to: getPrefix(pkg).string },
     { from: "tea.prefix",        to: usePrefix().string }
   ]
 
