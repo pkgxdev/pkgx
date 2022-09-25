@@ -14,7 +14,7 @@ type Options = {
 export default async function exec({ args, ...opts }: Options) {
   const flags = useFlags()
 
-  if (args.length < 1) throw "contract violation"
+  if (args.length < 1) throw new Error("contract violation")
 
   const installations = await install(opts.pkgs)
 

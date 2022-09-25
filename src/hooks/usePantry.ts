@@ -23,7 +23,6 @@ export default function usePantry() {
     update,
     getProvides,
     getYAML,
-    prefix: getPrefix,
     resolve
   }
 }
@@ -40,10 +39,12 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
 }
 
 //TODO take `T` and then type check it
-const getYAML = async (pkg: Package | PackageRequirement): Promise<[PlainObject, Path]> => {
+const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => Promise<PlainObject>} => {
   const foo = entry(pkg)
-  const yml = await foo.yml()
-  return [yml, foo.dir.join("package.yml")]
+  return {
+    path: foo.dir.join("package.yml"),
+    parse: foo.yml
+  }
 }
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
@@ -68,6 +69,8 @@ const getRawDistributableURL = (yml: PlainObject) => validate_str(
       : yml.distributable)
 
 const getDistributable = async (pkg: Package) => {
+  const moustaches = useMoustaches()
+
   const yml = await entry(pkg).yml()
   let urlstr = getRawDistributableURL(yml)
   let stripComponents: number | undefined
@@ -78,7 +81,10 @@ const getDistributable = async (pkg: Package) => {
     urlstr = validate_str(yml.distributable)
   }
 
-  urlstr = remapTokens(urlstr, pkg)
+  urlstr = moustaches.apply(urlstr, [
+    ...moustaches.tokenize.version(pkg.version),
+    ...moustaches.tokenize.host()
+  ])
 
   const url = new URL(urlstr)
 
@@ -89,12 +95,15 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   const yml = await entry(pkg).yml()
   const node = yml[key]
 
+  const mm = useMoustaches()
+  const script = (input: string) => mm.apply(validate_str(input), mm.tokenize.all(pkg, deps))
+
   if (isPlainObject(node)) {
-    let raw = remapTokens(validate_str(node.script), pkg, deps)
+    let raw = script(node.script)
 
     let wd = node["working-directory"]
     if (wd) {
-      wd = remapTokens(wd, pkg)
+      wd = mm.apply(wd, [...mm.tokenize.version(pkg.version), ...mm.tokenize.host()])
       raw = undent`
         mkdir -p ${wd}
         cd ${wd}
@@ -109,7 +118,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
     }
     return raw
   } else {
-    return remapTokens(validate_str(node), pkg, deps)
+    return script(node)
   }
 }
 
@@ -314,7 +323,8 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
     } else if (value === undefined || value === null) {
       return "0"
     } else if (isString(value)) {
-      return remapTokens(value, pkg, deps)
+      const mm = useMoustaches()
+      return mm.apply(value, mm.tokenize.all(pkg, deps))
     } else if (isNumber(value)) {
       return value.toString()
     }
@@ -322,36 +332,39 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
   }
 }
 
-const remapTokens = (input: string, pkg: Package, deps?: Installation[]) => {
-  const sys = host()
-  const cellar = useCellar()
-  const prefix = cellar.keg(pkg)
 
-  const map = [
-    { from: "version",           to: pkg.version.toString() },
-    { from: "version.major",     to: pkg.version.major.toString() },
-    { from: "version.minor",     to: pkg.version.minor.toString() },
-    { from: "version.patch",     to: pkg.version.patch.toString() },
-    { from: "version.build",     to: pkg.version.build.join('+') },
-    { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
-    { from: "version.raw",       to: pkg.version.raw },
-    { from: "hw.arch",           to: sys.arch },
-    { from: "hw.target",         to: sys.target },
-    { from: "hw.platform",       to: sys.platform },
-    { from: "prefix",            to: prefix.string },
-    { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
-    { from: "tea.prefix",        to: usePrefix().string }
-  ]
+//////////////////////////////////////////// useMoustaches() additions
+import useMoustachesBase from "./useMoustaches.ts"
 
-  for (const dep of deps ?? []) {
-    map.push({ from: `deps.${dep.pkg.project}.prefix`, to: dep.path.string })
-    map.push({ from: `deps.${dep.pkg.project}.version`, to: dep.pkg.version.toString() })
-    map.push({ from: `deps.${dep.pkg.project}.version.major`, to: dep.pkg.version.major.toString() })
+function useMoustaches() {
+  const base = useMoustachesBase()
+
+  const deps = (deps: Installation[]) => {
+    const map: {from: string, to: string}[] = []
+    for (const dep of deps ?? []) {
+      map.push({ from: `deps.${dep.pkg.project}.prefix`, to: dep.path.string })
+      map.push(...useMoustaches().tokenize.version(dep.pkg.version, `deps.${dep.pkg.project}.version`))
+    }
+    return map
   }
 
-  return map.reduce((acc, {from, to}) =>
-    acc.replace(new RegExp(`\\$?{{\\s*${from}\\s*}}`, "g"), to),
-    input)
-}
+  const pkg = (pkg: Package) => [{ from: "prefix", to: useCellar().keg(pkg).string }]
 
-const getPrefix = (pkg: Package | PackageRequirement) => prefix.join(pkg.project)
+  const tea = () => [{ from: "tea.prefix", to: usePrefix().string }]
+
+  const all = (pkg_: Package, deps_: Installation[]) => [
+    ...deps(deps_),
+    ...pkg(pkg_),
+    ...tea(),
+    ...base.tokenize.version(pkg_.version),
+    ...base.tokenize.host(),
+  ]
+
+  return {
+    apply: base.apply,
+    tokenize: {
+      ...base.tokenize,
+      deps, pkg, tea, all
+    }
+  }
+}

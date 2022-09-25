@@ -32,7 +32,7 @@ export default async function dump({ env: blueprint }: Options) {
     await print(unsetEnv("SRCROOT"))
   }
 
-  const [installations, pending] = await (async () => {
+  const {installations, pending} = await (async () => {
     const cellar = useCellar()
     const installations: Installation[] = []
     const pending: PackageRequirement[] = []
@@ -45,10 +45,10 @@ export default async function dump({ env: blueprint }: Options) {
         pending.push(rq)
       }
     }
-    return [installations, pending]
+    return {installations, pending}
   })()
 
-  const { combinedStrings: vars } = await useShellEnv(installations)
+  const { combinedStrings: vars } = useShellEnv(installations)
 
   //TODO if PATH is the same as the current PATH maybe don't do it
   // though that makes the behavior of --env --dump very specific

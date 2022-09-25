@@ -4,6 +4,7 @@ import { validatePackageRequirement } from "utils/hacks.ts"
 import { usePrefix } from "hooks"
 import { validate_plain_obj } from "utils"
 import Path from "path"
+import useMoustaches from "./useMoustaches.ts";
 
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
@@ -53,9 +54,13 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
   return {...rv, getArgs }
 
   function fix(input: string): string {
-    return input
-      .replace(/{{\s*srcroot\s*}}/ig, srcroot!.string)
-      .replace(/{{\s*home\s*}}/ig, Path.home().string)
-      .replace(/{{\s*tea.prefix\s*}}/ig, usePrefix().string)
+    const moustaches = useMoustaches()
+
+    return moustaches.apply(input, [
+      ...moustaches.tokenize.host(),
+      { from: "tea.prefix", to: usePrefix().string },
+      { from: "srcroot", to: srcroot!.string},
+      { from: "home", to: Path.home().string }
+    ])
   }
 }
