@@ -43,16 +43,24 @@ export default class SemVer {
     return `${this.major}.${this.minor}.${this.patch}`
   }
 
-  eq(other: SemVer): boolean {
-    return this.compare(other) == 0
+  eq(that: SemVer): boolean {
+    return this.compare(that) == 0
   }
 
-  neq(other: SemVer): boolean {
-    return !this.eq(other)
+  neq(that: SemVer): boolean {
+    return !this.eq(that)
   }
 
-  compare(other: SemVer): number {
-    return _compare(this, other)
+  gt(that: SemVer): boolean {
+    return this.compare(that) >= 0
+  }
+
+  lt(that: SemVer): boolean {
+    return this.compare(that) <= 0
+  }
+
+  compare(that: SemVer): number {
+    return _compare(this, that)
   }
 
   components(): [number, number, number] {
@@ -153,6 +161,20 @@ export class Range {
     }
   }
 
+  eq(that: Range): boolean {
+    if (this.set.length !== that.set.length) return false
+    for (let i = 0; i < this.set.length; i++) {
+      const [a,b] = [this.set[i], that.set[i]]
+      if (typeof a !== 'string' && typeof b !== 'string') {
+        if (a[0].neq(b[0])) return false
+        if (a[1].neq(b[1])) return false
+      } else if (a != b) {
+        return false
+      }
+    }
+    return true
+  }
+
   satisfies(version: SemVer): boolean {
     if (this.set === '*') {
       return true
@@ -179,12 +201,31 @@ export class Range {
   }
 }
 
+
 function _compare(a: SemVer, b: SemVer): number {
   if (a.major != b.major) return a.major - b.major
   if (a.minor != b.minor) return a.minor - b.minor
   return a.patch - b.patch
 }
 export { _compare as compare }
+
+
+export function intersect(a: Range, b: Range): Range {
+  if (b.set === '*') return a
+  if (a.set === '*') return b
+  if (a.eq(b)) return a
+
+  if (a.set.length == 1 && b.set.length == 1) {
+    const [c,d] = [a.set[0], b.set[0]]
+    const e = c[0].gt(d[0]) ? c[0] : d[0]
+    const f = c[1].gt(d[1]) ? c[1] : d[1]
+    a.set = [[e,f]]
+    return a
+  }
+
+  throw new Error(`couldn’t intersect ${a} and ${b}`)
+}
+
 
 //FIXME yes yes this is not sufficient
 export const regex = /\d+\.\d+\.\d+/

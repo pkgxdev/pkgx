@@ -60,14 +60,25 @@ export default async function hydrate(
         if (children.has(dep.project)) {
           if (!bootstrap.has(dep.project)) {
             console.warn(`${dep.project} must be bootstrapped to build ${node.project}`)
+
+            //TODO the boostrap should keep the version constraint since it may be different
             bootstrap.add(dep.project)
           }
         } else {
-          /// we already traced this graph
           const found = graph[dep.project]
-          if (found && found.count() < node.count()) {
-            found.parent = node
-          } else if (!found) {
+          if (found) {
+            /// we already traced this graph
+
+            if (found.count() < node.count()) {
+              found.parent = node
+            }
+
+            //FIXME strictly we only have to constrain graphs that contain linkage
+            // ie. you cannot have a binary that links two separate versions of eg. openssl
+            // or (maybe) services, eg. you might suffer if there are two versions of postgres running (though tea mitigates this)
+            found.pkg.constraint = semver.intersect(found.pkg.constraint, dep.constraint)
+
+          } else {
             const new_node = new Node(dep, node)
             graph[dep.project] = new_node
             await ascend(new_node, new Set([...children, dep.project]))
