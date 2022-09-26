@@ -1,9 +1,10 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
-import { useFlags, usePrefix } from "hooks"
+import { useFlags, usePrefix} from "hooks"
 import { flatmap } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import { encode } from "deno/encoding/hex.ts"
 import { crypto } from "deno/crypto/mod.ts"
+
 
 import Path from "path"
 
@@ -47,12 +48,12 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
       console.info({downloading: src})
     }
 
-    console.log("got status 200 while downloading")
     const rdr = rsp.body?.getReader()
     if (!rdr) throw new Error()
     const r = readerFromStreamReader(rdr)
 
     const local_SHA = await getlocalSHA(r)
+
     console.log({local_SHAFromEFfi: local_SHA})
     
     dst.parent().mkpath()
@@ -70,13 +71,9 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     return dst
   }
   case 304:
-    console.log("got status 304 while downloading")
-    console.log({dst})
     console.verbose("304: not modified")
     return dst
   default:
-    console.log("got status default while downloading")
-
     if (numpty && dst.isFile()) {
       return dst
     } else {
@@ -109,8 +106,10 @@ function getlocalSHA(r: Deno.Reader) {
         console.log("reached end of chunk")
         const local = crypto.subtle.digest("SHA-256", chunk)
           .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
-
+      
         const [local_SHA] = await Promise.all([local])
+
+        console.log({local_SHAEffi: local_SHA})
 
         return local_SHA
 
