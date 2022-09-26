@@ -23,9 +23,9 @@ const stem = (pkg: Package) => {
 }
 
 /// destination for bottle downloads
-const bottle = (pkg: Package) => {
+const bottle = (pkg: Package, compression: 'gz' | 'xz' = 'gz') => {
   const { arch, platform } = utils.host()
-  return prefix.join(`${stem(pkg)}+${platform}+${arch}.tar.gz`)
+  return prefix.join(`${stem(pkg)}+${platform}+${arch}.tar.${compression}`)
 }
 
 /// download source or bottle
