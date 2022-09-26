@@ -44,7 +44,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   switch (rsp.status) {
   case 200: {
     if ("If-Modified-Since" in (headers ?? {})) {
-      console.info({downloadingBsdk: src})
+      console.info({downloading: src})
     }
 
     console.log("got status 200 while downloading")
@@ -52,8 +52,8 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     if (!rdr) throw new Error()
     const r = readerFromStreamReader(rdr)
 
-    console.info({})
-    sumcheckEfficient(rsp.body!)
+    const local_SHA = await getlocalSHA(r)
+    console.log({local_SHAFromEFfi: local_SHA})
     
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -93,60 +93,29 @@ function _append(a: Uint8Array, b: Uint8Array, numOfByteRead: number) {
   return c;
 }
 
-// deno.reader -> deno.fsfile
-function sumcheckEfficient(readable: ReadableStream<Uint8Array>) {
-  console.log({readable})
-  const rdr = readable.getReader()
-  if (!rdr) throw new Error()
-  const r = readerFromStreamReader(rdr)
+function getlocalSHA(r: Deno.Reader) {
   
-  console.log("hey downloading...")
-
-  // const buffer = new Uint8Array(5)
-  let buf = new Uint8Array(100);
+  let buf = new Uint8Array(1000);
   let chunk = new Uint8Array(0);
   
   r.read(buf).then(async function readByte(numOfByteRead) {
     if (numOfByteRead) {
+      
+      console.log({numOfByteRead})
+      
       chunk = _append(chunk, buf, numOfByteRead);
       r.read(buf).then(readByte);
     } else {
-      const local = crypto.subtle.digest("SHA-256", chunk)
-        .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
-    
-        const [local_SHA] = await Promise.all([local])
-        console.log({local_SHA: local_SHA})
+        console.log("reached end of chunk")
+        const local = crypto.subtle.digest("SHA-256", chunk)
+          .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 
+        const [local_SHA] = await Promise.all([local])
+
+        return local_SHA
 
     }
   });
-
-
-  // const content = await r.read(buffer)
-  
-  // const local = crypto.subtle.digest("SHA-256", buffer)
-  //   .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
-  
-  // const [local_SHA] = await Promise.all([local])
-
-
-  // console.log({local_SHA: local_SHA})
-
-
-  // const remote = console.silence(() =>
-  //   download({ src: url, dst, ephemeral: true })
-  // ).then(async dl => {
-  //   const txt = await dl.read()
-  //   return txt.split(' ')[0]
-  // })
-
-  // const [remote_SHA, local_SHA] = await Promise.all([remote, local])
-
-  // console.verbose({ remote_SHA, local_SHA })
-
-  // if (remote_SHA != local_SHA) {
-  //   throw new Error(`expected: ${remote_SHA}`)
-  // }
 }
 
 function hash_key(url: URL): Path {
