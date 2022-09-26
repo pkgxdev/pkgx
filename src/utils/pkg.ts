@@ -1,6 +1,8 @@
 import { Package, PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
+import { core } from "https://deno.land/std@0.156.0/encoding/_yaml/schema/core.ts"
 
+/// allows inputs `nodejs.org@16` when `semver.parse` would reject
 export function parse(input: string): PackageRequirement | Package {
   const match = input.match(/^(.*?)([\^=~<>@].+)?$/)
   if (!match) throw new Error(`invalid pkgspec: ${input}`)
@@ -9,10 +11,13 @@ export function parse(input: string): PackageRequirement | Package {
   const project = match[1]
 
   if (match[2].startsWith("@") || match[2].startsWith("=")) {
-    return {
-      project,
-      version: new SemVer(match[2].slice(1))
+    let version = semver.parse(match[2].slice(1))
+    if (!version) {
+      const coercion = parseInt(match[2].slice(1))
+      if (Number.isNaN(coercion)) throw new Error()
+      version = new SemVer([coercion, 0, 0])
     }
+    return { project, version }
   } else {
     const constraint = new semver.Range(match[2])
     const version = constraint.single()
