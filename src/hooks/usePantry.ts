@@ -28,14 +28,11 @@ export default function usePantry() {
 }
 
 async function resolve(spec: Package | PackageRequirement): Promise<Package> {
-  if ("version" in spec) {
-    return spec
-  } else {
-    const versions = await getVersions(spec)
-    const version = spec.constraint.max(versions)
-    if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
-    return { project: spec.project, version };
-  }
+  const constraint = "constraint" in spec ? spec.constraint : new semver.Range(spec.version.toString())
+  const versions = await getVersions(spec)
+  const version = constraint.max(versions)
+  if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
+  return { project: spec.project, version };
 }
 
 //TODO take `T` and then type check it
@@ -178,7 +175,7 @@ function entry(pkg: Package | PackageRequirement): Entry {
 }
 
 /// returns sorted versions
-async function getVersions(pkg: PackageRequirement): Promise<SemVer[]> {
+async function getVersions(pkg: Package | PackageRequirement): Promise<SemVer[]> {
   const files = entry(pkg)
   const versions = await files.yml().then(x => x.versions)
 
