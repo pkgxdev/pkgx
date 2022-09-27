@@ -1,4 +1,4 @@
-import { usePrefix, useCache, useCellar, useFlags, useDownload } from "hooks"
+import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
 import { run, TarballUnarchiver, host } from "utils"
 import { encode } from "deno/encoding/hex.ts"
 import { crypto } from "deno/crypto/mod.ts"
@@ -16,17 +16,17 @@ import Path from "path"
 
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
-  const { s3Key, download } = useCache()
-  const url = new URL(`https://dist.tea.xyz/${s3Key(pkg)}`)
+  const { download } = useCache()
+  const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
 
-  const tarball = await download({ url, pkg: { project, version } })
+  const tarball = await download({ type: 'bottle', pkg: { project, version } })
 
   try {
     const sha_url = new URL(`${url}.sha256sum`)
-    await sumcheck(tarball, sha_url, pkg)
+    await sumcheck(tarball, sha_url)
   } catch (err) {
     tarball.rm()
     console.error("we deleted the invalid tarball. try again?")
@@ -53,16 +53,15 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(tarball: Path, url: URL, pkg: Package) {
+async function sumcheck(tarball: Path, url: URL) {
   const { download } = useDownload()
-  const dst = new Path(`${useCache().bottle(pkg)}.sha256sum`)
 
   const local = Deno.open(tarball.string, { read: true })
     .then(file => crypto.subtle.digest("SHA-256", file.readable))
     .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 
   const remote = console.silence(() =>
-    download({ src: url, dst, ephemeral: true })
+    download({ src: url, ephemeral: true })
   ).then(async dl => {
     const txt = await dl.read()
     return txt.split(' ')[0]

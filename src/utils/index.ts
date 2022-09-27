@@ -214,12 +214,7 @@ import * as pkg from "./pkg.ts"
 export { pkg }
 
 ///////////////////////////////////////////////////////////////////// platform
-// when we support more variants of these that require specification
-// we will tuple a version in with each eg. 'darwin' | ['windows', 10 | 11 | '*']
-export const SupportedPlatforms = ["darwin", "linux", "windows"] as const
-export type SupportedPlatform = typeof SupportedPlatforms[number]
-
-export type SupportedArchitectures = 'x86-64' | 'aarch64'
+import { SupportedPlatform, SupportedArchitectures } from "types"
 
 interface HostReturnValue {
   platform: SupportedPlatform

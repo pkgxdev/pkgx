@@ -4,8 +4,6 @@ import { flatmap } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import Path from "path"
 
-const prefix = usePrefix().join("tea.xyz/var/www")
-
 interface DownloadOptions {
   src: URL
   dst?: Path  /// default is our own unique cache path
@@ -77,6 +75,8 @@ function hash_key(url: URL): Path {
     return new Sha256().update(formatted).toString()
   }
 
+  const prefix = usePrefix().www
+
   return prefix
     .join(url.protocol.slice(0, -1))
     .join(url.hostname)
@@ -85,5 +85,5 @@ function hash_key(url: URL): Path {
 }
 
 export default function useDownload() {
-  return { download, prefix, hash_key }
+  return { download, hash_key }
 }

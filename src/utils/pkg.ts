@@ -1,6 +1,5 @@
 import { Package, PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
-import { core } from "https://deno.land/std@0.156.0/encoding/_yaml/schema/core.ts"
 
 /// allows inputs `nodejs.org@16` when `semver.parse` would reject
 export function parse(input: string): PackageRequirement | Package {

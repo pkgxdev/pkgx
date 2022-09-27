@@ -208,19 +208,14 @@ export default class Path {
     return [d, b]
   }
 
-  /// this static version provided so you can extnames for URLs etc.
-  static extname(input: string): string {
-    const match = input.match(/\.tar\.\w+$/)
+  /// the file extension with the leading period
+  extname(): string {
+    const match = this.string.match(/\.tar\.\w+$/)
     if (match) {
       return match[0]
     } else {
-      return sys.extname(input)
+      return sys.extname(this.string)
     }
-  }
-
-  /// the file extension with the leading period
-  extname(): string {
-    return Path.extname(this.string)
   }
 
   basename(): string {

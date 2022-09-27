@@ -23,3 +23,25 @@ export enum Verbosity {
   debug = 2,
   trace = 3
 }
+
+// when we support more variants of these that require specification
+// we will tuple a version in with each eg. 'darwin' | ['windows', 10 | 11 | '*']
+export const SupportedPlatforms = ["darwin", "linux", "windows"] as const
+export type SupportedPlatform = typeof SupportedPlatforms[number]
+
+export type SupportedArchitectures = 'x86-64' | 'aarch64'
+
+/// remotely available package content (bottles or source tarball)
+export type Stowage = {
+  type: 'src'
+  pkg: Package
+  extname: string
+} | {
+  type: 'bottle'
+  pkg: Package
+  compression: 'xz' | 'gz'
+  host?: { platform: SupportedPlatform, arch: SupportedArchitectures }
+}
+
+/// once downloaded, `Stowage` becomes `Stowed`
+export type Stowed = Stowage & { path: Path }

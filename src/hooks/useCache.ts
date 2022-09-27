@@ -1,82 +1,109 @@
-import { useDownload } from "hooks"
-import { Package } from "types"
-import Path from "path"
-import SemVer from "semver"
+import { useDownload, usePrefix, useOffLicense } from "hooks"
+import { Package, Stowed, SupportedArchitectures, SupportedPlatform, Stowage } from "types"
 import * as utils from "utils"
-
-interface DownloadOptions {
-  url: URL
-  pkg: Package
-  type?: 'src' | 'bottle'
-}
-
-const { prefix } = useDownload()
+import SemVer from "semver"
+import Path from "path"
 
 export default function useCache() {
-  return { download: my_download, bottle, ls, s3Key, prefix, download_script }
+  return { download, ls, path }
 }
 
-const stem = (pkg: Package) => {
-  const name = pkg.project.replaceAll("/", "∕")
-  // ^^ OHAI, we’re replacing folder slashes with unicode slashes
-  return `${name}-${pkg.version}`
-}
-
-/// destination for bottle downloads
-const bottle = (pkg: Package, compression: 'gz' | 'xz' = 'gz') => {
-  const { arch, platform } = utils.host()
-  return prefix.join(`${stem(pkg)}+${platform}+${arch}.tar.${compression}`)
+type DownloadOptions = {
+  type: 'bottle'
+  pkg: Package
+} | {
+  type: 'src',
+  url: URL
+  pkg: Package
+} | {
+  type: 'script',
+  url: URL
 }
 
 /// download source or bottle
-const my_download = async ({ url, pkg, type = 'bottle' }: DownloadOptions) => {
-  const filename = (() => {
-    switch(type) {
-      case 'src': return stem(pkg) + Path.extname(url.pathname)
-      case 'bottle': return bottle(pkg).string
-    }
-  })()
-  const download = useDownload().download
-  const dst = prefix.join(filename)
-  const headers: HeadersInit = {}
+const download = async (opts: DownloadOptions) => {
+  const { download } = useDownload()
 
-  //FIXME: big hacks
-  if (pkg.project === "tea.xyz" && url.host === "github.com") {
-    const token = Deno.env.get("GITHUB_TOKEN")
-    if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
-    headers["Authorization"] = `bearer ${token}`
+  const { type } = opts
+  let url: URL
+  if (type == 'bottle') {
+    url = useOffLicense('s3').url({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
+  } else {
+    url = opts.url
+  }
+
+  const headers: HeadersInit = {}
+  let dst: Path | undefined
+  switch (type) {
+  case 'bottle':
+    dst = path({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
+
+    //FIXME: big hacks
+    if (opts.pkg.project === "tea.xyz" && url.host === "github.com") {
+      const token = Deno.env.get("GITHUB_TOKEN")
+      if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
+      headers["Authorization"] = `bearer ${token}`
+    }
+
+    break
+  case 'src': {
+    const extname = new Path(url.pathname).extname()
+    dst = path({ pkg: opts.pkg, type: 'src', extname })
+  } break
+  case 'script':
+    dst = undefined
   }
 
   return await download({ src: url, dst, headers })
 }
 
-const download_script = async (url: URL) => {
-  const { download } = useDownload()
-  return await download({ src: url })
+const path = (stowage: Stowage) => {
+  const { pkg, type } = stowage
+  const stem = pkg.project.replaceAll("/", "∕")
+
+  let filename = `${stem}-${pkg.version}`
+  if (type == 'bottle') {
+    const { platform, arch } = stowage.host ?? utils.host()
+    filename += `+${platform}+${arch}.tar.${stowage.compression}`
+  } else {
+    filename += stowage.extname
+  }
+
+  return usePrefix().www.join(filename)
 }
 
-/// lists all packages with bottles in the cache
 const ls = async () => {
-  const { arch, platform } = utils.host()
+  const rv: Stowed[] = []
 
-  const rv = []
-
-  for await (const file of prefix.ls()) {
-    const match = file[1].name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)\\+${platform}\\+${arch}\\.tar\\.gz$`)
+  for await (const [path, {name, isFile}] of usePrefix().www.ls()) {
+    if (!isFile) continue
+    const match = name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)(\\+(.+?)\\+(.+?))?\\.tar\\.[gx]z$`)
     if (!match) { continue }
-    const [_, p, v] = match
+    const [_, p, v, host, platform, arch] = match
     // Gotta undo the package name manipulation to get the package from the bottle
     const project = p.replaceAll("∕", "/")
     const version = new SemVer(v)
     if (!version) { continue }
-    rv.push({ project, version })
+    const pkg = { project, version }
+    if (host) {
+      const compression = path.extname() == '.tar.gz' ? 'gz' : 'xz'
+      rv.push({
+        pkg,
+        type: 'bottle',
+        host: {
+          platform: platform as SupportedPlatform,
+          arch: arch as SupportedArchitectures
+        },
+        compression,
+        path
+      })
+    } else {
+      rv.push({
+        pkg, type: 'src', path,
+        extname: path.extname(),
+      })
+    }
   }
 
-  return rv.sort(utils.pkg.compare)
-}
-
-/// key used when downloading from our S3 bottle storage
-const s3Key = (pkg: Package) => {
-  const { platform, arch } = utils.host()
-  return `${pkg.project}/${platform}/${arch}/v${pkg.version}.tar.gz`
+  return rv
 }

@@ -18,7 +18,7 @@ export default class SemVer {
 
   raw: string
 
-  constructor(input: string | [number,number,number] | number) {
+  constructor(input: string | [number,number,number] | number | Range) {
     if (typeof input == 'string') {
       const match = input.match(/(\d+)\.(\d+)\.(\d+)/)
       if (!match) throw new Error(`invalid semver: ${input}`)
@@ -31,6 +31,13 @@ export default class SemVer {
       this.minor = 0
       this.patch = 0
       this.raw = input.toString()
+    } else if (input instanceof Range) {
+      const v = input.single()
+      if (!v) throw new Error(`range represents more than a single version: ${input}`)
+      this.major = v.major
+      this.minor = v.minor
+      this.patch = v.patch
+      this.raw = v.raw
     } else {
       this.major = input[0]
       this.minor = input[1]
@@ -99,8 +106,11 @@ export function parse(input: string) {
 export class Range {
   // contract [0, 1] where 0 != 1 and 0 < 1
   set: [SemVer, SemVer][] | '*'
+  raw: string
 
   constructor(input: string) {
+    this.raw = input
+
     if (input === "*") {
       this.set = '*'
     } else {
