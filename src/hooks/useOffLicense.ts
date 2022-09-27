@@ -14,14 +14,14 @@ function key(stowage: Stowage) {
     rv += `/${platform}/${arch}`
   }
   rv += `/v${stowage.pkg.version}`
+  if (stowage.type == 'bottle') {
+    rv += `.tar.${stowage.compression}`
+  } else {
+    rv +=  stowage.extname
+  }
   return rv
 }
 
 function url(stowage: Stowage) {
-  switch (stowage.type) {
-  case 'bottle':
-    return new URL(`https://dist.tea.xyz/${key(stowage)}.tar.${stowage.compression}`)
-  case 'src':
-    return new URL(`https://dist.tea.xyz/${key(stowage)}${stowage.extname}`)
-  }
+  return new URL(`https://dist.tea.xyz/${key(stowage)}`)
 }
