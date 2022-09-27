@@ -49,6 +49,11 @@ export default function useShellEnv(installations: Installation[], pending: Pack
       if (!vars.CMAKE_PREFIX_PATH) vars.CMAKE_PREFIX_PATH = []
       vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
     }
+
+    if (projects.has('gnu.org/autoconf')) {
+      vars.ACLOCAL_PATH ??= []
+      vars.ACLOCAL_PATH.compact_unshift(installation.path.join("share/aclocal").compact()?.string)
+    }
   }
 
    // needed since on Linux library paths aren’t automatically included when linking
