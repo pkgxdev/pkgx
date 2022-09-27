@@ -5,7 +5,7 @@ import SemVer from "semver"
 import Path from "path"
 
 export default function useCache() {
-  return { download, ls, path }
+  return { download, ls, path, decode }
 }
 
 type DownloadOptions = {
@@ -72,22 +72,18 @@ const path = (stowage: Stowage) => {
   return usePrefix().www.join(filename)
 }
 
-const ls = async () => {
-  const rv: Stowed[] = []
-
-  for await (const [path, {name, isFile}] of usePrefix().www.ls()) {
-    if (!isFile) continue
-    const match = name.match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)(\\+(.+?)\\+(.+?))?\\.tar\\.[gx]z$`)
-    if (!match) { continue }
+function decode(path: Path): Stowed | undefined {
+  const match = path.basename().match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)(\\+(.+?)\\+(.+?))?\\.tar\\.[gx]z$`)
+  if (!match) return
     const [_, p, v, host, platform, arch] = match
     // Gotta undo the package name manipulation to get the package from the bottle
     const project = p.replaceAll("∕", "/")
     const version = new SemVer(v)
-    if (!version) { continue }
+    if (!version) return
     const pkg = { project, version }
     if (host) {
       const compression = path.extname() == '.tar.gz' ? 'gz' : 'xz'
-      rv.push({
+      return {
         pkg,
         type: 'bottle',
         host: {
@@ -96,14 +92,20 @@ const ls = async () => {
         },
         compression,
         path
-      })
+      }
     } else {
-      rv.push({
+      return {
         pkg, type: 'src', path,
         extname: path.extname(),
-      })
+      }
     }
-  }
+}
 
+const ls = async () => {
+  const rv: Stowed[] = []
+  for await (const [path] of usePrefix().www.ls()) {
+    const stowed = decode(path)
+    if (stowed) rv.push(stowed)
+  }
   return rv
 }
