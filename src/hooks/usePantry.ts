@@ -119,16 +119,6 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   }
 }
 
-const update = async () => {
-  //FIXME real fix is: don’t use git!
-  const git = usePrefix().join('git-scm.org/v*')
-  if (git.isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
-    await run({
-      cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
-    })
-  }
-}
-
 const getProvides = async (pkg: Package | PackageRequirement) => {
   const yml = await entry(pkg).yml()
   const node = yml["provides"]
@@ -150,21 +140,56 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
+
+const find_git = async () => {
+  const in_cellar = await useCellar().has({
+    project: 'git-scm.org',
+    constraint: new semver.Range('*')
+  })
+  if (in_cellar) {
+    return in_cellar.path.join('bin/git')
+  }
+
+  for (const path_ in Deno.env.get('PATH')?.split(':') ?? []) {
+    const path = new Path(path_).join('git')
+    if (path.isExecutableFile()) {
+      return path
+    }
+  }
+}
+
 //TODO we have a better system in mind than git
-async function installIfNecessary() {
-  if (!prefix.exists()) {
-    const cwd = prefix.parent().parent().mkpath()
+async function install() {
+  if (prefix.exists()) return
+
+  const git = await find_git()
+  const cwd = prefix.parent().parent().mkpath()
+
+  if (git) {
     await run({
-      cmd: ["git", "clone", "https://github.com/teaxyz/pantry"],
+      cmd: [git, "clone", "https://github.com/teaxyz/pantry"],
       cwd
     })
+  } else {
+    //TODO use our tar if necessary
+    const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
+    const zip = await useDownload().download({ src })
+    await run({cmd: ["tar", "xf", zip], cwd})
+  }
+}
+
+const update = async () => {
+  const git = await find_git()
+  const cwd = prefix.parent().parent().mkpath()
+  if (git) {
+    await run({cmd: [git, "pull", "origin", "HEAD", "--no-edit"], cwd})
   }
 }
 
 function entry(pkg: Package | PackageRequirement): Entry {
   const dir = prefix.join(pkg.project)
   const yml = async () => {
-    await installIfNecessary()
+    await install()
     // deno-lint-ignore no-explicit-any
     const yml = await dir.join("package.yml").readYAML() as any
     if (!isPlainObject(yml)) throw "bad-yaml"
@@ -332,6 +357,7 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
 
 //////////////////////////////////////////// useMoustaches() additions
 import useMoustachesBase from "./useMoustaches.ts"
+import useDownload from "./useDownload.ts"
 
 function useMoustaches() {
   const base = useMoustachesBase()

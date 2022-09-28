@@ -72,8 +72,6 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   const text = await path.read()
   const lines = text.split("\n")
 
-  console.debug("HI")
-
   const findTable = (header: string) => {
     let rows: [string, string][] | undefined = undefined
     let found: 'nope' | 'header' | 'table' = 'nope'
@@ -114,8 +112,6 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
   )
 
   const fromFirstHeader = () => {
-    console.debug("HI2")
-
     for (let line of lines) {
       line = line.trim()
       if (/^#+/.test(line)) {
