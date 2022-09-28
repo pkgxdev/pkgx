@@ -37,6 +37,10 @@ const download = async (opts: DownloadOptions) => {
   switch (type) {
   case 'bottle':
     dst = path({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
+    break
+  case 'src': {
+    const extname = new Path(url.pathname).extname()
+    dst = path({ pkg: opts.pkg, type: 'src', extname })
 
     //FIXME: big hacks
     if (opts.pkg.project === "tea.xyz" && url.host === "github.com") {
@@ -45,10 +49,6 @@ const download = async (opts: DownloadOptions) => {
       headers["Authorization"] = `bearer ${token}`
     }
 
-    break
-  case 'src': {
-    const extname = new Path(url.pathname).extname()
-    dst = path({ pkg: opts.pkg, type: 'src', extname })
   } break
   case 'script':
     dst = undefined
