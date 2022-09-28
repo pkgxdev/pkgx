@@ -17,16 +17,15 @@ import Path from "path"
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
   const { download } = useCache()
-  const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
+
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
-
   const tarball = await download({ type: 'bottle', pkg: { project, version } })
 
   try {
-    const sha_url = new URL(`${url}.sha256sum`)
-    await sumcheck(tarball, sha_url)
+    const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
+    await sumcheck(tarball, new URL(`${url}.sha256sum`))
   } catch (err) {
     tarball.rm()
     console.error("we deleted the invalid tarball. try again?")

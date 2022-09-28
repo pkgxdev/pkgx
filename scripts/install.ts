@@ -29,7 +29,7 @@ const rqs = Deno.args.map(project => {
 
 const { pending, installed } = await resolve(rqs)
 
-if (!force) {
+if (!force && installed.length) {
   console.info({'already-installed': installed})
 }
 
