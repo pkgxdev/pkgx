@@ -24,13 +24,21 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
-
   if (!ephemeral && mtime_entry().isFile() && dst.isReadableFile()) {
     headers ??= {}
     headers["If-Modified-Since"] = await mtime_entry().read()
     console.info({querying: src.toString()})
   } else {
     console.info({downloading: src.toString()})
+  }
+
+  // so the user can add private repos if they need to etc.
+  if (/(^|\.)github.com$/.test(src.host)) {
+    const token = Deno.env.get("GITHUB_TOKEN")
+    if (token) {
+      headers ??= {}
+      headers["Authorization"] = `bearer ${token}`
+    }
   }
 
   const rsp = await fetch(src, {headers})

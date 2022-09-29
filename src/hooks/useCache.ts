@@ -41,14 +41,6 @@ const download = async (opts: DownloadOptions) => {
   case 'src': {
     const extname = new Path(url.pathname).extname()
     dst = path({ pkg: opts.pkg, type: 'src', extname })
-
-    //FIXME: big hacks
-    if (opts.pkg.project === "tea.xyz" && url.host === "github.com") {
-      const token = Deno.env.get("GITHUB_TOKEN")
-      if (!token) { throw new Error("private repos require a GITHUB_TOKEN") }
-      headers["Authorization"] = `bearer ${token}`
-    }
-
   } break
   case 'script':
     dst = undefined
