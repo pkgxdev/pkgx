@@ -153,7 +153,7 @@ export class Range {
       return '*'
     } else {
       return this.set.map(([v1, v2]) => {
-        if (v2.minor == 0 && v2.patch == 0) {
+        if (v2.major == v1.major + 1 && v2.minor == 0 && v2.patch == 0) {
           const v = chomp(v1)
           return `^${v}`
         } else if (v2.major == Infinity) {
@@ -164,7 +164,7 @@ export class Range {
           if (v) {
             return `@${v}`
           } else {
-            return `>=${v1}<${v2}`
+            return `>=${chomp(v1)}<${chomp(v2)}`
           }
         }
       }).join(",")
