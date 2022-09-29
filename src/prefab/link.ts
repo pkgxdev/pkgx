@@ -4,38 +4,34 @@ import Path from "path"
 import SemVer, * as semver from "semver"
 
 export default async function link(pkg: Package | Installation) {
-  let installation: Installation
-  if ("version" in pkg) {
-    installation = await useCellar().resolve(pkg)
-  } else {
-    installation = pkg
-    pkg = installation.pkg
-  }
+  const installation = await useCellar().resolve(pkg)
+  pkg = installation.pkg
+
   const versions = (await useCellar()
     .ls(installation.pkg.project))
     .map(({pkg: {version}, path}) => [version, path] as [SemVer, Path])
-    .sort(([a],[b]) => semver.compare(a,b))
+    .sort(([a],[b]) => a.compare(b))
 
   const shelf = installation.path.parent()
   const newest = versions.slice(-1)[0]
   const vMm = `${pkg.version.major}.${pkg.version.minor}`
   const minorRange = new semver.Range(vMm)
-  const mostMinor = versions.filter(v => semver.satisfies(v[0], minorRange)).slice(-1)[0]
+  const mostMinor = versions.filter(v => minorRange.satisfies(v[0])).at(-1)!
 
-  if (semver.neq(mostMinor[0], pkg.version)) return
+  if (mostMinor[0].neq(pkg.version)) return
   // ^^ if we’re not the most minor we definitely not the most major
 
   await makeSymlink(`v${vMm}`)
 
   const majorRange = new semver.Range(pkg.version.major.toString())
-  const mostMajor = versions.filter(v => semver.satisfies(v[0], majorRange)).slice(-1)[0]
+  const mostMajor = versions.filter(v => majorRange.satisfies(v[0])).at(-1)!
 
-  if (semver.neq(mostMajor[0], pkg.version)) return
+  if (mostMajor[0].neq(pkg.version)) return
   // ^^ if we’re not the most major we definitely aren’t the newest
 
   await makeSymlink(`v${pkg.version.major}`)
 
-  if (semver.eq(pkg.version, newest[0])) {
+  if (pkg.version.eq(newest[0])) {
     await makeSymlink('v*')
   }
 

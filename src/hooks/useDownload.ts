@@ -8,8 +8,6 @@ import { crypto } from "deno/crypto/mod.ts"
 
 import Path from "path"
 
-const prefix = usePrefix().join("tea.xyz/var/www")
-
 interface DownloadOptions {
   src: URL
   dst?: Path  /// default is our own unique cache path
@@ -30,7 +28,6 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
-
   if (!ephemeral && mtime_entry().isFile() && dst.isReadableFile()) {
     headers ??= {}
     headers["If-Modified-Since"] = await mtime_entry().read()
@@ -38,6 +35,15 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
 
   } else {
     console.info({downloading: src.toString()})
+  }
+
+  // so the user can add private repos if they need to etc.
+  if (/(^|\.)github.com$/.test(src.host)) {
+    const token = Deno.env.get("GITHUB_TOKEN")
+    if (token) {
+      headers ??= {}
+      headers["Authorization"] = `bearer ${token}`
+    }
   }
 
   const rsp = await fetch(src, {headers})
@@ -101,6 +107,8 @@ function hash_key(url: URL): Path {
     return new Sha256().update(formatted).toString()
   }
 
+  const prefix = usePrefix().www
+
   return prefix
     .join(url.protocol.slice(0, -1))
     .join(url.hostname)
@@ -109,5 +117,5 @@ function hash_key(url: URL): Path {
 }
 
 export default function useDownload() {
-  return { download, prefix, hash_key }
+  return { download, hash_key }
 }

@@ -37,3 +37,5 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - run: tea typecheck
+
+      - run: tea deno lint

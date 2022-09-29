@@ -1,4 +1,4 @@
-import { usePrefix, useCache, useCellar, useFlags, useDownload } from "hooks"
+import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
 import { run, TarballUnarchiver, host } from "utils"
 import { encode } from "deno/encoding/hex.ts"
 import { crypto } from "deno/crypto/mod.ts"
@@ -16,19 +16,20 @@ import Path from "path"
 
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
-  const { s3Key, download } = useCache()
-  const url = new URL(`https://dist.tea.xyz/${s3Key(pkg)}`)
+  const { download } = useCache()
+
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
 
-  const [tarball, local_SHA] = await download({ url, pkg: { project, version } })
+  const [tarball, local_SHA] = await download({ type: 'bottle', pkg: { project, version } })
   
   try {
-    const sha_url = new URL(`${url}.sha256sum`)
-    await sumcheck(sha_url, pkg, local_SHA)
+    const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
+    await sumcheck(new URL(`${url}.sha256sum`), local_SHA)
   } catch (err) {
     tarball.rm()
+    console.error("we deleted the invalid tarball. try again?")
     throw err
   }
 
@@ -52,12 +53,11 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(url: URL, pkg: Package, local_SHA: string) {
+async function sumcheck(url: URL, local_SHA: string) {
   const { download } = useDownload()
-  const dst = new Path(`${useCache().bottle(pkg)}.sha256sum`)
 
   const remote = console.silence(() =>
-    download({ src: url, dst, ephemeral: true })
+    download({ src: url, ephemeral: true })
   ).then(async dl => {
     const txt = await dl[0].read()
     return txt.split(' ')[0]

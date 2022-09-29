@@ -15,18 +15,28 @@ args:
 ---*/
 
 import { link, install, resolve } from "prefab"
-import { pkg } from "utils"
 import { useFlags } from "hooks"
+import { pkg } from "utils"
 
 useFlags()
 
-const pkgs = Deno.args.map(project => {
+const force = !!Deno.env.get("FORCE")
+
+const rqs = Deno.args.map(project => {
   const match = project.match(/projects\/(.+)\/package.yml/)
   return match ? match[1] : project
 }).map(pkg.parse)
 
+const { pending, installed } = await resolve(rqs)
+
+if (!force && installed.length) {
+  console.info({'already-installed': installed})
+}
+
+const pkgs = force ? [...installed.map(x=>x.pkg), ...pending] : pending
+
 // resolve and install precise versions that are available in available inventories
-for await (const pkg of await resolve(pkgs)) {
+for (const pkg of pkgs) {
   console.log({ installing: pkg.project })
   const installation = await install(pkg)
   await link(installation)

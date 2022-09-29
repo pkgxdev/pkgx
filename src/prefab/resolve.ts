@@ -1,28 +1,39 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
 import { useCellar, useInventory } from "hooks"
-import * as semver from "semver"
 
 /// NOTE resolves to bottles
 /// NOTE contract there are no duplicate projects
 
-export default async function resolve(reqs: (Package | PackageRequirement)[]): Promise<Package[]> {
+interface RT {
+  pkgs: Package[]
+  /// some of the pkgs may already be installed
+  /// if so they are in here
+  installed: Installation[]
+
+  /// these are the pkgs that aren’t yet installed
+  pending: Package[]
+}
+
+export default async function resolve(reqs: (Package | PackageRequirement)[]): Promise<RT> {
   const inventory = useInventory()
   const cellar = useCellar()
-  const rv: Package[] = []
+  const rv: RT = { pkgs: [], installed: [], pending: [] }
   let installation: Installation | undefined
   for (const req of reqs) {
-    if ("version" in req) {
-      rv.push(req)
-    } else if (installation = await cellar.has(req)) {
+    if (installation = await cellar.has(req)) {
       // if something is already installed that satisfies the constraint then use it
-      rv.push(installation.pkg)
+      rv.installed.push(installation)
+      rv.pkgs.push(installation.pkg)
     } else {
-      const { project, constraint } = req
-      const versions = await inventory.getVersions({ project, constraint })
-      const version = semver.maxSatisfying(versions, constraint)
-      if (!version) { console.error({ project, constraint, versions }); throw new Error() }
-      rv.push({ version, project })
+      const version = await inventory.select(req)
+      if (!version) {
+        console.error({ ...req, version })
+        throw new Error("no bottle available")
+      }
+      const pkg = { version, project: req.project }
+      rv.pkgs.push(pkg)
+      rv.pending.push(pkg)
     }
   }
   return rv

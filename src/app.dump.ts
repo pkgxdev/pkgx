@@ -1,5 +1,6 @@
+import { Installation, PackageRequirement } from "types"
+import { useShellEnv, usePantry, useCellar } from "hooks"
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
-import { useShellEnv, usePantry } from "hooks"
 import { print, undent } from "utils"
 
 interface Options {
@@ -31,7 +32,23 @@ export default async function dump({ env: blueprint }: Options) {
     await print(unsetEnv("SRCROOT"))
   }
 
-  const { combinedStrings: vars, pending } = await useShellEnv(blueprint?.requirements ?? [])
+  const {installations, pending} = await (async () => {
+    const cellar = useCellar()
+    const installations: Installation[] = []
+    const pending: PackageRequirement[] = []
+
+    for (const rq of blueprint?.requirements ?? []) {
+      const installation = await cellar.has(rq)
+      if (installation) {
+        installations.push(installation)
+      } else {
+        pending.push(rq)
+      }
+    }
+    return {installations, pending}
+  })()
+
+  const { combinedStrings: vars } = useShellEnv(installations)
 
   //TODO if PATH is the same as the current PATH maybe don't do it
   // though that makes the behavior of --env --dump very specific

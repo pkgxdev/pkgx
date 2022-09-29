@@ -1,6 +1,7 @@
 // order is important to avoid circular dependencies and thus uncaught ReferenceErrors
 
 import usePrefix from "./usePrefix.ts"
+import useOffLicense from "./useOffLicense.ts"
 import useDownload from "./useDownload.ts"
 import useCache from "./useCache.ts"
 import useCellar from "./useCellar.ts"
@@ -24,6 +25,7 @@ export {
   useGitHubAPI,
   useInventory,
   useMagic,
+  useOffLicense,
   usePantry,
   usePrefix,
   useShellEnv,

@@ -27,6 +27,10 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: Path
   }
 
   const srcroot = (() => {
+    if (Deno.env.get("TEA_DIR")) {
+      return new Path(Deno.env.get("TEA_DIR")!)
+    }
+
     let dir = cwd
     while (dir.neq(Path.root)) {
       for (const vcs of [".git", ".svn", ".hg"]) {
@@ -111,10 +115,19 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
     ([,x]) => new SemVer(x)
   )
 
-  const fromFirstHeader = () => flatmap(
-    lines.find(line => line.match(/^\s*#\s+.+$/)),
-    semver.coerce
-  )
+  const fromFirstHeader = () => {
+    for (let line of lines) {
+      line = line.trim()
+      if (/^#+/.test(line)) {
+        const match = line.match(new RegExp(`v?(${semver.regex.source})$`))
+        if (match) {
+          return new SemVer(match[1])
+        } else {
+          return  // we only check the first header
+        }
+      }
+    }
+  }
 
   const version = fromMetadataTable() ?? fromFirstHeader()
 

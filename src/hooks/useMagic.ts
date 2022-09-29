@@ -28,7 +28,7 @@ async function muggle(input: Args): Promise<ProcessedArgs> {
     try {
       const url = new URL(arg0)
       if (url.protocol == 'file') return new Path(url.pathname)
-      return await useCache().download_script(url)
+      return await useCache().download({ type: 'script', url })
     } catch {
       return Path.cwd().join(arg0).isFile()
     }
@@ -64,7 +64,7 @@ async function magic(input: Args): Promise<ProcessedArgs> {
     try {
       const url = new URL(arg0)
       if (url.protocol == 'file') return new Path(url.pathname)
-      return await useCache().download_script(url)
+      return await useCache().download({type: 'script', url})
     } catch {
       return Path.cwd().join(arg0).isFile()
     }

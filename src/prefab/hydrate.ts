@@ -9,6 +9,7 @@ import "utils"
 //   eg a tool that lists a directory may depend on a tool that identifies the
 //   mime types of files which could depend on the listing tool
 //FIXME actually we are not refining the constraints currently
+//TODO we are not actually restricting subsequent asks, eg. deno^1 but then deno^1.2
 
 
 interface ReturnValue {
@@ -40,7 +41,7 @@ export default async function hydrate(
 
   const dry = input.map(spec => {
     if ("version" in spec) {
-      return {project: spec.project, constraint: new semver.Range(`=${spec.version}`)}
+      return {project: spec.project, constraint: new semver.Range(spec.version.toString())}
     } else {
       return spec
     }
@@ -59,18 +60,28 @@ export default async function hydrate(
         if (children.has(dep.project)) {
           if (!bootstrap.has(dep.project)) {
             console.warn(`${dep.project} must be bootstrapped to build ${node.project}`)
+
+            //TODO the boostrap should keep the version constraint since it may be different
             bootstrap.add(dep.project)
           }
         } else {
-          /// we already traced this graph
           const found = graph[dep.project]
-          if (found && found.count() < node.count()) {
-            found.parent = node
-          } else if (!found) {
+          if (found) {
+            /// we already traced this graph
+
+            if (found.count() < node.count()) {
+              found.parent = node
+            }
+
+            //FIXME strictly we only have to constrain graphs that contain linkage
+            // ie. you cannot have a binary that links two separate versions of eg. openssl
+            // or (maybe) services, eg. you might suffer if there are two versions of postgres running (though tea mitigates this)
+            found.pkg.constraint = semver.intersect(found.pkg.constraint, dep.constraint)
+
+          } else {
             const new_node = new Node(dep, node)
             graph[dep.project] = new_node
             await ascend(new_node, new Set([...children, dep.project]))
-
           }
         }
       }

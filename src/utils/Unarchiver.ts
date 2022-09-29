@@ -1,6 +1,6 @@
 import { PackageRequirement, Verbosity } from "types"
 import Path from "path"
-import * as semver from "semver"
+import * as semver from "utils/semver.ts"
 
 interface Options {
   dstdir: Path

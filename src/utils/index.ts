@@ -125,8 +125,12 @@ Array.prototype.compact_unshift = function<T>(item: T | null | undefined) {
   if (item) this.unshift(item)
 }
 
-export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined): NonNullable<S> | undefined {
-  if (t) return body(t) ?? undefined
+export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined, opts?: {rescue?: boolean}): NonNullable<S> | undefined {
+  try {
+    if (t) return body(t) ?? undefined
+  } catch (err) {
+    if (!opts?.rescue) throw err
+  }
 }
 
 declare global {
@@ -200,27 +204,17 @@ export function panic<T>(): T {
   throw new Error()
 }
 
+// deno-lint-ignore no-explicit-any
+export function tuplize<T extends any[]>(...elements: T) {
+  return elements
+}
+
 ///////////////////////////////////////////////////////////////////////// pkgs
 import * as pkg from "./pkg.ts"
 export { pkg }
 
-/////////////////////////////////////////////////////////////////////// semver
-import * as semver from "semver"
-
-export function semver_intersection(a: semver.Range, b: semver.Range): semver.Range {
-  if (a.intersects(b)) return a
-  if (b.intersects(a)) return b
-  console.error(a, b)
-  throw new Error()
-}
-
 ///////////////////////////////////////////////////////////////////// platform
-// when we support more variants of these that require specification
-// we will tuple a version in with each eg. 'darwin' | ['windows', 10 | 11 | '*']
-export const SupportedPlatforms = ["darwin", "linux", "windows"] as const
-export type SupportedPlatform = typeof SupportedPlatforms[number]
-
-export type SupportedArchitectures = 'x86-64' | 'aarch64'
+import { SupportedPlatform, SupportedArchitectures } from "types"
 
 interface HostReturnValue {
   platform: SupportedPlatform

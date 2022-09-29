@@ -208,19 +208,14 @@ export default class Path {
     return [d, b]
   }
 
-  /// this static version provided so you can extnames for URLs etc.
-  static extname(input: string): string {
-    const match = input.match(/\.tar\.\w+$/)
+  /// the file extension with the leading period
+  extname(): string {
+    const match = this.string.match(/\.tar\.\w+$/)
     if (match) {
       return match[0]
     } else {
-      return sys.extname(input)
+      return sys.extname(this.string)
     }
-  }
-
-  /// the file extension with the leading period
-  extname(): string {
-    return Path.extname(this.string)
   }
 
   basename(): string {
@@ -269,6 +264,13 @@ export default class Path {
   mkdir(): Path {
     if (!this.isDirectory()) {
       Deno.mkdirSync(this.string)
+    }
+    return this
+  }
+
+  isEmpty(): Path | undefined {
+    for (const _ of Deno.readDirSync(this.string)) {
+      return
     }
     return this
   }
@@ -322,8 +324,13 @@ export default class Path {
   //TODO would be nice to validate the output against a type
   //TODO shouldn't be part of this module since we want to publish it
   async readYAML(): Promise<unknown> {
-    const txt = await this.read()
-    return parseYaml(txt)
+    try {
+      const txt = await this.read()
+      return parseYaml(txt)
+    } catch (err) {
+      console.error(this) //because deno errors are shit
+      throw err
+    }
   }
 
   //TODO shouldn't be part of this module since we want to publish it

@@ -1,13 +1,10 @@
-// deno-lint-ignore-file no-cond-assign
-import { Package, PackageRequirement } from "types"
+import { Package, PackageRequirement, Installation } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import SemVer, * as semver from "semver"
 import Path from "path"
-
-type SemVerExtended = SemVer & {pkgraw: string}
 
 interface Entry {
   dir: Path
@@ -26,27 +23,25 @@ export default function usePantry() {
     update,
     getProvides,
     getYAML,
-    prefix: getPrefix,
     resolve
   }
 }
 
 async function resolve(spec: Package | PackageRequirement): Promise<Package> {
-  if ("version" in spec) {
-    return spec
-  } else {
-    const versions = await getVersions(spec)
-    const version = semver.maxSatisfying(versions, spec.constraint)
-    if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
-    return { project: spec.project, version };
-  }
+  const constraint = "constraint" in spec ? spec.constraint : new semver.Range(spec.version.toString())
+  const versions = await getVersions(spec)
+  const version = constraint.max(versions)
+  if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
+  return { project: spec.project, version };
 }
 
 //TODO take `T` and then type check it
-const getYAML = async (pkg: Package | PackageRequirement): Promise<[PlainObject, Path]> => {
+const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => Promise<PlainObject>} => {
   const foo = entry(pkg)
-  const yml = await foo.yml()
-  return [yml, foo.dir.join("package.yml")]
+  return {
+    path: foo.dir.join("package.yml"),
+    parse: foo.yml
+  }
 }
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
@@ -71,6 +66,8 @@ const getRawDistributableURL = (yml: PlainObject) => validate_str(
       : yml.distributable)
 
 const getDistributable = async (pkg: Package) => {
+  const moustaches = useMoustaches()
+
   const yml = await entry(pkg).yml()
   let urlstr = getRawDistributableURL(yml)
   let stripComponents: number | undefined
@@ -81,23 +78,29 @@ const getDistributable = async (pkg: Package) => {
     urlstr = validate_str(yml.distributable)
   }
 
-  urlstr = remapTokens(urlstr, pkg)
+  urlstr = moustaches.apply(urlstr, [
+    ...moustaches.tokenize.version(pkg.version),
+    ...moustaches.tokenize.host()
+  ])
 
   const url = new URL(urlstr)
 
   return { url, stripComponents }
 }
 
-const getScript = async (pkg: Package, key: 'build' | 'test') => {
+const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
   const yml = await entry(pkg).yml()
   const node = yml[key]
 
+  const mm = useMoustaches()
+  const script = (input: string) => mm.apply(validate_str(input), mm.tokenize.all(pkg, deps))
+
   if (isPlainObject(node)) {
-    let raw = remapTokens(validate_str(node.script), pkg)
+    let raw = script(node.script)
 
     let wd = node["working-directory"]
     if (wd) {
-      wd = remapTokens(wd, pkg)
+      wd = mm.apply(wd, [...mm.tokenize.version(pkg.version), ...mm.tokenize.host()])
       raw = undent`
         mkdir -p ${wd}
         cd ${wd}
@@ -108,21 +111,11 @@ const getScript = async (pkg: Package, key: 'build' | 'test') => {
 
     const env = node.env
     if (isPlainObject(env)) {
-      raw = `${expand_env(env, pkg)}\n\n${raw}`
+      raw = `${expand_env(env, pkg, deps)}\n\n${raw}`
     }
     return raw
   } else {
-    return remapTokens(validate_str(node), pkg)
-  }
-}
-
-const update = async () => {
-  //FIXME real fix is: don’t use git!
-  const git = usePrefix().join('git-scm.org/v*')
-  if (git.isDirectory() || Path.root.join("usr/bin/git").isExecutableFile()) {
-    await run({
-      cmd: ["git", "-C", prefix, "pull", "origin", "HEAD", "--no-edit"]
-    })
+    return script(node)
   }
 }
 
@@ -147,21 +140,56 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
+
+const find_git = async () => {
+  const in_cellar = await useCellar().has({
+    project: 'git-scm.org',
+    constraint: new semver.Range('*')
+  })
+  if (in_cellar) {
+    return in_cellar.path.join('bin/git')
+  }
+
+  for (const path_ in Deno.env.get('PATH')?.split(':') ?? []) {
+    const path = new Path(path_).join('git')
+    if (path.isExecutableFile()) {
+      return path
+    }
+  }
+}
+
 //TODO we have a better system in mind than git
-async function installIfNecessary() {
-  if (!prefix.exists()) {
-    const cwd = prefix.parent().parent().mkpath()
+async function install() {
+  if (prefix.exists()) return
+
+  const git = await find_git()
+  const cwd = prefix.parent().parent().mkpath()
+
+  if (git) {
     await run({
-      cmd: ["git", "clone", "https://github.com/teaxyz/pantry"],
+      cmd: [git, "clone", "https://github.com/teaxyz/pantry"],
       cwd
     })
+  } else {
+    //TODO use our tar if necessary
+    const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
+    const zip = await useDownload().download({ src })
+    await run({cmd: ["tar", "xf", zip], cwd})
+  }
+}
+
+const update = async () => {
+  const git = await find_git()
+  const cwd = prefix.parent().parent().mkpath()
+  if (git) {
+    await run({cmd: [git, "pull", "origin", "HEAD", "--no-edit"], cwd})
   }
 }
 
 function entry(pkg: Package | PackageRequirement): Entry {
   const dir = prefix.join(pkg.project)
   const yml = async () => {
-    await installIfNecessary()
+    await install()
     // deno-lint-ignore no-explicit-any
     const yml = await dir.join("package.yml").readYAML() as any
     if (!isPlainObject(yml)) throw "bad-yaml"
@@ -172,17 +200,14 @@ function entry(pkg: Package | PackageRequirement): Entry {
 }
 
 /// returns sorted versions
-async function getVersions(pkg: PackageRequirement): Promise<SemVerExtended[]> {
+async function getVersions(pkg: Package | PackageRequirement): Promise<SemVer[]> {
   const files = entry(pkg)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
-    return versions.map(raw => {
-      const v = parser(validate_str(raw)) ?? panic()
-      const vv = v as SemVerExtended
-      vv.pkgraw = validate_str(raw)
-      return vv
-    })
+    return versions.map(raw =>
+      semver.parse(validate_str(raw)) ?? panic()
+    )
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
@@ -195,7 +220,7 @@ function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
 }
 
-async function handleComplexVersions(versions: PlainObject): Promise<SemVerExtended[]> {
+async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   const [user, repo, ...types] = validate_str(versions.github).split("/")
   const type = types?.join("/").chuzzle() ?? 'releases'
 
@@ -247,7 +272,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
 
   const rsp = await useGitHubAPI().getVersions({ user, repo, type })
 
-  const rv: SemVerExtended[] = []
+  const rv: SemVer[] = []
   for (let name of rsp) {
 
     name = strip(name)
@@ -255,15 +280,12 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
     if (ignore.some(x => x.test(name))) {
       console.debug({ignoring: name, reason: 'explicit'})
     } else {
-      const v = await parser(name)
+      const v = semver.parse(name)
       if (!v) {
         console.warn({ignoring: name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
-        const vv = v as SemVerExtended
         console.verbose({ found: v.toString(), from: name })
-        if (name[0] == 'v') name = name.slice(1) // semver.parse strips this, so we do too
-        vv.pkgraw = name
-        rv.push(vv)
+        rv.push(v)
       } else {
         console.debug({ignoring: name, reason: 'prerelease'})
       }
@@ -272,16 +294,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVerExten
   return rv
 }
 
-const parser = (input: string) => {
-  let v: SemVer | null
-  if (v = semver.parse(input)) return v
-  input = input.trim()
-  let rv: RegExpExecArray | null
-  if (rv = /^v?(\d+\.\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0`)
-  if (rv = /^v?(\d+)$/.exec(input)) return semver.parse(`${rv[1]}.0.0`)
-}
-
-function expand_env(env_: PlainObject, pkg: Package): string {
+function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
   const env = {...env_}
   const sys = host()
 
@@ -332,7 +345,8 @@ function expand_env(env_: PlainObject, pkg: Package): string {
     } else if (value === undefined || value === null) {
       return "0"
     } else if (isString(value)) {
-      return remapTokens(value, pkg)
+      const mm = useMoustaches()
+      return mm.apply(value, mm.tokenize.all(pkg, deps))
     } else if (isNumber(value)) {
       return value.toString()
     }
@@ -340,30 +354,40 @@ function expand_env(env_: PlainObject, pkg: Package): string {
   }
 }
 
-const remapTokens = (input: string, pkg: Package) => {
-  const sys = host()
-  const cellar = useCellar()
-  const prefix = cellar.keg(pkg)
 
-  return [
-    { from: "version",           to: pkg.version.toString() },
-    { from: "version.major",     to: pkg.version.major.toString() },
-    { from: "version.minor",     to: pkg.version.minor.toString() },
-    { from: "version.patch",     to: pkg.version.patch.toString() },
-    { from: "version.build",     to: pkg.version.build.join('+') },
-    { from: "version.marketing", to: `${pkg.version.major}.${pkg.version.minor}` },
-    // deno-lint-ignore no-explicit-any
-    { from: "version.raw",       to: (pkg.version as any).pkgraw },
-    { from: "hw.arch",           to: sys.arch },
-    { from: "hw.target",         to: sys.target },
-    { from: "hw.platform",       to: sys.platform },
-    { from: "prefix",            to: prefix.string },
-    { from: "hw.concurrency",    to: navigator.hardwareConcurrency.toString() },
-    { from: "pkg.pantry-prefix", to: getPrefix(pkg).string },
-    { from: "tea.prefix",        to: usePrefix().string }
-  ].reduce((acc, {from, to}) =>
-    acc.replace(new RegExp(`\\$?{{\\s*${from}\\s*}}`, "g"), to),
-    input)
+//////////////////////////////////////////// useMoustaches() additions
+import useMoustachesBase from "./useMoustaches.ts"
+import useDownload from "./useDownload.ts"
+
+function useMoustaches() {
+  const base = useMoustachesBase()
+
+  const deps = (deps: Installation[]) => {
+    const map: {from: string, to: string}[] = []
+    for (const dep of deps ?? []) {
+      map.push({ from: `deps.${dep.pkg.project}.prefix`, to: dep.path.string })
+      map.push(...useMoustaches().tokenize.version(dep.pkg.version, `deps.${dep.pkg.project}.version`))
+    }
+    return map
+  }
+
+  const pkg = (pkg: Package) => [{ from: "prefix", to: useCellar().keg(pkg).string }]
+
+  const tea = () => [{ from: "tea.prefix", to: usePrefix().string }]
+
+  const all = (pkg_: Package, deps_: Installation[]) => [
+    ...deps(deps_),
+    ...pkg(pkg_),
+    ...tea(),
+    ...base.tokenize.version(pkg_.version),
+    ...base.tokenize.host(),
+  ]
+
+  return {
+    apply: base.apply,
+    tokenize: {
+      ...base.tokenize,
+      deps, pkg, tea, all
+    }
+  }
 }
-
-const getPrefix = (pkg: Package | PackageRequirement) => prefix.join(pkg.project)
