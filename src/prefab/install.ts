@@ -22,11 +22,11 @@ export default async function install(pkg: Package): Promise<Installation> {
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
 
-  const tarball = await download({ url, pkg: { project, version } })
-
+  const [tarball, local_SHA] = await download({ url, pkg: { project, version } })
+  
   try {
     const sha_url = new URL(`${url}.sha256sum`)
-    await sumcheck(tarball, sha_url, pkg)
+    await sumcheck(sha_url, pkg, local_SHA)
   } catch (err) {
     tarball.rm()
     throw err
@@ -52,22 +52,18 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(tarball: Path, url: URL, pkg: Package) {
+async function sumcheck(url: URL, pkg: Package, local_SHA: string) {
   const { download } = useDownload()
   const dst = new Path(`${useCache().bottle(pkg)}.sha256sum`)
-
-  const local = Deno.open(tarball.string, { read: true })
-    .then(file => crypto.subtle.digest("SHA-256", file.readable))
-    .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 
   const remote = console.silence(() =>
     download({ src: url, dst, ephemeral: true })
   ).then(async dl => {
-    const txt = await dl.read()
+    const txt = await dl[0].read()
     return txt.split(' ')[0]
   })
 
-  const [remote_SHA, local_SHA] = await Promise.all([remote, local])
+  const remote_SHA = await remote
 
   console.verbose({ remote_SHA, local_SHA })
 

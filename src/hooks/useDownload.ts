@@ -1,4 +1,4 @@
-import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
+import { readerFromStreamReader, copy, readAll } from "deno/streams/conversion.ts"
 import { useFlags, usePrefix} from "hooks"
 import { flatmap } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
@@ -7,6 +7,7 @@ import { crypto } from "deno/crypto/mod.ts"
 
 
 import Path from "path"
+// import async from '../prefab/install';
 
 const prefix = usePrefix().join("tea.xyz/var/www")
 
@@ -17,7 +18,7 @@ interface DownloadOptions {
   ephemeral?: boolean  /// always download, do not rely on cache
 }
 
-async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<Path> {
+async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path,string]> {
   console.verbose({src: src, dst})
 
   const hash = (() => {
@@ -48,13 +49,18 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
       console.info({downloading: src})
     }
 
-    const rdr = rsp.body?.getReader()
+    const tee = rsp.body?.tee()!
+    
+    const rdr = tee[0].getReader()
+    const rdrC = tee[1].getReader()
+
     if (!rdr) throw new Error()
+    if (!rdrC) throw new Error()
+
     const r = readerFromStreamReader(rdr)
+    const rC = readerFromStreamReader(rdrC)
 
-    const local_SHA = await getlocalSHA(r)
-
-    console.log({local_SHAFromEFfi: local_SHA})
+    const local_SHA = await getlocalSHA(rC)
     
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -68,53 +74,28 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     flatmap(rsp.headers.get("Last-Modified"), text =>
       mtime_entry().write({ text, force: true }))
 
-    return dst
+    return [dst, local_SHA]
   }
   case 304:
     console.verbose("304: not modified")
-    return dst
+    return [dst, "No SHA for 304"]
   default:
     if (numpty && dst.isFile()) {
-      return dst
+      return [dst, "No SHA for"]
     } else {
       throw new Error(`${rsp.status}: ${src}`)
     }
   }
 }
 
-function _append(a: Uint8Array, b: Uint8Array, numOfByteRead: number) {
-  // deno-lint-ignore no-var
-  var c = new Uint8Array(a.length + numOfByteRead);
-  c.set(a, 0);
-  c.set(b.slice(0, numOfByteRead), a.length);
-  return c;
-}
+async function getlocalSHA(r: Deno.Reader) {
 
-function getlocalSHA(r: Deno.Reader) {
+  const buff = await readAll(r)
+  const crypDigest= await crypto.subtle.digest("SHA-256", buff)
+  const local = new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
+
+  return local
   
-  let buf = new Uint8Array(1000);
-  let chunk = new Uint8Array(0);
-  
-  r.read(buf).then(async function readByte(numOfByteRead) {
-    if (numOfByteRead) {
-      
-      console.log({numOfByteRead})
-      
-      chunk = _append(chunk, buf, numOfByteRead);
-      r.read(buf).then(readByte);
-    } else {
-        console.log("reached end of chunk")
-        const local = crypto.subtle.digest("SHA-256", chunk)
-          .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
-      
-        const [local_SHA] = await Promise.all([local])
-
-        console.log({local_SHAEffi: local_SHA})
-
-        return local_SHA
-
-    }
-  });
 }
 
 function hash_key(url: URL): Path {
