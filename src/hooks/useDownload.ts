@@ -7,7 +7,6 @@ import { crypto } from "deno/crypto/mod.ts"
 
 
 import Path from "path"
-// import async from '../prefab/install';
 
 const prefix = usePrefix().join("tea.xyz/var/www")
 
@@ -93,9 +92,7 @@ async function getlocalSHA(r: Deno.Reader) {
   const buff = await readAll(r)
   const crypDigest= await crypto.subtle.digest("SHA-256", buff)
   const local = new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
-
   return local
-  
 }
 
 function hash_key(url: URL): Path {
