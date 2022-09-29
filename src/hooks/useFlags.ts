@@ -145,13 +145,11 @@ export function useArgs(args: string[]): ReturnValue {
   if ((exec?1:0) + (help?1:0) + (dump?1:0) > 1) throw "usage:invalid"
 
   // TEA_DIR must be absolute for security reasons
-  const getcd = () =>
-    flatmap(cd, x => Path.cwd().join(x)) ??
-    flatmap(Deno.env.get("TEA_DIR"), x => new Path(x))
+  const getcd = flatmap(cd, x => Path.cwd().join(x))
 
   return {
     ...getMode(),
-    cd: getcd(),
+    cd: getcd,
     args: {
       env: env ?? false,
       std: unknown,

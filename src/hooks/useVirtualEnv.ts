@@ -27,6 +27,10 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: Path
   }
 
   const srcroot = (() => {
+    if (Deno.env.get("TEA_DIR")) {
+      return new Path(Deno.env.get("TEA_DIR")!)
+    }
+
     let dir = cwd
     while (dir.neq(Path.root)) {
       for (const vcs of [".git", ".svn", ".hg"]) {
