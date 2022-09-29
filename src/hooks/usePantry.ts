@@ -150,8 +150,8 @@ const find_git = async () => {
     return in_cellar.path.join('bin/git')
   }
 
-  for (const path_ in Deno.env.get('PATH')?.split(':') ?? []) {
-    const path = new Path(path_).join('git')
+  for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
+    const path = Path.root.join(path_, 'git')
     if (path.isExecutableFile()) {
       return path
     }
