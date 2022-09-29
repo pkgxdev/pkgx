@@ -12,7 +12,7 @@ export const EnvKeys = [
   'CPATH',
   'XDG_DATA_DIRS',
   'CMAKE_PREFIX_PATH',
-  'DYLD_LIBRARY_PATH'
+  'DYLD_FALLBACK_LIBRARY_PATH'
 ]
 
 interface Response {
@@ -61,7 +61,7 @@ export default function useShellEnv(installations: Installation[], pending: Pack
    if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
     if (isMac) {
-      vars.DYLD_LIBRARY_PATH = vars.LIBRARY_PATH
+      vars.DYLD_FALLBACK_LIBRARY_PATH = vars.LIBRARY_PATH
     }
   }
 
@@ -102,7 +102,7 @@ function suffixes(key: string) {
       return ['share']
     case 'LIBRARY_PATH':
     case 'LD_LIBRARY_PATH':
-    case 'DYLD_LIBRARY_PATH':
+    case 'DYLD_FALLBACK_LIBRARY_PATH':
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
       return []  // we handle these specially
