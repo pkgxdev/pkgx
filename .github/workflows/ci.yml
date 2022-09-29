@@ -34,7 +34,7 @@ jobs:
         with:
           target: test
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
 
       - run: tea typecheck
 
