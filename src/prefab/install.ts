@@ -21,11 +21,12 @@ export default async function install(pkg: Package): Promise<Installation> {
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
-  const tarball = await download({ type: 'bottle', pkg: { project, version } })
 
+  const [tarball, local_SHA] = await download({ type: 'bottle', pkg: { project, version } })
+  
   try {
     const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
-    await sumcheck(tarball, new URL(`${url}.sha256sum`))
+    await sumcheck(new URL(`${url}.sha256sum`), local_SHA)
   } catch (err) {
     tarball.rm()
     console.error("we deleted the invalid tarball. try again?")
@@ -52,21 +53,17 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(tarball: Path, url: URL) {
+async function sumcheck(url: URL, local_SHA: string) {
   const { download } = useDownload()
-
-  const local = Deno.open(tarball.string, { read: true })
-    .then(file => crypto.subtle.digest("SHA-256", file.readable))
-    .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 
   const remote = console.silence(() =>
     download({ src: url, ephemeral: true })
   ).then(async dl => {
-    const txt = await dl.read()
+    const txt = await dl[0].read()
     return txt.split(' ')[0]
   })
 
-  const [remote_SHA, local_SHA] = await Promise.all([remote, local])
+  const remote_SHA = await remote
 
   console.verbose({ remote_SHA, local_SHA })
 
