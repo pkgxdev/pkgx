@@ -12,7 +12,8 @@ export const EnvKeys = [
   'CPATH',
   'XDG_DATA_DIRS',
   'CMAKE_PREFIX_PATH',
-  'DYLD_FALLBACK_LIBRARY_PATH'
+  'DYLD_FALLBACK_LIBRARY_PATH',
+  'SSL_CERT_FILE'
 ]
 
 interface Response {
@@ -53,6 +54,11 @@ export default function useShellEnv(installations: Installation[], pending: Pack
     if (projects.has('gnu.org/autoconf')) {
       vars.ACLOCAL_PATH ??= []
       vars.ACLOCAL_PATH.compact_unshift(installation.path.join("share/aclocal").compact()?.string)
+    }
+
+    if (installation.pkg.project === 'openssl.org') {
+      vars.SSL_CERT_FILE ??= []
+      vars.SSL_CERT_FILE.compact_unshift(installation.path.join("ssl/cert.pem").compact()?.string)
     }
   }
 
@@ -105,6 +111,7 @@ function suffixes(key: string) {
     case 'DYLD_FALLBACK_LIBRARY_PATH':
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
+    case 'SSL_CERT_FILE':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")
