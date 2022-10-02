@@ -553,11 +553,7 @@ deno test \
 ## Typecheck
 
 ```sh
-find \
-  scripts src/app.ts \
-  -name \*.ts \
-  -exec \
-    deno check --import-map="$SRCROOT"/import-map.json {} \;
+deno check --import-map="$SRCROOT"/import-map.json src/*.ts scripts/*.ts
 ```
 
 

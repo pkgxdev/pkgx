@@ -22,8 +22,10 @@ export default async function exec({ args, ...opts }: Options) {
   if (filename?.extname() == '.md') {
     const target = args[1]
     const sh = await useExecutableMarkdown({ filename }).findScript(target)
+    //TODO get shell from YAML, assume bash if not specified because we want `set -e`
     const path = Path.mktmp().join('script').write({ text: undent`
-      #!/bin/sh
+      #!/bin/bash
+      set -e
       ${sh}
       ` }).chmod(0o500).string
     args = [path, ...args.slice(2)]
