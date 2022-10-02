@@ -11,6 +11,8 @@ export interface PackageRequirement {
   constraint: SemVerRange
 }
 
+export type PackageSpecification = Package | PackageRequirement
+
 export interface Installation {
   path: Path
   pkg: Package
