@@ -9,6 +9,8 @@ export function parse(input: string): PackageRequirement | Package {
 
   const project = match[1]
 
+  console.debug({ input })
+
   if (match[2].startsWith("@") || match[2].startsWith("=")) {
     let version = semver.parse(match[2].slice(1))
     if (!version) {

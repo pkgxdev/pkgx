@@ -16,7 +16,7 @@ Change how your team works.
 &nbsp;
 
 
-# tea/cli 0.6.10
+# tea/cli 0.7.0
 
 tea is a universal virtual‑environment manager:
 
@@ -553,11 +553,7 @@ deno test \
 ## Typecheck
 
 ```sh
-find \
-  scripts src/app.ts \
-  -name \*.ts \
-  -exec \
-    deno check --import-map="$SRCROOT"/import-map.json {} \;
+deno check --import-map="$SRCROOT"/import-map.json src/*.ts scripts/*.ts
 ```
 
 

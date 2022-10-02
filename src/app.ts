@@ -9,6 +9,7 @@ import { print } from "utils"
 const rawArgs = useArgs(Deno.args)
 const { silent } = useFlags()
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() })).version?.toString()}+dev`
+// ^^ this is statically replaced at deployment
 
 if (rawArgs.cd) {
   const chdir = rawArgs.cd

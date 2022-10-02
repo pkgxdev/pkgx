@@ -1,6 +1,6 @@
 import { parseFlags } from "cliffy/flags/mod.ts"
-import { flatmap, chuzzle } from "utils"
-import { Verbosity, PackageRequirement } from "types"
+import { flatmap, chuzzle, pkg, pivot } from "utils"
+import { Verbosity, PackageSpecification } from "types"
 import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
@@ -57,7 +57,7 @@ interface Args {
   std: string[]
   fwd: string[]
   env: boolean
-  pkgs: PackageRequirement[]
+  pkgs: PackageSpecification[]
 }
 
 //FIXME -v=99 parses and gives v == 1
@@ -147,14 +147,18 @@ export function useArgs(args: string[]): ReturnValue {
   // TEA_DIR must be absolute for security reasons
   const getcd = flatmap(cd, x => Path.cwd().join(x))
 
+  const [pkgs, std] = pivot<string, PackageSpecification, string>(unknown, arg =>
+    arg.startsWith('+') ? ['L', pkg.parse(arg.slice(1))] : ['R', arg]
+  )
+
   return {
     ...getMode(),
     cd: getcd,
     args: {
       env: env ?? false,
-      std: unknown,
+      std,
       fwd: literal,
-      pkgs: [] //FIXME
+      pkgs
     }
   }
 
