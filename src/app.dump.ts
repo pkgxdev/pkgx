@@ -1,15 +1,16 @@
-import { Installation, PackageRequirement } from "types"
+import { Installation, PackageSpecification } from "types"
 import { useShellEnv, usePantry, useCellar } from "hooks"
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
 import { print, undent } from "utils"
 
 interface Options {
   env: VirtualEnv | undefined
+  pkgs: PackageSpecification[]
 }
 
 //TODO needs to take a argish parameter
 
-export default async function dump({ env: blueprint }: Options) {
+export default async function dump({ env: blueprint, pkgs }: Options) {
   console.verbose({ blueprint })
 
   const shell = Deno.env.get("SHELL")?.split('/').pop()
@@ -35,9 +36,9 @@ export default async function dump({ env: blueprint }: Options) {
   const {installations, pending} = await (async () => {
     const cellar = useCellar()
     const installations: Installation[] = []
-    const pending: PackageRequirement[] = []
+    const pending: PackageSpecification[] = []
 
-    for (const rq of blueprint?.requirements ?? []) {
+    for (const rq of pkgs) {
       const installation = await cellar.has(rq)
       if (installation) {
         installations.push(installation)
