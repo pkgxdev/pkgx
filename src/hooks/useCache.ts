@@ -25,12 +25,6 @@ const download = async (opts: DownloadOptions) => {
   const { download } = useDownload()
 
   const { type } = opts
-  let url: URL
-  if (type == 'bottle') {
-    url = useOffLicense('s3').url({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
-  } else {
-    url = opts.url
-  }
 
   const headers: HeadersInit = {}
   let dst: Path | undefined
@@ -39,11 +33,26 @@ const download = async (opts: DownloadOptions) => {
     dst = path({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
     break
   case 'src': {
-    const extname = new Path(url.pathname).extname()
+    const extname = opts.url.path().extname()
     dst = path({ pkg: opts.pkg, type: 'src', extname })
   } break
   case 'script':
     dst = undefined
+  }
+
+  let url: URL
+  if (type == 'bottle') {
+    url = useOffLicense('s3').url({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
+  } else if(type == 'src') {
+    const extname = opts.url.path().extname()
+    url = useOffLicense('s3').url({ pkg: opts.pkg, type: 'src', extname })
+    try {
+      return await download({ src: url, dst, headers })
+    } catch {
+      url = opts.url
+    }
+  } else {
+    url = opts.url
   }
 
   return await download({ src: url, dst, headers })
