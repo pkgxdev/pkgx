@@ -79,13 +79,13 @@ async function readYAMLFrontMatter(path: Path): Promise<unknown> {
   let line = lines.shift()
   while (path !== undefined) {
     line = lines.shift()
-    if (line?.trim().match(/((\/\*\s*)?---$|^#\s*---$)/)) break
+    if (line?.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) break
   }
   if (lines.length == 0) throw "no-front-matter"
   let yaml = ''
   while (line !== undefined) {
     line = lines.shift()
-    if (line?.trim().match(/(^---(\s*\*\/)?$|#\s*---$)/)) break
+    if (line?.trim().match(/^((#|\/\/)\s*)?---(\s*\*\/)?$/)) break
     yaml += line?.replace(/^#\s*/, '')
     yaml += "\n"
   }
