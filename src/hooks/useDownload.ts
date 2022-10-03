@@ -65,7 +65,6 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     const rC = readerFromStreamReader(rdrC)
 
     const local_SHA = await getlocalSHA(rC)
-    console.log({local_SHA})
     
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -96,9 +95,8 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
 async function getlocalSHA(r: Deno.Reader) {
 
   const buff = await readAll(r)
-  const crypDigest= await crypto.subtle.digest("SHA-256", buff)
-  const local = new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
-  return local
+  const crypDigest = await crypto.subtle.digest("SHA-256", buff)
+  return new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
 }
 
 function hash_key(url: URL): Path {
