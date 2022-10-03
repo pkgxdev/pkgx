@@ -187,8 +187,11 @@ function getVerbosity({v, verbose, silent}: {v?: number, verbose?: boolean, sile
 
 function getMagic(muggle: boolean | undefined): boolean {
   if (muggle !== undefined) return !muggle
+  if (Deno.env.get("MUGGLE") == "1") return false
   const env = Deno.env.get("MAGIC")
   if (env === "0") return false
+  // because darwinsys.com/file uses the env var `MAGIC`
+  if (env?.startsWith("/")) console.warn("tea: MAGIC enabled! set MUGGLE=1 if undesired")
   return true
 }
 
