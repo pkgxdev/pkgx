@@ -15,7 +15,7 @@ interface DownloadOptions {
   ephemeral?: boolean  /// always download, do not rely on cache
 }
 
-async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path,string]> {
+async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path, {sha: string}]> {
   console.verbose({src: src, dst})
 
   const hash = (() => {
@@ -32,7 +32,6 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     headers ??= {}
     headers["If-Modified-Since"] = await mtime_entry().read()
     console.info({querying: src.toString()})
-
   } else {
     console.info({downloading: src.toString()})
   }
@@ -66,6 +65,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     const rC = readerFromStreamReader(rdrC)
 
     const local_SHA = await getlocalSHA(rC)
+    console.log({local_SHA})
     
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -79,14 +79,14 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     flatmap(rsp.headers.get("Last-Modified"), text =>
       mtime_entry().write({ text, force: true }))
 
-    return [dst, local_SHA]
+    return [dst, {sha: local_SHA}]
   }
   case 304:
     console.verbose("304: not modified")
-    return [dst, "No SHA for 304"]
+    return [dst, {sha: "No SHA for 304"}]
   default:
     if (numpty && dst.isFile()) {
-      return [dst, "No SHA for"]
+      return [dst, {sha: "No SHA for"}]
     } else {
       throw new Error(`${rsp.status}: ${src}`)
     }
