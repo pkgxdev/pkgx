@@ -334,27 +334,6 @@ export default class Path {
     }
   }
 
-  //TODO shouldn't be part of this module since we want to publish it
-  async readYAMLFrontMatter(): Promise<unknown> {
-    //TODO reading whole file is inefficient, read in chunks until we find the end of the front matter
-    const txt = await this.read()
-    const lines = txt.split("\n")
-    let line = lines.shift()
-    while (line !== undefined) {
-      line = lines.shift()
-      if (line?.match(/---\s*$/)) break
-    }
-    if (lines.length == 0) throw "no-front-matter"
-    let yaml = ''
-    while (line !== undefined) {
-      line = lines.shift()
-      if (line?.match(/^---\s*/)) break
-      yaml += line
-      yaml += "\n"
-    }
-    return await parseYaml(yaml)
-  }
-
   readJSON(): Promise<unknown> {
     return this.read().then(x => JSON.parse(x))
   }

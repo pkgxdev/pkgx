@@ -34,7 +34,7 @@ interface Return2 extends Return1 {
 }
 
 export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<Return2> {
-  const yaml = await script.readYAMLFrontMatter()
+  const yaml = await readYAMLFrontMatter(script)
   const rv = usePackageYAML(yaml)
 
   const getArgs = () => {
@@ -63,4 +63,31 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
       { from: "home", to: Path.home().string }
     ])
   }
+}
+
+
+import { parse as parseYaml } from "deno/encoding/yaml.ts"
+
+async function readYAMLFrontMatter(path: Path): Promise<unknown> {
+  //TODO reading whole file is inefficient, read in chunks until we find the end of the front matter
+
+  //TODO be smart with knowing the comment types
+  // this parsing logic should be in the pantry ofc
+
+  const txt = await path.read()
+  const lines = txt.split("\n")
+  let line = lines.shift()
+  while (path !== undefined) {
+    line = lines.shift()
+    if (line?.trim().match(/((\/\*\s*)?---$|^#\s*---$)/)) break
+  }
+  if (lines.length == 0) throw "no-front-matter"
+  let yaml = ''
+  while (line !== undefined) {
+    line = lines.shift()
+    if (line?.trim().match(/(^---(\s*\*\/)?$|#\s*---$)/)) break
+    yaml += line?.replace(/^#\s*/, '')
+    yaml += "\n"
+  }
+  return await parseYaml(yaml)
 }

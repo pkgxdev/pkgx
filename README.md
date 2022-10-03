@@ -1,18 +1,5 @@
 ![tea](https://tea.xyz/banner.png)
 
-Package managers prop up every developer’s stack.
-With great power comes great responsibility—but like—packagers sit beneath all other developer tools;
-couldn’t they do so much more?
-
-We think so.
-
-tea abstracts away packaging; its a *universal* virtual environment manager,
-a *universal* interpreter; it’s a *universal* dependency manager.
-tea makes packaging *programmable* by exposing it as a set of primitives that can be composed into entirely new tools.
-Change how you work.
-Change how your team works.
-*Change how the world works*.
-
 *tea is not a package manager*: it’s *unified packaging infrastructure*.
 We’re all doing our part and our part is to make it so you don’t have to
 spare a brain cycle for tooling, build systems, libraries, vendors or any of
@@ -22,7 +9,7 @@ that part; it’s going to *change the world*.
 &nbsp;
 
 
-# tea/cli 0.7.0
+# tea/cli 0.7.1
 
 tea is a universal virtual‑environment manager:
 
