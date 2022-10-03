@@ -13,6 +13,12 @@ Change how you work.
 Change how your team works.
 *Change how the world works*.
 
+*tea is not a package manager*: it’s *unified packaging infrastructure*.
+We’re all doing our part and our part is to make it so you don’t have to
+spare a brain cycle for tooling, build systems, libraries, vendors or any of
+that bullshit that isn’t *your code* because your code—that’s your part and
+that part; it’s going to *change the world*.
+
 &nbsp;
 
 

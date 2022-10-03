@@ -89,18 +89,27 @@ async function magic(input: Args): Promise<ProcessedArgs> {
       return { mode, args, pkgs, env }
     } else {
       // pushing at front so later specification tromps it
-      const push = (project: string) => pkgs.unshift({ project, constraint: new semver.Range("*") })
+      const push = (project: string, ...args: string[]) => {
+        pkgs.unshift({ project, constraint: new semver.Range("*") })
+        args.push(...args)
+      }
       const args: string[] = []
 
       switch (script.extname()) {
       case ".py":
-        args.push("python")
-        push("python.org")
+        push("python.org", "python")
+        break
+      case ".js":
+        push("nodejs.org", "node")
         break
       case ".ts":
-      case ".js":
-        args.push("deno", "run")
-        push("deno.land")
+        push("deno.land", "deno", "run")
+        break
+      case ".go":
+        push("go.dev", "go", "run")
+        break
+      case ".pl":
+        push("perl.org", "perl")
         break
       }
 
