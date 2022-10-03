@@ -1,14 +1,14 @@
 import { useFlags, useShellEnv, usePantry, useExecutableMarkdown } from "hooks"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "hooks/useVirtualEnv.ts"
-import { PackageRequirement } from "types"
+import { PackageSpecification } from "types"
 import { run, undent } from "utils"
 import Path from "path"
 
 type Options = {
   args: string[]
   env: VirtualEnv | undefined
-  pkgs: PackageRequirement[]
+  pkgs: PackageSpecification[]
 }
 
 export default async function exec({ args, ...opts }: Options) {
@@ -22,8 +22,10 @@ export default async function exec({ args, ...opts }: Options) {
   if (filename?.extname() == '.md') {
     const target = args[1]
     const sh = await useExecutableMarkdown({ filename }).findScript(target)
+    //TODO get shell from YAML, assume bash if not specified because we want `set -e`
     const path = Path.mktmp().join('script').write({ text: undent`
-      #!/bin/sh
+      #!/bin/bash
+      set -e
       ${sh}
       ` }).chmod(0o500).string
     args = [path, ...args.slice(2)]
@@ -43,8 +45,8 @@ export default async function exec({ args, ...opts }: Options) {
 }
 
 /////////////////////////////////////////////////////////////
-async function install(dry: PackageRequirement[]) {
-  const get = (x: PackageRequirement) => usePantry().getDeps(x).then(x => x.runtime)
+async function install(dry: PackageSpecification[]) {
+  const get = (x: PackageSpecification) => usePantry().getDeps(x).then(x => x.runtime)
   const wet = await hydrate(dry, get)   ; console.debug({wet})
   const gas = await resolve(wet.pkgs)   ; console.debug({gas})
 

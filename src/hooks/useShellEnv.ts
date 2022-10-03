@@ -12,7 +12,8 @@ export const EnvKeys = [
   'CPATH',
   'XDG_DATA_DIRS',
   'CMAKE_PREFIX_PATH',
-  'DYLD_LIBRARY_PATH'
+  'DYLD_FALLBACK_LIBRARY_PATH',
+  'SSL_CERT_FILE'
 ]
 
 interface Response {
@@ -54,6 +55,11 @@ export default function useShellEnv(installations: Installation[], pending: Pack
       vars.ACLOCAL_PATH ??= []
       vars.ACLOCAL_PATH.compact_unshift(installation.path.join("share/aclocal").compact()?.string)
     }
+
+    if (installation.pkg.project === 'openssl.org') {
+      vars.SSL_CERT_FILE ??= []
+      vars.SSL_CERT_FILE.compact_unshift(installation.path.join("ssl/cert.pem").compact()?.string)
+    }
   }
 
    // needed since on Linux library paths aren’t automatically included when linking
@@ -61,7 +67,7 @@ export default function useShellEnv(installations: Installation[], pending: Pack
    if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
     if (isMac) {
-      vars.DYLD_LIBRARY_PATH = vars.LIBRARY_PATH
+      vars.DYLD_FALLBACK_LIBRARY_PATH = vars.LIBRARY_PATH
     }
   }
 
@@ -102,9 +108,10 @@ function suffixes(key: string) {
       return ['share']
     case 'LIBRARY_PATH':
     case 'LD_LIBRARY_PATH':
-    case 'DYLD_LIBRARY_PATH':
+    case 'DYLD_FALLBACK_LIBRARY_PATH':
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
+    case 'SSL_CERT_FILE':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")

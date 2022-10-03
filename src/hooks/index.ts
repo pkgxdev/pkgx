@@ -14,6 +14,7 @@ import useSourceUnarchiver from "./useSourceUnarchiver.ts"
 import usePantry from "./usePantry.ts"
 import useVirtualEnv from "./useVirtualEnv.ts"
 import useMagic from "./useMagic.ts"
+import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
 
 // but we can sort these alphabetically
 export {
@@ -26,6 +27,8 @@ export {
   useInventory,
   useMagic,
   useOffLicense,
+  usePackageYAML,
+  usePackageYAMLFrontMatter,
   usePantry,
   usePrefix,
   useShellEnv,

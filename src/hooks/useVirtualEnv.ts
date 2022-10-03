@@ -32,7 +32,8 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: Path
     }
 
     let dir = cwd
-    while (dir.neq(Path.root)) {
+    const home = Path.home()
+    while (dir.neq(Path.root) && dir.neq(home)) {
       for (const vcs of [".git", ".svn", ".hg"]) {
         if (dir.join(vcs).isDirectory()) return dir
       }

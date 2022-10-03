@@ -150,8 +150,8 @@ const find_git = async () => {
     return in_cellar.path.join('bin/git')
   }
 
-  for (const path_ in Deno.env.get('PATH')?.split(':') ?? []) {
-    const path = new Path(path_).join('git')
+  for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
+    const path = Path.root.join(path_, 'git')
     if (path.isExecutableFile()) {
       return path
     }
@@ -163,18 +163,18 @@ async function install() {
   if (prefix.exists()) return
 
   const git = await find_git()
-  const cwd = prefix.parent().parent().mkpath()
+  const cwd = prefix.parent().mkpath()
 
   if (git) {
     await run({
-      cmd: [git, "clone", "https://github.com/teaxyz/pantry"],
+      cmd: [git, "clone", "https://github.com/teaxyz/pantry", "."],
       cwd
     })
   } else {
     //TODO use our tar if necessary
     const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
     const zip = await useDownload().download({ src })
-    await run({cmd: ["tar", "xf", zip], cwd})
+    await run({cmd: ["tar", "xzf", zip, "--strip-components=1"], cwd})
   }
 }
 

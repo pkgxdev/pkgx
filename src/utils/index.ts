@@ -133,6 +133,19 @@ export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undef
   }
 }
 
+export function pivot<E, L, R>(input: E[], body: (e: E) => ['L', L] | ['R', R]): [L[], R[]] {
+  const rv = {
+    'L': [] as L[],
+    'R': [] as R[]
+  }
+  for (const e of input) {
+    const [side, value] = body(e)
+    // deno-lint-ignore no-explicit-any
+    rv[side].push(value as any)
+  }
+  return [rv['L'], rv['R']]
+}
+
 declare global {
   interface Promise<T> {
     swallow(err: unknown): Promise<T | undefined>

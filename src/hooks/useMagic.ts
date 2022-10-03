@@ -1,9 +1,8 @@
-import { PackageRequirement } from "types"
-import { flatmap } from "utils"
+import { usePackageYAMLFrontMatter, useExecutableMarkdown, useCache } from "hooks"
 import useFlags, { ReturnValue, Mode } from "hooks/useFlags.ts"
 import useVirtualEnv, { VirtualEnv } from "hooks/useVirtualEnv.ts"
-import { useExecutableMarkdown, useCache } from "hooks"
-import { usePackageYAMLFrontMatter } from "hooks/usePackageYAML.ts"
+import { PackageSpecification } from "types"
+import { flatmap } from "utils"
 import Path from "path"
 import * as semver from "semver"
 
@@ -13,7 +12,7 @@ export type ProcessedArgs = {
   mode: Mode
   args: string[]
   env: VirtualEnv | undefined
-  pkgs: PackageRequirement[]  // env.pkgs + explicit on CLI + YAML front matter etc.
+  pkgs: PackageSpecification[]  // env.pkgs + explicit on CLI + YAML front matter etc.
 }
 
 export default async function useMagic(input: Args): Promise<ProcessedArgs> {
@@ -38,15 +37,15 @@ async function muggle(input: Args): Promise<ProcessedArgs> {
 
   const [args, pkgs] = await (async () => {
     if (!script) return [
-      getArguments(input),
+      mkargs(input),
       env?.requirements ?? []
     ]
 
     const yaml = await usePackageYAMLFrontMatter(script, env?.srcroot).swallow("no-front-matter")
 
     return [
-      [...yaml?.getArgs() ?? [], ...getArguments(input)],
-      [...yaml?.getDeps(false) ?? [], ...env?.requirements ?? [], ]
+      [...yaml?.getArgs() ?? [], ...mkargs(input)],
+      [...yaml?.getDeps(false) ?? [], ...env?.requirements ?? [], ...input.args.pkgs]
     ]
   })()
 
@@ -77,18 +76,18 @@ async function magic(input: Args): Promise<ProcessedArgs> {
     if (!env) throw "no env found"
   }
 
+  const pkgs = [...env?.requirements ?? [], ...input.args.pkgs]
+
   if (script) {
     //NOTE if you specify a script it won’t add the env automatically—even if there’s one present
 
     const yaml = await usePackageYAMLFrontMatter(script, env?.srcroot).swallow("no-front-matter")
 
     if (yaml) {
-      const pkgs = [...yaml.getDeps(false), ...env?.requirements ?? []]
-      const args = [...yaml.getArgs(), ...getArguments(input)]
+      pkgs.push(...yaml.getDeps(false))
+      const args = [...yaml.getArgs(), ...mkargs(input)]
       return { mode, args, pkgs, env }
     } else {
-      const pkgs = env?.requirements ?? []
-
       // pushing at front so later specification tromps it
       const push = (project: string) => pkgs.unshift({ project, constraint: new semver.Range("*") })
       const args: string[] = []
@@ -105,7 +104,7 @@ async function magic(input: Args): Promise<ProcessedArgs> {
         break
       }
 
-      args.push(...getArguments(input))
+      args.push(...mkargs(input))
 
       return { mode, args, pkgs, env }
     }
@@ -120,7 +119,7 @@ async function magic(input: Args): Promise<ProcessedArgs> {
     // k, we’re inferring executable markdown
     return {
       mode,
-      pkgs: env?.requirements ?? [],
+      pkgs,
       args: flatmap(env?.requirementsFile, x=>[x.string]) ?? [],
       env
     }
@@ -131,8 +130,8 @@ async function magic(input: Args): Promise<ProcessedArgs> {
       if (await useExecutableMarkdown({ filename: env!.requirementsFile }).findScript(arg0)) {
         return {
           mode,
-          pkgs: env!.requirements,
-          args: [env!.requirementsFile.string, ...getArguments(input)],
+          pkgs,
+          args: [env!.requirementsFile.string, ...mkargs(input)],
           env
         }
       }
@@ -148,17 +147,20 @@ async function magic(input: Args): Promise<ProcessedArgs> {
 
   return {
     mode,
-    pkgs: env?.requirements ?? [],
-    args: getArguments(input),
+    pkgs,
+    args: mkargs(input),
     env
   }
 
   async function maybe_env() {
-    return env ?? (env = await useVirtualEnv().swallow(/not-found/))
+    if (env) return env
+    env = await useVirtualEnv().swallow(/not-found/)
+    pkgs.push(...env?.requirements ?? [])
+    return env
   }
 }
 
-function getArguments(input: Args): string[] {
+function mkargs(input: Args): string[] {
   const args = input.args.std
   if (input.args.fwd.length) args.push("--", ...input.args.fwd)
   return args
