@@ -77,7 +77,7 @@ async function readYAMLFrontMatter(path: Path): Promise<unknown> {
   const txt = await path.read()
   const lines = txt.split("\n")
   let line = lines.shift()
-  while (path !== undefined) {
+  while (line !== undefined) {
     line = lines.shift()
     if (line?.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) break
   }
