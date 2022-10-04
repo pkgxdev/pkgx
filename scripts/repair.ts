@@ -6,7 +6,7 @@ args:
   - deno
   - run
   - --allow-net
-  - --allow-env=TEA_PREFIX,VERBOSE,DEBUG,MAGIC,GITHUB_ACTIONS,JSON,NUMPTY
+  - --allow-env=TEA_PREFIX,VERBOSE,DEBUG,MAGIC,GITHUB_ACTIONS,JSON,NUMPTY,MUGGLE
   - --allow-read={{ tea.prefix }}
   - --allow-write={{ tea.prefix }}
   - --allow-run  # uses `/bin/ln`
