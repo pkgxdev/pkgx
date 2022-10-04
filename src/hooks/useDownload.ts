@@ -56,13 +56,11 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     const tee = rsp.body?.tee()!
     
     const rdr = tee[0].getReader()
-    const rdrC = tee[1].getReader()
-
-    if (!rdr) throw new Error()
-    if (!rdrC) throw new Error()
+    const rdrCloned = tee[1].getReader()
+    if (!rdr || !rdrCloned) throw new Error()
 
     const r = readerFromStreamReader(rdr)
-    const rC = readerFromStreamReader(rdrC)
+    const rC = readerFromStreamReader(rdrCloned)
 
     const local_SHA = await getlocalSHA(rC)
     
@@ -82,10 +80,10 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   }
   case 304:
     console.verbose("304: not modified")
-    return [dst, {sha: "No SHA for 304"}]
+    return [dst, {sha: "No SHA"}]
   default:
     if (numpty && dst.isFile()) {
-      return [dst, {sha: "No SHA for"}]
+      return [dst, {sha: "No SHA"}]
     } else {
       throw new Error(`${rsp.status}: ${src}`)
     }
