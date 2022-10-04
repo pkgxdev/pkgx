@@ -54,7 +54,6 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  in that gap. Also it’s less efficient.
 
 async function sumcheck(tarball: Path, url: URL, local_SHA: {sha: string}) {
-  
   const { download } = useDownload()
 
   if(local_SHA.sha == "No SHA"){
@@ -64,7 +63,6 @@ async function sumcheck(tarball: Path, url: URL, local_SHA: {sha: string}) {
 
     local_SHA = {sha: await local}
   }
-  
   const remote = console.silence(() =>
     download({ src: url, ephemeral: true })
   ).then(async dl => {
