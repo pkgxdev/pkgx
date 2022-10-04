@@ -88,7 +88,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
 }
 
 async function getlocalSHA(rStream: ReadableStream<Uint8Array>) {
-  const crypDigest= await crypto.subtle.digest("SHA-256", rStream)
+  const crypDigest = await crypto.subtle.digest("SHA-256", rStream)
   return new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
 }
 
