@@ -56,13 +56,10 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     const tee = rsp.body?.tee()!
     
     const rdr = tee[0].getReader()
-    const rdrCloned = tee[1].getReader()
-    if (!rdr || !rdrCloned) throw new Error()
+    if (!rdr) throw new Error()
 
     const r = readerFromStreamReader(rdr)
-    const rC = readerFromStreamReader(rdrCloned)
-
-    const local_SHA = await getlocalSHA(rC)
+    const local_SHA = await getlocalSHA(tee[1])
     
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -90,10 +87,8 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   }
 }
 
-async function getlocalSHA(r: Deno.Reader) {
-
-  const buff = await readAll(r)
-  const crypDigest = await crypto.subtle.digest("SHA-256", buff)
+async function getlocalSHA(rStream: ReadableStream<Uint8Array>) {
+  const crypDigest= await crypto.subtle.digest("SHA-256", rStream)
   return new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
 }
 
