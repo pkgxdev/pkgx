@@ -68,26 +68,24 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
 
 import { parse as parseYaml } from "deno/encoding/yaml.ts"
 
-async function readYAMLFrontMatter(path: Path): Promise<unknown> {
-  //TODO reading whole file is inefficient, read in chunks until we find the end of the front matter
-
+async function readYAMLFrontMatter(path: Path): Promise<PlainObject> {
   //TODO be smart with knowing the comment types
   // this parsing logic should be in the pantry ofc
 
-  const txt = await path.read()
-  const lines = txt.split("\n")
-  let line = lines.shift()
-  while (line !== undefined) {
-    line = lines.shift()
-    if (line?.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) break
+  let yaml: string | undefined
+  for await (const line of path.readLines()) {
+    if (yaml !== undefined) {
+      if (line.trim().match(/^((#|\/\/)\s*)?---(\s*\*\/)?$/)) {
+        const rv = await parseYaml(yaml)
+        if (!isPlainObject(rv)) throw new Error("bad-yaml")
+        return rv
+      }
+      yaml += line?.replace(/^#\s*/, '')
+      yaml += "\n"
+    } else if (line.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) {
+      yaml = ''
+    }
   }
-  if (lines.length == 0) throw "no-front-matter"
-  let yaml = ''
-  while (line !== undefined) {
-    line = lines.shift()
-    if (line?.trim().match(/^((#|\/\/)\s*)?---(\s*\*\/)?$/)) break
-    yaml += line?.replace(/^#\s*/, '')
-    yaml += "\n"
-  }
-  return await parseYaml(yaml)
+
+  throw new Error("no-front-matter")
 }

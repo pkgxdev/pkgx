@@ -2,6 +2,7 @@ import { parse as parseYaml } from "deno/encoding/yaml.ts"
 import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
 import { PlainObject } from "is_what"
+import {readLines} from "deno/io/buffer.ts"
 
 // based on https://github.com/mxcl/Path.swift
 
@@ -178,8 +179,7 @@ export default class Path {
     const stack: Path[] = [this]
     while (stack.length > 0) {
       const dir = stack.pop()!
-      const it = Deno.readDir(dir.string)
-      for await (const entry of it) {
+      for await (const entry of Deno.readDir(dir.string)) {
         const path = dir.join(entry.name)
         yield [path, entry]
         if (entry.isDirectory) {
@@ -318,6 +318,11 @@ export default class Path {
 
   read(): Promise<string> {
     return Deno.readTextFile(this.string)
+  }
+
+  readLines(): AsyncIterableIterator<string> {
+    const fd = Deno.openSync(this.string)
+    return readLines(fd)
   }
 
   //FIXME like, we don’t want a hard dependency in the published library
