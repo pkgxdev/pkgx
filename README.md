@@ -9,7 +9,7 @@ that part; it’s going to *change the world*.
 &nbsp;
 
 
-# tea/cli 0.7.1
+# tea/cli 0.8.0
 
 tea is a universal virtual‑environment manager:
 
@@ -215,6 +215,13 @@ with any “how to install tea” preamble nor will they need to google anything
 If they want to learn about tea first they can go to the same URL as they’re
 curl’ing. And as soon as we enable cross platform support this one-liner
 will work for everyone, everywhere.
+
+## Now see here fella, I *hate* installers
+
+We at tea know that feeling, what is the installer *doing to your system
+exactly*? In fact tea is a single binary that you can download and run from
+anywhere, so you can just download our latest [release](/releases) and run it
+from your Downloads directory if you want.
 
 > <details><summary><i>Installing Manually</i></summary><br>
 >
