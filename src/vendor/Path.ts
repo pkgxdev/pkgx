@@ -3,6 +3,7 @@ import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
 import { PlainObject } from "is_what"
 import {readLines} from "deno/io/buffer.ts"
+import "utils"  //FIXME for console.verbose
 
 // based on https://github.com/mxcl/Path.swift
 
