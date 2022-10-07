@@ -11,3 +11,5 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           update-full-release: true
         if: github.event.release.prerelease == false
+permissions:
+  actions: write
