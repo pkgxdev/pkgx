@@ -67,7 +67,7 @@ async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise
     // and steal execution when a target was intended
     // NOTE user can still specify eg. `tea ./foo` if they really want the file
 
-    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(args[0])
+    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(args[0]).swallow(/exe\/md/)
     if (sh) {
       return mksh(sh)
     } else if (args.length == 0) {
@@ -97,7 +97,7 @@ async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise
 
     if (magic) {
       // pushing at front so (any) later specification tromps it
-      const push = (project: string, ...new_args: string[]) => {
+      const unshift = (project: string, ...new_args: string[]) => {
         if (yaml?.pkgs.length == 0) {
           pkgs.unshift({ project, constraint: new semver.Range("*") })
         }
@@ -109,22 +109,22 @@ async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise
       //FIXME no hardcode! pkg.yml knows these things
       switch (path.extname()) {
       case ".py":
-        push("python.org", "python")
+        unshift("python.org", "python")
         break
       case ".js":
-        push("nodejs.org", "node")
+        unshift("nodejs.org", "node")
         break
       case ".ts":
-        push("deno.land", "deno", "run")
+        unshift("deno.land", "deno", "run")
         break
       case ".go":
-        push("go.dev", "go", "run")
+        unshift("go.dev", "go", "run")
         break
       case ".pl":
-        push("perl.org", "perl")
+        unshift("perl.org", "perl")
         break
       case ".rb":
-        push("ruby-lang.org", "ruby")
+        unshift("ruby-lang.org", "ruby")
         break
       }
     }

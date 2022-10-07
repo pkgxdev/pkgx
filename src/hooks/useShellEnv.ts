@@ -82,16 +82,23 @@ export default function useShellEnv({installations, pending}: Options): Record<s
     rv[key] = vars[key]
 
     if (key == 'PATH' && installations.length) {
+      rv[key] ??= []
+
       //NOTE this is intentional to avoid general hell type end-user debugging scenarios
       //SOZZ if this breaks your workflow :(
-        rv[key] = rv[key].filter(x => x !== '/usr/local/bin')
+      rv[key] = rv[key].filter(x => x !== '/usr/local/bin')
 
       /// sooooo, we need to make sure tea is still in the PATH
       const tea = find_tea()
-      if (tea?.string == '/usr/local/bin/tea') {
+      if (tea && !rv[key].includes(tea.parent().string)) {
         // lol, k expand it if possible and stick it on the end
         rv[key].push(tea.readlink().parent().string)
       }
+    }
+
+    if (key == 'PATH') {
+      rv[key] ??= []
+      rv[key].push("/usr/bin", "/bin", "/usr/sbin", "/sbin")
     }
   }
 
