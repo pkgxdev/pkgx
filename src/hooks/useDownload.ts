@@ -15,7 +15,7 @@ interface DownloadOptions {
   ephemeral?: boolean  /// always download, do not rely on cache
 }
 
-async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path, {sha: string}]> {
+async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path, {sha: string | 'No SHA'}]> {
   console.verbose({src: src, dst})
 
   const hash = (() => {

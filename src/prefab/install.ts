@@ -21,7 +21,6 @@ export default async function install(pkg: Package): Promise<Installation> {
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
-
   const [tarball, local_SHA] = await download({ type: 'bottle', pkg: { project, version } })
 
   try {
@@ -53,7 +52,7 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(tarball: Path, url: URL, local_SHA: {sha: string}) {
+async function sumcheck(tarball: Path, url: URL, local_SHA: {sha: string | 'No SHA'}) {
   const { download } = useDownload()
 
   if(local_SHA.sha == "No SHA"){
