@@ -18,7 +18,11 @@ export interface VirtualEnv {
   version?: SemVer
 }
 
-export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: Path.cwd() }): Promise<VirtualEnv> {
+function TEA_DIR() {
+  return flatmap(Deno.env.get("TEA_DIR"), x => new Path(x)) ?? Path.cwd()
+}
+
+export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: TEA_DIR() }): Promise<VirtualEnv> {
   const { magic } = useFlags()
 
   if (!magic) {
@@ -39,7 +43,7 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: Path
       }
       dir = dir.parent()
     }
-    throw "not-found:srcroot"
+    throw new Error("not-found:srcroot")
   })()
 
   const attempt = async (filename: string, fn: (path: Path) => Promise<VirtualEnvSubset | undefined>) => {
