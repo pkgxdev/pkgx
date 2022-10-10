@@ -53,7 +53,11 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
       console.info({downloading: src})
     }
 
-    const tee = rsp.body?.tee()!
+    const tee = rsp.body?.tee()
+
+    if(tee == undefined){
+      throw new Error()
+    }
     
     const rdr = tee[0].getReader()
     if (!rdr) throw new Error()
