@@ -52,15 +52,17 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(tarball: Path, url: URL, local_SHA: {sha: string | 'No SHA'}) {
+async function sumcheck(tarball: Path, url: URL, local: Promise<string | 'No SHA'>) {
   const { download } = useDownload()
 
-  if(local_SHA.sha == "No SHA"){
+  let local_SHA = await local
+  
+  if(local_SHA == "No SHA"){
     const local = Deno.open(tarball.string, { read: true })
     .then(file => crypto.subtle.digest("SHA-256", file.readable))
     .then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 
-    local_SHA = {sha: await local}
+    local_SHA = await local
   }
   const remote = console.silence(() =>
     download({ src: url, ephemeral: true })
@@ -69,11 +71,11 @@ async function sumcheck(tarball: Path, url: URL, local_SHA: {sha: string | 'No S
     return txt.split(' ')[0]
   })
 
-  const remote_SHA = {sha: await remote}
+  const remote_SHA = await remote
 
   console.verbose({ remote_SHA, local_SHA })
 
-  if (remote_SHA.sha != local_SHA.sha) {
+  if (remote_SHA != local_SHA) {
     throw new Error(`expected: ${remote_SHA}`)
   }
 }

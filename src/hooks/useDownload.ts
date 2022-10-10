@@ -15,7 +15,7 @@ interface DownloadOptions {
   ephemeral?: boolean  /// always download, do not rely on cache
 }
 
-async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path, {sha: string | 'No SHA'}]> {
+async function download({ src, dst, headers, ephemeral }: DownloadOptions): Promise<[Path, Promise<string | "No SHA">]> {
   console.verbose({src: src, dst})
 
   const hash = (() => {
@@ -59,7 +59,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     if (!rdr) throw new Error()
 
     const r = readerFromStreamReader(rdr)
-    const local_SHA = await getlocalSHA(tee[1])
+    const local_SHA = getlocalSHA(tee[1])
     
     dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -73,23 +73,22 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
     flatmap(rsp.headers.get("Last-Modified"), text =>
       mtime_entry().write({ text, force: true }))
 
-    return [dst, {sha: local_SHA}]
+    return [dst, local_SHA]
   }
   case 304:
     console.verbose("304: not modified")
-    return [dst, {sha: "No SHA"}]
+    return [dst, Promise.resolve("No SHA")]
   default:
     if (numpty && dst.isFile()) {
-      return [dst, {sha: "No SHA"}]
+      return [dst, Promise.resolve("No SHA")]
     } else {
       throw new Error(`${rsp.status}: ${src}`)
     }
   }
 }
 
-async function getlocalSHA(rStream: ReadableStream<Uint8Array>) {
-  const crypDigest = await crypto.subtle.digest("SHA-256", rStream)
-  return new TextDecoder().decode(encode(new Uint8Array(crypDigest)))
+function getlocalSHA(rStream: ReadableStream<Uint8Array>) {
+  return crypto.subtle.digest("SHA-256", rStream).then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 }
 
 function hash_key(url: URL): Path {
