@@ -155,6 +155,7 @@ declare global {
 Promise.prototype.swallow = function(gristle: unknown) {
   return this.catch((err: unknown) => {
     if (err instanceof Error) err = err.message
+    if (isPlainObject(err) && isString(err.code)) err = err.code
     if (isRegExp(gristle) && isString(err)) {
       if (!err.match(gristle)) throw err
     } else if (err !== gristle) {

@@ -37,7 +37,7 @@ const pkgs = force ? [...installed.map(x=>x.pkg), ...pending] : pending
 
 // resolve and install precise versions that are available in available inventories
 for (const pkg of pkgs) {
-  console.log({ installing: pkg.project })
+  console.info({ installing: pkg.project })
   const installation = await install(pkg)
   await link(installation)
 }

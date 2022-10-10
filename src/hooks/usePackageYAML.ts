@@ -33,8 +33,14 @@ interface Return2 extends Return1 {
   getArgs: () => string[]
 }
 
-export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<Return2> {
-  const yaml = await script.readYAMLFrontMatter()
+interface FrontMatter {
+  args: string[]
+  pkgs: PackageRequirement[]
+}
+
+export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<FrontMatter | undefined> {
+  const yaml = await readYAMLFrontMatter(script)
+  if (!yaml) return
   const rv = usePackageYAML(yaml)
 
   const getArgs = () => {
@@ -51,7 +57,11 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
       return fn1()
     }
   }
-  return {...rv, getArgs }
+
+  return {
+    pkgs: rv.getDeps(false),
+    args: getArgs()
+  }
 
   function fix(input: string): string {
     const moustaches = useMoustaches()
@@ -62,5 +72,28 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
       { from: "srcroot", to: srcroot!.string},
       { from: "home", to: Path.home().string }
     ])
+  }
+}
+
+
+import { parse as parseYaml } from "deno/encoding/yaml.ts"
+
+async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined> {
+  //TODO be smart with knowing the comment types
+  // this parsing logic should be in the pantry ofc
+
+  let yaml: string | undefined
+  for await (const line of path.readLines()) {
+    if (yaml !== undefined) {
+      if (line.trim().match(/^((#|\/\/)\s*)?---(\s*\*\/)?$/)) {
+        const rv = await parseYaml(yaml)
+        if (!isPlainObject(rv)) throw new Error("bad-yaml")
+        return rv
+      }
+      yaml += line?.replace(/^#\s*/, '')
+      yaml += "\n"
+    } else if (line.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) {
+      yaml = ''
+    }
   }
 }

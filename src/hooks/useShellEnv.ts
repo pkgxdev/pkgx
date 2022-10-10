@@ -1,8 +1,11 @@
-import { Installation, PackageRequirement } from "types"
-import { usePrefix } from "hooks"
+import { Installation, PackageSpecification } from "types"
 import { host } from "utils"
+import Path from "path"
 
-type Env = Record<string, string[]>
+// returns an environment that supports the provided packages
+//TODO possibly should add the env for pending and not delegate via tea
+//TODO like ideally we would provide shims for POSIX and not include the system PATHs at all
+
 export const EnvKeys = [
   'PATH',
   'MANPATH',
@@ -16,16 +19,15 @@ export const EnvKeys = [
   'SSL_CERT_FILE'
 ]
 
-interface Response {
-  vars: Env
-  defaults: Env
-  combined: Env
-  combinedStrings: Record<string, string>
+interface Options {
+  installations: Installation[]
+  pending?: PackageSpecification[],
 }
 
-export default function useShellEnv(installations: Installation[], pending: PackageRequirement[] = []): Response {
-  const vars: Env = {}
+export default function useShellEnv({installations, pending}: Options): Record<string, string[]> {
+  const vars: Record<string, string[]> = {}
   const isMac = host().platform == 'darwin'
+  pending ??= []
 
   const projects = new Set([...installations.map(x => x.pkg.project), ...pending.map(x=>x.project)])
   const has_cmake = projects.has('cmake.org')
@@ -71,29 +73,36 @@ export default function useShellEnv(installations: Installation[], pending: Pack
     }
   }
 
-  //FIXME figure out correct tea-path not assuming 'v*'
-  const tea = usePrefix().join('tea.xyz/v*/bin')
-  //FIXME we add these paths so “binutils” and POSIX-utils are available
-  // but these PATHs will almost certainly contain other things that will
-  // interfere with our ability to create reproducibility
-  //NOTE /usr/local/bin is explicitly NOT ADDED
-  //TODO provide stub packages that exec the actual tools so we can exclude these PATHs
-  if (!vars.PATH) vars.PATH = []
-  vars.PATH.push('/usr/bin', '/bin', '/usr/sbin', '/sbin', tea.string)
-
-  const defaults: Env = {}
-  const combined: Env = {}
-  const combinedStrings: Record<string, string> = {}
+  //FIXME refactor lol
+  const rv: Record<string, string[]> = {}
   for (const key of EnvKeys) {
-    const defaultValue = Deno.env.get(key)
-      ?.split(":")
-      ?.filter(x => !x.startsWith(usePrefix().string)) ?? [] //FIXME not great
-    defaults[key] = defaultValue
-    combined[key] = (vars[key] ?? []).concat(defaultValue)
-    combinedStrings[key] = combined[key].join(":")
+    //FIXME where is this `undefined` __happening__?
+    if (!vars[key]?.chuzzle()) continue
+
+    rv[key] = vars[key]
+
+    if (key == 'PATH' && installations.length) {
+      rv[key] ??= []
+
+      //NOTE this is intentional to avoid general hell type end-user debugging scenarios
+      //SOZZ if this breaks your workflow :(
+      rv[key] = rv[key].filter(x => x !== '/usr/local/bin')
+
+      /// sooooo, we need to make sure tea is still in the PATH
+      const tea = find_tea()
+      if (tea && !rv[key].includes(tea.parent().string)) {
+        // lol, k expand it if possible and stick it on the end
+        rv[key].push(tea.readlink().parent().string)
+      }
+    }
+
+    if (key == 'PATH') {
+      rv[key] ??= []
+      rv[key].push("/usr/bin", "/bin", "/usr/sbin", "/sbin")
+    }
   }
 
-  return { vars, defaults, combined, combinedStrings }
+  return rv
 }
 
 function suffixes(key: string) {
@@ -125,4 +134,11 @@ export function expand(env: Record<string, string[]>) {
     rv += `export ${key}='${value.join(":")}'\n`
   }
   return rv
+}
+
+function find_tea() {
+  for (const bindir of Deno.env.get("PATH")?.split(":") ?? []) {
+    const file = new Path(bindir).join("tea").isExecutableFile()
+    if (file) return file
+  }
 }

@@ -1,29 +1,26 @@
-import useFlags, { useArgs } from "hooks/useFlags.ts"
-import { usePrefix, useMagic, useVirtualEnv } from "hooks"
+import { useArgs } from "hooks/useFlags.ts"
+import { usePrefix, useVirtualEnv } from "hooks"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
 import Path from "path"
 import { print } from "utils"
 
-const rawArgs = useArgs(Deno.args)
-const { silent } = useFlags()
+const [args, {silent}] = useArgs(Deno.args)
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() })).version?.toString()}+dev`
 // ^^ this is statically replaced at deployment
 
-if (rawArgs.cd) {
-  const chdir = rawArgs.cd
+if (args.cd) {
+  const chdir = args.cd
   console.verbose({ chdir })
   Deno.chdir(chdir.string)
 }
 
 try {
-  const { mode, ...args } = await useMagic(rawArgs)
-
-  if (mode == "exec") {
+  if (args.mode == "exec" || args.mode == undefined) {
     announce()
     await exec(args)
-  } else switch (mode[1]) {
+  } else switch (args.mode[1]) {
     case "env":
       await dump(args)
       break
