@@ -1,4 +1,4 @@
-import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
+import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePrefix } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
@@ -34,6 +34,8 @@ export default async function exec(opts: Args) {
   if (flags.json) {
     env["JSON"] = "1"
   }
+
+  env["TEA_PREFIX"] = usePrefix().string
 
   await run({ cmd, env })  //TODO implement `execvp` for deno
 }
