@@ -90,7 +90,7 @@ async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined>
         if (!isPlainObject(rv)) throw new Error("bad-yaml")
         return rv
       }
-      yaml += line?.replace(/^#\s*/, '')
+      yaml += line?.replace(/^#/, '')
       yaml += "\n"
     } else if (line.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) {
       yaml = ''
