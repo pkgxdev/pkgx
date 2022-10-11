@@ -23,12 +23,12 @@ export default async function dump(args: Args) {
     switch (shell) {
     case "fish":
       return [
-        (name: string, val: string) => `set -gx ${name} ${val};`,
+        (name: string, val: string) => `set -gx ${name} '${val}';`,
         (name: string) => `set -e ${name};`
       ]
     default:
       return [
-        (name: string, val: string) => `export ${name}=${val}`,
+        (name: string, val: string) => `export ${name}='${val}'`,
         (name: string) => `unset ${name}`
       ]
   }})()
@@ -36,7 +36,7 @@ export default async function dump(args: Args) {
   // represents the dehydrated initial env
   //FIXME storing in the env is kinda gross
   const defaults = (() => {
-    const json = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(unescape(x)), {rescue: true})
+    const json = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(x), {rescue: true})
     if (isPlainObject(json)) {
       for (const [key, value] of Object.entries(json)) {
         if (!isFullArray(value)) {
@@ -149,15 +149,7 @@ export default async function dump(args: Args) {
     await print("if typeset -f command_not_found_handler >/dev/null; then unset -f command_not_found_handler; fi")
   }
 
-  await print(setEnv("TEA_REWIND", escape(JSON.stringify(defaults))))
-}
-
-function escape(x: string) {
-  return x.replaceAll('"', '%22')
-}
-
-function unescape(x: string) {
-  return x.replaceAll("%22", '"')
+  await print(setEnv("TEA_REWIND", JSON.stringify(defaults)))
 }
 
 function neq(a: string[] | undefined, b: string[] | undefined) {
