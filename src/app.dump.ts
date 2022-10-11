@@ -115,7 +115,9 @@ export default async function dump(args: Args) {
   for (const key of EnvKeys) {
     const value = env[key]
     if (value) {
-      value.push(...defaults[key] ?? [])
+      if (key == 'PATH' && defaults[key]?.length) {
+        value.push(...defaults[key])
+      }
       if (value.length) {
         await print(setEnv(key, value.join(":")))
       }
