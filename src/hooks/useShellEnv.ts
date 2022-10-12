@@ -18,7 +18,8 @@ export const EnvKeys = [
   'CMAKE_PREFIX_PATH',
   'DYLD_FALLBACK_LIBRARY_PATH',
   'SSL_CERT_FILE',
-  'LDFLAGS'
+  'LDFLAGS',
+  'TEA_PREFIX'
 ]
 
 interface Options {
@@ -114,6 +115,8 @@ export default function useShellEnv({installations, pending, pristine}: Options)
   // tea.xyz/gx/cc automatically adds this, but use of any other compilers will not
   rv["LDFLAGS"] = [`-rpath ${usePrefix()}`]
 
+  rv["TEA_PREFIX"] = [usePrefix().string]
+
   return rv
 }
 
@@ -134,6 +137,7 @@ function suffixes(key: string) {
     case 'CMAKE_PREFIX_PATH':
     case 'SSL_CERT_FILE':
     case 'LDFLAGS':
+    case 'TEA_PREFIX':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")

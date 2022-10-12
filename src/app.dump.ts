@@ -80,6 +80,12 @@ export default async function dump(args: Args) {
     // well, only if TEA_REWIND is set since otherwise we already did that
 
     if (Deno.env.get("TEA_REWIND")) {
+      if (Deno.env.get("TEA_REWIND")!.includes("TEA_PREFIX")) {
+        // we do this manually because we also set it for stuff executed through tea
+        // which means when developing tea this otherwise doesn’t get unset lol
+        await print(unsetEnv("TEA_PREFIX"))
+      }
+
       await print(unsetEnv("TEA_REWIND"))
 
       for (const key of [...EnvKeys, 'SRCROOT', 'VERSION']) {
