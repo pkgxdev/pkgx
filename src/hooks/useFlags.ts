@@ -4,6 +4,7 @@ import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
 import Path from "path"
+import { _format } from "https://deno.land/std@0.156.0/path/_util.ts"
 
 // doing here as this is the only file all our scripts import
 set_tmp(usePrefix().join('tea.xyz/tmp'))
@@ -110,7 +111,7 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
         break
       case 'cd':
       case 'chdir':
-        rv.cd = new Path(validate_str(value ?? it.next().value))
+        rv.cd = Path.cwd().join(validate_str(value ?? it.next().value))
         break
       case 'help':
         rv.mode = ['dump', 'help']
@@ -154,7 +155,7 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
           v = (v ?? 0) + 1
           break
         case 'C':
-          rv.cd = new Path(validate_str(it.next().value))
+          rv.cd = Path.cwd().join(validate_str(it.next().value))
           break
         case 'm':
           muggle = true
