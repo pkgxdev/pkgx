@@ -24,9 +24,10 @@ export const EnvKeys = [
 interface Options {
   installations: Installation[]
   pending?: PackageSpecification[],
+  pristine?: boolean
 }
 
-export default function useShellEnv({installations, pending}: Options): Record<string, string[]> {
+export default function useShellEnv({installations, pending, pristine}: Options): Record<string, string[]> {
   const vars: Record<string, string[]> = {}
   const isMac = host().platform == 'darwin'
   pending ??= []
@@ -83,27 +84,29 @@ export default function useShellEnv({installations, pending}: Options): Record<s
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
     if (!vars[key]?.chuzzle()) continue
-
     rv[key] = vars[key]
 
-    if (key == 'PATH' && installations.length) {
+    if (!pristine && key == 'PATH') {
       rv[key] ??= []
 
-      //NOTE this is intentional to avoid general hell type end-user debugging scenarios
-      //SOZZ if this breaks your workflow :(
-      rv[key] = rv[key].filter(x => x !== '/usr/local/bin')
-
-      /// sooooo, we need to make sure tea is still in the PATH
-      const tea = find_tea()
-      if (tea && !rv[key].includes(tea.parent().string)) {
-        // lol, k expand it if possible and stick it on the end
-        rv[key].push(tea.readlink().parent().string)
+      if (!projects.has('tea.xyz')) {
+        const tea = find_tea()
+        if (tea) {
+          const tea = find_tea()?.parent().string
+          if (tea && !rv["PATH"].includes(tea)) {
+            rv["PATH"].push(tea)
+          }
+        }
       }
-    }
 
-    if (key == 'PATH') {
-      rv[key] ??= []
-      rv[key].push("/usr/bin", "/bin", "/usr/sbin", "/sbin")
+      // for std POSIX tools FIXME: we provide shims or pkgs for (at least some of) these
+      //NOTE we deliberately do not include /usr/local/bin
+      //NOTE though we add that back for `tea --dump` since users will want their tools ofc
+      for (const path of ["/usr/bin", "/bin", "/usr/sbin", "/sbin"]) {
+        if (!rv["PATH"].includes(path)) {
+          rv["PATH"].push(path)
+        }
+      }
     }
   }
 
