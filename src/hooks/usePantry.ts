@@ -1,4 +1,4 @@
-import { Package, PackageRequirement, Installation } from "types"
+import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
@@ -55,8 +55,24 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
   // deno-lint-ignore no-explicit-any
   function go(node: any) {
     if (!node) return []
-    return Object.entries(validate_plain_obj(node))
-      .compact(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+    node = validate_plain_obj(node)
+
+    const rv: PackageRequirement[] = []
+    const stack = Object.entries(node)
+    // deno-lint-ignore no-explicit-any
+    let pkg: [string, any] | undefined
+    // deno-lint-ignore no-cond-assign
+    while (pkg = stack.shift()) {
+      const [project, constraint] = pkg
+      if (SupportedPlatforms.includes(project as SupportedPlatform)) {
+        if (host().platform !== project) continue
+        if (constraint === null) continue
+        stack.unshift(...Object.entries(validate_plain_obj(constraint)))
+      } else {
+        rv.compact_push(validatePackageRequirement({ project, constraint }))
+      }
+    }
+    return rv
   }
 }
 
