@@ -216,8 +216,8 @@ function entry(pkg: Package | PackageRequirement): Entry {
 }
 
 /// returns sorted versions
-async function getVersions(pkg: Package | PackageRequirement): Promise<SemVer[]> {
-  const files = entry(pkg)
+async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]> {
+  const files = entry(spec)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
@@ -227,7 +227,7 @@ async function getVersions(pkg: Package | PackageRequirement): Promise<SemVer[]>
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
-    throw new Error()
+    throw new Error(`couldn’t parse versions: ${pkg.str(spec)}`)
   }
 }
 
