@@ -76,22 +76,26 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
   }
 }
 
-const getRawDistributableURL = (yml: PlainObject) => validate_str(
-    isPlainObject(yml.distributable)
-      ? yml.distributable.url
-      : yml.distributable)
-
+const getRawDistributableURL = (yml: PlainObject) => {
+  if (isPlainObject(yml.distributable)) {
+    return validate_str(yml.distributable.url)
+  } else if (isString(yml.distributable)) {
+    return yml.distributable
+  } else if (yml.distributable === null || yml.distributable === undefined) {
+    return
+  } else {
+    throw new Error(`invalid distributable node: ${yml.distributable}`)
+  }
+}
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
   const yml = await entry(pkg).yml()
   let urlstr = getRawDistributableURL(yml)
+  if (!urlstr) return
   let stripComponents: number | undefined
   if (isPlainObject(yml.distributable)) {
-    urlstr = validate_str(yml.distributable.url)
     stripComponents = flatmap(yml.distributable["strip-components"], coerceNumber)
-  } else {
-    urlstr = validate_str(yml.distributable)
   }
 
   urlstr = moustaches.apply(urlstr, [
