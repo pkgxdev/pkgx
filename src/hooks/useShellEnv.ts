@@ -1,5 +1,6 @@
 import { Installation, PackageSpecification } from "types"
 import { host } from "utils"
+import { usePrefix } from "hooks"
 import Path from "path"
 
 // returns an environment that supports the provided packages
@@ -16,7 +17,8 @@ export const EnvKeys = [
   'XDG_DATA_DIRS',
   'CMAKE_PREFIX_PATH',
   'DYLD_FALLBACK_LIBRARY_PATH',
-  'SSL_CERT_FILE'
+  'SSL_CERT_FILE',
+  'LDFLAGS'
 ]
 
 interface Options {
@@ -64,11 +66,14 @@ export default function useShellEnv({installations, pending}: Options): Record<s
     }
   }
 
-   // needed since on Linux library paths aren’t automatically included when linking
-   // so otherwise linked binfiles will not run
+   // this is how we use precise versions of libraries
+   // for your virtual environment
+   //FIXME SIP on macOS prevents DYLD_FALLBACK_LIBRARY_PATH from propogating to grandchild processes
    if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
     if (isMac) {
+      // non FALLBACK variety causes strange issues in edge cases
+      // where our symbols somehow override symbols from the macOS system
       vars.DYLD_FALLBACK_LIBRARY_PATH = vars.LIBRARY_PATH
     }
   }
@@ -102,6 +107,10 @@ export default function useShellEnv({installations, pending}: Options): Record<s
     }
   }
 
+  // required to link to our libs
+  // tea.xyz/gx/cc automatically adds this, but use of any other compilers will not
+  rv["LDFLAGS"] = [`-rpath ${usePrefix()}`]
+
   return rv
 }
 
@@ -121,6 +130,7 @@ function suffixes(key: string) {
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
     case 'SSL_CERT_FILE':
+    case 'LDFLAGS':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")
