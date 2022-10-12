@@ -120,7 +120,11 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 
     let wd = node["working-directory"]
     if (wd) {
-      wd = mm.apply(wd, [...mm.tokenize.version(pkg.version), ...mm.tokenize.host()])
+      wd = mm.apply(wd, [
+        ...mm.tokenize.version(pkg.version),
+        ...mm.tokenize.host(),
+        ...tokenizePackage(pkg)
+      ])
       raw = undent`
         mkdir -p ${wd}
         cd ${wd}
@@ -391,15 +395,13 @@ function useMoustaches() {
     return map
   }
 
-  const pkg = (pkg: Package) => [{ from: "prefix", to: useCellar().keg(pkg).string }]
-
   const tea = () => [{ from: "tea.prefix", to: usePrefix().string }]
 
-  const all = (pkg_: Package, deps_: Installation[]) => [
+  const all = (pkg: Package, deps_: Installation[]) => [
     ...deps(deps_),
-    ...pkg(pkg_),
+    ...tokenizePackage(pkg),
     ...tea(),
-    ...base.tokenize.version(pkg_.version),
+    ...base.tokenize.version(pkg.version),
     ...base.tokenize.host(),
   ]
 
@@ -410,4 +412,8 @@ function useMoustaches() {
       deps, pkg, tea, all
     }
   }
+}
+
+function tokenizePackage(pkg: Package) {
+  return [{ from: "prefix", to: useCellar().keg(pkg).string }]
 }
