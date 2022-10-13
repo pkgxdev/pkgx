@@ -15,38 +15,31 @@ type DownloadOptions = {
   type: 'src',
   url: URL
   pkg: Package
-} | {
-  type: 'script',
-  url: URL
 }
 
 /// download source or bottle
 const download = async (opts: DownloadOptions) => {
   const { download } = useDownload()
-
-  const { type } = opts
-  let url: URL
-  if (type == 'bottle') {
-    url = useOffLicense('s3').url({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
-  } else {
-    url = opts.url
-  }
-
-  const headers: HeadersInit = {}
   let dst: Path | undefined
-  switch (type) {
+  let src: URL
+  switch (opts.type) {
   case 'bottle':
     dst = path({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
+    src = useOffLicense('s3').url({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
     break
   case 'src': {
-    const extname = new Path(url.pathname).extname()
+    const extname = opts.url.path().extname()
     dst = path({ pkg: opts.pkg, type: 'src', extname })
-  } break
-  case 'script':
-    dst = undefined
-  }
-
-  return await download({ src: url, dst, headers })
+    src = useOffLicense('s3').url({ pkg: opts.pkg, type: 'src', extname })
+    try {
+      // see if we cached it
+      return await download({ src, dst })
+    } catch {
+      // oh well, use original sources
+      src = opts.url
+    }
+  }}
+  return await download({ src, dst })
 }
 
 const path = (stowage: Stowage) => {

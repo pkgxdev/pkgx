@@ -1,5 +1,4 @@
-import { parseFlags } from "cliffy/flags/mod.ts"
-import { flatmap, chuzzle, pkg, pivot } from "utils"
+import { flatmap, chuzzle, pkg, validate_str, panic } from "utils"
 import { Verbosity, PackageSpecification } from "types"
 import { isNumber } from "is_what"
 import { set_tmp } from "path"
@@ -32,7 +31,7 @@ export default function useFlags(): Flags & ConvenienceFlags {
   if (!flags) {
     //FIXME scripts/* need this to happen but its yucky
     flags = {
-      verbosity: getVerbosity({}),
+      verbosity: getVerbosity(0),
       magic: getMagic(undefined),
       json: !!Deno.env.get("JSON"),
       numpty: !!Deno.env.get("NUMPTY")
@@ -53,143 +52,164 @@ interface Adjustments {
   cd?: Path
 }
 
-interface Args {
-  std: string[]
-  fwd: string[]
-  env: boolean
+export type Args = {
+  mode?: Mode
+  cd?: Path
+  args: string[]
   pkgs: PackageSpecification[]
+  env?: boolean
 }
 
-//FIXME -v=99 parses and gives v == 1
-// probs we shouldn't allow this, you have to use --verbose to specify it thus
+export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
+  if (flags) throw new Error("contract-violated")
 
-export type ReturnValue = { mode?: Mode } & Adjustments & { args: Args }
+  const rv: Args = {
+    args: [],
+    pkgs: []
+  }
 
-export function useArgs(args: string[]): ReturnValue {
-  if (flags) throw "contract-violated"
+  let muggle: boolean | undefined
+  let v: number | undefined
+  const it = args[Symbol.iterator]()
 
-  const parsedArgs = parseFlags(args, {
-    /// passes args after the script argument to the script
-    stopEarly: true,
-    flags: [{
-      name: "v",
-      collect: true,
-      value: (val: boolean, previous = 0) => val ? previous + 1 : 0,
-    }, {
-      name: "verbose"
-    }, {
-      name: "silent",
-      aliases: ["s"]
-    }, {
-      name: "muggle",
-      type: "boolean",
-      aliases: ["m"]
-    }, {
-      name: "env",
-      aliases: ["E"]
-    }, {
-      name: "dump",
-      type: "string",
-      optionalValue: true
-    }, {
-      name: "d"
-    }, {
-      name: "help",
-      aliases: ["h"]
-    }, {
-      name: "cd",
-      type: "string",
-      aliases: ["C", "chdir"]
-    }, {
-      name: "exec",
-      aliases: ["x"],
-      type: "string"
-    }, {
-      name: "json",
-      aliases: ["j"]
-    }, {
-      name: "version"
-    }, {
-      name: "prefix",
-    }]
-  }) as { flags: {
-    verbose?: boolean,
-    silent?: boolean,
-    dump?: string | true,
-    help?: boolean,
-    env?: boolean,
-    v?: number,
-    muggle?: boolean,
-    cd?: string,
-    exec?: string,
-    json: boolean,
-    version: boolean,
-    d: boolean,
-    prefix: boolean
-  }, unknown: string[], literal: string[] }
+  for (const arg of it) {
+    if (arg.startsWith('+')) {
+      rv.pkgs.push(pkg.parse(arg.slice(1)))
+    } else if (arg.startsWith('--')) {
+      const [,key, , value] = arg.match(/^--(\w+)(=(.+))?$/)!
 
-  const { flags: { d, version, prefix, verbose, json, silent, help, env, dump, v, muggle, cd, exec }, unknown, literal } = parsedArgs
+      switch (key) {
+      case 'dump':
+        switch (value) {
+        case 'help':
+          rv.mode = ['dump', 'help']
+          break
+        case 'version':
+          rv.mode = ['dump', 'version']
+          break
+        case 'prefix':
+          rv.mode = ['dump', 'prefix']
+          break
+        case 'env':
+        case undefined:
+          rv.mode = ['dump', 'env']
+          break
+        default:
+          throw new Error("usage")
+        }
+        break
+      case 'verbose':
+        if (value) {
+          v = chuzzle(parseInt(value) + 1) ?? panic()
+        } else {
+          v = 1
+        }
+        break
+      case 'debug':
+        v = 2
+        break
+      case 'cd':
+      case 'chdir':
+        rv.cd = new Path(validate_str(value ?? it.next().value))
+        break
+      case 'help':
+        rv.mode = ['dump', 'help']
+        break
+      case 'prefix':
+        rv.mode = ['dump', 'prefix']
+        break
+      case 'version':
+        rv.mode = ['dump', 'version']
+        break
+      case 'muggle':
+      case 'disable-magic':
+        muggle = true
+        break
+      case 'magic':
+        muggle = false
+        break
+      case 'silent':
+        v = 0
+        break
+      case 'env':
+        rv.env = parseBool(value) ?? true
+        break
+      case 'disable-env':
+        rv.env = false
+        break
+      }
+    } else if (arg.startsWith('-')) {
+      for (const c of arg.slice(1)) {
+        switch (c) {
+        case 'x':
+          rv.mode = 'exec'
+          break
+        case 'E':
+          rv.env = true
+          break
+        case 'd':
+          rv.mode = ['dump', 'env']
+          break
+        case 'v':
+          v = (v ?? 0) + 1
+          break
+        case 'C':
+          rv.cd = new Path(validate_str(it.next().value))
+          break
+        case 'm':
+          muggle = true
+          break
+        case 'M':
+          muggle = false
+          break
+        case 's':
+          v = 0;
+          break
+        case 'h':
+          rv.mode = ['dump', 'help']
+          break
+        }
+      }
+    } else {
+      rv.args.push(arg)
+      for (const arg of it) {
+        rv.args.push(arg)
+      }
+    }
+  }
 
   flags = {
-    verbosity: getVerbosity({ v, verbose, silent}),
+    verbosity: getVerbosity(v),
     magic: getMagic(muggle),
-    json: json ?? !!Deno.env.get("JSON"),
+    json: !!Deno.env.get("JSON"),
     numpty: !!Deno.env.get("NUMPTY")
   }
 
   applyVerbosity()
 
-  console.debug({ "raw-args": Deno.args })
-  console.debug({ "parsed-args": parsedArgs })
+  const full_flags = useFlags()
+  console.debug({ args: rv, flags: full_flags })
 
-  if ((exec?1:0) + (help?1:0) + (dump?1:0) > 1) throw "usage:invalid"
-
-  // TEA_DIR must be absolute for security reasons
-  const getcd = flatmap(cd, x => Path.cwd().join(x))
-
-  const [pkgs, std] = pivot<string, PackageSpecification, string>(unknown, arg =>
-    arg.startsWith('+') ? ['L', pkg.parse(arg.slice(1))] : ['R', arg]
-  )
-
-  return {
-    ...getMode(),
-    cd: getcd,
-    args: {
-      env: env ?? false,
-      std,
-      fwd: literal,
-      pkgs
-    }
-  }
-
-  function getMode(): { mode?: Mode } {
-    if (dump == "prefix" || prefix) return { mode: ['dump', 'prefix'] }
-    if (dump == "version" || version) return { mode: ['dump','version'] }
-    if (dump == "help" || help) return { mode: ['dump','help'] }
-    if (dump == "env" || dump === true || d) return { mode: ['dump','env'] }
-    if (exec) return { mode: 'exec' }
-    return {}
-  }
+  return [rv, full_flags]
 }
 
-function getVerbosity({v, verbose, silent}: {v?: number, verbose?: boolean, silent?: boolean}): Verbosity {
-  if (isNumber(v) && isNumber(verbose)) return Math.max(verbose, v)
+function getVerbosity(v: number | undefined): Verbosity {
   if (isNumber(v)) return v
-  if (verbose === true) return 2
-  if (isNumber(verbose)) return verbose
-  if (silent) return Verbosity.quiet
-  const env = flatmap(flatmap(Deno.env.get("VERBOSE"), parseInt), chuzzle)
-  if (isNumber(env)) return env + 1
   if (Deno.env.get("DEBUG") == '1') return Verbosity.debug
   if (Deno.env.get("GITHUB_ACTIONS") == 'true' && Deno.env.get("RUNNER_DEBUG") == '1') return Verbosity.debug
-  return Verbosity.normal
+  const env = flatmap(Deno.env.get("VERBOSE"), parseInt)
+  return isNumber(env) ? env : Verbosity.normal
 }
 
 function getMagic(muggle: boolean | undefined): boolean {
   if (muggle !== undefined) return !muggle
+  if (Deno.env.get("MUGGLE") == "1") return false
   const env = Deno.env.get("MAGIC")
-  if (env === "0") return false
-  return true
+  //NOTE darwinsys.com/file uses `MAGIC` and has since 1995 so they have dibs
+  // however it’s basically ok since we provide the above hatch to disable
+  // magic and our default is on so if it is set to a Path then nothing is actually
+  // different from if it wasn't set at all.
+  return env !== "0"
 }
 
 function applyVerbosity() {
@@ -197,7 +217,25 @@ function applyVerbosity() {
   if (flags.verbosity < Verbosity.debug) console.debug = noop
   if (flags.verbosity < Verbosity.loud) console.verbose = noop
   if (flags.verbosity < Verbosity.normal) {
+    console.info = noop
     console.log = noop
     console.error = noop
+  }
+}
+
+function parseBool(input: string) {
+  switch (input) {
+  case '1':
+  case 'true':
+  case 'yes':
+  case 'on':
+  case 'enable':
+    return true
+  case '0':
+  case 'false':
+  case 'no':
+  case 'off':
+  case 'disable':
+    return false
   }
 }

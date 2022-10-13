@@ -2,6 +2,8 @@ import { parse as parseYaml } from "deno/encoding/yaml.ts"
 import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
 import { PlainObject } from "is_what"
+import {readLines} from "deno/io/buffer.ts"
+import "utils"  //FIXME for console.verbose
 
 // based on https://github.com/mxcl/Path.swift
 
@@ -178,8 +180,7 @@ export default class Path {
     const stack: Path[] = [this]
     while (stack.length > 0) {
       const dir = stack.pop()!
-      const it = Deno.readDir(dir.string)
-      for await (const entry of it) {
+      for await (const entry of Deno.readDir(dir.string)) {
         const path = dir.join(entry.name)
         yield [path, entry]
         if (entry.isDirectory) {
@@ -320,6 +321,11 @@ export default class Path {
     return Deno.readTextFile(this.string)
   }
 
+  readLines(): AsyncIterableIterator<string> {
+    const fd = Deno.openSync(this.string)
+    return readLines(fd)
+  }
+
   //FIXME like, we don’t want a hard dependency in the published library
   //TODO would be nice to validate the output against a type
   //TODO shouldn't be part of this module since we want to publish it
@@ -332,27 +338,6 @@ export default class Path {
       console.error(this) //because deno errors are shit
       throw err
     }
-  }
-
-  //TODO shouldn't be part of this module since we want to publish it
-  async readYAMLFrontMatter(): Promise<unknown> {
-    //TODO reading whole file is inefficient, read in chunks until we find the end of the front matter
-    const txt = await this.read()
-    const lines = txt.split("\n")
-    let line = lines.shift()
-    while (line !== undefined) {
-      line = lines.shift()
-      if (line?.match(/---\s*$/)) break
-    }
-    if (lines.length == 0) throw "no-front-matter"
-    let yaml = ''
-    while (line !== undefined) {
-      line = lines.shift()
-      if (line?.match(/^---\s*/)) break
-      yaml += line
-      yaml += "\n"
-    }
-    return await parseYaml(yaml)
   }
 
   readJSON(): Promise<unknown> {
