@@ -55,29 +55,27 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
 
     const tee = rsp.body?.tee()
 
-    if(tee == undefined){
-      throw new Error()
-    }
-    
-    const rdr = tee[0].getReader()
-    if (!rdr) throw new Error()
+    if(!tee) throw new Error()
 
-    const r = readerFromStreamReader(rdr)
-    const local_SHA = getlocalSHA(tee[1])
-    
+    const [fileStream, shaStream] = tee.slice(0, 2)
+    if (!fileStream || !shaStream) { throw new Error("file:no-reader") }
+
+    const fileReader = readerFromStreamReader(fileStream.getReader())
+    const localSha = getLocalSha(shaStream)
+
     dst.parent().mkpath()
-    const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
+    const file = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
-      await copy(r, f)
+      await copy(fileReader, file)
     } finally {
-      f.close()
+      file.close()
     }
 
     //TODO etags too
     flatmap(rsp.headers.get("Last-Modified"), text =>
       mtime_entry().write({ text, force: true }))
 
-    return [dst, local_SHA]
+    return [dst, localSha]
   }
   case 304:
     console.verbose("304: not modified")
@@ -91,7 +89,7 @@ async function download({ src, dst, headers, ephemeral }: DownloadOptions): Prom
   }
 }
 
-function getlocalSHA(rStream: ReadableStream<Uint8Array>) {
+function getLocalSha(rStream: ReadableStream<Uint8Array>) {
   return crypto.subtle.digest("SHA-256", rStream).then(buf => new TextDecoder().decode(encode(new Uint8Array(buf))))
 }
 
