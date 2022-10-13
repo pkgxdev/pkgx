@@ -1,4 +1,4 @@
-import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
+import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePrefix } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
@@ -34,6 +34,8 @@ export default async function exec(opts: Args) {
   if (flags.json) {
     env["JSON"] = "1"
   }
+
+  env["TEA_PREFIX"] = usePrefix().string
 
   await run({ cmd, env })  //TODO implement `execvp` for deno
 }
@@ -79,8 +81,8 @@ async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise
     try {
       const src = new URL(args[0])
       const path =  await useDownload().download({ src })
-      args[0] = path.string
-      return path
+      args[0] = path[0].string
+      return path[0]
     } catch {
       return Path.cwd().join(args[0]).isFile()
     }
