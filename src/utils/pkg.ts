@@ -12,7 +12,12 @@ export function parse(input: string): PackageRequirement | Package {
   console.debug({ input })
 
   if (match[2].startsWith("@") || match[2].startsWith("=")) {
-    let version = semver.parse(match[2].slice(1))
+    const match2 = match[2].slice(1)
+    if (match2 == 'latest') {
+      console.warn(`@latest is deprecated, instead specify \`${project}*' or just \`${project}'`)
+      return { project, constraint: new semver.Range('*') }
+    }
+    let version = semver.parse(match2)
     if (!version) {
       const coercion = parseInt(match[2].slice(1))
       if (Number.isNaN(coercion)) throw new Error()
