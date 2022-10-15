@@ -1,6 +1,6 @@
 import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
-import { useCellar, useGitHubAPI, usePrefix } from "hooks"
+import { useCellar, useGitHubAPI, usePrefix, useDownload } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import SemVer, * as semver from "semver"
@@ -197,7 +197,7 @@ async function install() {
   } else {
     //TODO use our tar if necessary
     const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
-    const { path: zip } = await useDownload().download({ src, mehsha: true })
+    const zip = await useDownload().download({ src })
     await run({cmd: ["tar", "xzf", zip, "--strip-components=1"], cwd})
   }
 }
@@ -381,7 +381,6 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
 
 //////////////////////////////////////////// useMoustaches() additions
 import useMoustachesBase from "./useMoustaches.ts"
-import useDownload from "./useDownload.ts"
 
 function useMoustaches() {
   const base = useMoustachesBase()

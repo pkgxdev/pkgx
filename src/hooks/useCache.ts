@@ -1,11 +1,11 @@
-import { useDownload, usePrefix, useOffLicense } from "hooks"
+import { usePrefix } from "hooks"
 import { Package, Stowed, SupportedArchitectures, SupportedPlatform, Stowage } from "types"
 import * as utils from "utils"
 import SemVer from "semver"
 import Path from "path"
 
 export default function useCache() {
-  return { download, ls, path, decode }
+  return { ls, path, decode }
 }
 
 type DownloadOptions = {
@@ -15,31 +15,6 @@ type DownloadOptions = {
   type: 'src',
   url: URL
   pkg: Package
-}
-
-/// download source or bottle
-const download = async (opts: DownloadOptions) => {
-  const { download } = useDownload()
-  let dst: Path | undefined
-  let src: URL
-  switch (opts.type) {
-  case 'bottle':
-    dst = path({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
-    src = useOffLicense('s3').url({ pkg: opts.pkg, type: 'bottle', compression: 'gz' })
-    break
-  case 'src': {
-    const extname = opts.url.path().extname()
-    dst = path({ pkg: opts.pkg, type: 'src', extname })
-    src = useOffLicense('s3').url({ pkg: opts.pkg, type: 'src', extname })
-    try {
-      // see if we cached it
-      return await download({ src, dst })
-    } catch {
-      // oh well, use original sources
-      src = opts.url
-    }
-  }}
-  return await download({ src, dst })
 }
 
 const path = (stowage: Stowage) => {

@@ -1,6 +1,6 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
 import { useFlags, usePrefix } from "hooks"
-import { flatmap, panic } from "utils"
+import { panic } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import Path from "path"
 
@@ -9,7 +9,6 @@ interface DownloadOptions {
   dst?: Path  /// default is our own unique cache path
   headers?: Record<string, string>
   ephemeral?: boolean  /// always download, do not rely on cache
-  mehsha?: boolean
 }
 
 interface RV {
@@ -20,7 +19,9 @@ interface RV {
   sha: string | undefined
 }
 
-async function download({ src, dst, headers, ephemeral, ...opts }: DownloadOptions): Promise<RV> {
+async function internal<T>({ src, dst, headers, ephemeral }: DownloadOptions,
+  body: (src: ReadableStream<Uint8Array>, dst: Deno.Writer) => Promise<T>): Promise<Path>
+{
   console.verbose({src: src, dst})
 
   const hash = (() => {
@@ -59,57 +60,62 @@ async function download({ src, dst, headers, ephemeral, ...opts }: DownloadOptio
     }
 
     const reader = rsp.body ?? panic()
-
-    dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
-      const sha = await stream(reader, f, opts.mehsha)
+      dst.parent().mkpath()
+      await body(reader, f)
 
       //TODO etags too
-      flatmap(rsp.headers.get("Last-Modified"), text =>
-        mtime_entry().write({ text, force: true }))
-
-      console.verbose({ downloaded: dst, sha })
-
-      return { path: dst, sha }
+      const text = rsp.headers.get("Last-Modified")
+      if (text) mtime_entry().write({ text, force: true })
 
     } finally {
       f.close()
     }
-  }
+  } break
   case 304:
     console.verbose("304: not modified")
-    return { path: dst, sha: undefined }
+    break
   default:
-    if (numpty && dst.isFile()) {
-      return { path: dst, sha: undefined }
-    } else {
+    if (!numpty || !dst.isFile()) {
       throw new Error(`${rsp.status}: ${src}`)
     }
   }
+
+  return dst
 }
 
-async function stream(src: ReadableStream<Uint8Array>, dst: Deno.Writer, hash: boolean | undefined): Promise<string | undefined> {
-  //NOTE copy takes a buf size arg that we may want to try optimizing
+async function download(opts: DownloadOptions): Promise<Path> {
+  return await internal(opts, (src, dst) => copy(readerFromStreamReader(src.getReader()), dst))
+}
 
-  if (!hash) {
-    return copy(readerFromStreamReader(src.getReader()), dst).then(() => undefined)
-  } else {
-    const digest = new Sha256()
+async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sha: string}> {
+  const digest = new Sha256()
+  let run = false
+
+  const path = await internal(opts, (src, dst) => {
+    run = true
     const tee = src.tee()
-
-    const p1 = copy(readerFromStreamReader(tee[0].getReader()), { write: buf => {
+    const p1 = copy(readerFromStreamReader(tee[0].getReader()), dst)
+    const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
       //TODO in separate thread would be likely be faster
       digest.update(buf)
       return Promise.resolve(buf.length)
     }})
+    return Promise.all([p1, p2])
+  })
 
-    const p2 = copy(readerFromStreamReader(tee[1].getReader()), dst)
-
-    await Promise.all([p1, p2])
-
-    return digest.hex()
+  if (!run) {
+    console.info({ verifying: path })
+    const f = await Deno.open(path.string, { read: true })
+    await copy(f, { write: buf => {
+      //TODO in separate thread would likely be faster
+      digest.update(buf)
+      return Promise.resolve(buf.length)
+    }})
   }
+
+  return { path, sha: digest.hex() }
 }
 
 function hash_key(url: URL): Path {
@@ -128,5 +134,5 @@ function hash_key(url: URL): Path {
 }
 
 export default function useDownload() {
-  return { download, hash_key }
+  return { download, hash_key, download_with_sha }
 }

@@ -1,5 +1,6 @@
 import SemVer, { Range as SemVerRange } from "semver"
 import Path from "path"
+import { host } from "./utils/index.ts"
 
 export interface Package {
   project: string
@@ -47,3 +48,7 @@ export type Stowage = {
 
 /// once downloaded, `Stowage` becomes `Stowed`
 export type Stowed = Stowage & { path: Path }
+
+export function StowageNativeBottle(opts: { pkg: Package, compression: 'xz' | 'gz' }): Stowage {
+  return { ...opts, host: host(), type: 'bottle' }
+}

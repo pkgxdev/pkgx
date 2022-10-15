@@ -556,6 +556,11 @@ deno test \
 deno check --import-map="$SRCROOT"/import-map.json src/*.ts scripts/*.ts
 ```
 
+## Run
+
+```sh
+deno run --import-map="$SRCROOT"/import-map.json --allow-all src/app.ts
+```
 
 [pantry]: ../../../../pantry
 [VSCode]: https://code.visualstudio.com

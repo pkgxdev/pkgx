@@ -1,11 +1,7 @@
 import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
-import { copy } from "deno/streams/conversion.ts"
 import { run, TarballUnarchiver, host } from "utils"
-import { Installation } from "types"
-import { isString } from "is_what"
+import { Installation, StowageNativeBottle } from "types"
 import { Package } from "types"
-import { Sha256 } from "deno/hash/sha256.ts"
-import Path from "path"
 
 // # NOTE
 // *only installs binaries*
@@ -17,16 +13,18 @@ import Path from "path"
 
 export default async function install(pkg: Package): Promise<Installation> {
   const { project, version } = pkg
-  const { download } = useCache()
-
+  const { download_with_sha: download } = useDownload()
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
-  const { path: tarball, sha } = await download({ type: 'bottle', pkg: { project, version } })
+  const stowage = StowageNativeBottle({ pkg: { project, version }, compression: 'gz' })
+  const url = useOffLicense('s3').url(stowage)
+  const dst = useCache().path(stowage)
+  const { path: tarball, sha } = await download({ src: url, dst })
 
   try {
     const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
-    await sumcheck(sha ?? tarball, new URL(`${url}.sha256sum`))
+    await sumcheck(sha, new URL(`${url}.sha256sum`))
   } catch (err) {
     tarball.rm()
     console.error("we deleted the invalid tarball. try again?")
@@ -53,33 +51,15 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(tarball: Path | string, url: URL) {
+async function sumcheck(local_SHA: string, url: URL) {
   const { download } = useDownload()
 
-  const local = (async () => {
-    if (isString(tarball)) {
-      return tarball
-    } else {
-      // slow option :/
-      const digest = new Sha256()
-      const f = await Deno.open(tarball.string, { read: true })
-      await copy(f, { write: buf => {
-        //TODO in separate thread would be likely be faster
-        digest.update(buf)
-        return Promise.resolve(buf.length)
-      }})
-      return digest.hex()
-    }
-  })()
-
-  const remote = console.silence(() =>
-    download({ src: url, ephemeral: true, mehsha: true })
-  ).then(async ({ path: dl }) => {
+  const remote_SHA = await console.silence(() =>
+    download({ src: url, ephemeral: true })
+  ).then(async dl => {
     const txt = await dl.read()
     return txt.split(' ')[0]
   })
-
-  const [remote_SHA, local_SHA] = await Promise.all([remote, local])
 
   console.verbose({ remote_SHA, local_SHA })
 

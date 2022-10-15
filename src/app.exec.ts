@@ -81,7 +81,7 @@ async function abracadabra(opts: Args): Promise<RV> {
   const path = await (async () => {
     try {
       const src = new URL(args[0])
-      const { path } = await useDownload().download({ src, mehsha: true })
+      const path = await useDownload().download({ src })
       args[0] = path.string
       return path
     } catch {
