@@ -8,7 +8,7 @@ import * as semver from "semver"
 export function validatePackageRequirement(input: PlainObject): PackageRequirement | undefined {
   let { constraint, project } = input
 
-  if (host().platform == 'darwin' && project == "apple.com/xcode/clt") {
+  if (host().platform == 'darwin' && (project == "apple.com/xcode/clt" || project == "tea.xyz/gx/make")) {
     if (Deno.env.get("GITHUB_ACTIONS")) {
       // noop
       // GHA has clt installed, just differently
@@ -17,6 +17,10 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
     }
     //TODO strictly if Xcode is installed, that’s enough
     return  // compact this dep away
+  }
+  if (host().platform == 'linux' && project == "tea.xyz/gx/make") {
+    project = "gnu.org/make"
+    constraint = '*'
   }
 
   validate_str(project)
