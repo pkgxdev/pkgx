@@ -12,4 +12,5 @@ jobs:
           update-full-release: true
         if: github.event.release.prerelease == false
 permissions:
-  actions: write
+  releases: write
+  contents: write
