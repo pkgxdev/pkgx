@@ -197,7 +197,7 @@ async function install() {
   } else {
     //TODO use our tar if necessary
     const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
-    const zip = await useDownload().download({ src })
+    const { path: zip } = await useDownload().download({ src, mehsha: true })
     await run({cmd: ["tar", "xzf", zip, "--strip-components=1"], cwd})
   }
 }
