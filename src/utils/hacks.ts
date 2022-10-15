@@ -13,7 +13,7 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
       // noop
       // GHA has clt installed, just differently
     } else if (!Path.root.join('Library/Developer/CommandLineTools/usr/bin/clang').isFile()) {
-      throw new Error("run: xcode-select --install")
+      throw new Error("run: sudo xcode-select --install")
     }
     //TODO strictly if Xcode is installed, that’s enough
     return  // compact this dep away

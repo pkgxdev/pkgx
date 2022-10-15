@@ -4,7 +4,6 @@ import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
 import Path from "path"
-import { _format } from "https://deno.land/std@0.156.0/path/_util.ts"
 
 // doing here as this is the only file all our scripts import
 set_tmp(usePrefix().join('tea.xyz/tmp'))
