@@ -173,7 +173,8 @@ async function abracadabra(opts: Args): Promise<RV> {
 
     return {
       args: [path.string, ...args],
-      pkgs
+      pkgs,
+      blueprint: env
     }
   }
 }
