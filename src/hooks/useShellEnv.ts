@@ -1,5 +1,6 @@
 import { Installation, PackageSpecification } from "types"
 import { host } from "utils"
+import { usePrefix } from "hooks"
 import Path from "path"
 
 // returns an environment that supports the provided packages
@@ -16,15 +17,18 @@ export const EnvKeys = [
   'XDG_DATA_DIRS',
   'CMAKE_PREFIX_PATH',
   'DYLD_FALLBACK_LIBRARY_PATH',
-  'SSL_CERT_FILE'
+  'SSL_CERT_FILE',
+  'LDFLAGS',
+  'TEA_PREFIX'
 ]
 
 interface Options {
   installations: Installation[]
   pending?: PackageSpecification[],
+  pristine?: boolean
 }
 
-export default function useShellEnv({installations, pending}: Options): Record<string, string[]> {
+export default function useShellEnv({installations, pending, pristine}: Options): Record<string, string[]> {
   const vars: Record<string, string[]> = {}
   const isMac = host().platform == 'darwin'
   pending ??= []
@@ -64,11 +68,14 @@ export default function useShellEnv({installations, pending}: Options): Record<s
     }
   }
 
-   // needed since on Linux library paths aren’t automatically included when linking
-   // so otherwise linked binfiles will not run
+   // this is how we use precise versions of libraries
+   // for your virtual environment
+   //FIXME SIP on macOS prevents DYLD_FALLBACK_LIBRARY_PATH from propogating to grandchild processes
    if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
     if (isMac) {
+      // non FALLBACK variety causes strange issues in edge cases
+      // where our symbols somehow override symbols from the macOS system
       vars.DYLD_FALLBACK_LIBRARY_PATH = vars.LIBRARY_PATH
     }
   }
@@ -78,29 +85,37 @@ export default function useShellEnv({installations, pending}: Options): Record<s
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
     if (!vars[key]?.chuzzle()) continue
-
     rv[key] = vars[key]
 
-    if (key == 'PATH' && installations.length) {
+    if (!pristine && key == 'PATH') {
       rv[key] ??= []
 
-      //NOTE this is intentional to avoid general hell type end-user debugging scenarios
-      //SOZZ if this breaks your workflow :(
-      rv[key] = rv[key].filter(x => x !== '/usr/local/bin')
+      if (!projects.has('tea.xyz')) {
+        const tea = find_tea()
+        if (tea) {
+          const tea = find_tea()?.parent().string
+          if (tea && !rv["PATH"].includes(tea)) {
+            rv["PATH"].push(tea)
+          }
+        }
+      }
 
-      /// sooooo, we need to make sure tea is still in the PATH
-      const tea = find_tea()
-      if (tea && !rv[key].includes(tea.parent().string)) {
-        // lol, k expand it if possible and stick it on the end
-        rv[key].push(tea.readlink().parent().string)
+      // for std POSIX tools FIXME: we provide shims or pkgs for (at least some of) these
+      //NOTE we deliberately do not include /usr/local/bin
+      //NOTE though we add that back for `tea --dump` since users will want their tools ofc
+      for (const path of ["/usr/bin", "/bin", "/usr/sbin", "/sbin"]) {
+        if (!rv["PATH"].includes(path)) {
+          rv["PATH"].push(path)
+        }
       }
     }
-
-    if (key == 'PATH') {
-      rv[key] ??= []
-      rv[key].push("/usr/bin", "/bin", "/usr/sbin", "/sbin")
-    }
   }
+
+  // required to link to our libs
+  // tea.xyz/gx/cc automatically adds this, but use of any other compilers will not
+  rv["LDFLAGS"] = [`-Wl,-rpath,${usePrefix()}`]
+
+  rv["TEA_PREFIX"] = [usePrefix().string]
 
   return rv
 }
@@ -121,6 +136,8 @@ function suffixes(key: string) {
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
     case 'SSL_CERT_FILE':
+    case 'LDFLAGS':
+    case 'TEA_PREFIX':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")

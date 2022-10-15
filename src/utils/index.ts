@@ -214,7 +214,7 @@ export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
 
 
 ///////////////////////////////////////////////////////////////////////// misc
-export function panic<T>(): T {
+export function panic(): never {
   throw new Error()
 }
 

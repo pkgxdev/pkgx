@@ -1,4 +1,4 @@
-import { Package, PackageRequirement, Installation } from "types"
+import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
 import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
@@ -55,27 +55,47 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
   // deno-lint-ignore no-explicit-any
   function go(node: any) {
     if (!node) return []
-    return Object.entries(validate_plain_obj(node))
-      .compact(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+    node = validate_plain_obj(node)
+
+    const rv: PackageRequirement[] = []
+    const stack = Object.entries(node)
+    // deno-lint-ignore no-explicit-any
+    let pkg: [string, any] | undefined
+    // deno-lint-ignore no-cond-assign
+    while (pkg = stack.shift()) {
+      const [project, constraint] = pkg
+      if (SupportedPlatforms.includes(project as SupportedPlatform)) {
+        if (host().platform !== project) continue
+        if (constraint === null) continue
+        stack.unshift(...Object.entries(validate_plain_obj(constraint)))
+      } else {
+        rv.compact_push(validatePackageRequirement({ project, constraint }))
+      }
+    }
+    return rv
   }
 }
 
-const getRawDistributableURL = (yml: PlainObject) => validate_str(
-    isPlainObject(yml.distributable)
-      ? yml.distributable.url
-      : yml.distributable)
-
+const getRawDistributableURL = (yml: PlainObject) => {
+  if (isPlainObject(yml.distributable)) {
+    return validate_str(yml.distributable.url)
+  } else if (isString(yml.distributable)) {
+    return yml.distributable
+  } else if (yml.distributable === null || yml.distributable === undefined) {
+    return
+  } else {
+    throw new Error(`invalid distributable node: ${yml.distributable}`)
+  }
+}
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
   const yml = await entry(pkg).yml()
   let urlstr = getRawDistributableURL(yml)
+  if (!urlstr) return
   let stripComponents: number | undefined
   if (isPlainObject(yml.distributable)) {
-    urlstr = validate_str(yml.distributable.url)
     stripComponents = flatmap(yml.distributable["strip-components"], coerceNumber)
-  } else {
-    urlstr = validate_str(yml.distributable)
   }
 
   urlstr = moustaches.apply(urlstr, [
@@ -100,7 +120,11 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 
     let wd = node["working-directory"]
     if (wd) {
-      wd = mm.apply(wd, [...mm.tokenize.version(pkg.version), ...mm.tokenize.host()])
+      wd = mm.apply(wd, [
+        ...mm.tokenize.version(pkg.version),
+        ...mm.tokenize.host(),
+        ...tokenizePackage(pkg)
+      ])
       raw = undent`
         mkdir -p ${wd}
         cd ${wd}
@@ -200,8 +224,8 @@ function entry(pkg: Package | PackageRequirement): Entry {
 }
 
 /// returns sorted versions
-async function getVersions(pkg: Package | PackageRequirement): Promise<SemVer[]> {
-  const files = entry(pkg)
+async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]> {
+  const files = entry(spec)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
@@ -211,7 +235,7 @@ async function getVersions(pkg: Package | PackageRequirement): Promise<SemVer[]>
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
-    throw new Error()
+    throw new Error(`couldn’t parse versions: ${pkg.str(spec)}`)
   }
 }
 
@@ -371,15 +395,13 @@ function useMoustaches() {
     return map
   }
 
-  const pkg = (pkg: Package) => [{ from: "prefix", to: useCellar().keg(pkg).string }]
-
   const tea = () => [{ from: "tea.prefix", to: usePrefix().string }]
 
-  const all = (pkg_: Package, deps_: Installation[]) => [
+  const all = (pkg: Package, deps_: Installation[]) => [
     ...deps(deps_),
-    ...pkg(pkg_),
+    ...tokenizePackage(pkg),
     ...tea(),
-    ...base.tokenize.version(pkg_.version),
+    ...base.tokenize.version(pkg.version),
     ...base.tokenize.host(),
   ]
 
@@ -390,4 +412,8 @@ function useMoustaches() {
       deps, pkg, tea, all
     }
   }
+}
+
+function tokenizePackage(pkg: Package) {
+  return [{ from: "prefix", to: useCellar().keg(pkg).string }]
 }

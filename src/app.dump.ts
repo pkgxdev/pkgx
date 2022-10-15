@@ -23,12 +23,12 @@ export default async function dump(args: Args) {
     switch (shell) {
     case "fish":
       return [
-        (name: string, val: string) => `set -gx ${name} ${val};`,
+        (name: string, val: string) => `set -gx ${name} '${val}';`,
         (name: string) => `set -e ${name};`
       ]
     default:
       return [
-        (name: string, val: string) => `export ${name}=${val}`,
+        (name: string, val: string) => `export ${name}='${val}'`,
         (name: string) => `unset ${name}`
       ]
   }})()
@@ -36,7 +36,7 @@ export default async function dump(args: Args) {
   // represents the dehydrated initial env
   //FIXME storing in the env is kinda gross
   const defaults = (() => {
-    const json = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(unescape(x)), {rescue: true})
+    const json = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(x), {rescue: true})
     if (isPlainObject(json)) {
       for (const [key, value] of Object.entries(json)) {
         if (!isFullArray(value)) {
@@ -80,6 +80,12 @@ export default async function dump(args: Args) {
     // well, only if TEA_REWIND is set since otherwise we already did that
 
     if (Deno.env.get("TEA_REWIND")) {
+      if (Deno.env.get("TEA_REWIND")!.includes("TEA_PREFIX")) {
+        // we do this manually because we also set it for stuff executed through tea
+        // which means when developing tea this otherwise doesn’t get unset lol
+        await print(unsetEnv("TEA_PREFIX"))
+      }
+
       await print(unsetEnv("TEA_REWIND"))
 
       for (const key of [...EnvKeys, 'SRCROOT', 'VERSION']) {
@@ -107,7 +113,7 @@ export default async function dump(args: Args) {
     await print(unsetEnv("VERSION"))
   }
 
-  const env = useShellEnv({installations, pending})
+  const env = useShellEnv({installations, pending, pristine: true})
 
   //TODO if PATH is the same as the current PATH maybe don't do it
   // though that makes the behavior of --env --dump very specific
@@ -115,7 +121,9 @@ export default async function dump(args: Args) {
   for (const key of EnvKeys) {
     const value = env[key]
     if (value) {
-      value.push(...defaults[key] ?? [])
+      if (key == 'PATH' && defaults[key]?.length) {
+        value.push(...defaults[key])
+      }
       if (value.length) {
         await print(setEnv(key, value.join(":")))
       }
@@ -149,15 +157,7 @@ export default async function dump(args: Args) {
     await print("if typeset -f command_not_found_handler >/dev/null; then unset -f command_not_found_handler; fi")
   }
 
-  await print(setEnv("TEA_REWIND", escape(JSON.stringify(defaults))))
-}
-
-function escape(x: string) {
-  return x.replaceAll('"', '%22')
-}
-
-function unescape(x: string) {
-  return x.replaceAll("%22", '"')
+  await print(setEnv("TEA_REWIND", JSON.stringify(defaults)))
 }
 
 function neq(a: string[] | undefined, b: string[] | undefined) {

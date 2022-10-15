@@ -11,14 +11,7 @@ import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
 
 export default async function exec(opts: Args) {
   const flags = useFlags()
-  const blueprint = await (() => {
-    if (opts.env) {
-      return useVirtualEnv()
-    } else if (flags.magic) {
-      return useVirtualEnv().swallow("not-found:srcroot")
-    }
-  })()
-  const {args: cmd, pkgs: sparkles} = await abracadabra(opts.args, blueprint)
+  const {args: cmd, pkgs: sparkles, blueprint} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
 
@@ -56,12 +49,20 @@ async function install(dry: PackageSpecification[]) {
 }
 
 
+interface RV {
+  args: string[]
+  pkgs: PackageRequirement[]
+  blueprint?: VirtualEnv
+}
+
 //TODO we know what packages `provides`, so we should be able to auto-install
 // eg rustc if you just do `tea rustc`
-async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise<{args: string[], pkgs: PackageRequirement[]}> {
+async function abracadabra(opts: Args): Promise<RV> {
   const { magic } = useFlags()
   const pkgs: PackageRequirement[] = []
-  args = [...args]
+  const args = [...opts.args]
+
+  let env = await useVirtualEnv().swallow("not-found:srcroot")
 
   if (env) {
     // firstly check if there is a target named args[0]
@@ -95,6 +96,19 @@ async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise
     return mksh(sh)
 
   } else if (path) {
+    if (opts.env) {
+      // for scripts, we ignore the working directory as virtual-env finder
+      // and work from the script, note that the user had to `#!/usr/bin/env -S tea -E`
+      // for that to happen so in the shebang we are having that explicitly set
+      env = await useVirtualEnv({ cwd: path.parent() })
+
+      //NOTE this maybe is wrong? maybe we should read the script and check if we were shebanged
+      // with -E since `$ tea -E path/to/script` should perhaps use the active env?
+    } else {
+      //NOTE this REALLY may be wrong
+      env = undefined
+    }
+
     const yaml = await usePackageYAMLFrontMatter(path, env?.srcroot)
 
     if (magic) {
@@ -137,7 +151,7 @@ async function abracadabra(args: string[], env: VirtualEnv | undefined): Promise
     }
   }
 
-  return {args, pkgs}
+  return {args, pkgs, blueprint: env}
 
   function isMarkdown(path: Path) {
     switch (path.extname()) {
