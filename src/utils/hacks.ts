@@ -27,7 +27,7 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
 
   //HACKS
   if (constraint == 'c99' && project == 'tea.xyz/gx/cc') {
-    constraint = '1.0.0'
+    constraint = '^0.1'
   }
 
   if (constraint === undefined) {
