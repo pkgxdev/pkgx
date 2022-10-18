@@ -194,7 +194,7 @@ export async function run(opts: RunOptions) {
   const proc = Deno.run({ ...opts, cmd, cwd })
   const exit = await proc.status()
   console.verbose({ exit })
-  if (!exit.success) throw new Error("run-error")
+  if (!exit.success) throw {code: exit.code}
 }
 
 export async function backticks(opts: RunOptions): Promise<string> {

@@ -5,6 +5,7 @@ import { PackageRequirement, PackageSpecification } from "types"
 import { run, undent } from "utils"
 import * as semver from "semver"
 import Path from "path"
+import { isNumber } from "is_what"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
 
 //TODO avoid use of virtual-env if not required
@@ -28,7 +29,12 @@ export default async function exec(opts: Args) {
     env["JSON"] = "1"
   }
 
-  await run({ cmd, env })  //TODO implement `execvp` for deno
+  try {
+    await run({ cmd, env })  //TODO implement `execvp` for deno
+  } catch (err) {
+    const code = err?.code ?? 1
+    Deno.exit(isNumber(code) ? code : 1)
+  }
 }
 
 /////////////////////////////////////////////////////////////
