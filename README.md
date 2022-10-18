@@ -1,15 +1,15 @@
 ![tea](https://tea.xyz/banner.png)
 
 *tea is not a package manager*: it’s *unified packaging infrastructure*.
-We’re all doing our part and our part is to make it so you don’t have to
-spare a brain cycle for tooling, build systems, libraries, vendors or any of
-that bullshit that isn’t *your code* because your code—that’s your part and
+It’s a single binary download for all platforms to make it so you don’t have
+to spare a brain cycle for tooling, build systems, libraries, vendors or any
+of that bullshit that isn’t *your code* because your code—that’s your part and
 that part; it’s going to *change the world*.
 
 &nbsp;
 
 
-# tea/cli 0.8.5
+# tea/cli 0.8.6
 
 tea is a universal virtual‑environment manager:
 
@@ -553,14 +553,31 @@ deno test \
 ## Typecheck
 
 ```sh
-deno check --import-map="$SRCROOT"/import-map.json src/*.ts scripts/*.ts
+deno check --import-map="$SRCROOT"/import-map.json src/*.ts "$SRCROOT"/scripts/*.ts
 ```
 
 ## Run
 
 ```sh
-deno run --import-map="$SRCROOT"/import-map.json --allow-all src/app.ts
+deno run --import-map="$SRCROOT"/import-map.json --allow-all "$SRCROOT"/src/app.ts
 ```
+
+## Install Self
+
+```sh
+deno compile \
+  --allow-read \
+  --allow-write \
+  --allow-net \
+  --allow-run \
+  --allow-env \
+  --import-map="$SRCROOT/import-map.json" \
+  --output "$TEA_PREFIX/tea.xyz/v$VERSION/bin/tea" \
+  "$SRCROOT/src/app.ts"
+
+"$SRCROOT"/scripts/repair.ts tea.xyz
+```
+
 
 [pantry]: ../../../../pantry
 [VSCode]: https://code.visualstudio.com

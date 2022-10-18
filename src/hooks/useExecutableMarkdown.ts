@@ -18,7 +18,7 @@ export default function useExecutableMarkdown(parameters: Parameters) {
 
   const findScript = async (name?: string) => {
     const lines = await getLines()
-    if (!name) name = 'getting-started'
+    name ??= 'getting-started'
 
     const header_rx = new RegExp(`^#+\\s+(.*)\\s*$`)
     for (const line of lines) {

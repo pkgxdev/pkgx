@@ -111,9 +111,11 @@ export default function useShellEnv({installations, pending, pristine}: Options)
     }
   }
 
-  // required to link to our libs
-  // tea.xyz/gx/cc automatically adds this, but use of any other compilers will not
-  rv["LDFLAGS"] = [`-Wl,-rpath,${usePrefix()}`]
+  if (isMac) {
+    // required to link to our libs
+    // tea.xyz/gx/cc automatically adds this, but use of any other compilers will not
+    rv["LDFLAGS"] = [`-Wl,-rpath,${usePrefix()}`]
+  }
 
   rv["TEA_PREFIX"] = [usePrefix().string]
 

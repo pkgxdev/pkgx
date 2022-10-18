@@ -1,4 +1,4 @@
-import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePrefix } from "hooks"
+import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
@@ -27,8 +27,6 @@ export default async function exec(opts: Args) {
   if (flags.json) {
     env["JSON"] = "1"
   }
-
-  env["TEA_PREFIX"] = usePrefix().string
 
   await run({ cmd, env })  //TODO implement `execvp` for deno
 }
@@ -62,7 +60,7 @@ async function abracadabra(opts: Args): Promise<RV> {
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
 
-  let env = await useVirtualEnv().swallow("not-found:srcroot")
+  let env = magic ? await useVirtualEnv().swallow("not-found:srcroot") : undefined
 
   if (env) {
     // firstly check if there is a target named args[0]
@@ -154,9 +152,17 @@ async function abracadabra(opts: Args): Promise<RV> {
   return {args, pkgs, blueprint: env}
 
   function isMarkdown(path: Path) {
+    //ref: https://superuser.com/a/285878
     switch (path.extname()) {
     case ".md":
-    case ".markdown":
+    case '.mkd':
+    case '.mdwn':
+    case '.mdown':
+    case '.mdtxt':
+    case '.mdtext':
+    case '.markdown':
+    case '.text':
+    case '.md.txt':
       return true
     }
   }
@@ -164,15 +170,18 @@ async function abracadabra(opts: Args): Promise<RV> {
   function mksh(sh: string) {
     //TODO no need to make the file, just pipe to stdin
     //TODO should be able to specify script types
+    const [arg0, ...argv] = args
 
-    const path = Path.mktmp().join('script').write({ text: undent`
+    //FIXME putting "$@" at the end can be invalid, it really depends on the script TBH
+
+    const path = Path.mktmp().join(arg0).write({ text: undent`
       #!/bin/bash
       set -e
-      ${sh}
+      ${sh} ${argv.length ? '"$@"' : ''}
     ` }).chmod(0o500)
 
     return {
-      args: [path.string, ...args],
+      args: [path.string, ...argv],
       pkgs,
       blueprint: env
     }

@@ -38,7 +38,8 @@ async function ls(project: string) {
       if (await vacant(path)) continue
       rv.push({path, pkg: {project, version}})
     } catch {
-      console.warn(`invalid version: ${name}`)
+      // not console.warn as we allow other dirs as a design choice
+      console.verbose(`warn: invalid version: ${name}`)
     }
   }
   return rv.sort((a, b) => pkgutils.compare(a.pkg, b.pkg))
