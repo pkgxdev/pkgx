@@ -9,8 +9,6 @@ export function parse(input: string): PackageRequirement | Package {
 
   const project = match[1]
 
-  console.debug({ input })
-
   if (match[2].startsWith("@") || match[2].startsWith("=")) {
     const match2 = match[2].slice(1)
     if (match2 == 'latest') {
