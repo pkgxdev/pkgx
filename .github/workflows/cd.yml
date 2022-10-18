@@ -19,6 +19,9 @@ env:
 
 jobs:
   check:
+    permissions:
+      contents: read
+      actions: write  # for cancel-action
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.extract.outputs.version }}
