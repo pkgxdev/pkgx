@@ -38,5 +38,24 @@ Deno.test("semver", async test => {
 
     const b = new semver.Range("^0.15")
     assertEquals(b.toString(), "^0.15")
+
+    const c = new semver.Range("~0.15")
+    assertEquals(c.toString(), "~0.15")
+
+    assert(c.satisfies(new SemVer("0.15.0")))
+    assert(c.satisfies(new SemVer("0.15.1")))
+    assertFalse(c.satisfies(new SemVer("0.14.0")))
+    assertFalse(c.satisfies(new SemVer("0.16.0")))
+
+    const d = new semver.Range("~0.15.1")
+    assertEquals(d.toString(), "~0.15.1")
+    assert(d.satisfies(new SemVer("0.15.1")))
+    assert(d.satisfies(new SemVer("0.15.2")))
+    assertFalse(d.satisfies(new SemVer("0.15.0")))
+    assertFalse(d.satisfies(new SemVer("0.16.0")))
+    assertFalse(d.satisfies(new SemVer("0.14.0")))
+
+    const e = new semver.Range("~1")
+    assertEquals(e.toString(), "^1")  // indeed: we change the ~ to ^
   })
 })

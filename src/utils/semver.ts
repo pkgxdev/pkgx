@@ -137,6 +137,15 @@ export class Range {
           return [v1, v2]
         }
 
+        match = input.match(/^~(\d+(\.\d+(\.\d+)?)?)$/)
+        if (match) {
+          const v1 = parse(match[1])!
+          const v2 = match[2]
+            ? new SemVer([v1.major, v1.minor + 1, 0])
+            : new SemVer([v1.major + 1, 0, 0])
+          return [v1, v2]
+        }
+
         match = input.match(/^>=((\d+\.)*\d+)\s*(<((\d+\.)*\d+))?$/)
         if (!match) throw new Error(`invalid semver range: ${input}`)
         const v1 = parse(match[1])!
@@ -156,6 +165,9 @@ export class Range {
         if (v2.major == v1.major + 1 && v2.minor == 0 && v2.patch == 0) {
           const v = chomp(v1)
           return `^${v}`
+        } else if (v2.major == v1.major && v2.minor == v1.minor + 1 && v2.patch == 0) {
+          const v = chomp(v1)
+          return `~${v}`
         } else if (v2.major == Infinity) {
           const v = chomp(v1)
           return `>=${v}`

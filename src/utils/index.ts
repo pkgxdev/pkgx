@@ -214,8 +214,8 @@ export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
 
 
 ///////////////////////////////////////////////////////////////////////// misc
-export function panic(): never {
-  throw new Error()
+export function panic(message?: string): never {
+  throw new Error(message)
 }
 
 // deno-lint-ignore no-explicit-any
