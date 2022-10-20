@@ -146,6 +146,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 const getProvides = async (pkg: Package | PackageRequirement) => {
   const yml = await entry(pkg).yml()
   const node = yml["provides"]
+  if (!node) return []
   if (!isArray(node)) throw "bad-yaml"
 
   return node.compact(x => {
