@@ -65,6 +65,9 @@ export default function useShellEnv({installations, pending, pristine}: Options)
     if (installation.pkg.project === 'openssl.org') {
       vars.SSL_CERT_FILE ??= []
       vars.SSL_CERT_FILE.compact_unshift(installation.path.join("ssl/cert.pem").compact()?.string)
+      // this is a single file, so we assume the first
+      // valid entry is correct
+      vars.SSL_CERT_FILE = vars.SSL_CERT_FILE.slice(0, 1)
     }
   }
 
