@@ -178,12 +178,24 @@ async function abracadabra(opts: Args): Promise<RV> {
     //TODO should be able to specify script types
     const [arg0, ...argv] = args
 
+    //FIXME won’t work as expected for various scenarios
+    // but not sure how else to represent this without adding an explcit requirement for "$@" in the script
+    // or without parsing the script to determine where to insert "$@"
+    // simple example of something difficult would be a for loop since it ends with `done` so we can't just stick the "$@" at the end of the last line
+    const oneliner = (() => {
+      const lines = sh.split("\n")
+      for (const line of lines.slice(0, -1)) {
+        if (!line.trim().endsWith("\\")) return false
+      }
+      return true
+    })()
+
     //FIXME putting "$@" at the end can be invalid, it really depends on the script TBH
 
     const path = Path.mktmp().join(arg0).write({ text: undent`
       #!/bin/bash
       set -e
-      ${sh} ${argv.length ? '"$@"' : ''}
+      ${sh} ${oneliner ? '"$@"' : ''}
     ` }).chmod(0o500)
 
     return {
