@@ -1,12 +1,12 @@
 import { useArgs } from "hooks/useFlags.ts"
-import { usePrefix, useVirtualEnv } from "hooks"
+import { usePrefix, useVirtualEnv, usePantry } from "hooks"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
 import Path from "path"
 import { print } from "utils"
 
-const [args, {silent}] = useArgs(Deno.args)
+const [args, {sync, silent}] = useArgs(Deno.args)
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() })).version?.toString()}+dev`
 // ^^ this is statically replaced at deployment
 
@@ -17,6 +17,10 @@ if (args.cd) {
 }
 
 try {
+  if (sync) {
+    await usePantry().update()
+  }
+
   if (args.mode == "exec" || args.mode == undefined) {
     announce()
     await exec(args)

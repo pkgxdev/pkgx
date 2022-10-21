@@ -9,7 +9,7 @@ that part; it’s going to *change the world*.
 &nbsp;
 
 
-# tea/cli 0.8.8
+# tea/cli 0.8.9
 
 tea is a universal virtual‑environment manager:
 

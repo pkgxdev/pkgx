@@ -16,6 +16,7 @@ interface Flags {
   magic: boolean
   json: boolean
   numpty: boolean
+  sync: boolean
 }
 
 interface ConvenienceFlags {
@@ -31,6 +32,7 @@ export default function useFlags(): Flags & ConvenienceFlags {
   if (!flags) {
     //FIXME scripts/* need this to happen but its yucky
     flags = {
+      sync: false,
       verbosity: getVerbosity(0),
       magic: getMagic(undefined),
       json: !!Deno.env.get("JSON"),
@@ -70,6 +72,7 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
 
   let muggle: boolean | undefined
   let v: number | undefined
+  let sync = false
   const it = args[Symbol.iterator]()
 
   for (const arg of it) {
@@ -131,6 +134,9 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
       case 'silent':
         v = 0
         break
+      case 'sync':
+        sync = true
+        break
       case 'env':
         rv.env = parseBool(value) ?? true
         break
@@ -165,6 +171,9 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
         case 's':
           v = 0;
           break
+        case 'S':
+          sync = true
+          break
         case 'h':
           rv.mode = ['dump', 'help']
           break
@@ -182,7 +191,8 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
     verbosity: getVerbosity(v),
     magic: getMagic(muggle),
     json: !!Deno.env.get("JSON"),
-    numpty: !!Deno.env.get("NUMPTY")
+    numpty: !!Deno.env.get("NUMPTY"),
+    sync
   }
 
   applyVerbosity()

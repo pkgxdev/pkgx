@@ -193,8 +193,8 @@ const find_git = async () => {
 }
 
 //TODO we have a better system in mind than git
-async function install() {
-  if (prefix.exists()) return
+async function install(): Promise<true | 'not-git' | 'noop'> {
+  if (prefix.exists()) return 'noop'
 
   const git = await find_git()
   const cwd = prefix.parent().mkpath()
@@ -203,7 +203,7 @@ async function install() {
     const { rid } = Deno.openSync(cwd.string)
     await Deno.flock(rid, true)
     try {
-      if (prefix.exists()) return  // another instance of tea did it
+      if (prefix.exists()) return 'noop' // another instance of tea did it
       await run({
         cmd: [git, "clone", "https://github.com/teaxyz/pantry", "."],
         cwd
@@ -212,18 +212,21 @@ async function install() {
       //TODO if this gets stuck then nothing will work so need a handler for that
       await Deno.funlock(rid)
     }
+    return true
   } else {
     //FIXME if we do this, we need to be able to convert it to a git installation later
     //TODO use our tar if necessary
     const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
     const zip = await useDownload().download({ src })
     await run({cmd: ["tar", "xzf", zip, "--strip-components=1"], cwd})
+    return 'not-git'
   }
 }
 
 const update = async () => {
+  if (await install() !== 'noop') return
   const git = await find_git()
-  const cwd = prefix.parent().parent().mkpath()
+  const cwd = prefix.parent()
   if (git) {
     await run({cmd: [git, "pull", "origin", "HEAD", "--no-edit"], cwd})
   }

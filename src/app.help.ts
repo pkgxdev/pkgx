@@ -24,6 +24,7 @@ export default async function help() {
 
       flags:
   10    --env,-E          inject virtual environment       ✨
+        --sync,-S         sync pantries, etc. first        ✨
         --muggle,-m       disable magic
         --verbose,-v      eg. tea -vv
         --silent,-s       no chat, no errors
@@ -51,6 +52,7 @@ export default async function help() {
 
       flags:
         --env,-E                    inject virtual environment     ✨
+        --sync,-S                   sync pantries, etc. first      ✨
         --json,-j                   output json
         --muggle,-m                 disable magic
         --verbose,-v                short form accumulates, shows version first
