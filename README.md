@@ -533,7 +533,8 @@ If you got this error message, you need to install tea:
 | tea.xyz     | ^0      |
 
 
-# Scripts
+
+# Tea Scripts
 
 ## Test
 
@@ -547,19 +548,24 @@ deno test \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
  --allow-write="$TMPDIR" \
+ --unstable \
  $SRCROOT/tests/*.ts
 ```
 
 ## Typecheck
 
 ```sh
-deno check --import-map="$SRCROOT"/import-map.json src/*.ts "$SRCROOT"/scripts/*.ts
+deno check --import-map="$SRCROOT"/import-map.json --unstable src/*.ts "$SRCROOT"/scripts/*.ts
 ```
 
 ## Run
 
 ```sh
-deno run --import-map="$SRCROOT"/import-map.json --allow-all "$SRCROOT"/src/app.ts
+deno run \
+  --import-map="$SRCROOT"/import-map.json \
+  --unstable \
+  --allow-all \
+  "$SRCROOT"/src/app.ts
 ```
 
 ## Compile
@@ -578,6 +584,7 @@ deno compile \
   --allow-net \
   --allow-run \
   --allow-env \
+  --unstable \
   --import-map="$SRCROOT/import-map.json" \
   --output "$OUT" \
   "$@" \

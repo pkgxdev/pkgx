@@ -187,14 +187,24 @@ const find_git = async () => {
 async function install() {
   if (prefix.exists()) return
 
+  //TODO install our own git, duh
+
   const git = await find_git()
   const cwd = prefix.parent().mkpath()
 
   if (git) {
-    await run({
-      cmd: [git, "clone", "https://github.com/teaxyz/pantry", "."],
-      cwd
-    })
+    const { rid } = Deno.openSync(cwd.string)
+    await Deno.flock(rid, true)
+    try {
+      if (prefix.exists()) return  // another instance of tea did it
+      await run({
+        cmd: [git, "clone", "https://github.com/teaxyz/pantry", "."],
+        cwd
+      })
+    } finally {
+      //TODO if this gets stuck then nothing will work so need a handler for that
+      await Deno.funlock(rid)
+    }
   } else {
     //TODO use our tar if necessary
     const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
