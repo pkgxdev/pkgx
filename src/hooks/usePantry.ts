@@ -4,6 +4,7 @@ import { useCellar, useGitHubAPI, usePrefix, useDownload } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import SemVer, * as semver from "semver"
+import tea_install from "prefab/install.ts"
 import Path from "path"
 
 interface Entry {
@@ -165,7 +166,6 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-
 const find_git = async () => {
   const in_cellar = await useCellar().has({
     project: 'git-scm.org',
@@ -181,13 +181,20 @@ const find_git = async () => {
       return path
     }
   }
+
+  try {
+    const project = 'git-scm.org'
+    const version = await useInventory().select({ project, constraint: new semver.Range('*') }) ?? panic()
+    const install = await tea_install({ project, version })
+    return install.path.join('bin/git')
+  } catch (err) {
+    console.warn(err)
+  }
 }
 
 //TODO we have a better system in mind than git
 async function install() {
   if (prefix.exists()) return
-
-  //TODO install our own git, duh
 
   const git = await find_git()
   const cwd = prefix.parent().mkpath()
@@ -206,6 +213,7 @@ async function install() {
       await Deno.funlock(rid)
     }
   } else {
+    //FIXME if we do this, we need to be able to convert it to a git installation later
     //TODO use our tar if necessary
     const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
     const zip = await useDownload().download({ src })
@@ -392,6 +400,7 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
 
 //////////////////////////////////////////// useMoustaches() additions
 import useMoustachesBase from "./useMoustaches.ts"
+import useInventory from "./useInventory.ts"
 
 function useMoustaches() {
   const base = useMoustachesBase()
