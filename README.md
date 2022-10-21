@@ -9,7 +9,7 @@ that part; it’s going to *change the world*.
 &nbsp;
 
 
-# tea/cli 0.8.7
+# tea/cli 0.8.8
 
 tea is a universal virtual‑environment manager:
 
@@ -562,9 +562,16 @@ deno check --import-map="$SRCROOT"/import-map.json src/*.ts "$SRCROOT"/scripts/*
 deno run --import-map="$SRCROOT"/import-map.json --allow-all "$SRCROOT"/src/app.ts
 ```
 
-## Install Self
+## Compile
 
 ```sh
+OUT="$1"
+if test -z "$OUT"; then
+  OUT="./tea"
+else
+  shift
+fi
+
 deno compile \
   --allow-read \
   --allow-write \
@@ -572,9 +579,15 @@ deno compile \
   --allow-run \
   --allow-env \
   --import-map="$SRCROOT/import-map.json" \
-  --output "$TEA_PREFIX/tea.xyz/v$VERSION/bin/tea" \
+  --output "$OUT" \
+  "$@" \
   "$SRCROOT/src/app.ts"
+```
 
+## Install Self
+
+```sh
+tea compile "$TEA_PREFIX/tea.xyz/v$VERSION/bin/tea"
 "$SRCROOT"/scripts/repair.ts tea.xyz
 ```
 

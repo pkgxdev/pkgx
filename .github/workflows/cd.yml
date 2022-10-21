@@ -63,15 +63,56 @@ jobs:
     uses: ./.github/workflows/ci.yml
     secrets: inherit
 
+  # we compile here so we can attach binaries to the release itself
+  # we do this because people expect that, and will be confused otherwise
+  # and we want people to be able to just grab the single binaries as
+  # they wish
+  compile:
+    needs: [ci]
+    permissions:
+      contents: read
+      actions: write
+    strategy:
+      matrix:
+        include:
+        - deno-target: x86_64-apple-darwin
+          build-id: darwin+x86-64
+        - deno-target: aarch64-apple-darwin
+          build-id: darwin+aarch64
+        - deno-target: x86_64-unknown-linux-gnu
+          build-id: linux+x86-64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      #TMP until we go public
+      - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
+
+      - uses: teaxyz/setup@v0
+        id: tea
+      - run: sed -i.bak "s/^const version = .*$/const version = \"{{ steps.tea.outputs.version }}\"/" src/app.ts
+      - run: tea compile ./tea --target ${{ matrix.deno-target }}
+      - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.build-id }}.tar.xz ./tea
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tarballs
+          path: tea-${{ steps.tea.outputs.version }}+${{ matrix.build-id }}.tar.xz
+          if-no-files-found: error
+
   release:
     permissions:
       contents: write
-    needs: [check, ci]
+    needs: [check, compile]
     runs-on: ubuntu-latest
     env:
       TAG: v${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tarballs
+          path: artifacts
 
       - run: |
           git tag ${{ env.TAG }}
@@ -80,6 +121,5 @@ jobs:
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.TAG }}
+          files: artifacts/*
           fail_on_unmatched_files: true
-          token: ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
-          # ^^ using our own PAT since otherwise vx-tagger won’t run
