@@ -3,8 +3,9 @@ import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_
 import { useCellar, useGitHubAPI, usePrefix, useDownload } from "hooks"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
+import useShellEnv, { flatten } from "./useShellEnv.ts"
 import SemVer, * as semver from "semver"
-import tea_install from "prefab/install.ts"
+import { install as tea_install, hydrate, resolve as tea_resolve } from "prefab"
 import Path from "path"
 
 interface Entry {
@@ -166,27 +167,25 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-const find_git = async () => {
-  const in_cellar = await useCellar().has({
-    project: 'git-scm.org',
-    constraint: new semver.Range('*')
-  })
-  if (in_cellar) {
-    return in_cellar.path.join('bin/git')
-  }
-
+async function find_git(): Promise<[Path | string, Record<string, string[]>] | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
     if (path.isExecutableFile()) {
-      return path
+      return [path, {}]
     }
   }
 
   try {
-    const project = 'git-scm.org'
-    const version = await useInventory().select({ project, constraint: new semver.Range('*') }) ?? panic()
-    const install = await tea_install({ project, version })
-    return install.path.join('bin/git')
+    const installations = await (async () => {
+      const { pkgs: wet } = await hydrate({ project: 'git-scm.org', constraint: new semver.Range('*') })
+      const { pending: gas, installed } = await tea_resolve(wet)
+      return [
+        ...await Promise.all(gas.map(tea_install)),
+        ...installed
+      ]
+    })()
+    const env = useShellEnv({ installations })
+    return ['git', env]
   } catch (err) {
     console.warn(err)
   }
@@ -196,17 +195,19 @@ const find_git = async () => {
 async function install(): Promise<true | 'not-git' | 'noop'> {
   if (prefix.exists()) return 'noop'
 
-  const git = await find_git()
+  const found = await find_git()
   const cwd = prefix.parent().mkpath()
 
-  if (git) {
+  if (found) {
+    const [git, preenv] = found
+    const env = flatten(preenv)
     const { rid } = Deno.openSync(cwd.string)
     await Deno.flock(rid, true)
     try {
       if (prefix.exists()) return 'noop' // another instance of tea did it
       await run({
         cmd: [git, "clone", "https://github.com/teaxyz/pantry", "."],
-        cwd
+        cwd, env
       })
     } finally {
       //TODO if this gets stuck then nothing will work so need a handler for that
@@ -228,7 +229,8 @@ const update = async () => {
   const git = await find_git()
   const cwd = prefix.parent()
   if (git) {
-    await run({cmd: [git, "pull", "origin", "HEAD", "--no-edit"], cwd})
+    const env = flatten(git[1])
+    await run({cmd: [git[0], "pull", "origin", "HEAD", "--no-edit"], cwd, env })
   }
 }
 
@@ -403,7 +405,6 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
 
 //////////////////////////////////////////// useMoustaches() additions
 import useMoustachesBase from "./useMoustaches.ts"
-import useInventory from "./useInventory.ts"
 
 function useMoustaches() {
   const base = useMoustachesBase()

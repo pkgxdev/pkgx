@@ -1,6 +1,7 @@
-import { PackageRequirement, Package } from "types"
+import { PackageRequirement, Package, PackageSpecification } from "types"
 import { isArray } from "is_what"
 import * as semver from "semver"
+import { usePantry } from "hooks"
 import "utils"
 
 
@@ -29,12 +30,14 @@ interface ReturnValue {
   bootstrap_required: Set<string>
 }
 
+const get = (x: PackageSpecification) => usePantry().getDeps(x).then(x => x.runtime)
+
 /// sorts a list of packages topologically based on their
 /// dependencies. Throws if there is a cycle in the input.
 /// ignores changes in dependencies based on versions
 export default async function hydrate(
   input: (PackageRequirement | Package)[] | (PackageRequirement | Package),
-  get_deps: (pkg: PackageRequirement, dry: boolean) => Promise<PackageRequirement[]>,
+  get_deps: (pkg: PackageRequirement, dry: boolean) => Promise<PackageRequirement[]> = get,
 ): Promise<ReturnValue>
 {
   if (!isArray(input)) input = [input]

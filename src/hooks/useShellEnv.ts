@@ -158,6 +158,14 @@ export function expand(env: Record<string, string[]>) {
   return rv
 }
 
+export function flatten(env: Record<string, string[]>) {
+  const rv: Record<string, string> = {}
+  for (const [key, value] of Object.entries(env)) {
+    rv[key] = value.join(":")
+  }
+  return rv
+}
+
 function find_tea() {
   for (const bindir of Deno.env.get("PATH")?.split(":") ?? []) {
     const file = new Path(bindir).join("tea").isExecutableFile()

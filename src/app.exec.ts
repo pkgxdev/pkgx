@@ -1,4 +1,4 @@
-import { useShellEnv, usePantry, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
+import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
@@ -39,8 +39,7 @@ export default async function exec(opts: Args) {
 
 /////////////////////////////////////////////////////////////
 async function install(dry: PackageSpecification[]) {
-  const get = (x: PackageSpecification) => usePantry().getDeps(x).then(x => x.runtime)
-  const wet = await hydrate(dry, get)   ; console.debug({wet})
+  const wet = await hydrate(dry)   ; console.debug({wet})
   const gas = await resolve(wet.pkgs)   ; console.debug({gas})
 
   for (const pkg of gas.pending) {
