@@ -206,7 +206,7 @@ async function install(): Promise<true | 'not-git' | 'noop'> {
     try {
       if (prefix.exists()) return 'noop' // another instance of tea did it
       await run({
-        cmd: [git, "clone", "https://github.com/teaxyz/pantry", "."],
+        cmd: [git, "clone", "--depth=1", "https://github.com/teaxyz/pantry", "."],
         cwd, env
       })
     } finally {
