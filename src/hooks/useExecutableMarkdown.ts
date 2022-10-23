@@ -2,7 +2,7 @@ import Path from "path"
 
 interface Return {
   /// throws if not found
-  findScript(name?: string): string
+  findScript(name: string): string
 }
 
 type Parameters = { filename: Path } | { text: string }
@@ -16,9 +16,8 @@ export default function useExecutableMarkdown(parameters: Parameters) {
     }
   })().then(x => x.split("\n")[Symbol.iterator]()))
 
-  const findScript = async (name?: string) => {
+  const findScript = async (name: string) => {
     const lines = await getLines()
-    name ??= 'getting-started'
 
     const header_rx = new RegExp(`^#+\\s+(.*)\\s*$`)
     for (const line of lines) {

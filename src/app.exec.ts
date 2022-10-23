@@ -11,7 +11,7 @@ import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
 //TODO avoid use of virtual-env if not required
 
 export default async function exec(opts: Args) {
-  const flags = useFlags()
+  const { verbose, ...flags } = useFlags()
   const {args: cmd, pkgs: sparkles, blueprint} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
@@ -30,8 +30,13 @@ export default async function exec(opts: Args) {
   }
 
   try {
-    await run({ cmd, env })  //TODO implement `execvp` for deno
+    if (cmd.length) {
+      /// no command is strictly acceptable, it’s an idiomatic use of `exec` mode
+      /// it just means: noop
+      await run({ cmd, env })  //TODO implement `execvp` for deno
+    }
   } catch (err) {
+    if (verbose) console.error(err)
     const code = err?.code ?? 1
     Deno.exit(isNumber(code) ? code : 1)
   }
@@ -67,13 +72,15 @@ async function abracadabra(opts: Args): Promise<RV> {
 
   let env = magic ? await useVirtualEnv().swallow("not-found:srcroot") : undefined
 
-  if (env) {
+  if (env && args.length) {
     // firstly check if there is a target named args[0]
     // since we don’t want to allow the security exploit where you can make a file
     // and steal execution when a target was intended
     // NOTE user can still specify eg. `tea ./foo` if they really want the file
 
-    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(args[0]).swallow(/exe\/md/)
+    const scriptName = args[0] == '.' ? 'getting-started' : args[0]
+
+    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(scriptName).swallow(/exe\/md/)
     if (sh) {
       return mksh(sh)
     } else if (args.length == 0) {
@@ -82,6 +89,7 @@ async function abracadabra(opts: Args): Promise<RV> {
   }
 
   const path = await (async () => {
+    if (args.length == 0) return
     try {
       const src = new URL(args[0])
       const path = await useDownload().download({ src })
