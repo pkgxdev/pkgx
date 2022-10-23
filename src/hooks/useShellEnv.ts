@@ -1,4 +1,5 @@
 import { Installation, PackageSpecification } from "types"
+import { OrderedSet, OrderedSortedSet } from "rimbu/ordered/set/index.ts"
 import { host } from "utils"
 import { usePrefix } from "hooks"
 import Path from "path"
@@ -29,7 +30,7 @@ interface Options {
 }
 
 export default function useShellEnv({installations, pending, pristine}: Options): Record<string, string[]> {
-  const vars: Record<string, string[]> = {}
+  const vars: Record<string, OrderedSet<string>> = {}
   const isMac = host().platform == 'darwin'
   pending ??= []
 
@@ -40,34 +41,28 @@ export default function useShellEnv({installations, pending, pristine}: Options)
   for (const installation of installations) {
     for (const key of EnvKeys) {
       for (const suffix of suffixes(key)!) {
-        if (!vars[key]) vars[key] = []
-        vars[key].compact_unshift(installation.path.join(suffix).compact()?.string)
+        vars[key] = compact_add(vars[key], installation.path.join(suffix).compact()?.string)
       }
     }
 
     if (archaic) {
-      if (!vars.LIBRARY_PATH) vars.LIBRARY_PATH = []
-      if (!vars.CPATH) vars.CPATH = []
-      vars.LIBRARY_PATH.compact_unshift(installation.path.join("lib").compact()?.string)
-      vars.CPATH.compact_unshift(installation.path.join("include").compact()?.string)
+      vars.LIBRARY_PATH = compact_add(vars.LIBRARY_PATH, installation.path.join("lib").compact()?.string)
+      vars.CPATH = compact_add(vars.CPATH, installation.path.join("include").compact()?.string)
     }
 
     if (has_cmake) {
-      if (!vars.CMAKE_PREFIX_PATH) vars.CMAKE_PREFIX_PATH = []
-      vars.CMAKE_PREFIX_PATH.unshift(installation.path.string)
+      vars.CMAKE_PREFIX_PATH = compact_add(vars.CMAKE_PREFIX_PATH, installation.path.string)
     }
 
     if (projects.has('gnu.org/autoconf')) {
-      vars.ACLOCAL_PATH ??= []
-      vars.ACLOCAL_PATH.compact_unshift(installation.path.join("share/aclocal").compact()?.string)
+      vars.ACLOCAL_PATH = compact_add(vars.ACLOCAL_PATH, installation.path.join("share/aclocal").compact()?.string)
     }
 
     if (installation.pkg.project === 'openssl.org') {
-      vars.SSL_CERT_FILE ??= []
-      vars.SSL_CERT_FILE.compact_unshift(installation.path.join("ssl/cert.pem").compact()?.string)
-      // this is a single file, so we assume the first
+      const certPath = installation.path.join("ssl/cert.pem").compact()?.string
+      // this is a single file, so we assume a
       // valid entry is correct
-      vars.SSL_CERT_FILE = vars.SSL_CERT_FILE.slice(0, 1)
+      if (certPath) vars.SSL_CERT_FILE = OrderedSortedSet.of(certPath)
     }
   }
 
@@ -87,8 +82,8 @@ export default function useShellEnv({installations, pending, pristine}: Options)
   const rv: Record<string, string[]> = {}
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
-    if (!vars[key]?.chuzzle()) continue
-    rv[key] = vars[key]
+    if (!vars[key] || vars[key].isEmpty) continue
+    rv[key] = vars[key].toArray()
 
     if (!pristine && key == 'PATH') {
       rv[key] ??= []
@@ -171,4 +166,11 @@ function find_tea() {
     const file = new Path(bindir).join("tea").isExecutableFile()
     if (file) return file
   }
+}
+
+function compact_add<T>(set: OrderedSet<T> | undefined, item: T | null | undefined): OrderedSet<T> {
+  if (!set) set = OrderedSortedSet.empty<T>()
+  if (item) set = set.add(item)
+
+  return set
 }
