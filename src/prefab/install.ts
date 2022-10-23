@@ -17,13 +17,16 @@ export default async function install(pkg: Package): Promise<Installation> {
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
-  const stowage = StowageNativeBottle({ pkg: { project, version }, compression: 'gz' })
+  const compression = host().platform == 'darwin' ? 'xz' : 'gz'
+  const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const dst = useCache().path(stowage)
   const { path: tarball, sha } = await download({ src: url, dst })
 
+  //FIXME if we already have the gz or xz versions don’t download the other version!
+
   try {
-    const url = useOffLicense('s3').url({pkg, compression: 'gz', type: 'bottle'})
+    const url = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
     await sumcheck(sha, new URL(`${url}.sha256sum`))
   } catch (err) {
     tarball.rm()
