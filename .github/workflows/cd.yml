@@ -77,11 +77,14 @@ jobs:
         include:
         - deno-target: x86_64-apple-darwin
           build-id: darwin+x86-64
+          os: ubuntu-latest
         - deno-target: aarch64-apple-darwin
           build-id: darwin+aarch64
+          os: macos-latest  # or binaries don’t run when download to different machine
         - deno-target: x86_64-unknown-linux-gnu
           build-id: linux+x86-64
-    runs-on: ubuntu-latest
+          os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
 

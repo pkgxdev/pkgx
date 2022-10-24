@@ -9,7 +9,7 @@ that part; it’s going to *change the world*.
 &nbsp;
 
 
-# tea/cli 0.8.12
+# tea/cli 0.9.0
 
 tea is a universal virtual‑environment manager:
 
@@ -555,7 +555,7 @@ deno test \
 ## Typecheck
 
 ```sh
-deno check --import-map="$SRCROOT"/import-map.json --unstable src/*.ts "$SRCROOT"/scripts/*.ts
+deno check --import-map="$SRCROOT"/import-map.json --unstable src/app.ts "$SRCROOT"/scripts/*.ts
 ```
 
 ## Run

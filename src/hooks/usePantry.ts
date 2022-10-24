@@ -1,11 +1,10 @@
 import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
-import { run, host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
-import { useCellar, useGitHubAPI, usePrefix, useDownload } from "hooks"
-import { validatePackageRequirement } from "utils/hacks.ts"
+import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
-import useShellEnv, { flatten } from "./useShellEnv.ts"
+import { update, install, prefix } from "./usePantry.git.ts"
+import { validatePackageRequirement } from "utils/hacks.ts"
+import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import SemVer, * as semver from "semver"
-import { install as tea_install, hydrate, resolve as tea_resolve } from "prefab"
 import Path from "path"
 
 interface Entry {
@@ -13,8 +12,6 @@ interface Entry {
   yml: () => Promise<PlainObject>
   versions: Path
 }
-
-const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 export default function usePantry() {
   return {
@@ -165,73 +162,6 @@ const getProvides = async (pkg: Package | PackageRequirement) => {
 // deno-lint-ignore no-explicit-any
 function coerceNumber(input: any) {
   if (isNumber(input)) return input
-}
-
-async function find_git(): Promise<[Path | string, Record<string, string[]>] | undefined> {
-  for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
-    const path = Path.root.join(path_, 'git')
-    if (path.isExecutableFile()) {
-      return [path, {}]
-    }
-  }
-
-  try {
-    const installations = await (async () => {
-      const { pkgs: wet } = await hydrate({ project: 'git-scm.org', constraint: new semver.Range('*') })
-      const { pending: gas, installed } = await tea_resolve(wet)
-      return [
-        ...await Promise.all(gas.map(tea_install)),
-        ...installed
-      ]
-    })()
-    const env = useShellEnv({ installations })
-    return ['git', env]
-  } catch (err) {
-    console.warn(err)
-  }
-}
-
-//TODO we have a better system in mind than git
-async function install(): Promise<true | 'not-git' | 'noop'> {
-  if (prefix.exists()) return 'noop'
-
-  const found = await find_git()
-  const cwd = prefix.parent().mkpath()
-
-  if (found) {
-    const [git, preenv] = found
-    const env = flatten(preenv)
-    const { rid } = Deno.openSync(cwd.string)
-    await Deno.flock(rid, true)
-    try {
-      if (prefix.exists()) return 'noop' // another instance of tea did it
-      await run({
-        cmd: [git, "clone", "--depth=1", "https://github.com/teaxyz/pantry", "."],
-        cwd, env
-      })
-    } finally {
-      //TODO if this gets stuck then nothing will work so need a handler for that
-      await Deno.funlock(rid)
-    }
-    return true
-  } else {
-    //FIXME if we do this, we need to be able to convert it to a git installation later
-    //TODO use our tar if necessary
-    const src = new URL('https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz')
-    const zip = await useDownload().download({ src })
-    await run({cmd: ["tar", "xzf", zip, "--strip-components=1"], cwd})
-    return 'not-git'
-  }
-}
-
-const update = async () => {
-  if (await install() !== 'noop') return
-  const git = await find_git()
-  const cwd = prefix.parent()
-  if (git) {
-    const env = flatten(git[1])
-    await run({cmd: [git[0], "pull", "origin", "HEAD", "--no-edit"], cwd, env })
-  }
 }
 
 function entry(pkg: Package | PackageRequirement): Entry {
