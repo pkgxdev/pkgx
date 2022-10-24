@@ -72,13 +72,13 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
     const env = flatten(preenv)
 
     const pp: Promise<void>[] = []
-    for (const [remote, local] of [["pantry", "pantry.core"], ["pantry.extra", "pantry.extra"]]) {
+    for (const name of ["pantry.core", "pantry.extra"]) {
       const p = run({
         cmd: [
           git, "clone",
             "--bare", "--depth=1",
-            `https://github.com/teaxyz/${remote}`,
-            pantries_dir.join("teaxyz").mkpath().join(local)
+            `https://github.com/teaxyz/${name}`,
+            pantries_dir.join("teaxyz").mkpath().join(name)
         ],
         env
       })
@@ -93,7 +93,7 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
     //FIXME if we do this, we need to be able to convert it to a git installation later
     //TODO use our tar if necessary
     //TODO if we keep this then don’t store the files, just pipe to tar
-    for (const name of ["pantry", "pantry.extra"]) {
+    for (const name of ["pantry.core", "pantry.extra"]) {
       const src = new URL(`https://github.com/teaxyz/${name}/archive/refs/heads/main.tar.gz`)
       const tgz = await useDownload().download({ src })
       const cwd = pantry_dir.mkpath()
