@@ -555,7 +555,7 @@ deno test \
 ## Typecheck
 
 ```sh
-deno check --import-map="$SRCROOT"/import-map.json --unstable src/*.ts "$SRCROOT"/scripts/*.ts
+deno check --import-map="$SRCROOT"/import-map.json --unstable src/app.ts "$SRCROOT"/scripts/*.ts
 ```
 
 ## Run
