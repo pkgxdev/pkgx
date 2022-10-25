@@ -27,7 +27,7 @@ const pantries_dir = pantry_dir.parent().join("pantries")
 let avoid_softlock = false
 
 async function lock<T>(body: () => Promise<T>) {
-  if (avoid_softlock) throw new Error()
+  if (avoid_softlock) throw new Error("aborting to prevent softlock")
   avoid_softlock = true
 
   const { rid } = Deno.openSync(pantry_dir.mkpath().string)
