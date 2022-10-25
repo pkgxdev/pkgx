@@ -14,28 +14,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os:
           - macos-latest
           - ubuntu-latest
-    env:
-      VERBOSE: 1
-      TEA_SECRET: ${{ secrets.TEA_SECRET }}
+        container:
+          - ~
+        include:
+        - os: ubuntu-latest
+          container: debian:buster-slim
+    container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v3
-
-      #TMP until we go public
-      - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
 
       - uses: teaxyz/setup@v0
         with:
           target: test
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          #FIXME because we require a `.git` directory to detect srcroots
+          srcroot: ${{ github.workspace }}
 
       - run: tea typecheck
 
+      #FIXME action should install deps and add this to PATH duh
       - run: tea deno lint
+
+  test-sync-lock:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+        container:
+          - ~
+        include:
+        - os: ubuntu-latest
+          container: debian:buster-slim
+    container: ${{ matrix.container }}
+    continue-on-error: ${{ !!matrix.container }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+      - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -

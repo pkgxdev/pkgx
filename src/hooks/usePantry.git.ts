@@ -2,7 +2,7 @@ import { install as tea_install, hydrate, resolve } from "prefab"
 import { flatten } from "./useShellEnv.ts"
 import { useDownload, useShellEnv, usePrefix } from "hooks"
 import * as semver from "semver"
-import { run } from "utils"
+import { host, run } from "utils"
 import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
@@ -34,6 +34,22 @@ async function find_git(): Promise<[Path | string, Record<string, string[]>] | u
 const pantry_dir = prefix.parent()
 const pantries_dir = pantry_dir.parent().join("pantries")
 
+async function lock<T>(body: () => Promise<T>) {
+  //FIXME flock causes tea to hang when inside docker for debian:buster-slim
+  // as yet, we’re not sure why or what to do about it :(
+  if (host().platform == 'linux') return body()
+
+  const { rid } = Deno.openSync(pantry_dir.mkpath().string)
+  await Deno.flock(rid, true)
+
+  try {
+    return await body()
+  } finally {
+    //TODO if this gets stuck then nothing will work so need a handler for that
+    await Deno.funlock(rid)
+  }
+}
+
 //TODO we have a better system in mind than git
 export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
   if (pantries_dir.exists()) return 'noop'
@@ -44,9 +60,7 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
   }
 
   try {
-    const { rid } = Deno.openSync(pantry_dir.mkpath().string)
-    await Deno.flock(rid, true)
-    try {
+    return await lock(async () => {
       if (prefix.exists()) return 'noop'
       // ^^ another instance of tea did the install while we waited
 
@@ -58,10 +72,7 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
         await unzip()
         return 'not-git'
       }
-    } finally {
-      //TODO if this gets stuck then nothing will work so need a handler for that
-      await Deno.funlock(rid)
-    }
+    })
   } catch (e) {
     pantries_dir.rm({ recursive: true }) // leave us in a blank state
     pantry_dir.rm({ recursive: true })   // ^^
@@ -113,7 +124,7 @@ async function *ls() {
 export const update = async () => {
   switch (await install()) {
   case 'deprecated':
-    console.warn("pantry is a clone, this is deprecated, cannot update, please reinstall")
+    console.warn("pantry is a clone, this is deprecated, please clean-install tea")
     break
   case 'not-git':
     console.warn("pantry is not a git repository, cannot update")
