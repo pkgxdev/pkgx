@@ -52,8 +52,8 @@ async function lock<T>(body: () => Promise<T>) {
 
 //TODO we have a better system in mind than git
 export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
-  if (pantries_dir.exists()) return 'noop'
   if (prefix.exists()) {
+    if (pantries_dir.exists()) return 'noop'
     return pantry_dir.join('.git').exists()
       ? 'deprecated' // tmp to do internal fix
       : 'not-git'
