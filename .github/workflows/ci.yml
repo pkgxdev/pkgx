@@ -46,15 +46,10 @@ jobs:
         with:
           path: cli
 
-      - run: |
-          apt-get update
-          apt-get install unzip  # setup-deno requires this
-          mkdir .git  #hack because we require .git dirs for srcroot
+      # denoland/setup requires `unzip` to be installed
+      - run: apt-get update && apt-get install unzip
         if: ${{ matrix.container == 'debian:buster-slim' }}
-
-      - run: |
-          pacman -Sy --noconfirm unzip
-          mkdir .git
+      - run: pacman -Sy --noconfirm unzip
         if: ${{ matrix.container == 'archlinux:latest' }}
 
       - uses: denoland/setup-deno@v1
@@ -72,6 +67,3 @@ jobs:
             ./cli/src/app.ts
 
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
-        env:
-          RUST_BACKTRACE: FULL
-          VERBOSE: 1
