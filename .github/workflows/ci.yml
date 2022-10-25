@@ -59,3 +59,4 @@ jobs:
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
           RUST_BACKTRACE: 1
+          VERBOSE: 1
