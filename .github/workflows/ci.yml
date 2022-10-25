@@ -69,6 +69,8 @@ jobs:
             --output /usr/local/bin/tea \
             ./src/app.ts
 
+      - run: tea --sync
+
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
           RUST_BACKTRACE: FULL
