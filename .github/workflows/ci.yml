@@ -53,6 +53,8 @@ jobs:
           mkdir .git  #hack because we require .git dirs for srcroot
         if: ${{ !!matrix.container }}
       - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.24.x
       - run: scripts/self-install.sh
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
