@@ -41,9 +41,11 @@ jobs:
         - os: ubuntu-latest
           container: debian:buster-slim
     container: ${{ matrix.container }}
-    continue-on-error: ${{ !!matrix.container }}
+    #continue-on-error: ${{ !!matrix.container }}
     steps:
       - uses: actions/checkout@v3
+      - run: apt-get update && apt-get install unzip
+        if: ${{ !!matrix.container }}
       - uses: denoland/setup-deno@v1
       - run: scripts/self-install.sh
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
