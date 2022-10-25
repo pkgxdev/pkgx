@@ -44,6 +44,6 @@ jobs:
     continue-on-error: ${{ !!matrix.container }}
     steps:
       - uses: actions/checkout@v3
-      - uses: deno/setup-deno@v1
+      - uses: denoland/setup-deno@v1
       - run: scripts/self-install.sh
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
