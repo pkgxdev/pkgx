@@ -32,6 +32,7 @@ exec "\$DENO" \\
   --allow-net \\
   --allow-run \\
   --allow-env \\
+  --unstable \\
   --import-map="$SRCROOT"/import-map.json \\
   "$SRCROOT"/src/app.ts \\
   "\$@"
