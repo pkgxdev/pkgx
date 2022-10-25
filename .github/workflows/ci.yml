@@ -30,11 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: teaxyz/setup@v0
-        with:
-          target: test
-          #FIXME because we require a `.git` directory to detect srcroots
-          srcroot: ${{ github.workspace }}
+      - run: scripts/self-install.sh
 
       - run: tea typecheck
 
@@ -57,5 +53,5 @@ jobs:
     continue-on-error: ${{ !!matrix.container }}
     steps:
       - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
+      - run: scripts/self-install.sh
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
