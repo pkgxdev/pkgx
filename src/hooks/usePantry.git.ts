@@ -1,29 +1,35 @@
-import { flatten } from "./useShellEnv.ts"
-import { useDownload, usePrefix } from "hooks"
+import { useDownload, usePrefix, useCellar } from "hooks"
+import * as semver from "semver"
 import { run } from "utils"
 import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
-function find_git(): Promise<[Path | string, Record<string, string[]>] | undefined> {
+async function find_git(): Promise<Path | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
     if (path.isExecutableFile()) {
-      return Promise.resolve([path, {}])
+      return Promise.resolve(path)
     }
   }
 
-  return Promise.resolve(undefined)
+  const pkg = {project: 'git-scm.org', constraint: new semver.Range('*')}
+  const git = await useCellar().has(pkg)
+  return git?.path.join('bin/git')
 
   //ALERT! don’t install git with tea
-  // we tried that, but there's no pantry yet, so attempting to do it will
-  // lead to a recursive loop here
+  // there's no pantry yet, so attempting to do so will infinitely recurse
 }
 
 const pantry_dir = prefix.parent()
 const pantries_dir = pantry_dir.parent().join("pantries")
 
+let avoid_softlock = false
+
 async function lock<T>(body: () => Promise<T>) {
+  if (avoid_softlock) throw new Error()
+  avoid_softlock = true
+
   const { rid } = Deno.openSync(pantry_dir.mkpath().string)
   await Deno.flock(rid, true)
 
@@ -32,6 +38,7 @@ async function lock<T>(body: () => Promise<T>) {
   } finally {
     //TODO if this gets stuck then nothing will work so need a handler for that
     await Deno.funlock(rid)
+    avoid_softlock = false
   }
 }
 
@@ -39,9 +46,10 @@ async function lock<T>(body: () => Promise<T>) {
 export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
   if (prefix.exists()) {
     if (pantries_dir.exists()) return 'noop'
-    return pantry_dir.join('.git').exists()
-      ? 'deprecated' // tmp to do internal fix
-      : 'not-git'
+    if (pantry_dir.join('.git').exists()) return 'deprecated'
+
+    // FIXME in this case we have a downloaded pantry so we should install git
+    return 'not-git'
   }
 
   try {
@@ -65,9 +73,7 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
     throw e
   }
 
-  async function clone([git, preenv]: [Path | string, Record<string, string[]>]) {
-    const env = flatten(preenv)
-
+  async function clone(git: Path) {
     const pp: Promise<void>[] = []
     for (const name of ["pantry.core", "pantry.extra"]) {
       const p = run({
@@ -76,14 +82,13 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
             "--bare", "--depth=1",
             `https://github.com/teaxyz/${name}`,
             pantries_dir.join("teaxyz").mkpath().join(name)
-        ],
-        env
+        ]
       })
       pp.push(p)
     }
 
     await Promise.all(pp)
-    await co(git, env)
+    await co(git)
   }
 
   async function unzip() {
@@ -118,14 +123,13 @@ export const update = async () => {
   case 'noop': {
     const git = await find_git()
     if (!git) return console.warn("cannot update pantry without git")
-    const env = flatten(git[1])
     const pp: Promise<void>[] = []
     for await (const cwd of ls()) {
-      const p = run({cmd: [git[0], "fetch", "origin"], cwd, env })
+      const p = run({cmd: [git, "fetch", "origin"], cwd })
       pp.push(p)
     }
     await Promise.all(pp)
-    await co(git[0], env)
+    await co(git)
   } break
   default:
     break // we don’t update if we only just cloned it
@@ -134,7 +138,7 @@ export const update = async () => {
 
 //FIXME order matters
 //NOTE well this overlay method is not permanent for sure
-async function co(git: string | Path, env: Record<string, string>) {
+async function co(git: string | Path) {
   for await (const git_dir of ls()) {
     const cmd = [git,
       "--git-dir", git_dir,
@@ -142,6 +146,6 @@ async function co(git: string | Path, env: Record<string, string>) {
       "checkout",
       "--force"
     ]
-    await run({ cmd, env })
+    await run({ cmd })
   }
 }

@@ -28,26 +28,19 @@ jobs:
       - run: tea typecheck
       - run: tea deno lint
 
+  # in stuations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
         - os: ubuntu-latest
-          coe: true
+        - os: macos-latest
+        - os: ubuntu-latest
           container: debian:buster-slim
         - os: ubuntu-latest
-          coe: true
-        - os: macos-latest
-          coe: false
-        - os: ubuntu-latest
-          coe: false
           container: archlinux:latest
     container: ${{ matrix.container }}
-
-    # we need to fix this, see comments in `usePantry.git.ts`
-    continue-on-error: ${{ matrix.coe }}
-
     steps:
       - uses: actions/checkout@v3
 
@@ -63,8 +56,6 @@ jobs:
         if: ${{ matrix.container == 'archlinux:latest' }}
 
       - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.22.x
 
       - run: |
           deno compile \
@@ -77,10 +68,6 @@ jobs:
             --import-map=./import-map.json \
             --output /usr/local/bin/tea \
             ./src/app.ts
-
-      - run: tea --sync
-        env:
-          VERBOSE: 1
 
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
