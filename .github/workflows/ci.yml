@@ -58,7 +58,7 @@ jobs:
         if: ${{ matrix.container == 'debian:buster-slim' }}
 
       - run: |
-          pacman -S unzip
+          pacman -Sy unzip
           mkdir .git
         if: ${{ matrix.container == 'archlinux:latest' }}
 
