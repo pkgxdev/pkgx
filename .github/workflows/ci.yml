@@ -14,28 +14,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os:
           - macos-latest
           - ubuntu-latest
-    env:
-      VERBOSE: 1
-      TEA_SECRET: ${{ secrets.TEA_SECRET }}
     steps:
       - uses: actions/checkout@v3
-
-      #TMP until we go public
-      - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
-
       - uses: teaxyz/setup@v0
-        with:
-          target: test
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
+      - run: tea test
       - run: tea typecheck
-
       - run: tea deno lint
+
+  # in stuations without `git` we had a softlock problem that we're testing for here
+  test-sync-lock:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+        - os: ubuntu-latest
+        - os: macos-latest
+        - os: ubuntu-latest
+          container: debian:buster-slim
+        - os: ubuntu-latest
+          container: archlinux:latest
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: cli
+
+      # denoland/setup requires `unzip` to be installed
+      - run: apt-get update && apt-get install unzip
+        if: ${{ matrix.container == 'debian:buster-slim' }}
+      - run: pacman -Sy --noconfirm unzip
+        if: ${{ matrix.container == 'archlinux:latest' }}
+
+      - uses: denoland/setup-deno@v1
+
+      - run: |
+          deno compile \
+            --allow-read \
+            --allow-write \
+            --allow-net \
+            --allow-run \
+            --allow-env \
+            --unstable \
+            --import-map=./cli/import-map.json \
+            --output /usr/local/bin/tea \
+            ./cli/src/app.ts
+
+      - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
