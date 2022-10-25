@@ -43,6 +43,8 @@ jobs:
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          path: cli
 
       - run: |
           apt-get update
@@ -65,9 +67,9 @@ jobs:
             --allow-run \
             --allow-env \
             --unstable \
-            --import-map=./import-map.json \
+            --import-map=./cli/import-map.json \
             --output /usr/local/bin/tea \
-            ./src/app.ts
+            ./cli/src/app.ts
 
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
