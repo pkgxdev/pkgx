@@ -1,10 +1,14 @@
 import { Stowage } from "types"
 import { host } from "utils"
+import {useDownload} from "hooks";
 
-type Type = 's3'
+type Type = 's3' | 'ipfs'
 
 export default function useOffLicense(_type: Type) {
-  return { url, key }
+  return {
+    url: _type=='s3' ? url: ipfsUrl,
+    key: _type=='s3' ? key: ipfsKey 
+  }
 }
 
 function key(stowage: Stowage) {
@@ -24,4 +28,32 @@ function key(stowage: Stowage) {
 
 function url(stowage: Stowage) {
   return new URL(`https://dist.tea.xyz/${key(stowage)}`)
+}
+
+async function ipfsUrl(stowage: Stowage) {
+  const urlKey = await ipfsKey(stowage)
+
+  if(urlKey.includes(key(stowage))) return url(stowage)
+  else return new URL(`http://ipfs.tea.xyz:8080/ipfs/${urlKey}`)
+
+}
+
+async function ipfsKey(stowage: Stowage) {
+  const urlCID = new URL(url(stowage) + '.cid')
+  const { download } = useDownload()
+  let cid
+
+  try{
+    cid =  await console.silence(() =>
+      download({ src: urlCID, ephemeral: true })
+    ).then(async dl => {
+      const txt = await dl.read()
+      return txt.split(' ')[0]
+    })
+    return cid
+
+  } catch(err){
+    console.log("Got error:: ", err, " Getting file from S3 now")
+    return key(stowage)
+  }
 }
