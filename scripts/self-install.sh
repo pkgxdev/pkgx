@@ -37,4 +37,4 @@ exec "$DENO" \\
   "\$@"
 EOF
 
-chmod ugo+x usr/local/bin/tea
+chmod ugo+x /usr/local/bin/tea
