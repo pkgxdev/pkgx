@@ -15,17 +15,17 @@ mkdir -p usr/local/bin
 cat <<EOF > /usr/local/bin/tea
 #!/bin/sh
 
-if test -z "$TEA_PREFIX"; then
-  TEA_PREFIX="$HOME/.tea"
+if test -z "\$TEA_PREFIX"; then
+  TEA_PREFIX="\$HOME/.tea"
 fi
 
-if test -f "$TEA_PREFIX/deno.land/v*/bin/deno"; then
-  DENO="$TEA_PREFIX/deno.land/v*/bin/deno"
+if test -f "\$TEA_PREFIX/deno.land/v*/bin/deno"; then
+  DENO="\$TEA_PREFIX/deno.land/v*/bin/deno"
 else
   DENO="deno"
 fi
 
-exec "$DENO" \\
+exec "\$DENO" \\
   run \\
   --allow-read \\
   --allow-write \\
