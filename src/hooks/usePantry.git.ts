@@ -2,7 +2,7 @@ import { install as tea_install, hydrate, resolve } from "prefab"
 import { flatten } from "./useShellEnv.ts"
 import { useDownload, useShellEnv, usePrefix } from "hooks"
 import * as semver from "semver"
-import { host, run } from "utils"
+import { run } from "utils"
 import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
