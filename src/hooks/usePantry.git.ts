@@ -2,7 +2,7 @@ import { install as tea_install, hydrate, resolve } from "prefab"
 import { flatten } from "./useShellEnv.ts"
 import { useDownload, useShellEnv, usePrefix } from "hooks"
 import * as semver from "semver"
-import { run } from "utils"
+import { host, run } from "utils"
 import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
@@ -35,6 +35,10 @@ const pantry_dir = prefix.parent()
 const pantries_dir = pantry_dir.parent().join("pantries")
 
 async function lock<T>(body: () => Promise<T>) {
+  //FIXME flock causes tea to hang when inside docker for debian:buster-slim
+  // as yet, we’re not sure why or what to do about it :(
+  if (host().platform == 'linux') return body()
+
   const { rid } = Deno.openSync(pantry_dir.mkpath().string)
   await Deno.flock(rid, true)
 

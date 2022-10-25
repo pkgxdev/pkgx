@@ -40,6 +40,9 @@ jobs:
           coe: true
         - os: macos-latest
           coe: false
+        - os: ubuntu-latest
+          coe: false
+          container: archlinux:latest
     container: ${{ matrix.container }}
 
     # we need to fix this, see comments in `usePantry.git.ts`
@@ -51,7 +54,7 @@ jobs:
           apt-get update
           apt-get install unzip  # setup-deno requires this
           mkdir .git  #hack because we require .git dirs for srcroot
-        if: ${{ !!matrix.container }}
+        if: ${{ matrix.container == 'debian:buster-slim' }}
 
       - uses: denoland/setup-deno@v1
         with:
