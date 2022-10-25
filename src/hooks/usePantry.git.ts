@@ -7,6 +7,8 @@ import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
+let dont_try_again = false
+
 async function find_git(): Promise<[Path | string, Record<string, string[]>] | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
@@ -14,6 +16,8 @@ async function find_git(): Promise<[Path | string, Record<string, string[]>] | u
       return [path, {}]
     }
   }
+
+  if (dont_try_again) return
 
   try {
     const installations = await (async () => {
@@ -27,6 +31,7 @@ async function find_git(): Promise<[Path | string, Record<string, string[]>] | u
     const env = useShellEnv({ installations })
     return ['git', env]
   } catch (err) {
+    dont_try_again = true
     console.warn(err)
   }
 }
@@ -38,9 +43,11 @@ async function lock<T>(body: () => Promise<T>) {
   //FIXME flock causes tea to hang when inside docker for debian:buster-slim
   // as yet, we’re not sure why or what to do about it :(
   if (host().platform == 'linux') {
-    pantry_dir.mkpath()
-    return await body()
+    // pantry_dir.mkpath()
+    // return await body()
   }
+
+  console.log("ABOUT TO LOCK")
 
   const { rid } = Deno.openSync(pantry_dir.mkpath().string)
   await Deno.flock(rid, true)
