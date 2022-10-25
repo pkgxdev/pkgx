@@ -1,54 +1,29 @@
-import { install as tea_install, hydrate, resolve } from "prefab"
 import { flatten } from "./useShellEnv.ts"
-import { useDownload, useShellEnv, usePrefix } from "hooks"
-import * as semver from "semver"
-import { host, run } from "utils"
+import { useDownload, usePrefix } from "hooks"
+import { run } from "utils"
 import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
-let dont_try_again = false
-
-async function find_git(): Promise<[Path | string, Record<string, string[]>] | undefined> {
+function find_git(): Promise<[Path | string, Record<string, string[]>] | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
     if (path.isExecutableFile()) {
-      return [path, {}]
+      return Promise.resolve([path, {}])
     }
   }
 
-  if (dont_try_again) return
+  return Promise.resolve(undefined)
 
-  try {
-    const installations = await (async () => {
-      const { pkgs: wet } = await hydrate({ project: 'git-scm.org', constraint: new semver.Range('*') })
-      const { pending: gas, installed } = await resolve(wet)
-      return [
-        ...await Promise.all(gas.map(tea_install)),
-        ...installed
-      ]
-    })()
-    const env = useShellEnv({ installations })
-    return ['git', env]
-  } catch (err) {
-    dont_try_again = true
-    console.warn(err)
-  }
+  //ALERT! don’t install git with tea
+  // we tried that, but there's no pantry yet, so attempting to do it will
+  // lead to a recursive loop here
 }
 
 const pantry_dir = prefix.parent()
 const pantries_dir = pantry_dir.parent().join("pantries")
 
 async function lock<T>(body: () => Promise<T>) {
-  //FIXME flock causes tea to hang when inside docker for debian:buster-slim
-  // as yet, we’re not sure why or what to do about it :(
-  if (host().platform == 'linux') {
-    // pantry_dir.mkpath()
-    // return await body()
-  }
-
-  console.log("ABOUT TO LOCK")
-
   const { rid } = Deno.openSync(pantry_dir.mkpath().string)
   await Deno.flock(rid, true)
 
@@ -70,11 +45,12 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
   }
 
   try {
+    const git = await find_git()
+
     return await lock(async () => {
       if (prefix.exists()) return 'noop'
       // ^^ another instance of tea did the install while we waited
 
-      const git = await find_git()
       if (git) {
         await clone(git)
         return true
