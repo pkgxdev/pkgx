@@ -50,11 +50,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - run: |
           apt-get update
           apt-get install unzip  # setup-deno requires this
           mkdir .git  #hack because we require .git dirs for srcroot
         if: ${{ matrix.container == 'debian:buster-slim' }}
+
+      - run: |
+          sudo pacman -S unzip
+          mkdir .git
+        if: ${{ matrix.container == 'archlinux:latest' }}
 
       - uses: denoland/setup-deno@v1
         with:
