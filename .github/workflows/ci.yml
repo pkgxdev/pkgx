@@ -70,6 +70,8 @@ jobs:
             ./src/app.ts
 
       - run: tea --sync
+        env:
+          VERBOSE: 1
 
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
