@@ -41,10 +41,12 @@ jobs:
         - os: ubuntu-latest
           container: debian:buster-slim
     container: ${{ matrix.container }}
-    #continue-on-error: ${{ !!matrix.container }}
     steps:
       - uses: actions/checkout@v3
-      - run: apt-get update && apt-get install unzip
+      - run: |
+          apt-get update
+          apt-get install unzip
+          mkdir .git  #hack because we require .git dirs for srcroot
         if: ${{ !!matrix.container }}
       - uses: denoland/setup-deno@v1
       - run: scripts/self-install.sh
