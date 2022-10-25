@@ -38,7 +38,7 @@ jobs:
           container: debian:buster-slim
         - os: ubuntu-latest
           coe: true
-        - os: - macos-latest
+        - os: macos-latest
           coe: false
     container: ${{ matrix.container }}
 
