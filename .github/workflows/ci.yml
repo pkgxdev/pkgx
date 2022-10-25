@@ -58,16 +58,16 @@ jobs:
           deno-version: v1.22.x
 
       - run: |
-        deno compile \
-          --allow-read \
-          --allow-write \
-          --allow-net \
-          --allow-run \
-          --allow-env \
-          --unstable \
-          --import-map=./import-map.json \
-          --output /usr/local/bin/tea \
-          ./src/app.ts
+          deno compile \
+            --allow-read \
+            --allow-write \
+            --allow-net \
+            --allow-run \
+            --allow-env \
+            --unstable \
+            --import-map=./import-map.json \
+            --output /usr/local/bin/tea \
+            ./src/app.ts
 
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
         env:
