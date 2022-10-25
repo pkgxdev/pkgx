@@ -1,47 +1,40 @@
 #!/bin/bash
+# requirements: TEA_PREFIX has `deno` or `deno` is in the `PATH`
 
 set -exo pipefail
 
-#FIXME we should use the correct version of deno
+if test -f /usr/local/bin/tea; then
+  echo "/usr/local/bin/tea already exists" >&2
+  exit 1
+fi
 
-OUTDIR="$(tea --prefix)/tea.xyz/v*"
-OUTPUT="$OUTDIR/bin/tea"
 SRCROOT="$(cd $(dirname "$0")/.. && pwd)"
 
-if test -L "$OUTDIR"; then
-  # usually, this is a symlink
-  rm "$OUTDIR"
-fi
+mkdir -p usr/local/bin
 
-mkdir -p "$OUTDIR"/bin
-
-cat <<EOF> "$OUTPUT"
+cat <<EOF > /usr/local/bin/tea
 #!/bin/sh
 
-if test -L "\$0"; then
-  TEA_EXENAME="\$(readlink \$0)"
+if test -z "$TEA_PREFIX"; then
+  TEA_PREFIX="$HOME/.tea"
+fi
+
+if test -f "$TEA_PREFIX/deno.land/v*/bin/deno"; then
+  DENO="$TEA_PREFIX/deno.land/v*/bin/deno"
 else
-  TEA_EXENAME="\$0"
+  DENO="deno"
 fi
 
-if test -z "\$TEA_PREFIX"; then
-  TEA_PREFIX=\$(cd \$(dirname "\$TEA_EXENAME")/../../.. && pwd)
-fi
-
-SRC_PREFIX="$SRCROOT"
-
-export TEA_PREFIX
-
-exec \$TEA_PREFIX/deno.land/v1/bin/deno \\
+exec "$DENO" \\
   run \\
   --allow-read \\
-  --allow-write="\$TEA_PREFIX" \\
+  --allow-write \\
   --allow-net \\
   --allow-run \\
   --allow-env \\
-  --import-map="\$SRC_PREFIX"/import-map.json \\
-  "\$SRC_PREFIX"/src/app.ts \\
+  --import-map="$SRCROOT"/import-map.json \\
+  "$SRCROOT"/src/app.ts \\
   "\$@"
 EOF
 
-chmod ugo+x "$OUTPUT"
+chmod ugo+x usr/local/bin/tea

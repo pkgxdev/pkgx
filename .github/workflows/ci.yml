@@ -21,20 +21,11 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-        container:
-          - ~
-        include:
-        - os: ubuntu-latest
-          container: debian:buster-slim
-    container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v3
-
-      - run: scripts/self-install.sh
-
+      - uses: teaxyz/setup@v0
+      - run: tea test
       - run: tea typecheck
-
-      #FIXME action should install deps and add this to PATH duh
       - run: tea deno lint
 
   test-sync-lock:
@@ -53,5 +44,6 @@ jobs:
     continue-on-error: ${{ !!matrix.container }}
     steps:
       - uses: actions/checkout@v3
+      - uses: deno/setup-deno@v1
       - run: scripts/self-install.sh
       - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
