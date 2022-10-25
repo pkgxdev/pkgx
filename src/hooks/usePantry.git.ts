@@ -38,7 +38,7 @@ async function lock<T>(body: () => Promise<T>) {
   //FIXME flock causes tea to hang when inside docker for debian:buster-slim
   // as yet, we’re not sure why or what to do about it :(
   if (host().platform == 'linux') {
-    console.log()
+    return await body()
   }
 
   const { rid } = Deno.openSync(pantry_dir.mkpath().string)
