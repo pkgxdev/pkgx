@@ -1,6 +1,6 @@
 import { useDownload, usePrefix, useCellar } from "hooks"
 import * as semver from "semver"
-import { run } from "utils"
+import { host, run } from "utils"
 import Path from "path"
 
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
@@ -8,6 +8,11 @@ export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 async function find_git(): Promise<Path | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
+    if (path.string == '/usr/bin/git' && host().platform == 'darwin' && !await clt_installed()) {
+      // if the CLT or Xcode is installed then we can use the system git
+      // if neither is installed then git will actually immediately exit with an error
+      continue
+    }
     if (path.isExecutableFile()) {
       return Promise.resolve(path)
     }
@@ -19,6 +24,13 @@ async function find_git(): Promise<Path | undefined> {
 
   //ALERT! don’t install git with tea
   // there's no pantry yet, so attempting to do so will infinitely recurse
+}
+
+async function clt_installed() {
+  // returns either the CLT path or the Xcode path
+  const proc = Deno.run({ cmd: ["xcode-select", "--print-path"], stdio: 'null' })
+  const exit = await proc.status()
+  return exit.success
 }
 
 const pantry_dir = prefix.parent()
