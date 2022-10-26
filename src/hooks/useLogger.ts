@@ -23,13 +23,14 @@ export default function useLogger(prefix?: string) {
   return new Logger(prefix)
 }
 
-export const teal = (x: string) => colors.rgb8(x, 86);
+export const teal = (x: string) => colors.rgb8(x, 86)
 export const red = colors.brightRed
 
 export class Logger {
   readonly prefix: string
   lines = 0
   last_line = ''
+  tty = tty({ stdout: Deno.stderr })
 
   constructor(prefix?: string) {
     this.prefix = prefix ?? ''
@@ -43,18 +44,19 @@ export class Logger {
 
     if (this.lines) {
       const n = ln(this.last_line, this.prefix)
-      tty.cursorLeft.cursorUp(n).eraseDown()
+      this.tty.cursorLeft.cursorUp(n).eraseDown()
       this.lines -= n
-      if (this.lines < 0) throw new Error(`${n}`)
+      if (this.lines < 0) throw new Error(`${n}`)  //assertion error
     }
 
-    console.info(colors.gray(this.prefix), line)
+    const prefix = this.prefix ? colors.gray(this.prefix) : ''
+    console.error(prefix, line)
     this.lines += ln(line, this.prefix)
     this.last_line = line
   }
 
   clear() {
-    tty.cursorLeft.cursorUp(this.lines).eraseDown(this.lines)
+    this.tty.cursorLeft.cursorUp(this.lines).eraseDown(this.lines)
     this.lines = 0
   }
 }
