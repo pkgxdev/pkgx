@@ -5,9 +5,9 @@ import {useDownload} from "hooks";
 type Type = 's3' | 'ipfs'
 
 export default function useOffLicense(_type: Type) {
-  return {
-    url: _type=='s3' ? url: ipfsUrl,
-    key: _type=='s3' ? key: ipfsKey 
+  switch(_type){
+    case "s3": return{url, key}
+    case "ipfs": return{url: ipfsUrl, key: ipfsKey}
   }
 }
 
