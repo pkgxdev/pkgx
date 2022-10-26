@@ -2,11 +2,12 @@ import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePack
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
-import { run, undent } from "utils"
+import { run, undent, pkg as pkgutils } from "utils"
 import * as semver from "semver"
 import Path from "path"
 import { isNumber } from "is_what"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
+import { Logger } from "./hooks/useLogger.ts"
 
 //TODO avoid use of virtual-env if not required
 
@@ -44,12 +45,13 @@ export default async function exec(opts: Args) {
 
 /////////////////////////////////////////////////////////////
 async function install(dry: PackageSpecification[]) {
-  const wet = await hydrate(dry)   ; console.debug({wet})
-  const gas = await resolve(wet.pkgs)   ; console.debug({gas})
+  const wet = await hydrate(dry)      ; console.debug({wet})
+  const gas = await resolve(wet.pkgs) ; console.debug({gas})
 
   for (const pkg of gas.pending) {
-    console.info({ installing: pkg })
-    const installation = await base_install(pkg)
+    const rq = wet.pkgs.find(rq => rq.project == pkg.project)
+    const logger = new Logger(pkgutils.str(rq ?? pkg))
+    const installation = await base_install(pkg, logger)
     await link(installation)
     gas.installed.push(installation)
   }

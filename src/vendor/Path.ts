@@ -388,8 +388,12 @@ export default class Path {
     }
   }
 
+  prettyString(): string {
+    return this.string.replace(new RegExp(`^${Path.home()}`), '~')
+  }
+
   [Symbol.for("Deno.customInspect")]() {
-    return this.string
+    return this.prettyString()
   }
 }
 
