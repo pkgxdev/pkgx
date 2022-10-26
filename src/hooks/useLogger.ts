@@ -7,10 +7,16 @@ const ansi_escapes_rx = new RegExp([
 ].join('|'), 'g')
 
 function ln(s: string, prefix: string) {
-  // remove ansi escapes to get actual length
-  const n = s.replace(ansi_escapes_rx, '').length + prefix.length + 1
-  const { columns } = Deno.consoleSize(Deno.stdout.rid)
-  return Math.ceil(n / columns)
+  try {
+    // remove ansi escapes to get actual length
+    const n = s.replace(ansi_escapes_rx, '').length + prefix.length + 1
+    const { columns } = Deno.consoleSize(Deno.stdout.rid)
+    return Math.ceil(n / columns)
+  } catch {
+    // consoleSize() throws if not a tty
+    // eg. in GitHub Actions
+    return 1
+  }
 }
 
 export default function useLogger(prefix?: string) {
