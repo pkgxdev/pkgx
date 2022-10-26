@@ -2,20 +2,15 @@ import { PackageRequirement } from "types"
 import { PlainObject } from "is_what"
 import { host, validate_str } from "utils"
 import { isString, isNumber } from "is_what"
-import Path from "path"
 import * as semver from "semver"
 
 export function validatePackageRequirement(input: PlainObject): PackageRequirement | undefined {
   let { constraint, project } = input
 
   if (host().platform == 'darwin' && (project == "apple.com/xcode/clt" || project == "tea.xyz/gx/make")) {
-    if (Deno.env.get("GITHUB_ACTIONS")) {
-      // noop
-      // GHA has clt installed, just differently
-    } else if (!Path.root.join('Library/Developer/CommandLineTools/usr/bin/clang').isFile()) {
-      throw new Error("run: sudo xcode-select --install")
-    }
-    //TODO strictly if Xcode is installed, that’s enough
+    // Apple will error out and prompt the user to install
+    //NOTE what we would really like is to error out when this dependency is *used*
+    // this is not the right place to error that. so FIXME
     return  // compact this dep away
   }
   if (host().platform == 'linux' && project == "tea.xyz/gx/make") {
