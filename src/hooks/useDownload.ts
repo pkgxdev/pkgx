@@ -80,7 +80,7 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
     }
   } break
   case 304:
-    logger.replace('cache: ' + teal('hit'))
+    logger.replace(`cache: ${teal('hit')}`)
     break
   default:
     if (!numpty || !dst.isFile()) {
