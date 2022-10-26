@@ -41,10 +41,9 @@ async function ipfsUrl(stowage: Stowage) {
 async function ipfsKey(stowage: Stowage) {
   const urlCID = new URL(url(stowage) + '.cid')
   const { download } = useDownload()
-  let cid
 
   try{
-    cid =  await console.silence(() =>
+    const cid =  await console.silence(() =>
       download({ src: urlCID, ephemeral: true })
     ).then(async dl => {
       const txt = await dl.read()
