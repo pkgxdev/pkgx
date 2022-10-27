@@ -1,6 +1,5 @@
 import { Stowage } from "types"
 import { host } from "utils"
-import {useDownload} from "hooks";
 
 type Type = 's3' | 'ipfs'
 
@@ -43,15 +42,15 @@ async function ipfsUrl(stowage: Stowage) {
 
 async function ipfsKey(stowage: Stowage) {
   const urlCID = new URL(url(stowage) + '.cid')
-  const { download } = useDownload()
 
   try{
-    const cid =  await console.silence(() =>
-      download({ src: urlCID, ephemeral: true })
-    ).then(async dl => {
-      const txt = await dl.read()
+    const cid = await (async () => {
+      const rsp = await fetch(urlCID)
+      if (!rsp.ok) throw rsp
+      const txt = await rsp.text()
       return txt.split(' ')[0]
-    })
+    })()
+
     return cid
 
   } catch(err){
