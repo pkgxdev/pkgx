@@ -101,6 +101,9 @@ async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sh
   const digest = new Sha256()
   let run = false
 
+  // don’t fill CI logs with dozens of download percentage lines
+  const ci = Deno.env.get("CI")
+
   const path = await internal(opts, (src, dst, sz) => {
     let n = 0
 
@@ -110,7 +113,7 @@ async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sh
     const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
       //TODO in separate thread would be likely be faster
       digest.update(buf)
-      if (sz) {
+      if (sz && !ci) {
         n += buf.length
         const pc = Math.round(n / sz * 100)
         opts.logger!.replace(`${teal('downloading')} ${pc}%`)

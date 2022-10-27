@@ -1,5 +1,5 @@
 import { useArgs } from "hooks/useFlags.ts"
-import { usePrefix, useVirtualEnv, usePantry } from "hooks"
+import { usePrefix, useVirtualEnv, useSync } from "hooks"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
@@ -18,7 +18,7 @@ if (args.cd) {
 
 try {
   if (sync) {
-    await usePantry().update()
+    await useSync()
   }
 
   if (args.mode == "exec" || args.mode == undefined) {
