@@ -20,7 +20,8 @@ export const EnvKeys = [
   'DYLD_FALLBACK_LIBRARY_PATH',
   'SSL_CERT_FILE',
   'LDFLAGS',
-  'TEA_PREFIX'
+  'TEA_PREFIX',
+  'npm_config_prefix'
 ]
 
 interface Options {
@@ -63,6 +64,13 @@ export default function useShellEnv({installations, pending, pristine}: Options)
       // this is a single file, so we assume a
       // valid entry is correct
       if (certPath) vars.SSL_CERT_FILE = OrderedSortedSet.of(certPath)
+    }
+
+    // npm requires knowing where its root is
+    // otherwise it bases it off the location
+    // of node, which won't work for us
+    if (installation.pkg.project === 'npmjs.com') {
+      vars.npm_config_prefix = OrderedSortedSet.of(installation.path.string)
     }
   }
 
@@ -138,6 +146,7 @@ function suffixes(key: string) {
     case 'SSL_CERT_FILE':
     case 'LDFLAGS':
     case 'TEA_PREFIX':
+    case 'npm_config_prefix':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")
