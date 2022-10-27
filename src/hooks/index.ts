@@ -14,6 +14,7 @@ import useSourceUnarchiver from "./useSourceUnarchiver.ts"
 import usePantry from "./usePantry.ts"
 import useVirtualEnv from "./useVirtualEnv.ts"
 import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
+import useBinaryRepository from "./useBinaryRepository.ts"
 
 // but we can sort these alphabetically
 export {
@@ -31,5 +32,6 @@ export {
   usePrefix,
   useShellEnv,
   useSourceUnarchiver,
-  useVirtualEnv
+  useVirtualEnv,
+  useBinaryRepository
 }

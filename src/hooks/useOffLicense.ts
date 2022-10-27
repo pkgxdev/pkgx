@@ -33,9 +33,12 @@ function url(stowage: Stowage) {
 async function ipfsUrl(stowage: Stowage) {
   const urlKey = await ipfsKey(stowage)
 
-  if(urlKey.includes(key(stowage))) return url(stowage)
-  else return new URL(`http://ipfs.tea.xyz:8080/ipfs/${urlKey}`)
-
+  if(urlKey == "No CID file in S3"){
+    return "No CID file in S3"
+  }
+  else{
+    return new URL(`http://ipfs.tea.xyz:8080/ipfs/${urlKey}`)
+  }
 }
 
 async function ipfsKey(stowage: Stowage) {
@@ -53,6 +56,6 @@ async function ipfsKey(stowage: Stowage) {
 
   } catch(err){
     console.log("Got error:: ", err, " Getting file from S3 now")
-    return key(stowage)
+    return "No CID file in S3"
   }
 }

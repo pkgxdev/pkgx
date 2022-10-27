@@ -2,6 +2,7 @@ import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } 
 import { run, TarballUnarchiver, host } from "utils"
 import { Installation, StowageNativeBottle } from "types"
 import { Package } from "types"
+import {useBinaryRepository} from "hooks"
 
 // # NOTE
 // *only installs binaries*
@@ -19,7 +20,7 @@ export default async function install(pkg: Package): Promise<Installation> {
   const dstdir = usePrefix()
   const compression = host().platform == 'darwin' ? 'xz' : 'gz'
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
-  const url = await useOffLicense('ipfs').url(stowage)
+  const url = await useBinaryRepository(stowage)
   const dst = useCache().path(stowage)
   const { path: tarball, sha } = await download({ src: url, dst })
 
