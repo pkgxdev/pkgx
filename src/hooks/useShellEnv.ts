@@ -21,7 +21,8 @@ export const EnvKeys = [
   'SSL_CERT_FILE',
   'LDFLAGS',
   'TEA_PREFIX',
-  'PYTHONPATH'
+  'PYTHONPATH',
+  'npm_config_prefix'
 ]
 
 interface Options {
@@ -65,6 +66,7 @@ export default function useShellEnv({installations, pending, pristine}: Options)
       // valid entry is correct
       if (certPath) vars.SSL_CERT_FILE = OrderedSortedSet.of(certPath)
     }
+
     // pip requires knowing where its root is
     // otherwise it bases it off the location
     // of python, which won't work for us
@@ -72,6 +74,12 @@ export default function useShellEnv({installations, pending, pristine}: Options)
       vars.PYTHONPATH = compact_add(vars.PYTHONPATH, installation.path.string)
     }
 
+    // npm requires knowing where its root is
+    // otherwise it bases it off the location
+    // of node, which won't work for us
+    if (installation.pkg.project === 'npmjs.com') {
+      vars.npm_config_prefix = OrderedSortedSet.of(installation.path.string)
+    }
   }
 
    // this is how we use precise versions of libraries
@@ -147,6 +155,7 @@ function suffixes(key: string) {
     case 'LDFLAGS':
     case 'TEA_PREFIX':
     case 'PYTHONPATH':
+    case 'npm_config_prefix':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")
