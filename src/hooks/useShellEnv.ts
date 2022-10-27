@@ -20,7 +20,8 @@ export const EnvKeys = [
   'DYLD_FALLBACK_LIBRARY_PATH',
   'SSL_CERT_FILE',
   'LDFLAGS',
-  'TEA_PREFIX'
+  'TEA_PREFIX',
+  'PYTHONPATH'
 ]
 
 interface Options {
@@ -64,6 +65,13 @@ export default function useShellEnv({installations, pending, pristine}: Options)
       // valid entry is correct
       if (certPath) vars.SSL_CERT_FILE = OrderedSortedSet.of(certPath)
     }
+    // pip requires knowing where its root is
+    // otherwise it bases it off the location
+    // of python, which won't work for us
+    if (installation.pkg.project === 'pip.pypa.io') {
+      vars.PYTHONPATH = compact_add(vars.PYTHONPATH, installation.path.string)
+    }
+
   }
 
    // this is how we use precise versions of libraries
@@ -138,6 +146,7 @@ function suffixes(key: string) {
     case 'SSL_CERT_FILE':
     case 'LDFLAGS':
     case 'TEA_PREFIX':
+    case 'PYTHONPATH':
       return []  // we handle these specially
     default:
       throw new Error("unhandled")
