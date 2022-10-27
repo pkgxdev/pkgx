@@ -12,6 +12,7 @@ args:
   - --import-map={{ srcroot }}/import-map.json
   - --allow-net
   - --allow-run
+  - --unstable
 ---*/
 
 import { link, install, resolve } from "prefab"
