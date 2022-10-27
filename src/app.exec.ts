@@ -44,8 +44,8 @@ export default async function exec(opts: Args) {
 
 /////////////////////////////////////////////////////////////
 async function install(dry: PackageSpecification[]) {
-  const wet = await hydrate(dry)   ; console.log({wet})
-  const gas = await resolve(wet.pkgs)   ; console.log({gas})
+  const wet = await hydrate(dry)   ; console.debug({wet})
+  const gas = await resolve(wet.pkgs)   ; console.debug({gas})
 
   for (const pkg of gas.pending) {
     console.info({ installing: pkg })
