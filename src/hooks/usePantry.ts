@@ -1,11 +1,13 @@
 import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
 import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
-import { update, install, prefix } from "./usePantry.git.ts"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import SemVer, * as semver from "semver"
 import Path from "path"
+
+//TODO keeping this because some pantry scripts expect it
+export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 interface Entry {
   dir: Path
@@ -19,10 +21,10 @@ export default function usePantry() {
     getDeps,
     getDistributable,
     getScript,
-    update,
     getProvides,
     getYAML,
-    resolve
+    resolve,
+    prefix
   }
 }
 
@@ -167,7 +169,6 @@ function coerceNumber(input: any) {
 function entry(pkg: Package | PackageRequirement): Entry {
   const dir = prefix.join(pkg.project)
   const yml = async () => {
-    await install()
     // deno-lint-ignore no-explicit-any
     const yml = await dir.join("package.yml").readYAML() as any
     if (!isPlainObject(yml)) throw "bad-yaml"

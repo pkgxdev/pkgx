@@ -66,4 +66,4 @@ jobs:
             --output /usr/local/bin/tea \
             ./cli/src/app.ts
 
-      - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
+      - run: tea -S +curl.se curl -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -

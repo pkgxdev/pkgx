@@ -1,9 +1,7 @@
-import { useDownload, usePrefix, useCellar } from "hooks"
+import { useDownload, useCellar, usePantry } from "hooks"
 import * as semver from "semver"
 import { host, run } from "utils"
 import Path from "path"
-
-export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 async function find_git(): Promise<Path | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
@@ -33,7 +31,7 @@ async function clt_installed() {
   return exit.success
 }
 
-const pantry_dir = prefix.parent()
+const pantry_dir = usePantry().prefix.parent()
 const pantries_dir = pantry_dir.parent().join("pantries")
 
 let avoid_softlock = false
@@ -56,7 +54,7 @@ async function lock<T>(body: () => Promise<T>) {
 
 //TODO we have a better system in mind than git
 export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
-  if (prefix.exists()) {
+  if (usePantry().prefix.exists()) {
     if (pantries_dir.exists()) return 'noop'
     if (pantry_dir.join('.git').exists()) return 'deprecated'
 
@@ -68,7 +66,7 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
     const git = await find_git()
 
     return await lock(async () => {
-      if (prefix.exists()) return 'noop'
+      if (usePantry().prefix.exists()) return 'noop'
       // ^^ another instance of tea did the install while we waited
 
       if (git) {
@@ -161,3 +159,5 @@ async function co(git: string | Path) {
     await run({ cmd })
   }
 }
+
+export default update
