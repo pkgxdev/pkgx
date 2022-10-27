@@ -47,8 +47,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   logger.replace(teal('extracting'))
 
-  // clearEnv requires unstable API
-  await run({ cmd/*, clearEnv: true*/ })
+  await run({ cmd, clearEnv: true })
 
   const install = await cellar.resolve(pkg)
 
@@ -66,14 +65,12 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 //  in that gap. Also it’s less efficient.
 
 async function sumcheck(local_SHA: string, url: URL) {
-  const { download } = useDownload()
-
-  const remote_SHA = await console.silence(() =>
-    download({ src: url, ephemeral: true })
-  ).then(async dl => {
-    const txt = await dl.read()
+  const remote_SHA = await (async () => {
+    const rsp = await fetch(url)
+    if (!rsp.ok) throw rsp
+    const txt = await rsp.text()
     return txt.split(' ')[0]
-  })
+  })()
 
   console.verbose({ remote_SHA, local_SHA })
 
