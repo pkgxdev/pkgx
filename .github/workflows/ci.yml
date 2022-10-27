@@ -53,6 +53,8 @@ jobs:
         if: ${{ matrix.container == 'archlinux:latest' }}
 
       - uses: denoland/setup-deno@v1
+        with:
+          deno-version: 1.26
 
       - run: |
           deno compile \
