@@ -1,8 +1,10 @@
 import { Package, PackageRequirement, Installation } from "types"
 import { pkg as pkgutils } from "utils"
-import { usePrefix } from "hooks"
-import Path from "path"
 import SemVer from "semver"
+import Path from "path"
+//ALERT!! do not usePantry() or you can softlock in usePantry.git.ts
+import { usePrefix } from "hooks"
+
 
 export default function useCellar() {
   return {

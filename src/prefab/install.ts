@@ -1,6 +1,7 @@
 import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
-import { run, TarballUnarchiver, host } from "utils"
+import { run, TarballUnarchiver, host, pkg as pkgutils } from "utils"
 import { Installation, StowageNativeBottle } from "types"
+import { Logger, red, teal } from "hooks/useLogger.ts"
 import { Package } from "types"
 import {useBinaryRepository} from "hooks"
 
@@ -12,8 +13,12 @@ import {useBinaryRepository} from "hooks"
 // - if already installed, will extract over the top
 // - files not in the newer archive will not be deleted
 
-export default async function install(pkg: Package): Promise<Installation> {
+export default async function install(pkg: Package, logger?: Logger): Promise<Installation> {
   const { project, version } = pkg
+  logger ??= new Logger(pkgutils.str(pkg))
+
+  logger.replace(teal("querying"))
+
   const { download_with_sha: download } = useDownload()
   const cellar = useCellar()
   const { verbosity } = useFlags()
@@ -22,14 +27,16 @@ export default async function install(pkg: Package): Promise<Installation> {
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = await useBinaryRepository(stowage)
   const dst = useCache().path(stowage)
-  const { path: tarball, sha } = await download({ src: url, dst })
+  const { path: tarball, sha } = await download({ src: url, dst, logger })
 
   //FIXME if we already have the gz or xz versions don’t download the other version!
 
   try {
     const url = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
+    logger.replace(teal("verifying"))
     await sumcheck(sha, new URL(`${url}.sha256sum`))
   } catch (err) {
+    logger.replace(`${red('error')}: ${err}`)
     tarball.rm()
     console.error("we deleted the invalid tarball. try again?")
     throw err
@@ -39,12 +46,15 @@ export default async function install(pkg: Package): Promise<Installation> {
     zipfile: tarball, dstdir, verbosity
   }).args()
 
-  // clearEnv requires unstable API
-  await run({ cmd/*, clearEnv: true*/ })
+  logger.replace(teal('extracting'))
+
+  await run({ cmd, clearEnv: true })
 
   const install = await cellar.resolve(pkg)
 
   await unquarantine(install)
+
+  logger.replace(`installed: ${install.path.prettyString()}`)
 
   return install
 }
@@ -56,14 +66,12 @@ export default async function install(pkg: Package): Promise<Installation> {
 //  in that gap. Also it’s less efficient.
 
 async function sumcheck(local_SHA: string, url: URL) {
-  const { download } = useDownload()
-
-  const remote_SHA = await console.silence(() =>
-    download({ src: url, ephemeral: true })
-  ).then(async dl => {
-    const txt = await dl.read()
+  const remote_SHA = await (async () => {
+    const rsp = await fetch(url)
+    if (!rsp.ok) throw rsp
+    const txt = await rsp.text()
     return txt.split(' ')[0]
-  })
+  })()
 
   console.verbose({ remote_SHA, local_SHA })
 

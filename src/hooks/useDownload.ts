@@ -1,6 +1,7 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
+import { Logger, teal } from "./useLogger.ts"
 import { useFlags, usePrefix } from "hooks"
-import { panic } from "utils"
+import { chuzzle, panic } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import Path from "path"
 
@@ -9,6 +10,7 @@ interface DownloadOptions {
   dst?: Path  /// default is our own unique cache path
   headers?: Record<string, string>
   ephemeral?: boolean  /// always download, do not rely on cache
+  logger?: Logger
 }
 
 interface RV {
@@ -19,9 +21,11 @@ interface RV {
   sha: string | undefined
 }
 
-async function internal<T>({ src, dst, headers, ephemeral }: DownloadOptions,
-  body: (src: ReadableStream<Uint8Array>, dst: Deno.Writer) => Promise<T>): Promise<Path>
+async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOptions,
+  body: (src: ReadableStream<Uint8Array>, dst: Deno.Writer, sz?: number) => Promise<T>): Promise<Path>
 {
+  logger ??= new Logger()
+
   console.verbose({src: src, dst})
 
   const hash = (() => {
@@ -37,9 +41,9 @@ async function internal<T>({ src, dst, headers, ephemeral }: DownloadOptions,
   if (!ephemeral && mtime_entry().isFile() && dst.isReadableFile()) {
     headers ??= {}
     headers["If-Modified-Since"] = await mtime_entry().read()
-    console.info({querying: src.toString()})
+    logger.replace(teal('querying'))
   } else {
-    console.info({downloading: src.toString()})
+    logger.replace(teal('downloading'))
   }
 
   // so the user can add private repos if they need to etc.
@@ -56,14 +60,16 @@ async function internal<T>({ src, dst, headers, ephemeral }: DownloadOptions,
   switch (rsp.status) {
   case 200: {
     if ("If-Modified-Since" in (headers ?? {})) {
-      console.info({downloading: src})
+      logger.replace(teal('downloading'))
     }
+
+    const sz = chuzzle(parseInt(rsp.headers.get("Content-Length")!))
 
     const reader = rsp.body ?? panic()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
       dst.parent().mkpath()
-      await body(reader, f)
+      await body(reader, f, sz)
 
       //TODO etags too
       const text = rsp.headers.get("Last-Modified")
@@ -74,7 +80,7 @@ async function internal<T>({ src, dst, headers, ephemeral }: DownloadOptions,
     }
   } break
   case 304:
-    console.verbose("304: not modified")
+    logger.replace(`cache: ${teal('hit')}`)
     break
   default:
     if (!numpty || !dst.isFile()) {
@@ -90,23 +96,32 @@ async function download(opts: DownloadOptions): Promise<Path> {
 }
 
 async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sha: string}> {
+  opts.logger ??= new Logger()
+
   const digest = new Sha256()
   let run = false
 
-  const path = await internal(opts, (src, dst) => {
+  const path = await internal(opts, (src, dst, sz) => {
+    let n = 0
+
     run = true
     const tee = src.tee()
     const p1 = copy(readerFromStreamReader(tee[0].getReader()), dst)
     const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
       //TODO in separate thread would be likely be faster
       digest.update(buf)
+      if (sz) {
+        n += buf.length
+        const pc = Math.round(n / sz * 100)
+        opts.logger!.replace(`${teal('downloading')} ${pc}%`)
+      }
       return Promise.resolve(buf.length)
     }})
     return Promise.all([p1, p2])
   })
 
   if (!run) {
-    console.info({ verifying: path })
+    opts.logger.replace('verifying')
     const f = await Deno.open(path.string, { read: true })
     await copy(f, { write: buf => {
       //TODO in separate thread would likely be faster

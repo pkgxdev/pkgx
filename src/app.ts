@@ -7,7 +7,7 @@ import Path from "path"
 import { print } from "utils"
 
 const [args, {sync, silent}] = useArgs(Deno.args)
-const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() })).version?.toString()}+dev`
+const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`
 // ^^ this is statically replaced at deployment
 
 if (args.cd) {
