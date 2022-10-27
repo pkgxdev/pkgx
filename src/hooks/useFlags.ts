@@ -132,7 +132,7 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
         muggle = false
         break
       case 'silent':
-        v = 0
+        v = -1
         break
       case 'sync':
         sync = true
@@ -169,7 +169,7 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
           muggle = false
           break
         case 's':
-          v = 0;
+          v = -1;
           break
         case 'S':
           sync = true
