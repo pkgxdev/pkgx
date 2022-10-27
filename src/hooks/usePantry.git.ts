@@ -28,7 +28,7 @@ async function find_git(): Promise<Path | undefined> {
 
 async function clt_installed() {
   // returns either the CLT path or the Xcode path
-  const proc = Deno.run({ cmd: ["xcode-select", "--print-path"], stdio: 'null' })
+  const proc = Deno.run({ cmd: ["xcode-select", "--print-path"], stdout: "null", stderr: 'null' })
   const exit = await proc.status()
   return exit.success
 }
