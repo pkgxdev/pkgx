@@ -125,7 +125,7 @@ async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sh
   })
 
   if (!run) {
-    opts.logger.replace('verifying')
+    opts.logger.replace(teal('verifying'))
     const f = await Deno.open(path.string, { read: true })
     await copy(f, { write: buf => {
       //TODO in separate thread would likely be faster

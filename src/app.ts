@@ -1,10 +1,11 @@
-import { useArgs } from "hooks/useFlags.ts"
 import { usePrefix, useVirtualEnv, useSync } from "hooks"
+import * as logger from "hooks/useLogger.ts"
+import { useArgs } from "hooks/useFlags.ts"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
-import Path from "path"
 import { print } from "utils"
+import Path from "path"
 
 const [args, {sync, silent}] = useArgs(Deno.args)
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`
@@ -14,6 +15,10 @@ if (args.cd) {
   const chdir = args.cd
   console.verbose({ chdir })
   Deno.chdir(chdir.string)
+}
+
+if (args.mode == "exec" || args.mode == undefined || !Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
+  logger.set_global_prefix('tea:')
 }
 
 try {
