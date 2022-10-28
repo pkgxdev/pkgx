@@ -1,7 +1,7 @@
 import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
 import { run, TarballUnarchiver, host, pkg as pkgutils } from "utils"
 import { Installation, StowageNativeBottle } from "types"
-import { Logger, red, teal } from "hooks/useLogger.ts"
+import { Logger, red, teal, gray } from "hooks/useLogger.ts"
 import { Package } from "types"
 
 // # NOTE
@@ -53,7 +53,12 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   await unquarantine(install)
 
-  logger.replace(`installed: ${install.path.prettyString()}`)
+  const str = [
+    gray(usePrefix().prettyString()),
+    install.pkg.project,
+    `${gray('v')}${install.pkg.version}`
+  ].join(gray('/'))
+  logger.replace(`installed: ${str}`, { prefix: false })
 
   return install
 }

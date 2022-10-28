@@ -1,5 +1,12 @@
 import { colors, tty } from "cliffy/ansi/mod.ts"
+import { flatmap } from "../utils/index.ts";
 import useFlags from "./useFlags.ts"
+
+let global_prefix: string | undefined
+export function set_global_prefix(prefix: string) {
+  if (global_prefix !== undefined) throw new Error()
+  global_prefix = prefix.trim()
+}
 
 // ref https://github.com/chalk/ansi-regex/blob/main/index.js
 const ansi_escapes_rx = new RegExp([
@@ -7,10 +14,10 @@ const ansi_escapes_rx = new RegExp([
   '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))'
 ].join('|'), 'g')
 
-function ln(s: string, prefix: string) {
+function ln(s: string, prefix_length: number) {
   try {
     // remove ansi escapes to get actual length
-    const n = s.replace(ansi_escapes_rx, '').length + prefix.length + 1
+    const n = s.replace(ansi_escapes_rx, '').length + prefix_length
     const { columns } = Deno.consoleSize(Deno.stdout.rid)
     return Math.ceil(n / columns)
   } catch {
@@ -26,36 +33,50 @@ export default function useLogger(prefix?: string) {
 
 export const teal = (x: string) => colors.rgb8(x, 86)
 export const red = colors.brightRed
+export const gray = (x: string) => colors.rgb8(x, 244)
+export const dark = (x: string) => colors.rgb8(x, 238)
+export const lite = (x: string) => colors.rgb8(x, 252)
 
 export class Logger {
   readonly prefix: string
   lines = 0
   last_line = ''
   tty = tty({ stdout: Deno.stderr })
-  silent = useFlags().silent
+  verbosity = useFlags().verbosity
+  prefix_length: number
 
   constructor(prefix?: string) {
-    this.prefix = prefix ?? ''
+    prefix = prefix?.chuzzle()
+    this.prefix_length = prefix?.length ?? 0
+    this.prefix = prefix ? `${gray(prefix)} ` : ''
+    if (global_prefix) {
+      this.prefix = `${dark(global_prefix)} ${this.prefix}`
+      this.prefix_length += global_prefix.length + 1
+    }
   }
 
   //TODO don’t erase whole lines, just erase the part that is different
-  replace(line: string) {
-    if (this.silent) return
+  replace(line: string, {prefix: wprefix}: {prefix: boolean} = {prefix: true}) {
+    if (this.verbosity < 0) return
 
     if (line == this.last_line) {
       return  //noop
     }
 
     if (this.lines) {
-      const n = ln(this.last_line, this.prefix)
-      this.tty.cursorLeft.cursorUp(n).eraseDown()
+      const n = ln(this.last_line, this.prefix_length)
+      if (this.verbosity < 1) {
+        this.tty.cursorLeft.cursorUp(n).eraseDown()
+      }
       this.lines -= n
       if (this.lines < 0) throw new Error(`${n}`)  //assertion error
     }
 
-    const prefix = this.prefix ? colors.gray(this.prefix) : ''
-    console.error(prefix, line)
-    this.lines += ln(line, this.prefix)
+    const prefix = wprefix
+      ? this.prefix
+      : flatmap(global_prefix?.chuzzle(), x => `${dark(x)} `) ?? ''
+    console.error(prefix + line)
+    this.lines += ln(line, wprefix ? this.prefix_length : global_prefix?.length ?? 0)
     this.last_line = line
   }
 

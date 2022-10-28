@@ -1,3 +1,5 @@
+//CONTRACT you can’t use anything from hooks
+
 import { isString, isPlainObject, isArray, isRegExp, PlainObject } from "is_what"
 
 // deno-lint-ignore no-explicit-any
@@ -181,20 +183,46 @@ export { Unarchiver, TarballUnarchiver, ZipUnarchiver }
 ////////////////////////////////////////////////////////////////////////// run
 import Path from "path"
 
-interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'> {
+export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'stderr'> {
   cmd: (string | Path)[] | Path
   cwd?: (string | Path)
   clearEnv?: boolean  //NOTE might not be cross platform!
+  spin?: boolean  // hide output unless an error occurs
 }
 
-export async function run(opts: RunOptions) {
+export class RunError extends Error {
+  code: number
+  constructor(code: number, cmd: (Path | string)[]) {
+    super(`cmd failed: ${code}: ${cmd.join(' ')}`)
+    this.code = code
+  }
+}
+
+export async function run({ spin, ...opts }: RunOptions) {
   const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
   const cwd = opts.cwd?.toString()
   console.verbose({ cwd, ...opts, cmd })
-  const proc = Deno.run({ ...opts, cmd, cwd })
-  const exit = await proc.status()
-  console.verbose({ exit })
-  if (!exit.success) throw {code: exit.code}
+
+  const stdio = { stdout: 'inherit', stderr: 'inherit' } as Pick<Deno.RunOptions, 'stdout'|'stderr'>
+  if (spin) {
+    stdio.stderr = stdio.stdout = 'piped'
+  }
+  const proc = Deno.run({ ...opts, cmd, cwd, ...stdio })
+
+  try {
+    const exit = await proc.status()
+    console.verbose({ exit })
+    if (!exit.success) throw new RunError(exit.code, cmd)
+  } catch (err) {
+    if (spin) {
+      //FIXME this doesn’t result in the output being correctly interlaced
+      // ie. stderr and stdout may (probably) have been output interleaved rather than sequentially
+      const decode = (() => { const e = new TextDecoder(); return e.decode.bind(e) })()
+      console.error(decode(await proc.output()))
+      console.error(decode(await proc.stderrOutput()))
+    }
+    throw err
+  }
 }
 
 export async function backticks(opts: RunOptions): Promise<string> {

@@ -2,17 +2,18 @@ import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePack
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
-import { run, undent, pkg as pkgutils } from "utils"
+import { run, undent, pkg as pkgutils, RunError } from "utils"
 import * as semver from "semver"
 import Path from "path"
 import { isNumber } from "is_what"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
-import { Logger } from "./hooks/useLogger.ts"
+import { red, Logger } from "./hooks/useLogger.ts"
+import help from "./app.help.ts"
 
 //TODO avoid use of virtual-env if not required
 
 export default async function exec(opts: Args) {
-  const { verbose, ...flags } = useFlags()
+  const { debug, ...flags } = useFlags()
   const {args: cmd, pkgs: sparkles, blueprint} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
@@ -35,12 +36,18 @@ export default async function exec(opts: Args) {
       /// no command is strictly acceptable, it’s an idiomatic use of `exec` mode
       /// it just means: noop
       await run({ cmd, env })  //TODO implement `execvp` for deno
+    } else {
+      await help()
+      Deno.exit(1)
     }
   } catch (err) {
-    if (verbose) {
+    if (debug) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", cmd[0])
+    } else if (err instanceof RunError == false) {
+      const decapitalize = ([first, ...rest]: string) => first.toLowerCase() + rest.join("")
+      console.error(`${red("error")}:`, decapitalize(err.message))
     }
     const code = err?.code ?? 1
     Deno.exit(isNumber(code) ? code : 1)
@@ -69,8 +76,6 @@ interface RV {
   blueprint?: VirtualEnv
 }
 
-//TODO we know what packages `provides`, so we should be able to auto-install
-// eg rustc if you just do `tea rustc`
 async function abracadabra(opts: Args): Promise<RV> {
   const { magic } = useFlags()
   const pkgs: PackageRequirement[] = []
@@ -96,14 +101,16 @@ async function abracadabra(opts: Args): Promise<RV> {
 
   const path = await (async () => {
     if (args.length == 0) return
-    try {
-      const src = new URL(args[0])
-      const path = await useDownload().download({ src })
-      args[0] = path.string
+    const url = urlify(args[0])
+    if (url) {
+      const logger = url.path().basename()
+      const path = await useDownload().download({ src: url, logger })
+      args[0] = path.chmod(0o777).string
       return path
-    } catch {
+    } else {
       return Path.cwd().join(args[0]).isFile()
     }
+
   })()
 
   if (path && isMarkdown(path)) {
@@ -216,5 +223,27 @@ async function abracadabra(opts: Args): Promise<RV> {
       pkgs,
       blueprint: env
     }
+  }
+}
+
+function urlify(arg0: string) {
+  try {
+    const url = new URL(arg0)
+    // we do some magic so github URLs are immediately usable
+    switch (url.host) {
+    case "github.com":
+      url.host = "raw.githubusercontent.com"
+      url.pathname = url.pathname.replace("/blob/", "/")
+      break
+    case "gist.github.com":
+      url.host = "gist.githubusercontent.com"
+      //FIXME this is not good enough
+      //REF: https://gist.github.com/atenni/5604615
+      url.pathname += "/raw"
+      break
+    }
+    return url
+  } catch {
+    //noop
   }
 }
