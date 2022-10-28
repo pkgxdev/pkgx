@@ -36,7 +36,7 @@ async function ipfsUrl(stowage: Stowage) {
     return "No CID file in S3"
   }
   else{
-    return new URL(`http://ipfs.tea.xyz:8080/ipfs/${urlKey}`)
+    return new URL(`https://ipfs.tea.xyz/ipfs/${urlKey}`)
   }
 }
 
