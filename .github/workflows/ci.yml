@@ -53,6 +53,8 @@ jobs:
         if: ${{ matrix.container == 'archlinux:latest' }}
 
       - uses: denoland/setup-deno@v1
+        with:
+          deno-version: 1.26
 
       - run: |
           deno compile \
@@ -66,4 +68,4 @@ jobs:
             --output /usr/local/bin/tea \
             ./cli/src/app.ts
 
-      - run: tea +curl.se curl -L tea.xyz/white-paper/ | tea +charm.sh/glow glow -
+      - run: tea -S +curl.se curl -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -

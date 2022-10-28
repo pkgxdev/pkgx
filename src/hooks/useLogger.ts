@@ -1,4 +1,5 @@
 import { colors, tty } from "cliffy/ansi/mod.ts"
+import useFlags from "./useFlags.ts"
 
 // ref https://github.com/chalk/ansi-regex/blob/main/index.js
 const ansi_escapes_rx = new RegExp([
@@ -31,6 +32,7 @@ export class Logger {
   lines = 0
   last_line = ''
   tty = tty({ stdout: Deno.stderr })
+  silent = useFlags().silent
 
   constructor(prefix?: string) {
     this.prefix = prefix ?? ''
@@ -38,6 +40,8 @@ export class Logger {
 
   //TODO don’t erase whole lines, just erase the part that is different
   replace(line: string) {
+    if (this.silent) return
+
     if (line == this.last_line) {
       return  //noop
     }

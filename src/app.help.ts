@@ -15,12 +15,12 @@ export default async function help() {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
-        tea [-xd] [flags] [file|URL|target|cmd|interpreter] [+package~x.y] -- [arg…]
+        tea [-xd] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
 
       modes:                                            magical?
-  05    𝑜𝑚𝑖𝑡𝑡𝑒𝑑           infer operation                  ✨
-        --exec,-x         execute
+  05    --exec,-x         execute
         --dump,-d         dump
+        𝑜𝑚𝑖𝑡𝑡𝑒𝑑           infer operation                  ✨
 
       flags:
   10    --env,-E          inject virtual environment       ✨
@@ -39,7 +39,7 @@ export default async function help() {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
-        tea [-xd] [flags] [file|URL|target|cmd|interpreter] [+package~x.y] -- [arg…]
+        tea [-xd] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
 
       modes:                                                    magical?  env-aware
         --exec,-x                   execute (omittable if ✨)      ✨         𐄂

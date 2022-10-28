@@ -37,7 +37,11 @@ export default async function exec(opts: Args) {
       await run({ cmd, env })  //TODO implement `execvp` for deno
     }
   } catch (err) {
-    if (verbose) console.error(err)
+    if (verbose) {
+      console.error(err)
+    } else if (err instanceof Deno.errors.NotFound) {
+      console.error("tea: command not found:", cmd[0])
+    }
     const code = err?.code ?? 1
     Deno.exit(isNumber(code) ? code : 1)
   }
