@@ -4,6 +4,7 @@ import { useFlags, usePrefix } from "hooks"
 import { chuzzle, panic } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import Path from "path"
+import { gray } from "https://deno.land/std@0.158.0/fmt/colors.ts"
 
 interface DownloadOptions {
   src: URL
@@ -59,11 +60,11 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
 
   switch (rsp.status) {
   case 200: {
-    if ("If-Modified-Since" in (headers ?? {})) {
-      logger.replace(teal('downloading'))
-    }
-
     const sz = chuzzle(parseInt(rsp.headers.get("Content-Length")!))
+
+    let txt = teal('downloading')
+    if (sz) txt += ` ${gray(pretty_size(sz))}`
+    logger.replace(txt)
 
     const reader = rsp.body ?? panic()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
@@ -153,4 +154,15 @@ function hash_key(url: URL): Path {
 
 export default function useDownload() {
   return { download, hash_key, download_with_sha }
+}
+
+function pretty_size(n: number) {
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"]
+  let i = 0
+  while (n > 1024 && i < units.length - 1) {
+    n /= 1024
+    i++
+  }
+  const precision = n < 10 ? 2 : n < 100 ? 1 : 0
+  return `${n.toFixed(precision)} ${units[i]}`
 }
