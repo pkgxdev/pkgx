@@ -190,6 +190,14 @@ export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'
   spin?: boolean  // hide output unless an error occurs
 }
 
+export class RunError extends Error {
+  code: number
+  constructor(code: number, cmd: (Path | string)[]) {
+    super(`cmd failed: ${code}: ${cmd.join(' ')}`)
+    this.code = code
+  }
+}
+
 export async function run({ spin, ...opts }: RunOptions) {
   const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
   const cwd = opts.cwd?.toString()
@@ -204,7 +212,7 @@ export async function run({ spin, ...opts }: RunOptions) {
   try {
     const exit = await proc.status()
     console.verbose({ exit })
-    if (!exit.success) throw {code: exit.code}
+    if (!exit.success) throw new RunError(exit.code)
   } catch (err) {
     if (spin) {
       //FIXME this doesn’t result in the output being correctly interlaced

@@ -2,18 +2,18 @@ import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePack
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { PackageRequirement, PackageSpecification } from "types"
-import { run, undent, pkg as pkgutils } from "utils"
+import { run, undent, pkg as pkgutils, RunError } from "utils"
 import * as semver from "semver"
 import Path from "path"
 import { isNumber } from "is_what"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
-import { Logger } from "./hooks/useLogger.ts"
+import { red, Logger } from "./hooks/useLogger.ts"
 import help from "./app.help.ts"
 
 //TODO avoid use of virtual-env if not required
 
 export default async function exec(opts: Args) {
-  const { verbose, ...flags } = useFlags()
+  const { debug, ...flags } = useFlags()
   const {args: cmd, pkgs: sparkles, blueprint} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
@@ -41,10 +41,13 @@ export default async function exec(opts: Args) {
       Deno.exit(1)
     }
   } catch (err) {
-    if (verbose) {
+    if (debug) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", cmd[0])
+    } else if (err instanceof RunError == false) {
+      const decapitalize = ([first, ...rest]: string) => first.toLowerCase() + rest.join("")
+      console.error(`${red("error")}:`, decapitalize(err.message))
     }
     const code = err?.code ?? 1
     Deno.exit(isNumber(code) ? code : 1)
@@ -73,8 +76,6 @@ interface RV {
   blueprint?: VirtualEnv
 }
 
-//TODO we know what packages `provides`, so we should be able to auto-install
-// eg rustc if you just do `tea rustc`
 async function abracadabra(opts: Args): Promise<RV> {
   const { magic } = useFlags()
   const pkgs: PackageRequirement[] = []
@@ -103,6 +104,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     try {
       const src = new URL(args[0])
       const path = await useDownload().download({ src })
+      path.chmod(0x777)
       args[0] = path.string
       return path
     } catch {
