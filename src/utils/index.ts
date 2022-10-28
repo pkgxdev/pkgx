@@ -212,7 +212,7 @@ export async function run({ spin, ...opts }: RunOptions) {
   try {
     const exit = await proc.status()
     console.verbose({ exit })
-    if (!exit.success) throw new RunError(exit.code)
+    if (!exit.success) throw new RunError(exit.code, cmd)
   } catch (err) {
     if (spin) {
       //FIXME this doesn’t result in the output being correctly interlaced

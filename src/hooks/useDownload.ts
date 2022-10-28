@@ -1,17 +1,17 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
-import { Logger, teal } from "./useLogger.ts"
+import { Logger, teal, gray } from "./useLogger.ts"
 import { useFlags, usePrefix } from "hooks"
 import { chuzzle, panic } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
+import { isString } from "is_what"
 import Path from "path"
-import { gray } from "https://deno.land/std@0.158.0/fmt/colors.ts"
 
 interface DownloadOptions {
   src: URL
   dst?: Path  /// default is our own unique cache path
   headers?: Record<string, string>
   ephemeral?: boolean  /// always download, do not rely on cache
-  logger?: Logger
+  logger?: Logger | string
 }
 
 interface RV {
@@ -25,7 +25,11 @@ interface RV {
 async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOptions,
   body: (src: ReadableStream<Uint8Array>, dst: Deno.Writer, sz?: number) => Promise<T>): Promise<Path>
 {
-  logger ??= new Logger()
+  if (isString(logger)) {
+    logger = new Logger(logger)
+  } else if (!logger) {
+    logger = new Logger()
+  }
 
   console.verbose({src: src, dst})
 
@@ -96,8 +100,12 @@ async function download(opts: DownloadOptions): Promise<Path> {
   return await internal(opts, (src, dst) => copy(readerFromStreamReader(src.getReader()), dst))
 }
 
-async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sha: string}> {
-  opts.logger ??= new Logger()
+async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{path: Path, sha: string}> {
+  if (isString(logger)) {
+    logger = new Logger(logger)
+  } else if (!logger) {
+    logger = new Logger()
+  }
 
   const digest = new Sha256()
   let run = false
@@ -105,7 +113,7 @@ async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sh
   // don’t fill CI logs with dozens of download percentage lines
   const ci = Deno.env.get("CI")
 
-  const path = await internal(opts, (src, dst, sz) => {
+  const path = await internal({...opts, logger}, (src, dst, sz) => {
     let n = 0
 
     run = true
@@ -116,8 +124,8 @@ async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sh
       digest.update(buf)
       if (sz && !ci) {
         n += buf.length
-        const pc = Math.round(n / sz * 100)
-        opts.logger!.replace(`${teal('downloading')} ${pc}%`)
+        const pc = Math.round(n / sz * 100);
+        (logger as Logger).replace(`${teal('downloading')} ${pc}%`)
       }
       return Promise.resolve(buf.length)
     }})
@@ -125,7 +133,7 @@ async function download_with_sha(opts: DownloadOptions): Promise<{path: Path, sh
   })
 
   if (!run) {
-    opts.logger.replace(teal('verifying'))
+    logger.replace(teal('verifying'))
     const f = await Deno.open(path.string, { read: true })
     await copy(f, { write: buf => {
       //TODO in separate thread would likely be faster

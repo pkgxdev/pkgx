@@ -101,15 +101,16 @@ async function abracadabra(opts: Args): Promise<RV> {
 
   const path = await (async () => {
     if (args.length == 0) return
-    try {
-      const src = new URL(args[0])
-      const path = await useDownload().download({ src })
-      path.chmod(0x777)
-      args[0] = path.string
+    const url = urlify(args[0])
+    if (url) {
+      const logger = url.path().basename()
+      const path = await useDownload().download({ src: url, logger })
+      args[0] = path.chmod(0o777).string
       return path
-    } catch {
+    } else {
       return Path.cwd().join(args[0]).isFile()
     }
+
   })()
 
   if (path && isMarkdown(path)) {
@@ -222,5 +223,27 @@ async function abracadabra(opts: Args): Promise<RV> {
       pkgs,
       blueprint: env
     }
+  }
+}
+
+function urlify(arg0: string) {
+  try {
+    const url = new URL(arg0)
+    // we do some magic so github URLs are immediately usable
+    switch (url.host) {
+    case "github.com":
+      url.host = "raw.githubusercontent.com"
+      url.pathname = url.pathname.replace("/blob/", "/")
+      break
+    case "gist.github.com":
+      url.host = "gist.githubusercontent.com"
+      //FIXME this is not good enough
+      //REF: https://gist.github.com/atenni/5604615
+      url.pathname += "/raw"
+      break
+    }
+    return url
+  } catch {
+    //noop
   }
 }
