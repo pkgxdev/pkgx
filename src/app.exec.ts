@@ -102,6 +102,9 @@ async function abracadabra(opts: Args): Promise<RV> {
       args[0] = path.string
       return path
     } catch {
+      if (args[0].match(/^\//)) {
+        return new Path(args[0]).isFile()
+      }
       return Path.cwd().join(args[0]).isFile()
     }
   })()
