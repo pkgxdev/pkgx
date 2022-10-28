@@ -32,7 +32,7 @@ export class Logger {
   lines = 0
   last_line = ''
   tty = tty({ stdout: Deno.stderr })
-  silent = useFlags().silent
+  verbosity = useFlags().verbosity
 
   constructor(prefix?: string) {
     prefix = prefix?.chuzzle()
@@ -41,7 +41,7 @@ export class Logger {
 
   //TODO don’t erase whole lines, just erase the part that is different
   replace(line: string) {
-    if (this.silent) return
+    if (this.verbosity < 0) return
 
     if (line == this.last_line) {
       return  //noop
@@ -49,7 +49,9 @@ export class Logger {
 
     if (this.lines) {
       const n = ln(this.last_line, this.prefix)
-      this.tty.cursorLeft.cursorUp(n).eraseDown()
+      if (this.verbosity < 1) {
+        this.tty.cursorLeft.cursorUp(n).eraseDown()
+      }
       this.lines -= n
       if (this.lines < 0) throw new Error(`${n}`)  //assertion error
     }

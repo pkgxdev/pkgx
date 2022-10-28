@@ -249,7 +249,6 @@ export { pkg }
 
 ///////////////////////////////////////////////////////////////////// platform
 import { SupportedPlatform, SupportedArchitectures } from "types"
-import { StreamConstructorsImpl } from "https://deno.land/x/rimbu@0.12.3/stream/custom/stream-custom.ts"
 
 interface HostReturnValue {
   platform: SupportedPlatform
