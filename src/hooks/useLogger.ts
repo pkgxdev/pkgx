@@ -35,7 +35,8 @@ export class Logger {
   silent = useFlags().silent
 
   constructor(prefix?: string) {
-    this.prefix = prefix ?? ''
+    prefix = prefix?.chuzzle()
+    this.prefix = prefix ? `${prefix} ` : ''
   }
 
   //TODO don’t erase whole lines, just erase the part that is different
@@ -54,7 +55,7 @@ export class Logger {
     }
 
     const prefix = this.prefix ? colors.gray(this.prefix) : ''
-    console.error(prefix, line)
+    console.error(prefix + line)
     this.lines += ln(line, this.prefix)
     this.last_line = line
   }

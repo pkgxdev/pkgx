@@ -1,6 +1,7 @@
-import { useDownload, useCellar, usePantry } from "hooks"
+import { useDownload, useCellar, usePantry, useFlags } from "hooks"
+import { host, run as base_run, RunOptions } from "utils"
+import useLogger, { Logger } from "./useLogger.ts"
 import * as semver from "semver"
-import { host, run } from "utils"
 import Path from "path"
 
 async function find_git(): Promise<Path | undefined> {
@@ -53,7 +54,7 @@ async function lock<T>(body: () => Promise<T>) {
 }
 
 //TODO we have a better system in mind than git
-export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
+export async function install(logger: Logger): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
   if (usePantry().prefix.exists()) {
     if (pantries_dir.exists()) return 'noop'
     if (pantry_dir.join('.git').exists()) return 'deprecated'
@@ -62,10 +63,11 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
     return 'not-git'
   }
 
+  logger.replace("fetching pantries…")
+
   try {
     const git = await find_git()
-
-    return await lock(async () => {
+    const rv = await lock(async () => {
       if (usePantry().prefix.exists()) return 'noop'
       // ^^ another instance of tea did the install while we waited
 
@@ -77,6 +79,8 @@ export async function install(): Promise<true | 'not-git' | 'noop' | 'deprecated
         return 'not-git'
       }
     })
+    logger.replace("pantries init’d ⎷")
+    return rv
   } catch (e) {
     pantries_dir.rm({ recursive: true }) // leave us in a blank state
     pantry_dir.rm({ recursive: true })   // ^^
@@ -123,7 +127,11 @@ async function *ls() {
 }
 
 export const update = async () => {
-  switch (await install()) {
+  const logger = useLogger()
+
+  logger.replace("inspecting pantries…")
+
+  switch (await install(logger)) {
   case 'deprecated':
     console.warn("pantry is a clone, this is deprecated, please clean-install tea")
     break
@@ -131,6 +139,8 @@ export const update = async () => {
     console.warn("pantry is not a git repository, cannot update")
     break
   case 'noop': {
+    logger.replace("syncing pantries…")
+
     const git = await find_git()
     if (!git) return console.warn("cannot update pantry without git")
     const pp: Promise<void>[] = []
@@ -139,7 +149,11 @@ export const update = async () => {
       pp.push(p)
     }
     await Promise.all(pp)
+
+    logger.replace("overlaying pantries…")
     await co(git)
+
+    logger.replace("pantries sync’d ⎷")
   } break
   default:
     break // we don’t update if we only just cloned it
@@ -161,3 +175,8 @@ async function co(git: string | Path) {
 }
 
 export default update
+
+function run(opts: RunOptions) {
+  const spin = useFlags().verbosity < 1
+  return base_run({ ...opts, spin })
+}
