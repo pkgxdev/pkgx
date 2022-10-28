@@ -8,6 +8,7 @@ import Path from "path"
 import { isNumber } from "is_what"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
 import { Logger } from "./hooks/useLogger.ts"
+import help from "./app.help.ts"
 
 //TODO avoid use of virtual-env if not required
 
@@ -35,6 +36,9 @@ export default async function exec(opts: Args) {
       /// no command is strictly acceptable, it’s an idiomatic use of `exec` mode
       /// it just means: noop
       await run({ cmd, env })  //TODO implement `execvp` for deno
+    } else {
+      await help()
+      Deno.exit(1)
     }
   } catch (err) {
     if (verbose) {
