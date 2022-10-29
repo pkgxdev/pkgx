@@ -143,6 +143,8 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
       case 'disable-env':
         rv.env = false
         break
+      default:
+        throw new Error(`unknown flag: --${key}`)
       }
     } else if (arg.startsWith('-')) {
       for (const c of arg.slice(1)) {
@@ -180,6 +182,8 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
         case 'h':
           rv.mode = ['dump', 'help']
           break
+        default:
+          throw new Error(`unknown flag: -${c}`)
         }
       }
     } else {
