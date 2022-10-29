@@ -3,6 +3,7 @@ import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, 
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
+import { ls } from "./usePantry.ls.ts"
 import SemVer, * as semver from "semver"
 import Path from "path"
 
@@ -24,6 +25,7 @@ export default function usePantry() {
     getProvides,
     getYAML,
     resolve,
+    ls,
     prefix
   }
 }
@@ -144,7 +146,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   }
 }
 
-const getProvides = async (pkg: Package | PackageRequirement) => {
+const getProvides = async (pkg: { project: string }) => {
   const yml = await entry(pkg).yml()
   const node = yml["provides"]
   if (!node) return []
@@ -166,7 +168,7 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-function entry(pkg: Package | PackageRequirement): Entry {
+function entry(pkg: { project: string }): Entry {
   const dir = prefix.join(pkg.project)
   const yml = async () => {
     // deno-lint-ignore no-explicit-any

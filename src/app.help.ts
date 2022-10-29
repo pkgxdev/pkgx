@@ -15,11 +15,12 @@ export default async function help() {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
-        tea [-xd] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
+        tea [-xdX] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
 
       modes:                                            magical?
   05    --exec,-x         execute
         --dump,-d         dump
+        -X                magic execute
         𝑜𝑚𝑖𝑡𝑡𝑒𝑑           infer operation                  ✨
 
       flags:
@@ -39,11 +40,12 @@ export default async function help() {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
-        tea [-xd] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
+        tea [-xdX] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
 
       modes:                                                    magical?  env-aware
         --exec,-x                   execute (omittable if ✨)      ✨         𐄂
         --dump,-d                   dump                           ✨         𐄂
+        -X                          infer pkg requirements                    𐄂
 
       aliases:
         --help,-h                   --dump=usage
