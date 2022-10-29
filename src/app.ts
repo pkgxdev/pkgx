@@ -5,8 +5,8 @@ import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
 import { print } from "utils"
+import X from "./app.X.ts"
 import Path from "path"
-import X from "./app.X.ts";
 
 const [args, {sync, silent}] = useArgs(Deno.args)
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`

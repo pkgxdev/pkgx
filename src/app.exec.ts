@@ -1,16 +1,14 @@
 import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate, resolve, install as base_install, link } from "prefab"
-import { PackageRequirement, PackageSpecification } from "types"
+import { Installation, PackageRequirement, PackageSpecification } from "types"
 import { run, undent, pkg as pkgutils, RunError } from "utils"
 import * as semver from "semver"
 import Path from "path"
 import { isNumber } from "is_what"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
-import { red, Logger } from "./hooks/useLogger.ts"
+import { red, gray, Logger } from "./hooks/useLogger.ts"
 import help from "./app.help.ts"
-
-//TODO avoid use of virtual-env if not required
 
 export default async function exec(opts: Args) {
   const { debug, ...flags } = useFlags()
@@ -33,9 +31,9 @@ export default async function exec(opts: Args) {
 
   try {
     if (cmd.length) {
-      /// no command is strictly acceptable, it’s an idiomatic use of `exec` mode
-      /// it just means: noop
       await run({ cmd, env })  //TODO implement `execvp` for deno
+    } else if (opts.pkgs.length) {
+      await repl(installations, env)
     } else {
       await help()
       Deno.exit(1)
@@ -210,12 +208,13 @@ async function abracadabra(opts: Args): Promise<RV> {
     })()
 
     //FIXME putting "$@" at the end can be invalid, it really depends on the script TBH
+    //FIXME shouldn’t necessarily default to bash
 
     const path = Path.mktmp().join(arg0).write({ text: undent`
       #!/bin/bash
       set -e
       ${sh} ${oneliner ? '"$@"' : ''}
-    ` }).chmod(0o500)
+      ` }).chmod(0o500)
 
     return {
       args: [path.string, ...argv],
@@ -245,4 +244,21 @@ function urlify(arg0: string) {
   } catch {
     //noop
   }
+}
+
+async function repl(installations: Installation[], env: Record<string, string>) {
+  const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
+  console.info('this is a temporary shell containing the following packages:')
+  console.info(pkgs_str())
+  console.info("when done type: `exit'")
+  const shell = Deno.env.get("SHELL")?.trim() || "/bin/sh"
+  const cmd = [shell, '--interactive']
+
+  //TODO other shells pls
+  if (shell == '/bin/zsh') {
+    env['PS1'] = "%F{086}tea%F{reset} %~ "
+    cmd.push('--no-rcs', '--no-globalrcs')
+  }
+
+  await run({ cmd, env })
 }
