@@ -81,7 +81,7 @@ async function abracadabra(opts: Args): Promise<RV> {
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
 
-  let env = magic ? await useVirtualEnv().swallow("not-found:srcroot") : undefined
+  let env = magic ? await useVirtualEnv().swallow(/^not-found/) : undefined
 
   if (env && args.length) {
     // firstly check if there is a target named args[0]
@@ -110,7 +110,6 @@ async function abracadabra(opts: Args): Promise<RV> {
     } else {
       return Path.cwd().join(args[0]).isFile()
     }
-
   })()
 
   if (path && isMarkdown(path)) {
