@@ -79,7 +79,7 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
     if (arg.startsWith('+')) {
       rv.pkgs.push(pkg.parse(arg.slice(1)))
     } else if (arg.startsWith('--')) {
-      const [,key, , value] = arg.match(/^--(\w+)(=(.+))?$/)!
+      const [,key, , value] = arg.match(/^--([\w-]+)(=(.+))?$/)!
 
       switch (key) {
       case 'dump':

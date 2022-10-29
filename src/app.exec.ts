@@ -81,7 +81,7 @@ async function abracadabra(opts: Args): Promise<RV> {
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
 
-  let env = magic ? await useVirtualEnv().swallow(/^not-found/) : undefined
+  let env = magic && opts.env !== false ? await useVirtualEnv().swallow(/^not-found/) : undefined
 
   if (env && args.length) {
     // firstly check if there is a target named args[0]
