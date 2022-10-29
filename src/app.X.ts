@@ -12,7 +12,6 @@ export default async function X(opts: Args) {
   let found: { project: string } | undefined | true
 
   for (const path of Deno.env.get("PATH")?.split(":") ?? []) {
-    console.log(path)
     if (path.startsWith("/") && new Path(path).join(arg0).isExecutableFile()) {
       found = true
       break
