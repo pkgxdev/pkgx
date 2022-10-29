@@ -6,6 +6,7 @@ import exec from "./app.exec.ts"
 import help from "./app.help.ts"
 import { print } from "utils"
 import Path from "path"
+import X from "./app.X.ts";
 
 const [args, {sync, silent}] = useArgs(Deno.args)
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`
@@ -17,7 +18,7 @@ if (args.cd) {
   Deno.chdir(chdir.string)
 }
 
-if (args.mode == "exec" || args.mode == undefined || !Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
+if (args.mode == "exec" || args.mode == undefined ||  args.mode == "eXec" || !Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
   logger.set_global_prefix('tea:')
 }
 
@@ -29,6 +30,9 @@ try {
   if (args.mode == "exec" || args.mode == undefined) {
     announce()
     await exec(args)
+  } else if (args.mode == "eXec") {
+    announce()
+    await X(args)
   } else switch (args.mode[1]) {
     case "env":
       await dump(args)

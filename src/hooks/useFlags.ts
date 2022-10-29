@@ -9,7 +9,7 @@ import Path from "path"
 set_tmp(usePrefix().join('tea.xyz/tmp'))
 
 
-export type Mode = 'exec' | ['dump', 'env' | 'help' | 'version' | 'prefix']
+export type Mode = 'exec' | 'eXec' | ['dump', 'env' | 'help' | 'version' | 'prefix']
 
 interface Flags {
   verbosity: Verbosity
@@ -149,6 +149,9 @@ export function useArgs(args: string[]): [Args, Flags & ConvenienceFlags] {
         switch (c) {
         case 'x':
           rv.mode = 'exec'
+          break
+        case 'X':
+          rv.mode = 'eXec'
           break
         case 'E':
           rv.env = true
