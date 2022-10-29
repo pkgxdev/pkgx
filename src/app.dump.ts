@@ -128,7 +128,7 @@ export default async function dump(args: Args) {
         await print(setEnv(key, value.join(":")))
       }
     } else if (Deno.env.get(key) !== undefined) {
-      if (!defaults[key].chuzzle()) {
+      if (!defaults[key]?.chuzzle()) {
         await print(unsetEnv(key))
       } else {
         await print(setEnv(key, defaults[key].join(":")))
