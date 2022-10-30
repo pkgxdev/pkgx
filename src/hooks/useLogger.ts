@@ -18,7 +18,7 @@ function ln(s: string, prefix_length: number) {
   try {
     // remove ansi escapes to get actual length
     const n = s.replace(ansi_escapes_rx, '').length + prefix_length
-    const { columns } = Deno.consoleSize(Deno.stdout.rid)
+    const { columns } = Deno.consoleSize()
     return Math.ceil(n / columns)
   } catch {
     // consoleSize() throws if not a tty
