@@ -146,6 +146,19 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   }
 }
 
+function pantry_paths(): Path[] {
+  const rv: Path[] = [prefix]
+  const env = Deno.env.get("TEA_PANTRY_PATH")
+  if (env) for (const path of env.split(":")) {
+    if (path.startsWith("/")) {
+      rv.unshift(new Path(path).join("projects"))
+    } else {
+      console.warn(`invalid path: ${path}`)
+    }
+  }
+  return rv
+}
+
 const getProvides = async (pkg: { project: string }) => {
   const yml = await entry(pkg).yml()
   const node = yml["provides"]
@@ -168,16 +181,20 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-function entry(pkg: { project: string }): Entry {
-  const dir = prefix.join(pkg.project)
-  const yml = async () => {
-    // deno-lint-ignore no-explicit-any
-    const yml = await dir.join("package.yml").readYAML() as any
-    if (!isPlainObject(yml)) throw "bad-yaml"
-    return yml
+function entry({ project }: { project: string }): Entry {
+  for (const prefix of pantry_paths()) {
+    const dir = prefix.join(project)
+    const filename = dir.join("package.yml")
+    if (!filename.exists()) continue
+    const yml = async () => {
+      const yml = await filename.readYAML()
+      if (!isPlainObject(yml)) throw `bad-yaml:${project}`
+      return yml
+    }
+    const versions = dir.join("versions.txt")
+    return { dir, yml, versions }
   }
-  const versions = dir.join("versions.txt")
-  return { dir, yml, versions }
+  throw `not-found:${project}`
 }
 
 /// returns sorted versions
