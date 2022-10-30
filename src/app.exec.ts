@@ -1,6 +1,6 @@
-import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
+import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePantry } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
-import { hydrate, resolve, install as base_install, link } from "prefab"
+import { hydrate as base_hydrate, resolve, install as base_install, link } from "prefab"
 import { Installation, PackageRequirement, PackageSpecification } from "types"
 import { run, undent, pkg as pkgutils, RunError } from "utils"
 import * as semver from "semver"
@@ -54,8 +54,7 @@ export default async function exec(opts: Args) {
 
 /////////////////////////////////////////////////////////////
 async function install(dry: PackageSpecification[]) {
-  const wet = await hydrate(dry)      ; console.debug({wet})
-  const gas = await resolve(wet.pkgs) ; console.debug({gas})
+  const { wet, gas } = await hydrate(dry)
 
   for (const pkg of gas.pending) {
     const rq = wet.pkgs.find(rq => rq.project == pkg.project)
@@ -65,6 +64,24 @@ async function install(dry: PackageSpecification[]) {
     gas.installed.push(installation)
   }
   return gas.installed
+}
+
+export async function hydrate(dry: PackageSpecification[]) {
+  const pantry = usePantry()
+
+  // companions are eg cargo for rust, pip for python
+  // users and other packages typically expect the companion so by default we just install them
+  //TODO for v1 we may want to rework this concept
+  //TODO this could be much more efficient with concurrency
+  //NOTE considering them “dry” is perhaps not a good idea
+  for (const pkg of [...dry]) {
+    dry.push(...await pantry.getCompanions(pkg))
+  }
+
+  const wet = await base_hydrate(dry)  ; console.debug({wet})
+  const gas = await resolve(wet.pkgs)  ; console.debug({gas})
+
+  return {wet, gas}
 }
 
 

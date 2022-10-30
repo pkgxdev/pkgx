@@ -5,6 +5,7 @@ import { flatmap, print, undent, pkg } from "utils"
 import { isPlainObject, isFullArray } from "is_what"
 import { basename } from "deno/path/mod.ts"
 import { Args } from "hooks/useFlags.ts"
+import { hydrate } from "./app.exec.ts";
 
 //TODO should read from the shell configuration files to get originals properly
 //TODO don’t wait on each print, instead chain the promises to be more time-efficient
@@ -61,16 +62,19 @@ export default async function dump(args: Args) {
     const cellar = useCellar()
     const installations: Installation[] = []
     const pending: PackageSpecification[] = []
-    const pkgs = [...args.pkgs, ...blueprint?.requirements ?? []]
+    const pkgs = await hydrate([...args.pkgs, ...blueprint?.requirements ?? []])
+    const dry = new Set<string>(pkgs.wet.dry.map(x => x.project))
 
-    for (const rq of pkgs) {
+    for (const rq of pkgs.wet.dry) {
       const installation = await cellar.has(rq)
       if (installation) {
         installations.push(installation)
-      } else {
+      } else if (dry.has(rq.project)) {
+        /// we only auto-install explicitly requested packages
         pending.push(rq)
       }
     }
+
     return {installations, pending}
   })()
 

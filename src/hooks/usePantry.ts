@@ -21,6 +21,7 @@ export default function usePantry() {
     getVersions,
     getDeps,
     getDistributable,
+    getCompanions,
     getScript,
     getProvides,
     getYAML,
@@ -51,32 +52,33 @@ const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => 
 const getDeps = async (pkg: Package | PackageRequirement) => {
   const yml =  await entry(pkg).yml()
   return {
-    runtime: go(yml.dependencies),
-    build: go(yml.build?.dependencies),
-    test: go(yml.test?.dependencies)
+    runtime: parse_pkgs_node(yml.dependencies),
+    build: parse_pkgs_node(yml.build?.dependencies),
+    test: parse_pkgs_node(yml.test?.dependencies)
   }
-  // deno-lint-ignore no-explicit-any
-  function go(node: any) {
-    if (!node) return []
-    node = validate_plain_obj(node)
+}
 
-    const rv: PackageRequirement[] = []
-    const stack = Object.entries(node)
-    // deno-lint-ignore no-explicit-any
-    let pkg: [string, any] | undefined
-    // deno-lint-ignore no-cond-assign
-    while (pkg = stack.shift()) {
-      const [project, constraint] = pkg
-      if (SupportedPlatforms.includes(project as SupportedPlatform)) {
-        if (host().platform !== project) continue
-        if (constraint === null) continue
-        stack.unshift(...Object.entries(validate_plain_obj(constraint)))
-      } else {
-        rv.compact_push(validatePackageRequirement({ project, constraint }))
-      }
+// deno-lint-ignore no-explicit-any
+function parse_pkgs_node(node: any) {
+  if (!node) return []
+  node = validate_plain_obj(node)
+
+  const rv: PackageRequirement[] = []
+  const stack = Object.entries(node)
+  // deno-lint-ignore no-explicit-any
+  let pkg: [string, any] | undefined
+  // deno-lint-ignore no-cond-assign
+  while (pkg = stack.shift()) {
+    const [project, constraint] = pkg
+    if (SupportedPlatforms.includes(project as SupportedPlatform)) {
+      if (host().platform !== project) continue
+      if (constraint === null) continue
+      stack.unshift(...Object.entries(validate_plain_obj(constraint)))
+    } else {
+      rv.compact_push(validatePackageRequirement({ project, constraint }))
     }
-    return rv
   }
+  return rv
 }
 
 const getRawDistributableURL = (yml: PlainObject) => {
@@ -146,6 +148,19 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   }
 }
 
+function pantry_paths(): Path[] {
+  const rv: Path[] = [prefix]
+  const env = Deno.env.get("TEA_PANTRY_PATH")
+  if (env) for (const path of env.split(":")) {
+    if (path.startsWith("/")) {
+      rv.unshift(new Path(path).join("projects"))
+    } else {
+      console.warn(`invalid path: ${path}`)
+    }
+  }
+  return rv
+}
+
 const getProvides = async (pkg: { project: string }) => {
   const yml = await entry(pkg).yml()
   const node = yml["provides"]
@@ -162,22 +177,31 @@ const getProvides = async (pkg: { project: string }) => {
   })
 }
 
+const getCompanions = async (pkg: {project: string}) => {
+  const yml = await entry(pkg).yml()
+  const node = yml["companions"]
+  return parse_pkgs_node(node)
+}
 
 // deno-lint-ignore no-explicit-any
 function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-function entry(pkg: { project: string }): Entry {
-  const dir = prefix.join(pkg.project)
-  const yml = async () => {
-    // deno-lint-ignore no-explicit-any
-    const yml = await dir.join("package.yml").readYAML() as any
-    if (!isPlainObject(yml)) throw "bad-yaml"
-    return yml
+function entry({ project }: { project: string }): Entry {
+  for (const prefix of pantry_paths()) {
+    const dir = prefix.join(project)
+    const filename = dir.join("package.yml")
+    if (!filename.exists()) continue
+    const yml = async () => {
+      const yml = await filename.readYAML()
+      if (!isPlainObject(yml)) throw `bad-yaml:${project}`
+      return yml
+    }
+    const versions = dir.join("versions.txt")
+    return { dir, yml, versions }
   }
-  const versions = dir.join("versions.txt")
-  return { dir, yml, versions }
+  throw `not-found:${project}`
 }
 
 /// returns sorted versions

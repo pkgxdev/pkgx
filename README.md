@@ -529,7 +529,7 @@ If you got this error message, you need to install tea:
 
 |   Project   | Version |
 |-------------|---------|
-| deno.land   | ^1.18   |
+| deno.land   | ^1.27   |
 | tea.xyz     | ^0      |
 
 

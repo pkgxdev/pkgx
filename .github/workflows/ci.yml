@@ -54,7 +54,9 @@ jobs:
 
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: 1.26
+          deno-version: 1.27
+          #FIXME get it out the README
+          #NOTE we are avoiding using tea here for revlock issues
 
       - run: |
           deno compile \
