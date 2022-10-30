@@ -21,6 +21,7 @@ export default function usePantry() {
     getVersions,
     getDeps,
     getDistributable,
+    getCompanions,
     getScript,
     getProvides,
     getYAML,
@@ -51,32 +52,33 @@ const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => 
 const getDeps = async (pkg: Package | PackageRequirement) => {
   const yml =  await entry(pkg).yml()
   return {
-    runtime: go(yml.dependencies),
-    build: go(yml.build?.dependencies),
-    test: go(yml.test?.dependencies)
+    runtime: parse_pkgs_node(yml.dependencies),
+    build: parse_pkgs_node(yml.build?.dependencies),
+    test: parse_pkgs_node(yml.test?.dependencies)
   }
-  // deno-lint-ignore no-explicit-any
-  function go(node: any) {
-    if (!node) return []
-    node = validate_plain_obj(node)
+}
 
-    const rv: PackageRequirement[] = []
-    const stack = Object.entries(node)
-    // deno-lint-ignore no-explicit-any
-    let pkg: [string, any] | undefined
-    // deno-lint-ignore no-cond-assign
-    while (pkg = stack.shift()) {
-      const [project, constraint] = pkg
-      if (SupportedPlatforms.includes(project as SupportedPlatform)) {
-        if (host().platform !== project) continue
-        if (constraint === null) continue
-        stack.unshift(...Object.entries(validate_plain_obj(constraint)))
-      } else {
-        rv.compact_push(validatePackageRequirement({ project, constraint }))
-      }
+// deno-lint-ignore no-explicit-any
+function parse_pkgs_node(node: any) {
+  if (!node) return []
+  node = validate_plain_obj(node)
+
+  const rv: PackageRequirement[] = []
+  const stack = Object.entries(node)
+  // deno-lint-ignore no-explicit-any
+  let pkg: [string, any] | undefined
+  // deno-lint-ignore no-cond-assign
+  while (pkg = stack.shift()) {
+    const [project, constraint] = pkg
+    if (SupportedPlatforms.includes(project as SupportedPlatform)) {
+      if (host().platform !== project) continue
+      if (constraint === null) continue
+      stack.unshift(...Object.entries(validate_plain_obj(constraint)))
+    } else {
+      rv.compact_push(validatePackageRequirement({ project, constraint }))
     }
-    return rv
   }
+  return rv
 }
 
 const getRawDistributableURL = (yml: PlainObject) => {
@@ -175,6 +177,11 @@ const getProvides = async (pkg: { project: string }) => {
   })
 }
 
+const getCompanions = async (pkg: {project: string}) => {
+  const yml = await entry(pkg).yml()
+  const node = yml["companions"]
+  return parse_pkgs_node(node)
+}
 
 // deno-lint-ignore no-explicit-any
 function coerceNumber(input: any) {

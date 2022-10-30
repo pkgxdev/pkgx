@@ -1,4 +1,4 @@
-import { PackageRequirement, Package, PackageSpecification } from "types"
+import { PackageRequirement, Package } from "types"
 import { isArray } from "is_what"
 import * as semver from "semver"
 import { usePantry } from "hooks"
@@ -30,7 +30,7 @@ interface ReturnValue {
   bootstrap_required: Set<string>
 }
 
-const get = (x: PackageSpecification) => usePantry().getDeps(x).then(x => x.runtime)
+const get = (x: PackageRequirement) => usePantry().getDeps(x).then(x => x.runtime)
 
 /// sorts a list of packages topologically based on their
 /// dependencies. Throws if there is a cycle in the input.
