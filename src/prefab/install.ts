@@ -22,7 +22,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const cellar = useCellar()
   const { verbosity } = useFlags()
   const dstdir = usePrefix()
-  const compression = host().platform == 'darwin' ? 'xz' : 'gz'
+  const compression = get_compression()
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const dst = useCache().path(stowage)
@@ -101,4 +101,11 @@ async function unquarantine(install: Installation) {
   ]
 
   await run({ cmd })
+}
+
+function get_compression() {
+  if (Deno.env.get("CI")) return 'gz' // in CI CPU is more constrained than bandwidth
+  if (host().platform == 'darwin') return 'xz' // most users are richer in CPU than bandwidth
+  // TODO determine if `tar` can handle xz
+  return 'gz'
 }
