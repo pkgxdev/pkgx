@@ -145,7 +145,7 @@ export const update = async () => {
     if (!git) return console.warn("cannot update pantry without git")
     const pp: Promise<void>[] = []
     for await (const cwd of ls()) {
-      const p = run({cmd: [git, "fetch", "origin"], cwd })
+      const p = run({cmd: [git, "fetch", "origin", "main:main"], cwd })
       pp.push(p)
     }
     await Promise.all(pp)
