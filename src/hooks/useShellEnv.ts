@@ -1,5 +1,5 @@
 import { Installation, PackageSpecification } from "types"
-import { OrderedSet, OrderedSortedSet } from "rimbu/ordered/set/index.ts"
+import { OrderedHashSet } from "rimbu/ordered/set/index.ts"
 import { host } from "utils"
 import { usePrefix } from "hooks"
 import Path from "path"
@@ -32,7 +32,7 @@ interface Options {
 }
 
 export default function useShellEnv({installations, pending, pristine}: Options): Record<string, string[]> {
-  const vars: Record<string, OrderedSet<string>> = {}
+  const vars: Record<string, OrderedHashSet<string>> = {}
   const isMac = host().platform == 'darwin'
   pending ??= []
 
@@ -64,7 +64,7 @@ export default function useShellEnv({installations, pending, pristine}: Options)
       const certPath = installation.path.join("ssl/cert.pem").compact()?.string
       // this is a single file, so we assume a
       // valid entry is correct
-      if (certPath) vars.SSL_CERT_FILE = OrderedSortedSet.of(certPath)
+      if (certPath) vars.SSL_CERT_FILE = OrderedHashSet.of(certPath)
     }
 
     // pip requires knowing where its root is
@@ -78,7 +78,7 @@ export default function useShellEnv({installations, pending, pristine}: Options)
     // otherwise it bases it off the location
     // of node, which won't work for us
     if (installation.pkg.project === 'npmjs.com') {
-      vars.npm_config_prefix = OrderedSortedSet.of(installation.path.string)
+      vars.npm_config_prefix = OrderedHashSet.of(installation.path.string)
     }
   }
 
@@ -186,8 +186,8 @@ function find_tea() {
   }
 }
 
-function compact_add<T>(set: OrderedSet<T> | undefined, item: T | null | undefined): OrderedSet<T> {
-  if (!set) set = OrderedSortedSet.empty<T>()
+function compact_add<T>(set: OrderedHashSet<T> | undefined, item: T | null | undefined): OrderedHashSet<T> {
+  if (!set) set = OrderedHashSet.empty<T>()
   if (item) set = set.add(item)
 
   return set
