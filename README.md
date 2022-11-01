@@ -64,10 +64,10 @@ packages in the environment—but if you keep typing you can construct direct
 usage:
 
 ```sh
-$ tea +nodejs.com npx --yes browser-sync start --server
+$ tea +nodejs.org npx --yes browser-sync start --server
 # ^^ one-liner to start a local web server with live reload
 
-$ sh <(curl tea.xyz) +nodejs.com npx --yes browser-sync start --server
+$ sh <(curl tea.xyz) +nodejs.org npx --yes browser-sync start --server
 # ^^ same one-liner but works for anyone on the Internet
 ```
 
