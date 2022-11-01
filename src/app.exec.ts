@@ -54,7 +54,8 @@ export default async function exec(opts: Args) {
 
 /////////////////////////////////////////////////////////////
 async function install(dry: PackageSpecification[]) {
-  const { wet, gas } = await hydrate(dry)
+  const { wet } = await hydrate(dry)
+  const gas = await resolve(wet.pkgs)  ; console.debug({gas})
 
   for (const pkg of gas.pending) {
     const rq = wet.pkgs.find(rq => rq.project == pkg.project)
@@ -79,9 +80,8 @@ export async function hydrate(dry: PackageSpecification[]) {
   }
 
   const wet = await base_hydrate(dry)  ; console.debug({wet})
-  const gas = await resolve(wet.pkgs)  ; console.debug({gas})
 
-  return {wet, gas}
+  return {wet}
 }
 
 
