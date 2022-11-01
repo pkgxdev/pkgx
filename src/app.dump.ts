@@ -150,8 +150,11 @@ export default async function dump(args: Args) {
 
       `
     for (const uninstalled of pending) {
-      const cmds = (await pantry.getProvides(uninstalled)).join("|")
-      rv += `    ${cmds}) tea +${pkg.str(uninstalled)} "$@";;\n`
+      const exes = await pantry.getProvides(uninstalled)
+      if (exes.length) {
+        const cmds = exes.join("|")
+        rv += `    ${cmds}) tea '+${pkg.str(uninstalled)}' "$@";;\n`
+      }
     }
     rv += `  *)\n    printf 'zsh: command not found: %s\\n' "$1";;\n  esac\n}`
 
