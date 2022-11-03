@@ -269,7 +269,7 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   console.info(pkgs_str())
   console.info("when done type: `exit'")
   const shell = Deno.env.get("SHELL")?.trim() || "/bin/sh"
-  const cmd = [shell, '--interactive']
+  const cmd = [shell, '-i'] // interactive
 
   //TODO other shells pls
   if (shell == '/bin/zsh') {
