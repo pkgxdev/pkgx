@@ -59,7 +59,7 @@ activity. But everything is right there when you need it.
 ### tea Pipelines
 
 tea’s `+pkg` syntax puts the whole open source ecosystem at your fingertips,
-if you stop at the `+` then the above happens—we open a new shell with those
+if you stop at the `+pkg` then the above happens—we open a new shell with those
 packages in the environment—but if you keep typing you can construct direct
 usage:
 
@@ -69,6 +69,8 @@ $ tea +nodejs.org npx --yes browser-sync start --server
 
 $ sh <(curl tea.xyz) +nodejs.org npx --yes browser-sync start --server
 # ^^ same one-liner but works for anyone on the Internet
+# (if tea is already installed, it uses it, if not it *doesn’t* install tea,
+#  a temporary sandbox is created)
 ```
 
 Compose everything, combine everything, just like the UNIX philosophy
@@ -77,6 +79,12 @@ envisaged. Of course that also means *you can pipe them*:
 ```sh
 $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 ```
+
+> Notably, with `-X` syntax this can expressed more simply:
+>
+> ```sh
+> $ tea -X wget -qO- tea.xyz/white-paper | tea -X glow -
+> ```
 
 > <details><summary><h3>Further Examples</h3></summary>
 >
