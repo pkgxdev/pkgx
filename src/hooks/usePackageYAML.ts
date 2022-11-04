@@ -36,6 +36,7 @@ interface Return2 extends Return1 {
 interface FrontMatter {
   args: string[]
   pkgs: PackageRequirement[]
+  env: Record<string, string>
 }
 
 export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<FrontMatter | undefined> {
@@ -58,9 +59,18 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
     }
   }
 
+  const env: Record<string, string> = {}
+  if (isPlainObject(yaml.env)) {
+    for (const [k, v] of Object.entries(yaml.env)) {
+      if (!isString(v)) throw new Error()
+      env[k] = fix(v)
+    }
+  }
+
   return {
     pkgs: rv.getDeps(false),
-    args: getArgs()
+    args: getArgs(),
+    env
   }
 
   function fix(input: string): string {

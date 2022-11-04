@@ -151,7 +151,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 function pantry_paths(): Path[] {
   const rv: Path[] = [prefix]
   const env = Deno.env.get("TEA_PANTRY_PATH")
-  if (env) for (const path of env.split(":")) {
+  if (env) for (const path of env.split(":").reverse()) {
     if (path.startsWith("/")) {
       rv.unshift(new Path(path).join("projects"))
     } else {

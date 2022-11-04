@@ -12,7 +12,7 @@ import help from "./app.help.ts"
 
 export default async function exec(opts: Args) {
   const { debug, ...flags } = useFlags()
-  const {args: cmd, pkgs: sparkles, blueprint} = await abracadabra(opts)
+  const {args: cmd, pkgs: sparkles, blueprint, env: add_env} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
 
@@ -27,6 +27,9 @@ export default async function exec(opts: Args) {
   }
   if (flags.json) {
     env["JSON"] = "1"
+  }
+  if (add_env) {
+    Object.assign(env, add_env)
   }
 
   try {
@@ -89,12 +92,14 @@ interface RV {
   args: string[]
   pkgs: PackageRequirement[]
   blueprint?: VirtualEnv
+  env?: Record<string, string>
 }
 
 async function abracadabra(opts: Args): Promise<RV> {
   const { magic } = useFlags()
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
+  let add_env: Record<string, string> | undefined
 
   let env = magic && opts.env !== false ? await useVirtualEnv().swallow(/^not-found/) : undefined
 
@@ -186,10 +191,11 @@ async function abracadabra(opts: Args): Promise<RV> {
     if (yaml) {
       args.unshift(...yaml.args)
       pkgs.push(...yaml.pkgs)
+      add_env = yaml.env
     }
   }
 
-  return {args, pkgs, blueprint: env}
+  return {args, pkgs, blueprint: env, env: add_env}
 
   function isMarkdown(path: Path) {
     //ref: https://superuser.com/a/285878

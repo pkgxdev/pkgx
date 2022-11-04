@@ -126,6 +126,8 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
         n += buf.length
         const pc = Math.round(n / sz * 100);
         (logger as Logger).replace(`${teal('downloading')} ${pc}%`)
+      } else if (!ci) {
+        (logger as Logger).replace(`${teal('downloading')} ${pretty_size(n)}`)
       }
       return Promise.resolve(buf.length)
     }})
