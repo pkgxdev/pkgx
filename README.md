@@ -374,7 +374,7 @@ tools you need per project or script are available to that workspace as
 *virtual environments*. Our magic works from depths of libc to the heights of
 the latests fads in CSS precompilers. All versions†. All platforms‡.
 
-> † We’re new software, give us time to achieve this promise.\
+> † We’re a new software, give us time to achieve this promise.\
 > ‡ Windows, Raspberry Pi, BeOS, etc. coming soon!
 
 When you `cd` into a project in your terminal, tea sets up the environment so
