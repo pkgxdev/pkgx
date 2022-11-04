@@ -344,7 +344,7 @@ Download our latest [release] and run it from wherever you like.
 > Now `tea`’s installed you can omit any instance of `sh <(curl tea.xyz)` and
 > instead use your locally installed copy of `tea`.
 >
-> Our (optional) magic `PATH` restructuring requires a hook in your `~.zshrc`:
+> Our (optional) magic `PATH` restructuring requires a hook in your `~/.zshrc`:
 >
 > ```sh
 > add-zsh-hook -Uz chpwd(){ source <(tea -Eds) }
