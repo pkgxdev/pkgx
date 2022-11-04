@@ -1,0 +1,30 @@
+# List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
+
+tasks:
+  - init: |
+      # runs during prebuild
+      (
+        set -e
+
+        # install deno
+        curl -fsSL https://deno.land/install.sh | sh
+      )
+    command: |
+      # runs during startup
+      (
+        set -e
+
+        # compile ./tea
+        deno compile \
+          --allow-read \
+          --allow-write \
+          --allow-net \
+          --allow-run \
+          --allow-env \
+          --unstable \
+          --import-map="import-map.json" \
+          --output "./tea" \
+          "src/app.ts"
+
+        echo "./tea is hot"
+      )
