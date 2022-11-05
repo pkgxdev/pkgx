@@ -6,8 +6,9 @@ tasks:
       (
         set -e
 
-        # install deno
-        curl -fsSL https://deno.land/install.sh | sh
+        # install `deno` for bootstrap into workspace dir
+        # https://www.gitpod.io/docs/configure/projects/prebuilds#workspace-directory-only
+        curl -fsSL https://deno.land/install.sh | DENO_INSTALL=.deno sh
       )
     command: |
       # runs during startup
@@ -15,7 +16,7 @@ tasks:
         set -e
 
         # compile ./tea
-        deno compile \
+        .deno/bin/deno compile \
           --allow-read \
           --allow-write \
           --allow-net \
