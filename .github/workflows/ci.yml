@@ -28,6 +28,19 @@ jobs:
       - run: tea typecheck
       - run: tea deno lint
 
+  # test executable markdown on own repo
+  test-markdown:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
+      - run: tea .
+
   # in stuations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
     runs-on: ${{ matrix.os }}
