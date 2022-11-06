@@ -2,12 +2,12 @@ import { Args } from "hooks/useFlags.ts"
 import { usePantry } from "hooks"
 import * as semver from "semver"
 import exec from "./app.exec.ts"
-import { undent } from "utils"
+import { TeaError, UsageError } from "utils"
 import Path from "./vendor/Path.ts"
 
 export default async function X(opts: Args) {
   const arg0 = opts.args[0]
-  if (!arg0) throw new Error("usage")
+  if (!arg0) throw new UsageError()
 
   let found: { project: string } | undefined | true
 
@@ -29,13 +29,7 @@ export default async function X(opts: Args) {
   }
 
   if (!found) {
-    throw new Error(undent`
-      couldn’t find a pkg to provide: ${arg0}
-
-      open a pull-request to add it to the pantry:
-
-          https://github.com/teaxyz/pantry.extra
-      `)
+    throw new TeaError('not-found: tea -X: arg0', {arg0})
   }
 
   opts.mode = 'exec'

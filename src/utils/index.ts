@@ -242,9 +242,8 @@ export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
 
 
 ///////////////////////////////////////////////////////////////////////// misc
-export function panic(message?: string): never {
-  throw new Error(message)
-}
+import TeaError, { UsageError, panic } from "./error.ts"
+export { TeaError, UsageError, panic }
 
 // deno-lint-ignore no-explicit-any
 export function tuplize<T extends any[]>(...elements: T) {
@@ -252,8 +251,7 @@ export function tuplize<T extends any[]>(...elements: T) {
 }
 
 ///////////////////////////////////////////////////////////////////////// pkgs
-import * as pkg from "./pkg.ts"
-export { pkg }
+export * as pkg from "./pkg.ts"
 
 ///////////////////////////////////////////////////////////////////// platform
 import { SupportedPlatform, SupportedArchitectures } from "types"

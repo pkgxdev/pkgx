@@ -1,6 +1,7 @@
 import { Package, PackageRequirement } from "types"
 import { host } from "utils"
 import SemVer from "semver"
+import { wrap } from "../utils/error.ts"
 
 export interface Inventory {
   [project: string]: {
@@ -32,5 +33,5 @@ const select = async (rq: PackageRequirement | Package) => {
 }
 
 export default function useInventory() {
-  return { select }
+  return { select: wrap(select, 'http') }
 }

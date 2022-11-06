@@ -1,17 +1,16 @@
 import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePantry } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate as base_hydrate, resolve, install as base_install, link } from "prefab"
-import { Installation, PackageRequirement, PackageSpecification } from "types"
-import { run, undent, pkg as pkgutils, RunError } from "utils"
+import { Installation, PackageRequirement, PackageSpecification, Verbosity } from "types"
+import { run, undent, pkg as pkgutils, RunError, TeaError, UsageError } from "utils"
 import * as semver from "semver"
 import Path from "path"
 import { isNumber } from "is_what"
-import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
+import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { red, gray, Logger } from "./hooks/useLogger.ts"
-import help from "./app.help.ts"
 
 export default async function exec(opts: Args) {
-  const { debug, ...flags } = useFlags()
+  const { debug, verbosity, ...flags } = useFlags()
   const {args: cmd, pkgs: sparkles, blueprint, env: add_env} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
@@ -38,11 +37,18 @@ export default async function exec(opts: Args) {
     } else if (opts.pkgs.length) {
       await repl(installations, env)
     } else {
-      await help()
-      Deno.exit(1)
+      switch (verbosity) {
+      case Verbosity.quiet: // error message will be eaten
+      case Verbosity.normal:
+        throw new UsageError()
+      default:
+        break // we show version and exit
+      }
     }
   } catch (err) {
-    if (debug) {
+    if (err instanceof TeaError || err instanceof UsageError) {
+      throw err
+    } else if (debug) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", cmd[0])
@@ -115,7 +121,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     if (sh) {
       return mksh(sh)
     } else if (args.length == 0) {
-      throw new Error(`no default target found in: ${env.requirementsFile}`)
+      throw new TeaError('not-found: exe/md: default target', env)
     }
   }
 
