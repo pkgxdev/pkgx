@@ -239,7 +239,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     //FIXME putting "$@" at the end can be invalid, it really depends on the script TBH
     //FIXME shouldn’t necessarily default to bash
 
-    const path = Path.mktmp().join(arg0).write({ text: undent`
+    const path = Path.mktmp().join(arg0).write({ force: true, text: undent`
       #!/bin/bash
       set -e
       ${debug ? "set -x" : ""}
