@@ -36,14 +36,14 @@ export default async function exec(opts: Args) {
       await run({ cmd, env })  //TODO implement `execvp` for deno
     } else if (opts.pkgs.length) {
       await repl(installations, env)
+    } else if (verbosity <= Verbosity.normal) {
+      // tea was called with no arguments we can use, eg. `tea`
+      // so show usage and exit(1)
+      // in quiet mode the usage output is actually eaten
+      throw new UsageError()
     } else {
-      switch (verbosity) {
-      case Verbosity.quiet: // error message will be eaten
-      case Verbosity.normal:
-        throw new UsageError()
-      default:
-        break // we show version and exit
-      }
+      // tea was called with something like `tea -v`
+      // show version (this was already done higher up)
     }
   } catch (err) {
     if (err instanceof TeaError || err instanceof UsageError) {
