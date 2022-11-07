@@ -42,7 +42,7 @@ export default function useSourceUnarchiver(): Response {
         }
       }
     } else {
-      throw "archive-not-supported"
+      throw new Error("archive-not-supported")
     }
 
     const cmd = unarchiver.args()

@@ -1,4 +1,5 @@
 import Path from "path"
+import { TeaError } from "../utils/index.ts";
 
 interface Return {
   /// throws if not found
@@ -30,7 +31,7 @@ export default function useExecutableMarkdown(parameters: Parameters) {
 
     do {
       const {value: line, done} = lines.next()
-      if (done) throw { error: true, script: name, ...parameters, code: "exe/md:no-region" }
+      if (done) throw new TeaError('not-found: exe/md: region', {script: name, ...parameters})
       if (!line.trim()) continue
       if (line.match(/^```sh\s*$/)) break
     } while (true)

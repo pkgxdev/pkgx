@@ -313,7 +313,7 @@ export default class Path {
       cwd: this.string
     }).status()
 
-    if (status.code != 0) throw `failed: cd ${this} && ln -sf ${src} ${dst}`
+    if (status.code != 0) throw new Error(`failed: cd ${this} && ln -sf ${src} ${dst}`)
 
     return to
   }
@@ -347,7 +347,7 @@ export default class Path {
 
   write({ force, ...content }: ({text: string} | {json: PlainObject, space?: number}) & {force?: boolean}): Path {
     if (this.exists()) {
-      if (!force) throw `file-exists:${this}`
+      if (!force) throw new Error(`file-exists:${this}`)
       this.rm()
     }
     if ("text" in content) {

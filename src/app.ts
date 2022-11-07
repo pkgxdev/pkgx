@@ -72,6 +72,9 @@ try {
     console.debug("------------------------------------------------------------------------")
     console.debug({ err })
     console.error("<<------------------------------------------------------ attachment ends")
+
+    // this way: deno will show the backtrace
+    if (err instanceof Error == false) throw err
   }
 }
 
