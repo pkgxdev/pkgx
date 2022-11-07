@@ -35,7 +35,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     logger.replace(teal("verifying"))
     await sumcheck(sha, new URL(`${url}.sha256sum`))
   } catch (err) {
-    logger.replace(`${red('error')}: ${err}`)
+    logger.replace(red('error'))
     tarball.rm()
     console.error("we deleted the invalid tarball. try again?")
     throw err

@@ -92,6 +92,12 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 > ```sh
 > $ sh <(curl tea.xyz) +charm.sh/gum https://github.com/charmbracelet/gum/blob/main/examples/demo.sh
 > ```
+>
+> Want to try out the latest version of node, but not sure if it will work
+> with your project? *tea makes it easy.*
+> ```sh
+> $ tea +nodejs.org^19 npm start
+> ```
 
 > ### Coming Soon
 > tea pipelines are so interesting we intend to have a dedicated showcase for
@@ -331,9 +337,9 @@ Linux and macOS.
 
 As a bonus, the installer also updates tea.
 
-## *Now see here fella, I *hate* installers…*
+## *Now see here fella’, I *hate* installers…*
 
-We get it! We *hate installers*. That’s why we package everything!
+We get it! *We hate installers*. That’s why we package everything!
 If you don’t want it, then we fully support you in that.
 Download our latest [release] and run it from wherever you like.
 
@@ -625,7 +631,8 @@ command? (If you do, try to do something new, eh? 😌)
 
 ## How do I find available packages?
 
-Currently the best way is `open ~/.tea/tea.xyz/var/pantry`. We agree this is not great UX.
+We list all packages at [tea.xyz]. Or `open ~/.tea/tea.xyz/var/pantry`. We
+agree this is not great UX.
 
 ## What are you doing to my computer?
 
@@ -724,6 +731,10 @@ You can execute each of these with `tea foo` where `foo` is the name of the
 section.
 
 ### Test
+
+> `FIXME` would be nice to be able to specify tests here
+> deno supports `--filter` but that would require a little
+> massaging.
 
 ```sh
 export TMPDIR=${TMPDIR:-/tmp}
@@ -842,3 +853,4 @@ of software.
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [white-paper]: ../../../white-paper
+[tea.xyz]: https://tea.xyz
