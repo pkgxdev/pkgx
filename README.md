@@ -4,7 +4,8 @@ tea is not a package manager.
 
 *tea is unified packaging infrastructure*.
 
-It’s a standalone, binary download for all platforms that puts the entire open
+From the creator of [`brew`], tea is a standalone, binary download for all
+platforms that puts the entire open
 source ecosystem at your fingertips. Casually and effortlessly use the latest
 and greatest or the oldest and most mature from any layer of any stack. Break
 down the silos between programming communities, throw together scripts that
@@ -854,3 +855,4 @@ of software.
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [white-paper]: ../../../white-paper
 [tea.xyz]: https://tea.xyz
+[`brew`]: https://brew.sh
