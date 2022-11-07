@@ -157,10 +157,10 @@ async function abracadabra(opts: Args): Promise<RV> {
     if (magic) {
       // pushing at front so (any) later specification tromps it
       const unshift = (project: string, ...new_args: string[]) => {
-        if (yaml?.pkgs.length == 0) {
+        if (!yaml?.pkgs.length) {
           pkgs.unshift({ project, constraint: new semver.Range("*") })
         }
-        if (yaml?.args.length == 0) {
+        if (!yaml?.args.length) {
           args.unshift(...new_args)
         }
       }
