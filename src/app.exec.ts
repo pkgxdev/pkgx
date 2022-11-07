@@ -96,7 +96,7 @@ interface RV {
 }
 
 async function abracadabra(opts: Args): Promise<RV> {
-  const { magic } = useFlags()
+  const { magic, debug } = useFlags()
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
   let add_env: Record<string, string> | undefined
@@ -157,10 +157,10 @@ async function abracadabra(opts: Args): Promise<RV> {
     if (magic) {
       // pushing at front so (any) later specification tromps it
       const unshift = (project: string, ...new_args: string[]) => {
-        if (yaml?.pkgs.length == 0) {
+        if (!yaml?.pkgs.length) {
           pkgs.unshift({ project, constraint: new semver.Range("*") })
         }
-        if (yaml?.args.length == 0) {
+        if (!yaml?.args.length) {
           args.unshift(...new_args)
         }
       }
@@ -236,6 +236,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     const path = Path.mktmp().join(arg0).write({ text: undent`
       #!/bin/bash
       set -e
+      ${debug ? "set -x" : ""}
       ${sh} ${oneliner ? '"$@"' : ''}
       ` }).chmod(0o500)
 

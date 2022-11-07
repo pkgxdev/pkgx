@@ -23,7 +23,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.11.6
+# tea/cli 0.11.7
 
 Open Source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -736,7 +736,7 @@ deno test \
  --import-map=$SRCROOT/import-map.json \
  --allow-write="$TMPDIR" \
  --unstable \
- $SRCROOT/tests/*.ts
+ "$SRCROOT"/tests/**/*.test.ts
 ```
 
 ### Typecheck
