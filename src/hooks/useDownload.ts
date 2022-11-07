@@ -1,10 +1,9 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
-import TeaError, * as error from "../utils/error.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
+import { chuzzle, error, TeaError } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
 import { useFlags, usePrefix } from "hooks"
 import { isString } from "is_what"
-import { chuzzle } from "utils"
 import Path from "path"
 
 
