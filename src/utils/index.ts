@@ -242,7 +242,7 @@ export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
 
 
 ///////////////////////////////////////////////////////////////////////// misc
-import TeaError, { UsageError, panic } "./error.ts"
+import TeaError, { UsageError, panic } from "./error.ts"
 export { TeaError, UsageError, panic }
 export * as error from "./error.ts"
 
