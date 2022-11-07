@@ -27,7 +27,7 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: TEA_
 
   if (!magic) {
     const reqs = extractFromJSON(cwd.join("package.json"))
-    if (!reqs) throw "package.json not found"
+    if (!reqs) throw new Error("package.json not found")
   }
 
   const srcroot = (() => {
@@ -67,7 +67,7 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: TEA_
     srcroot
   }
 
-  throw "not-found:virtual-env"
+  throw new Error("not-found:virtual-env")
 }
 
 type VirtualEnvSubset = {
@@ -141,11 +141,11 @@ async function extractFromMarkdown(path: Path): Promise<VirtualEnvSubset | undef
 
 async function extractFromJSON(path: Path): Promise<VirtualEnvSubset | undefined> {
   const json = await path.readJSON()
-  if (!isPlainObject(json)) throw "bad-json"
+  if (!isPlainObject(json)) throw new Error("bad-json")
   if (!json.tea) return
   const requirements = (() => {
     if (!json.tea.dependencies) return
-    if (!isPlainObject(json.tea?.dependencies)) throw "bad-json"
+    if (!isPlainObject(json.tea?.dependencies)) throw new Error("bad-json")
     return parsePackageRequirements(json.tea.dependencies)
   })()
   const version = flatmap(json.version, x => new SemVer(x))
@@ -156,7 +156,7 @@ function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
   const included = new Set<string>()
   const rv: PackageRequirement[] = []
   for (const [project, v] of Object.entries(input)) {
-    if (included.has(project)) throw `duplicate-constraint:${project}`
+    if (included.has(project)) throw new Error(`duplicate-constraint:${project}`)
     const rq: PackageRequirement = { project, constraint: new semver.Range(v.toString()) }
     rv.push(rq)
     console.verbose({ found: rq })

@@ -4,6 +4,7 @@ import { undent } from "utils"
 type ID =
   'not-found: tea -X: arg0' |
   'not-found: exe/md: default target' |
+  'not-found: exe/md: region' |
   'http' |
   'not-found: pantry: package.yml' |
   'parser: pantry: package.yml'
@@ -16,6 +17,7 @@ export default class TeaError extends Error {
     switch (this.id) {
       case 'not-found: tea -X: arg0': return 'spilt-tea-001'
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
+      case 'not-found: exe/md: region': return 'spilt-tea-003'
       case 'http': return 'spilt-tea-404'
       case 'not-found: pantry: package.yml': return 'spilt-tea-101'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
@@ -37,6 +39,9 @@ export default class TeaError extends Error {
             https://github.com/teaxyz/pantry.extra
         `
         break
+    case 'not-found: exe/md: region':
+      msg = `target \`${ctx.name}' contains no script region`
+      break
     case 'not-found: exe/md: default target':
       msg = undent`
         default target not found:

@@ -165,7 +165,7 @@ const getProvides = async (pkg: { project: string }) => {
   const yml = await entry(pkg).yml()
   const node = yml["provides"]
   if (!node) return []
-  if (!isArray(node)) throw "bad-yaml"
+  if (!isArray(node)) throw new Error("bad-yaml")
 
   return node.compact(x => {
     if (isPlainObject(x)) {
