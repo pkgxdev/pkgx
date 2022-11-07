@@ -96,7 +96,7 @@ interface RV {
 }
 
 async function abracadabra(opts: Args): Promise<RV> {
-  const { magic } = useFlags()
+  const { magic, debug } = useFlags()
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
   let add_env: Record<string, string> | undefined
@@ -236,6 +236,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     const path = Path.mktmp().join(arg0).write({ text: undent`
       #!/bin/bash
       set -e
+      ${debug ? "set -x" : ""}
       ${sh} ${oneliner ? '"$@"' : ''}
       ` }).chmod(0o500)
 

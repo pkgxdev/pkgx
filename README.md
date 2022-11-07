@@ -736,7 +736,7 @@ deno test \
  --import-map=$SRCROOT/import-map.json \
  --allow-write="$TMPDIR" \
  --unstable \
- $SRCROOT/tests/*.ts
+ "$SRCROOT"/tests/**/*.test.ts
 ```
 
 ### Typecheck
