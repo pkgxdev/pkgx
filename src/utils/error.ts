@@ -27,6 +27,15 @@ export default class TeaError extends Error {
     }}
   }
 
+  title() {
+    switch (this.id) {
+    case 'not-found: pantry: package.yml':
+      return `not-found in pantry: ${this.ctx.project}/package.yml`
+    default:
+      return this.id
+    }
+  }
+
   constructor(id: ID, ctx: PlainObject) {
     let msg = ''
     switch (id) {

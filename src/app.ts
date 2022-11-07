@@ -53,7 +53,7 @@ try {
     await help()
     Deno.exit(1)
   } else if (err instanceof TeaError) {
-    console.error(`${logger.red('error')}: ${err.id} (${logger.gray(err.code())})`)
+    console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
     console.error(err.message)
     if (debug) console.error(err.ctx)
   } else {
