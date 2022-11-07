@@ -732,6 +732,10 @@ section.
 
 ### Test
 
+> `FIXME` would be nice to be able to specify tests here
+> deno supports `--filter` but that would require a little
+> massaging.
+
 ```sh
 export TMPDIR=${TMPDIR:-/tmp}
 

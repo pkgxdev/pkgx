@@ -1,5 +1,5 @@
 import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
-import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg } from "utils"
+import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
@@ -194,14 +194,18 @@ function entry({ project }: { project: string }): Entry {
     const filename = dir.join("package.yml")
     if (!filename.exists()) continue
     const yml = async () => {
-      const yml = await filename.readYAML()
-      if (!isPlainObject(yml)) throw `bad-yaml:${project}`
-      return yml
+      try {
+        const yml = await filename.readYAML()
+        if (!isPlainObject(yml)) throw null
+        return yml
+      } catch (underr) {
+        throw new TeaError('parser: pantry: package.yml', {underr, project})
+      }
     }
     const versions = dir.join("versions.txt")
     return { dir, yml, versions }
   }
-  throw `not-found:${project}`
+  throw new TeaError('not-found: pantry: package.yml', {project})
 }
 
 /// returns sorted versions

@@ -4,7 +4,9 @@ import { undent } from "utils"
 type ID =
   'not-found: tea -X: arg0' |
   'not-found: exe/md: default target' |
-  'http'
+  'http' |
+  'not-found: pantry: package.yml' |
+  'parser: pantry: package.yml'
 
 export default class TeaError extends Error {
   id: ID
@@ -15,6 +17,8 @@ export default class TeaError extends Error {
       case 'not-found: tea -X: arg0': return 'spilt-tea-001'
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
       case 'http': return 'spilt-tea-404'
+      case 'not-found: pantry: package.yml': return 'spilt-tea-101'
+      case 'parser: pantry: package.yml': return 'spilt-tea-102'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
@@ -43,6 +47,23 @@ export default class TeaError extends Error {
     case 'http':
       msg = ctx.underr?.message ?? "contact violated"
       break
+    case 'not-found: pantry: package.yml':
+      msg = undent`
+        your time to shine? we’ll see you on GitHub…
+
+            https://github.com/teaxyz/pantry.extra#how-to-contribute
+        `
+      break
+    case 'parser: pantry: package.yml':
+      //TODO need to figure out which pantry to report against
+      //TODO show the package name obv.
+      //TODO set new issue title
+      msg = undent`
+      pantry entry invalid. please report this bug!
+
+          https://github.com/teaxyz/pantry.code/issues/new
+      `
+    break
     default: {
       const exhaustiveness_check: never = id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)

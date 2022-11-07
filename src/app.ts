@@ -57,7 +57,9 @@ try {
     console.error(err.message)
     if (debug) console.error(err.ctx)
   } else {
-    const title = encodeURIComponent(`panic:${err.message}`).replaceAll('%20', '+')
+    const { stack, message } = err ?? {}
+
+    const title = encodeURIComponent(`panic:${message ?? "null"}`).replaceAll('%20', '+')
     const url = `https://github.com/teaxyz/cli/issues/new?title=${title}`
 
     console.error()
@@ -66,7 +68,9 @@ try {
     console.error("   ", logger.gray(url))
     console.error()
     console.error("----------------------------------------------------->> attachment begin")
-    console.error(logger.gray(err.stack))
+    console.error(logger.gray(stack ?? "null"))
+    console.debug("------------------------------------------------------------------------")
+    console.debug({ err })
     console.error("<<------------------------------------------------------ attachment ends")
   }
 }
