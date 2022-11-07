@@ -155,6 +155,20 @@ Typically `tea` uses fully-qualified-names for packages, but we know what
 tools they provide, so as long as you know what tool you’re looking for we can
 figure out the rest.
 
+### Making it all little more magical
+
+(not for the the faint of heart.)
+
+If you really want to put `tea` through its paces, you can combine the search
+magic with your shell's `not-found` logic, to get automatic `tea` lookups. In
+`zsh`, that's:
+
+```sh
+function command_not_found_handler {
+  tea -X $*
+}
+```
+
 > ### Coming Soon
 >
 > ```yaml
