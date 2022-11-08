@@ -110,48 +110,55 @@ export default class Path {
   isFile(): Path | undefined {
     try {
       return Deno.statSync(this.string).isFile ? this : undefined
-    } catch (err) {
-      if (err instanceof Deno.errors.NotFound == false) {
-        throw err
-      }
+    } catch {
+      return //FIXME
+      // if (err instanceof Deno.errors.NotFound == false) {
+      //   throw err
+      // }
     }
   }
 
-  isSymlink(): boolean {
+  isSymlink(): Path | undefined {
     try {
-      return Deno.lstatSync(this.string).isSymlink
-    } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
-        return false
-      } else {
-        throw err
-      }
+      return Deno.lstatSync(this.string).isSymlink ? this : undefined
+    } catch {
+      return //FIXME
+      // if (err instanceof Deno.errors.NotFound) {
+      //   return false
+      // } else {
+      //   throw err
+      // }
     }
   }
 
   isExecutableFile(): Path | undefined {
-    if (!this.isFile()) return
-    const info = Deno.statSync(this.string)
-    if (!info.mode) throw new Error()
-    const is_exe = (info.mode & 0o111) > 0
-    if (is_exe) return this
+    try {
+      if (!this.isFile()) return
+      const info = Deno.statSync(this.string)
+      if (!info.mode) throw new Error()
+      const is_exe = (info.mode & 0o111) > 0
+      if (is_exe) return this
+    } catch {
+      return //FIXME catch specific errors
+    }
   }
 
   isReadableFile(): Path | undefined {
     return this.isFile() /*FIXME*/ ? this : undefined
   }
 
-  exists(): boolean {
+  exists(): Path | undefined {
     //FIXME can be more efficient
     try {
       Deno.statSync(this.string)
-      return true
-    } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
-        return false
-      } else {
-        throw err
-      }
+      return this
+    } catch {
+      return //FIXME
+      // if (err instanceof Deno.errors.NotFound) {
+      //   return false
+      // } else {
+      //   throw err
+      // }
     }
   }
 
@@ -160,12 +167,8 @@ export default class Path {
   isDirectory(): Path | undefined {
     try {
       return Deno.statSync(this.string).isDirectory ? this : undefined
-    } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
-        return undefined
-      } else {
-        throw err
-      }
+    } catch {
+      return //FIXME catch specific errorrs
     }
   }
 

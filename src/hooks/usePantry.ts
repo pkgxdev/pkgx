@@ -215,7 +215,7 @@ async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]
 
   if (isArray(versions)) {
     return versions.map(raw =>
-      semver.parse(validate_str(raw)) ?? panic(`couldn’t parse \`${raw}' into a semver`)
+      semver.parse(validate_str(raw)) ?? panic(`couldn’t parse \`${raw}' into a semantic version`)
     )
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
