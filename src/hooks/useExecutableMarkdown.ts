@@ -18,6 +18,12 @@ export default function useExecutableMarkdown(parameters: Parameters) {
   })().then(x => x.split("\n")[Symbol.iterator]()))
 
   const findScript = async (name: string) => {
+    // firstly check if there is a target named args[0]
+    // since we don’t want to allow the security exploit where you can make a file
+    // and steal execution when a target was intended
+    // NOTE user can still specify eg. `tea ./foo` if they really want the file
+    name = name == '.' || !name?.trim() ? 'getting-started' : name
+
     const lines = await getLines()
 
     const header_rx = new RegExp(`^#+\\s+(.*)\\s*$`)

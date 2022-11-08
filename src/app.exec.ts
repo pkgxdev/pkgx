@@ -108,6 +108,9 @@ interface RV {
   env?: Record<string, string>
 }
 
+
+// this function is fragile, we need to write 100% coverage and then refactor
+// the fragility is because our magic is not very well defined
 async function abracadabra(opts: Args): Promise<RV> {
   const { magic, debug } = useFlags()
   const pkgs: PackageRequirement[] = []
@@ -117,16 +120,9 @@ async function abracadabra(opts: Args): Promise<RV> {
   let env = magic && opts.env !== false ? await useVirtualEnv().swallow(/^not-found/) : undefined
 
   if (env && args.length) {
-    // firstly check if there is a target named args[0]
-    // since we don’t want to allow the security exploit where you can make a file
-    // and steal execution when a target was intended
-    // NOTE user can still specify eg. `tea ./foo` if they really want the file
-
-    const scriptName = args[0] == '.' ? 'getting-started' : args[0]
-
-    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(scriptName).swallow(/exe\/md/)
+    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(args[0]).swallow(/exe\/md/)
     if (sh) {
-      return mksh(sh)
+      return mksh(sh, args)
     } else if (args.length == 0) {
       throw new TeaError('not-found: exe/md: default target', env)
     }
@@ -145,14 +141,8 @@ async function abracadabra(opts: Args): Promise<RV> {
     }
   })()
 
-  if (path && isMarkdown(path)) {
-    // user has explicitly requested a markdown file
-    const sh = await useExecutableMarkdown({ filename: path }).findScript(args[1])
-    //TODO if no `env` then we should extract deps from the markdown obv.
-    return mksh(sh)
-
-  } else if (path) {
-    if (opts.env) {
+  if (path) {
+    if (opts.env || isMarkdown(path)) {
       // for scripts, we ignore the working directory as virtual-env finder
       // and work from the script, note that the user had to `#!/usr/bin/env -S tea -E`
       // for that to happen so in the shebang we are having that explicitly set
@@ -165,46 +155,58 @@ async function abracadabra(opts: Args): Promise<RV> {
       env = undefined
     }
 
-    const yaml = await usePackageYAMLFrontMatter(path, env?.srcroot)
+    if (isMarkdown(path)) {
+      // user has explicitly requested a markdown file
+      const sh = await useExecutableMarkdown({ filename: path }).findScript(args[1])
+      let args_ = args
+      if (args[1]) {
+        args_ = [args[0], ...args.slice(2)]
+      }
+      //TODO if no `env` then we should extract deps from the markdown obv.
+      return mksh(sh, args_)
 
-    if (magic) {
-      // pushing at front so (any) later specification tromps it
-      const unshift = (project: string, ...new_args: string[]) => {
-        if (!yaml?.pkgs.length) {
-          pkgs.unshift({ project, constraint: new semver.Range("*") })
+    } else {
+      const yaml = await usePackageYAMLFrontMatter(path, env?.srcroot)
+
+      if (magic) {
+        // pushing at front so (any) later specification tromps it
+        const unshift = (project: string, ...new_args: string[]) => {
+          if (!yaml?.pkgs.length) {
+            pkgs.unshift({ project, constraint: new semver.Range("*") })
+          }
+          if (!yaml?.args.length) {
+            args.unshift(...new_args)
+          }
         }
-        if (!yaml?.args.length) {
-          args.unshift(...new_args)
+
+        //FIXME no hardcode! pkg.yml knows these things
+        switch (path.extname()) {
+        case ".py":
+          unshift("python.org", "python")
+          break
+        case ".js":
+          unshift("nodejs.org", "node")
+          break
+        case ".ts":
+          unshift("deno.land", "deno", "run")
+          break
+        case ".go":
+          unshift("go.dev", "go", "run")
+          break
+        case ".pl":
+          unshift("perl.org", "perl")
+          break
+        case ".rb":
+          unshift("ruby-lang.org", "ruby")
+          break
         }
       }
 
-      //FIXME no hardcode! pkg.yml knows these things
-      switch (path.extname()) {
-      case ".py":
-        unshift("python.org", "python")
-        break
-      case ".js":
-        unshift("nodejs.org", "node")
-        break
-      case ".ts":
-        unshift("deno.land", "deno", "run")
-        break
-      case ".go":
-        unshift("go.dev", "go", "run")
-        break
-      case ".pl":
-        unshift("perl.org", "perl")
-        break
-      case ".rb":
-        unshift("ruby-lang.org", "ruby")
-        break
+      if (yaml) {
+        args.unshift(...yaml.args)
+        pkgs.push(...yaml.pkgs)
+        add_env = yaml.env
       }
-    }
-
-    if (yaml) {
-      args.unshift(...yaml.args)
-      pkgs.push(...yaml.pkgs)
-      add_env = yaml.env
     }
   }
 
@@ -226,7 +228,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     }
   }
 
-  function mksh(sh: string) {
+  function mksh(sh: string, args: string[]) {
     //TODO no need to make the file, just pipe to stdin
     //TODO should be able to specify script types
     const [arg0, ...argv] = args
@@ -247,7 +249,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     //FIXME shouldn’t necessarily default to bash
 
     // This is short term until a longer term fix is available through a deno library
-    const saferArg0 = arg0 === '.' ? 'sh' : arg0.replaceAll('../', '')
+    const saferArg0 = arg0.replaceAll("/", "_").replaceAll(".", "-")
 
     const path = Path.mktmp().join(saferArg0).write({ force: true, text: undent`
       #!/bin/bash
