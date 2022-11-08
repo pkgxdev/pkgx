@@ -52,12 +52,12 @@ export default class TeaError extends Error {
       msg = `target \`${ctx.name}' contains no script region`
       break
     case 'not-found: exe/md: default target':
-      msg = undent`
-        default target not found:
-
-            ${ctx.requirementsFile}
-        `
-        break
+      if (ctx.requirementsFile) {
+        msg = `default target not found in \`${ctx.requirementsFile}'`
+      } else {
+        msg = "no `README' or `package.json' found"
+      }
+      break
     case 'http':
       msg = ctx.underr?.message ?? "contact violated"
       break

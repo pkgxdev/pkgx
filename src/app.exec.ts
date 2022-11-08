@@ -33,6 +33,13 @@ export default async function exec(opts: Args) {
 
   try {
     if (cmd.length) {
+      if (cmd[0] == '.') {
+        // if we got here and `.` wasn’t converted into something else
+        // then there was no default target or no exe/md and running `.`
+        // will just give a cryptic message, so let’s provide a better one
+        throw new TeaError('not-found: exe/md: default target', {opts})
+      }
+
       await run({ cmd, env })  //TODO implement `execvp` for deno
     } else if (opts.pkgs.length) {
       await repl(installations, env)
