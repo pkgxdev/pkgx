@@ -49,7 +49,7 @@ export default class TeaError extends Error {
         `
         break
     case 'not-found: exe/md: region':
-      msg = `target \`${ctx.name}' contains no script region`
+      msg = `target \`${ctx.script}' contains no script region`
       break
     case 'not-found: exe/md: default target':
       if (ctx.requirementsFile) {
