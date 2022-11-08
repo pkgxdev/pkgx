@@ -143,7 +143,12 @@ async function abracadabra(opts: Args): Promise<RV> {
       args[0] = path.chmod(0o777).string
       return path
     } else {
-      return Path.cwd().join(args[0]).isFile()
+      const path = Path.cwd().join(args[0])
+      if (path.isDirectory()) {
+        return path.join("README.md").isFile()
+      } else {
+        return path.isFile()
+      }
     }
   })()
 
