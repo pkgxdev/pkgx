@@ -245,8 +245,11 @@ async function abracadabra(opts: Args): Promise<RV> {
 
     //FIXME putting "$@" at the end can be invalid, it really depends on the script TBH
     //FIXME shouldn’t necessarily default to bash
+    
+    // This is short term until a longer term fix is available through a deno library 
+    const saferArg0 = arg0 === '.' ? 'sh' : arg0.replaceAll('../', '')
 
-    const path = Path.mktmp().join(arg0).write({ force: true, text: undent`
+    const path = Path.mktmp().join(saferArg0).write({ force: true, text: undent`
       #!/bin/bash
       set -e
       ${debug ? "set -x" : ""}
