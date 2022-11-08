@@ -49,6 +49,15 @@ export default class Path {
     }
   }
 
+  /// returns Path | undefined rather than throwing error if Path is not absolute
+  static abs(input: string | Path) {
+    try {
+      return new Path(input)
+    } catch {
+      return
+    }
+  }
+
   /**
     If the path represents an actual entry that is a symlink, returns the symlink’s
     absolute destination.
