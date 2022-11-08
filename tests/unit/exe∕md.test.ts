@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "deno/testing/asserts.ts"
 import { useExecutableMarkdown } from "hooks"
 import { undent } from "utils"
-import { shout, sandbox } from "./utils.ts"
+import { shout, sandbox } from "../utils.ts"
 
 ////////////////////////////////////////////////////////////////////////// unit
 Deno.test("find-script-simple", async () => {

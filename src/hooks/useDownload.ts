@@ -1,10 +1,11 @@
 import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
-import { useFlags, usePrefix } from "hooks"
-import { chuzzle, panic } from "utils"
+import { chuzzle, error, TeaError } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
+import { useFlags, usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
+
 
 interface DownloadOptions {
   src: URL
@@ -70,7 +71,7 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
     if (sz) txt += ` ${gray(pretty_size(sz))}`
     logger.replace(txt)
 
-    const reader = rsp.body ?? panic()
+    const reader = rsp.body ?? error.panic()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
     try {
       dst.parent().mkpath()
@@ -97,7 +98,11 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
 }
 
 async function download(opts: DownloadOptions): Promise<Path> {
-  return await internal(opts, (src, dst) => copy(readerFromStreamReader(src.getReader()), dst))
+  try {
+    return await internal(opts, (src, dst) => copy(readerFromStreamReader(src.getReader()), dst))
+  } catch (underr) {
+    throw new TeaError('http', {underr, ...opts})
+  }
 }
 
 async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{path: Path, sha: string}> {
@@ -163,7 +168,11 @@ function hash_key(url: URL): Path {
 }
 
 export default function useDownload() {
-  return { download, hash_key, download_with_sha }
+  return {
+    download,
+    hash_key,
+    download_with_sha: error.wrap(download_with_sha, 'http')
+  }
 }
 
 function pretty_size(n: number) {

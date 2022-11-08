@@ -14,7 +14,7 @@ interface Return1 {
 export default function usePackageYAML(yaml: unknown): Return1 {
   //TODO do magic: if (err == "no-front-matter")
 
-  if (!isPlainObject(yaml)) throw "bad-yaml"
+  if (!isPlainObject(yaml)) throw new Error("bad-yaml")
 
   const getDeps = (wbuild: boolean) => {
     return [...go(yaml.dependencies), ...go(wbuild && yaml.build?.dependencies)]
@@ -49,7 +49,7 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
       if (rv.yaml.args === undefined) return []
       if (isString(rv.yaml.args)) return rv.yaml.args.split(/\s+/)
       if (isArray(rv.yaml.args)) return rv.yaml.args.map(x => `${x}`)
-      throw "bad-yaml"
+      throw new Error("bad-yaml")
     }
     if (srcroot) {
       //TODO if no srcroot and args contain {{srcroot}} show warning

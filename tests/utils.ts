@@ -1,17 +1,23 @@
 import Path from "path"
 import { usePrefix } from "hooks"
 
-export async function shout({ tea: args, cwd }: { tea: string[], cwd?: Path }) {
+export async function shout({ tea: args, cwd, net }: { tea: string[], cwd?: Path, net?: boolean }) {
   const srcroot = Deno.env.get("SRCROOT")
   const cmd = [
     'deno',
     'run',
-    '--allow-env', '--allow-read', '--allow-run',
+    '--allow-env', '--allow-read', '--allow-run'
+  ]
+
+  if (net) cmd.push('--allow-net')
+
+  cmd.push(
+    '--unstable',
     `--allow-write=${usePrefix()}`,
     `--import-map=${srcroot}/import-map.json`,
     `${srcroot}/src/app.ts`,
     ...args
-  ]
+  )
 
   // unset these if set
   const env = {

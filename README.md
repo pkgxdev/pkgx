@@ -4,7 +4,8 @@ tea is not a package manager.
 
 *tea is unified packaging infrastructure*.
 
-It’s a standalone, binary download for all platforms that puts the entire open
+From the creator of [`brew`], tea is a standalone, binary download for all
+platforms that puts the entire open
 source ecosystem at your fingertips. Casually and effortlessly use the latest
 and greatest or the oldest and most mature from any layer of any stack. Break
 down the silos between programming communities, throw together scripts that
@@ -23,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.11.6
+# tea/cli 0.11.11
 
 Open Source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -92,6 +93,12 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 > ```sh
 > $ sh <(curl tea.xyz) +charm.sh/gum https://github.com/charmbracelet/gum/blob/main/examples/demo.sh
 > ```
+>
+> Want to try out the latest version of node, but not sure if it will work
+> with your project? *tea makes it easy.*
+> ```sh
+> $ tea +nodejs.org^19 npm start
+> ```
 
 > ### Coming Soon
 > tea pipelines are so interesting we intend to have a dedicated showcase for
@@ -147,6 +154,20 @@ Type ".help" for more information.
 Typically `tea` uses fully-qualified-names for packages, but we know what
 tools they provide, so as long as you know what tool you’re looking for we can
 figure out the rest.
+
+### Making it all little more magical
+
+(not for the the faint of heart.)
+
+If you really want to put `tea` through its paces, you can combine the search
+magic with your shell's `not-found` logic, to get automatic `tea` lookups. In
+`zsh`, that's:
+
+```sh
+function command_not_found_handler {
+  tea -X $*
+}
+```
 
 > ### Coming Soon
 >
@@ -331,9 +352,9 @@ Linux and macOS.
 
 As a bonus, the installer also updates tea.
 
-## *Now see here fella, I *hate* installers…*
+## *Now see here fella’, I *hate* installers…*
 
-We get it! We *hate installers*. That’s why we package everything!
+We get it! *We hate installers*. That’s why we package everything!
 If you don’t want it, then we fully support you in that.
 Download our latest [release] and run it from wherever you like.
 
@@ -625,7 +646,8 @@ command? (If you do, try to do something new, eh? 😌)
 
 ## How do I find available packages?
 
-Currently the best way is `open ~/.tea/tea.xyz/var/pantry`. We agree this is not great UX.
+We list all packages at [tea.xyz]. Or `open ~/.tea/tea.xyz/var/pantry`. We
+agree this is not great UX.
 
 ## What are you doing to my computer?
 
@@ -725,6 +747,10 @@ section.
 
 ### Test
 
+> `FIXME` would be nice to be able to specify tests here
+> deno supports `--filter` but that would require a little
+> massaging.
+
 ```sh
 export TMPDIR=${TMPDIR:-/tmp}
 
@@ -736,7 +762,7 @@ deno test \
  --import-map=$SRCROOT/import-map.json \
  --allow-write="$TMPDIR" \
  --unstable \
- $SRCROOT/tests/*.ts
+ "$SRCROOT"/tests/**/*.test.ts
 ```
 
 ### Typecheck
@@ -842,3 +868,5 @@ of software.
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [white-paper]: ../../../white-paper
+[tea.xyz]: https://tea.xyz
+[`brew`]: https://brew.sh

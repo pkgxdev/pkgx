@@ -1,17 +1,16 @@
 import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePantry } from "hooks"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { hydrate as base_hydrate, resolve, install as base_install, link } from "prefab"
-import { Installation, PackageRequirement, PackageSpecification } from "types"
-import { run, undent, pkg as pkgutils, RunError } from "utils"
+import { Installation, PackageRequirement, PackageSpecification, Verbosity } from "types"
+import { run, undent, pkg as pkgutils, RunError, TeaError, UsageError } from "utils"
 import * as semver from "semver"
 import Path from "path"
 import { isNumber } from "is_what"
-import { VirtualEnv } from "./hooks/useVirtualEnv.ts";
+import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { red, gray, Logger } from "./hooks/useLogger.ts"
-import help from "./app.help.ts"
 
 export default async function exec(opts: Args) {
-  const { debug, ...flags } = useFlags()
+  const { debug, verbosity, ...flags } = useFlags()
   const {args: cmd, pkgs: sparkles, blueprint, env: add_env} = await abracadabra(opts)
 
   const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
@@ -34,15 +33,29 @@ export default async function exec(opts: Args) {
 
   try {
     if (cmd.length) {
+      if (cmd[0] == '.') {
+        // if we got here and `.` wasn’t converted into something else
+        // then there was no default target or no exe/md and running `.`
+        // will just give a cryptic message, so let’s provide a better one
+        throw new TeaError('not-found: exe/md: default target', {opts})
+      }
+
       await run({ cmd, env })  //TODO implement `execvp` for deno
     } else if (opts.pkgs.length) {
       await repl(installations, env)
+    } else if (verbosity <= Verbosity.normal) {
+      // tea was called with no arguments we can use, eg. `tea`
+      // so show usage and exit(1)
+      // in quiet mode the usage output is actually eaten
+      throw new UsageError()
     } else {
-      await help()
-      Deno.exit(1)
+      // tea was called with something like `tea -v`
+      // show version (this was already done higher up)
     }
   } catch (err) {
-    if (debug) {
+    if (err instanceof TeaError || err instanceof UsageError) {
+      throw err
+    } else if (debug) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", cmd[0])
@@ -96,7 +109,7 @@ interface RV {
 }
 
 async function abracadabra(opts: Args): Promise<RV> {
-  const { magic } = useFlags()
+  const { magic, debug } = useFlags()
   const pkgs: PackageRequirement[] = []
   const args = [...opts.args]
   let add_env: Record<string, string> | undefined
@@ -115,7 +128,7 @@ async function abracadabra(opts: Args): Promise<RV> {
     if (sh) {
       return mksh(sh)
     } else if (args.length == 0) {
-      throw new Error(`no default target found in: ${env.requirementsFile}`)
+      throw new TeaError('not-found: exe/md: default target', env)
     }
   }
 
@@ -157,10 +170,10 @@ async function abracadabra(opts: Args): Promise<RV> {
     if (magic) {
       // pushing at front so (any) later specification tromps it
       const unshift = (project: string, ...new_args: string[]) => {
-        if (yaml?.pkgs.length == 0) {
+        if (!yaml?.pkgs.length) {
           pkgs.unshift({ project, constraint: new semver.Range("*") })
         }
-        if (yaml?.args.length == 0) {
+        if (!yaml?.args.length) {
           args.unshift(...new_args)
         }
       }
@@ -236,9 +249,10 @@ async function abracadabra(opts: Args): Promise<RV> {
     // This is short term until a longer term fix is available through a deno library 
     const saferArg0 = arg0 === '.' ? 'sh' : arg0.replaceAll('../', '')
 
-    const path = Path.mktmp().join(saferArg0).write({ text: undent`
+    const path = Path.mktmp().join(saferArg0).write({ force: true, text: undent`
       #!/bin/bash
       set -e
+      ${debug ? "set -x" : ""}
       ${sh} ${oneliner ? '"$@"' : ''}
       ` }).chmod(0o500)
 
