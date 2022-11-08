@@ -39,7 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: tea .
+      # execute run target from https://github.com/teaxyz/cli/blob/main/README.md#run
+      # using "external `tea`", which will execute "`tea` from source", passing '.' to it
+      # passing '.' to "`tea` from source" makes it build default README.md target
+      - run: tea run .
 
   # in stuations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
