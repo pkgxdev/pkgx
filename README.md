@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.11.11
+# tea/cli 0.11.12
 
 Open Source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -98,6 +98,11 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 > with your project? *tea makes it easy.*
 > ```sh
 > $ tea +nodejs.org^19 npm start
+> ```
+>
+> One liner to create a react app:
+> ```sh
+> $ sh <(curl tea.xyz) -X npx create-react-app my-app
 > ```
 
 > ### Coming Soon
