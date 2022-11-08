@@ -104,6 +104,7 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 > ```sh
 > $ sh <(curl tea.xyz) -X npx create-react-app my-app
 > ```
+> </details>
 
 > ### Coming Soon
 > tea pipelines are so interesting we intend to have a dedicated showcase for
@@ -159,39 +160,6 @@ Type ".help" for more information.
 Typically `tea` uses fully-qualified-names for packages, but we know what
 tools they provide, so as long as you know what tool you’re looking for we can
 figure out the rest.
-
-### Making it all little more magical
-
-(not for the the faint of heart.)
-
-If you really want to put `tea` through its paces, you can combine the search
-magic with your shell's `not-found` logic, to get automatic `tea` lookups.
-
-`zsh`:
-
-```sh
-function command_not_found_handler {
-  tea -X $*
-}
-```
-
-`bash`: (v4 and up; macOS ships with 3.2, sadly, but `tea` provides `+gnu.org/bash`,
-and I've met very few people who want to use `bash` on macs, though I bet you're out
-there.)
-
-```sh
-function command_not_found_handle {
-  tea -X $*
-}
-```
-
-`fish`:
-
-```sh
-function fish_command_not_found
-  tea -X $argv
-end
-```
 
 > ### Coming Soon
 >
@@ -667,6 +635,43 @@ Coming soon is [tea/cmd]. tea/cli will expose forks of this repo as commands
 the user can run utilizing the power of tea’s packaging primitives to do all
 that they can imagine. Maybe it’ll be you who writes the `tea install`
 command? (If you do, try to do something new, eh? 😌)
+
+### May we interest you in a hack?
+
+If you really want to put `tea` through its paces, you can combine the search
+magic with your shell’s “command not found” logic, to get automatic `tea`
+lookups.
+
+> <details open><summary><h4><code>zsh</code></h4></summary>
+>
+> ```sh
+> function command_not_found_handler {
+>   tea -X $*
+> }
+> ```
+> </details>
+
+> <details><summary><h4><code>bash</code></h4></summary>
+>
+> The following requires `bash^4`; sadly macOS ships with v3.2, but `tea`
+> provides `+gnu.org/bash`, and we’ve met very few people who want to use
+> `bash` on macs, though I bet you're out there).
+>
+> ```sh
+> function command_not_found_handle {
+>   tea -X $*
+> }
+> ```
+> </details>
+
+> <details><summary><h4><code>fish</code></h4></summary>
+>
+> ```sh
+> function fish_command_not_found
+>   tea -X $argv
+> end
+> ```
+> </details>
 
 ## How do I find available packages?
 
