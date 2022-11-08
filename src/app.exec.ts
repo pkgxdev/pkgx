@@ -30,6 +30,12 @@ export default async function exec(opts: Args) {
   if (add_env) {
     Object.assign(env, add_env)
   }
+  if (blueprint) {
+    // if already set we shouldn’t override it
+    // however that changes behavior… so maybe we should?
+    // quite possibly this will be fine since how would we find a requirementsFile if TEA_DIR was set someplace else?
+    env["TEA_DIR"] ??= blueprint.requirementsFile.parent().string
+  }
 
   try {
     if (cmd.length) {
@@ -160,6 +166,7 @@ async function abracadabra(opts: Args): Promise<RV> {
       const sh = await useExecutableMarkdown({ filename: path }).findScript(args[1])
       let args_ = args
       if (args[1]) {
+        // we don’t want to pass the target-name to the script
         args_ = [args[0], ...args.slice(2)]
       }
       //TODO if no `env` then we should extract deps from the markdown obv.
