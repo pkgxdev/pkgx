@@ -160,13 +160,32 @@ figure out the rest.
 (not for the the faint of heart.)
 
 If you really want to put `tea` through its paces, you can combine the search
-magic with your shell's `not-found` logic, to get automatic `tea` lookups. In
-`zsh`, that's:
+magic with your shell's `not-found` logic, to get automatic `tea` lookups.
+
+`zsh`:
 
 ```sh
 function command_not_found_handler {
   tea -X $*
 }
+```
+
+`bash`: (v4 and up; macOS ships with 3.2, sadly, but `tea` provides `+gnu.org/bash`,
+and I've met very few people who want to use `bash` on macs, though I bet you're out
+there.)
+
+```sh
+function command_not_found_handle {
+  tea -X $*
+}
+```
+
+`fish`:
+
+```sh
+function fish_command_not_found
+  tea -X $argv
+end
 ```
 
 > ### Coming Soon
