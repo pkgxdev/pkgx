@@ -63,6 +63,8 @@ export default class TeaError extends Error {
       break
     case 'not-found: pantry: package.yml':
       msg = undent`
+        no pantry entry for: ${ctx.project}
+
         your time to shine? we’ll see you on GitHub…
 
             https://github.com/teaxyz/pantry.extra#how-to-contribute
