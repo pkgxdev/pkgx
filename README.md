@@ -339,8 +339,8 @@ $ tea https://example.com/script.ts
 Now in your blog posts, tweets and tutorials you don’t have to start
 with any “how to install tea” preamble nor will they need to google anything.
 If they want to learn about tea first they can go to the same URL as they’re
-curl’ing. And soon we’ll work on Windows just as well as we already work on
-Linux and macOS.
+curl’ing. We already work on Linux, macOS, and WSL; soon we’ll support Windows
+natively.
 
 As a bonus, the installer also updates tea.
 
@@ -388,7 +388,7 @@ tools you need per project or script are available to that workspace as
 the latests fads in CSS precompilers. All versions†. All platforms‡.
 
 > † We’re new software, give us time to achieve this promise.\
-> ‡ Windows, Raspberry Pi, BeOS, etc. coming soon!
+> ‡ Windows (native, we support WSL), Raspberry Pi, BeOS, etc. coming soon!
 
 When you `cd` into a project in your terminal, tea sets up the environment so
 your tools “just work”. To do this it looks for a dependencies table in
