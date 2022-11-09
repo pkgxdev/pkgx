@@ -29,9 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      #TMP until we go public
-      - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
-
       - uses: teaxyz/setup@v0
 
       - id: extract
@@ -74,32 +71,33 @@ jobs:
       actions: write
     strategy:
       matrix:
-        include:
-        - deno-target: x86_64-apple-darwin
+        platform:
+        - os: macos-11
           build-id: darwin+x86-64
-          os: ubuntu-latest
-        - deno-target: aarch64-apple-darwin
-          build-id: darwin+aarch64
-          os: macos-latest  # or binaries don’t run when download to different machine
-        - deno-target: x86_64-unknown-linux-gnu
+        - os: ubuntu-latest
           build-id: linux+x86-64
-          os: ubuntu-latest
-    runs-on: ${{ matrix.os }}
+        - os: [self-hosted, macOS, ARM64]
+          build-id: darwin+aarch64
+        - os: [self-hosted, linux, ARM64]
+          build-id: linux+aarch64
+    runs-on: ${{ matrix.platform.os }}
+    name: ${{ matrix.platform.build-id }}
     steps:
       - uses: actions/checkout@v3
 
-      #TMP until we go public
-      - run: .github/mk-pantry-accessible.sh ${{ secrets.TEMP_JACOBS_GITHUB_PAT }}
-
       - uses: teaxyz/setup@v0
         id: tea
+        with:
+          # because linux self-hosted image doesn’t have git
+          srcroot: ${{ github.workspace }}
+
       - run: sed -i.bak "s/^const version = .*$/const version = \"{{ steps.tea.outputs.version }}\"/" src/app.ts
-      - run: tea compile ./tea --target ${{ matrix.deno-target }}
-      - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.build-id }}.tar.xz ./tea
+      - run: tea compile ./tea
+      - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
       - uses: actions/upload-artifact@v3
         with:
           name: tarballs
-          path: tea-${{ steps.tea.outputs.version }}+${{ matrix.build-id }}.tar.xz
+          path: tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
           if-no-files-found: error
 
   release:
