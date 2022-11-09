@@ -181,7 +181,7 @@ export function flatten(env: Record<string, string[]>) {
 
 function find_tea() {
   for (const bindir of Deno.env.get("PATH")?.split(":") ?? []) {
-    const file = new Path(bindir).join("tea").isExecutableFile()
+    const file = Path.abs(bindir)?.join("tea").isExecutableFile()
     if (file) return file
   }
 }
