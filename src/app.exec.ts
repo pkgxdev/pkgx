@@ -49,7 +49,7 @@ export default async function exec(opts: Args) {
       await run({ cmd, env })  //TODO implement `execvp` for deno
     } else if (opts.pkgs.length) {
       await repl(installations, env)
-    } else if (verbosity <= Verbosity.normal) {
+    } else if (verbosity <= Verbosity.normal && !flags.sync) {
       // tea was called with no arguments we can use, eg. `tea`
       // so show usage and exit(1)
       // in quiet mode the usage output is actually eaten
@@ -57,6 +57,7 @@ export default async function exec(opts: Args) {
     } else {
       // tea was called with something like `tea -v`
       // show version (this was already done higher up)
+      // also this route for calling with `tea --sync`
     }
   } catch (err) {
     if (err instanceof TeaError || err instanceof UsageError) {
