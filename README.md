@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.11.14
+# tea/cli 0.12.0
 
 Open Source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -348,11 +348,22 @@ As a bonus, the installer also updates tea.
 
 We get it! *We hate installers*. That’s why we package everything!
 If you don’t want it, then we fully support you in that.
-Download our latest [release] and run it from wherever you like.
 
-> <details><summary><i>Installing Manually</i></summary><br>
+> <details><summary><i>Installing Without the Installer</i></summary><br>
 >
 > `tea` is a single binary that you can [install yourself][releases].
+> If you prefer `curl dist.tea.xyz` for a *plain/text* listing of binary
+> downloads for all platforms.
+>
+> On macOS you will probably need to unquarantine the binary:
+>
+> ```sh
+> $ xattr -d com.apple.quarantine ./tea
+> ```
+>
+> You can try it out from the download location, but you will probably want to
+> move it to `/usr/local/bin` or another directory in your `PATH` if you want
+> to “install” it.
 >
 > Now `tea`’s installed you can omit any instance of `sh <(curl tea.xyz)` and
 > instead use your locally installed copy of `tea`.
