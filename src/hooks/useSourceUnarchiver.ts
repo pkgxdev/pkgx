@@ -20,13 +20,10 @@ export default function useSourceUnarchiver(): Response {
     const { verbosity } = useFlags()
 
     let unarchiver: Unarchiver
-    if (TarballUnarchiver.supports(opts.zipfile)) {
-      opts.dstdir.mkpath()
-      unarchiver = new TarballUnarchiver({ verbosity, ...opts })
-    } else if (ZipUnarchiver.supports(opts.zipfile)) {
+    if (ZipUnarchiver.supports(opts.zipfile)) {
       const stripComponents = opts.stripComponents ?? 0
       const needsTmpdir = stripComponents > 0
-      const dstdir = needsTmpdir ? new Path(Deno.makeTempDirSync({ prefix: "tea" })) : opts.dstdir
+      const dstdir = needsTmpdir ? Path.mktmp() : opts.dstdir
       try {
         unarchiver = new ZipUnarchiver({ verbosity, ...opts, dstdir })
         if (needsTmpdir) {
@@ -42,7 +39,10 @@ export default function useSourceUnarchiver(): Response {
         }
       }
     } else {
-      throw new Error("archive-not-supported")
+      //FIXME we need to determine file type from the magic bytes
+      // rather than assume tarball if not zip
+      opts.dstdir.mkpath()
+      unarchiver = new TarballUnarchiver({ verbosity, ...opts })
     }
 
     const cmd = unarchiver.args()
