@@ -3,12 +3,10 @@ import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, 
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
-import { ls } from "./usePantry.ls.ts"
+import { ls, pantry_paths, prefix } from "./usePantry.ls.ts"
 import SemVer, * as semver from "semver"
 import Path from "path"
 
-//TODO keeping this because some pantry scripts expect it
-export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 interface Entry {
   dir: Path
@@ -146,19 +144,6 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   } else {
     return script(node)
   }
-}
-
-function pantry_paths(): Path[] {
-  const rv: Path[] = [prefix]
-  const env = Deno.env.get("TEA_PANTRY_PATH")
-  if (env) for (const path of env.split(":").reverse()) {
-    if (path.startsWith("/")) {
-      rv.unshift(new Path(path).join("projects"))
-    } else {
-      console.warn(`invalid path: ${path}`)
-    }
-  }
-  return rv
 }
 
 const getProvides = async (pkg: { project: string }) => {

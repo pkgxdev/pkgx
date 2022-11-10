@@ -8,7 +8,7 @@ import { print, TeaError, UsageError } from "utils"
 import X from "./app.X.ts"
 import Path from "path"
 
-const [args, {sync, silent, debug}] = useArgs(Deno.args)
+const [args, {sync, silent, debug}] = useArgs(Deno.args, Deno.execPath())
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`
 // ^^ this is statically replaced at deployment
 
