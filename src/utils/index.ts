@@ -34,6 +34,7 @@ export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
     }
   }
   const rsp = await fetch(url, { headers })
+  if (!rsp.ok) throw new TeaError('http', { url, headers })
   const json = await rsp.json()
   return json as T
 }
