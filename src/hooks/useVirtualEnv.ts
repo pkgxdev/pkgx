@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-cond-assign
 import { PackageRequirement } from "types"
-import { flatmap } from "utils"
+import { flatmap, TeaError } from "utils"
 import { isPlainObject, PlainObject } from "is_what"
 import { useFlags } from "hooks"
 import SemVer, * as semver from "semver"
@@ -67,7 +67,7 @@ export default async function useVirtualEnv({ cwd }: { cwd: Path } = { cwd: TEA_
     srcroot
   }
 
-  throw new Error("not-found:virtual-env")
+  throw new TeaError('not-found: virtual-env', { cwd })
 }
 
 type VirtualEnvSubset = {

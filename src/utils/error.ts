@@ -7,7 +7,8 @@ type ID =
   'not-found: exe/md: region' |
   'http' |
   'not-found: pantry: package.yml' |
-  'parser: pantry: package.yml'
+  'parser: pantry: package.yml' |
+  'not-found: virtual-env'
 
 export default class TeaError extends Error {
   id: ID
@@ -21,6 +22,7 @@ export default class TeaError extends Error {
       case 'http': return 'spilt-tea-404'
       case 'not-found: pantry: package.yml': return 'spilt-tea-101'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
+      case 'not-found: virtual-env': return 'spilt-tea-004'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
@@ -49,11 +51,11 @@ export default class TeaError extends Error {
         `
         break
     case 'not-found: exe/md: region':
-      msg = `target \`${ctx.script}' contains no script region`
+      msg = `markdown section for \`${ctx.script}\` has no \`\`\`sh code block`
       break
     case 'not-found: exe/md: default target':
       if (ctx.requirementsFile) {
-        msg = `default target not found in \`${ctx.requirementsFile}'`
+        msg = `default target (\`# Getting Started\`) not found in \`${ctx.requirementsFile}\``
       } else {
         msg = "no `README' or `package.json' found"
       }
@@ -75,10 +77,18 @@ export default class TeaError extends Error {
       //TODO show the package name obv.
       //TODO set new issue title
       msg = undent`
-      pantry entry invalid. please report this bug!
+        pantry entry invalid. please report this bug!
 
-          https://github.com/teaxyz/pantry.code/issues/new
-      `
+            https://github.com/teaxyz/pantry.code/issues/new
+        `
+      break
+    case 'not-found: virtual-env':
+      msg = undent`
+        the working directory is not a tea virtual environment.
+
+        currently, a virtual environment is defined by a \`README.md\` or \`package.json\`
+        existing alongside a \`.git\` directory.
+        `
     break
     default: {
       const exhaustiveness_check: never = id
