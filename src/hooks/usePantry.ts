@@ -1,4 +1,4 @@
-import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
+import { Package, PackageRequirement, Installation } from "types"
 import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"

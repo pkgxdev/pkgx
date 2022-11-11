@@ -301,6 +301,8 @@ function urlify(arg0: string) {
   }
 }
 
+import { basename } from "deno/path/mod.ts"
+
 async function repl(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
   console.info('this is a temporary shell containing the following packages:')
@@ -310,11 +312,13 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   const cmd = [shell, '-i'] // interactive
 
   //TODO other shells pls #help-wanted
-  const shellName = Path.abs(shell)?.basename()
-  if (shellName == 'zsh') {
+
+  switch (basename(shell)) {
+  case 'zsh':
     env['PS1'] = "%F{086}tea%F{reset} %~ "
     cmd.push('--no-rcs', '--no-globalrcs')
-  } else if (shellName == 'fish') {
+    break
+  case 'fish':
     cmd.push(
       '--no-config',
       '--init-command',
