@@ -48,7 +48,7 @@ const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => 
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
 const getDeps = async (pkg: Package | PackageRequirement) => {
-  const yml =  await entry(pkg).yml()
+  const yml = await entry(pkg).yml()
   return {
     runtime: parse_pkgs_node(yml.dependencies),
     build: parse_pkgs_node(yml.build?.dependencies),
@@ -60,21 +60,11 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
 function parse_pkgs_node(node: any) {
   if (!node) return []
   node = validate_plain_obj(node)
+  platform_reduce(node)
 
   const rv: PackageRequirement[] = []
-  const stack = Object.entries(node)
-  // deno-lint-ignore no-explicit-any
-  let pkg: [string, any] | undefined
-  // deno-lint-ignore no-cond-assign
-  while (pkg = stack.shift()) {
-    const [project, constraint] = pkg
-    if (SupportedPlatforms.includes(project as SupportedPlatform)) {
-      if (host().platform !== project) continue
-      if (constraint === null) continue
-      stack.unshift(...Object.entries(validate_plain_obj(constraint)))
-    } else {
-      rv.compact_push(validatePackageRequirement({ project, constraint }))
-    }
+  for (const [project, constraint] of Object.entries(node)) {
+    rv.compact_push(validatePackageRequirement({ project, constraint }))
   }
   return rv
 }
@@ -288,10 +278,10 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   return rv
 }
 
-function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
-  const env = {...env_}
+/// expands platform specific keys into the object
+/// expands inplace because JS is nuts and you have to suck it up
+function platform_reduce(env: PlainObject) {
   const sys = host()
-
   for (const [key, value] of Object.entries(env)) {
     const match = key.match(/^(darwin|linux)(\/(x86-64|aarch64))?$/)
     if (!match) continue
@@ -314,6 +304,13 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
       }
     }
   }
+}
+
+
+function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
+  const env = {...env_}
+
+  platform_reduce(env)
 
   return Object.entries(env).map(([key,value]) => {
     if (isArray(value)) {
