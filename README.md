@@ -24,9 +24,9 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.12.0
+# tea/cli 0.12.1
 
-Open Source is a treasure trove—yet those chests are sealed with gnarly locks.
+Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
 
 ```sh
@@ -35,7 +35,7 @@ $ tea +rust-lang.org
 tea: installing rust-lang.org and 13 other packages into a temporary sandbox
 when done type: exit
 
-tea $ cat <<EOF>hello.rs
+tea $ cat <<EOF >hello.rs
 fn main() {
   println!("Hello World!");
 }
@@ -74,14 +74,14 @@ $ sh <(curl tea.xyz) +nodejs.org npx --yes browser-sync start --server
 #  a temporary sandbox is created)
 ```
 
-Compose everything, combine everything, just like the UNIX philosophy
-envisaged. Of course that also means *you can pipe them*:
+Compose everything, combine everything—just like the UNIX philosophy
+envisaged. Which leads us to `tea`-pipelines:
 
 ```sh
 $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 ```
 
-> Notably, with `-X` syntax this can expressed more simply:
+> Notably, with `-X` syntax this can expressed more concisely:
 >
 > ```sh
 > $ tea -X wget -qO- tea.xyz/white-paper | tea -X glow -
@@ -127,7 +127,7 @@ extension. Obvious right? Which is why we didn’t stop there:
 
 ```sh
 $ tea favicon-generator.sh input.png
-installing image-magick, optipng, guetzli and 3 other dependencies…
+tea: installing image-magick, optipng, guetzli and 3 other packages…
 …
 output: favicon-128.png…
 
@@ -497,8 +497,8 @@ tea will run the script with the latest version of Python that is >=2.7 but
 less than 3.0. If it's not installed we grab it, otherwise we use what is
 available.
 
-We also support an `args` parameter which is useful for tools that require
-a `run` command like deno or go.
+We also support `args` and `env` parameters which are useful for tools that
+require a `run` command like deno or go.
 
 ```ts
 #!/usr/bin/env deno
@@ -510,6 +510,8 @@ args:
   - deno
   - run
   # we put the script filename on the end for you here
+env:
+  foo: {{srcroot}}/bar
 ---*/
 ```
 
@@ -901,7 +903,7 @@ of software.
 
 [pantry]: ../../../pantry.core
 [Markdown]: https://daringfireball.net/projects/markdown/
-[release]: ../../releases
+[releases]: ../../releases
 [teaxyz/setup]: ../../../setup
 [deno]: https://deno.land
 [tea/cmd]: ../../../cmd

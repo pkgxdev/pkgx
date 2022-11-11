@@ -8,11 +8,7 @@ export function pantry_paths(): Path[] {
   const rv: Path[] = [prefix]
   const env = Deno.env.get("TEA_PANTRY_PATH")
   if (env) for (const path of env.split(":").reverse()) {
-    if (path.startsWith("/")) {
-      rv.unshift(new Path(path).join("projects"))
-    } else {
-      console.warn(`invalid path: ${path}`)
-    }
+    rv.unshift(Path.cwd().join(path, "projects"))
   }
   return rv
 }
