@@ -140,28 +140,54 @@ export default async function dump(args: Args) {
     }
   }
 
-  // TODO: implement command-not-found for fish/bash/etc
-
-  if (pending.length && shell == 'zsh') {
+  // TODO: implement command-not-found for csh/sh/etc
+  if (pending.length) {
     const pantry = usePantry()
-    let rv = undent`
-      command_not_found_handler() {
-        case $0 in
+    let rv = undefined
+    switch (shell) {
+    case 'zsh':
+      rv = undent`
+        command_not_found_handler() {
+          case $0 in
 
-      `
-    for (const uninstalled of pending) {
-      const exes = await pantry.getProvides(uninstalled)
-      if (exes.length) {
-        const cmds = exes.join("|")
-        rv += `    ${cmds}) tea '+${pkg.str(uninstalled)}' "$@";;\n`
+        `
+      for (const uninstalled of pending) {
+        const exes = await pantry.getProvides(uninstalled)
+        if (exes.length) {
+          const cmds = exes.join("|")
+          rv += `    ${cmds}) tea '+${pkg.str(uninstalled)}' "$@";;\n`
+        }
       }
+      rv += `  *)\n    printf 'zsh: command not found: %s\\n' "$1";;\n  esac\n}`
+      break
+    case 'fish':
+      rv = undent`
+        function command_not_found_handler
+          switch "$argv[0]"`
+      for (const uninstalled of pending) {
+        const exes = await pantry.getProvides(uninstalled)
+        if (exes.length) {
+          const cmds = exes.join(" ")
+          rv += `    case ${cmds}; tea '+${pkg.str(uninstalled)}' "$argv"\n`
+        }
+      }
+      rv += "  end\nend"
     }
-    rv += `  *)\n    printf 'zsh: command not found: %s\\n' "$1";;\n  esac\n}`
 
-    await print(rv)
+    if (rv) await print(rv)
   } else {
     //TODO unless there's a default!
-    await print("if typeset -f command_not_found_handler >/dev/null; then unset -f command_not_found_handler; fi")
+    switch (shell) {
+      case 'zsh':
+        await print("if typeset -f command_not_found_handler >/dev/null; then unset -f command_not_found_handler; fi")
+        break
+      case 'bash':
+        await print("if typeset -f command_not_found_handle >/dev/null; then unset -f command_not_found_handle; fi")
+        break
+      case 'fish':
+        await print("if functions --query command_not_found_handler >/dev/null; functions --erase command_not_found_handler; end")
+        break
+    }
   }
 
   await print(setEnv("TEA_REWIND", JSON.stringify(defaults)))
