@@ -45,10 +45,18 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
   dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
-  if (!ephemeral && mtime_entry().isFile() && dst.isReadableFile() && etag_entry().isFile()) {
+  if (!ephemeral && dst.isReadableFile()) {
+    
     headers ??= {}
-    headers["If-Modified-Since"] = await mtime_entry().read()
-    headers["If-None-Match"] = await etag_entry().read()
+    if(mtime_entry().isFile() && etag_entry().isFile()){
+      headers["If-Modified-Since"] = await mtime_entry().read()
+      headers["If-None-Match"] = await etag_entry().read()
+    } else if(mtime_entry().isFile()){
+      headers["If-Modified-Since"] = await mtime_entry().read()
+    } else if(etag_entry().isFile()){
+      headers["If-None-Match"] = await etag_entry().read()
+    }
+
     logger.replace(teal('querying'))
   } else {
     logger.replace(teal('downloading'))
@@ -79,7 +87,6 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
       dst.parent().mkpath()
       await body(reader, f, sz)
 
-      //TODO etags too
       const text = rsp.headers.get("Last-Modified")
       const etag = rsp.headers.get("etag")
 
