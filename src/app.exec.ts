@@ -310,9 +310,16 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   const cmd = [shell, '-i'] // interactive
 
   //TODO other shells pls #help-wanted
-  if (Path.abs(shell)?.basename() == 'zsh') {
+  const shellName = Path.abs(shell)?.basename()
+  if (shellName == 'zsh') {
     env['PS1'] = "%F{086}tea%F{reset} %~ "
     cmd.push('--no-rcs', '--no-globalrcs')
+  } else if (shellName == 'fish') {
+    cmd.push(
+      '--no-config',
+      '--init-command',
+      'function fish_prompt; set_color 5fffd7; echo -n "tea"; set_color grey; echo " %~ "; end'
+      )
   }
 
   await run({ cmd, env })
