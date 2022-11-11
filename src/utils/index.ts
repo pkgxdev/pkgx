@@ -259,13 +259,13 @@ export function tuplize<T extends any[]>(...elements: T) {
 export * as pkg from "./pkg.ts"
 
 ///////////////////////////////////////////////////////////////////// platform
-import { SupportedPlatform, SupportedArchitectures } from "types"
+import { SupportedPlatform, SupportedArchitecture } from "types"
 
 interface HostReturnValue {
   platform: SupportedPlatform
-  arch: SupportedArchitectures
+  arch: SupportedArchitecture
   target: string
-  build_ids: [SupportedPlatform, SupportedArchitectures]
+  build_ids: [SupportedPlatform, SupportedArchitecture]
 }
 
 export function host(): HostReturnValue {

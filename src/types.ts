@@ -32,7 +32,8 @@ export enum Verbosity {
 export const SupportedPlatforms = ["darwin", "linux", "windows"] as const
 export type SupportedPlatform = typeof SupportedPlatforms[number]
 
-export type SupportedArchitectures = 'x86-64' | 'aarch64'
+export const SupportedArchitectures = ["x86-64", "aarch64"] as const
+export type SupportedArchitecture = typeof SupportedArchitectures[number]
 
 /// remotely available package content (bottles or source tarball)
 export type Stowage = {
@@ -43,7 +44,7 @@ export type Stowage = {
   type: 'bottle'
   pkg: Package
   compression: 'xz' | 'gz'
-  host?: { platform: SupportedPlatform, arch: SupportedArchitectures }
+  host?: { platform: SupportedPlatform, arch: SupportedArchitecture }
 }
 
 /// once downloaded, `Stowage` becomes `Stowed`

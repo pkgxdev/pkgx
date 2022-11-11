@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
 import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
@@ -257,21 +258,20 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   const rsp = await useGitHubAPI().getVersions({ user, repo, type })
 
   const rv: SemVer[] = []
-  for (let name of rsp) {
-
-    name = strip(name)
+  for (const pre_strip_name of rsp) {
+    const name = strip(pre_strip_name)
 
     if (ignore.some(x => x.test(name))) {
-      console.debug({ignoring: name, reason: 'explicit'})
+      console.debug({ignoring: pre_strip_name, reason: 'explicit'})
     } else {
       const v = semver.parse(name)
       if (!v) {
-        console.warn({ignoring: name, reason: 'unparsable'})
+        console.warn({ignoring: pre_strip_name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
         console.verbose({ found: v.toString(), from: name })
         rv.push(v)
       } else {
-        console.debug({ignoring: name, reason: 'prerelease'})
+        console.debug({ignoring: pre_strip_name, reason: 'prerelease'})
       }
     }
   }
@@ -283,11 +283,17 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
 function platform_reduce(env: PlainObject) {
   const sys = host()
   for (const [key, value] of Object.entries(env)) {
-    const match = key.match(/^(darwin|linux)(\/(x86-64|aarch64))?$/)
-    if (!match) continue
+    const [os, arch] = (() => {
+      let match = key.match(/^(darwin|linux)\/(aarch64|x86-64)$/)
+      if (match) return [match[1], match[2]]
+      if (match = key.match(/^(darwin|linux)$/)) return [match[1]]
+      if (match = key.match(/^(aarch64|x86-64)$/)) return [,match[1]]
+      return []
+    })()
+
+    if (!os && !arch) continue
     delete env[key]
-    const [, os, , arch] = match
-    if (os != sys.platform) continue
+    if (os && os != sys.platform) continue
     if (arch && arch != sys.arch) continue
 
     const dict = validate_plain_obj(value)
