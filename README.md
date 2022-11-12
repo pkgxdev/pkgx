@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.12.1
+# tea/cli 0.13.0
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
