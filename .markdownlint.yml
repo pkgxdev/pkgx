@@ -1,0 +1,26 @@
+# use banner rather than an h1 at the top of the file
+MD041: false
+
+# extra lines to offset content
+MD012: false
+
+# skipping heading levels as needed for display purposes
+MD001: false
+
+# "prompts" in code examples
+MD014: false
+
+# consecutive distinct blockquotes
+MD028: false
+
+# sometimes, you need HTML: <details>
+MD033: false
+
+# duplicate headers are sometimes useful
+MD024: false
+
+# can't split up a table row
+MD013: false
+
+# some titles end in 'etc.'
+MD026: false
