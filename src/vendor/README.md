@@ -11,4 +11,4 @@ Goals:
 5. Conforms to principle of least surprise
 6. Consistent
 
-Based on https://github.com/mxcl/Path.swift
+Based on [mxcl/Path.swift](https://github.com/mxcl/Path.swift)
