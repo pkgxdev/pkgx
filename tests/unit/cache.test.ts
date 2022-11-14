@@ -4,7 +4,7 @@ import { sandbox } from "../utils.ts"
 
 Deno.test("etag-mtime-check",async () => {
   await sandbox(async tmpdir => {
-    const src = new URL("https://dist.tea.xyz/deno.land/darwin/aarch64/v1.27.1.tar.xz")
+    const src = new URL("https://dist.tea.xyz/ijg.org/versions.txt")
     const dst = await useDownload().download({src, dst: tmpdir.join("test.tar.xz")})
 
     const mtimePath = await useDownload().hash_key(src).join("mtime")
