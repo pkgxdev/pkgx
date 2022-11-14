@@ -48,13 +48,10 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
   if (!ephemeral && dst.isReadableFile()) {
     
     headers ??= {}
-    if(mtime_entry().isFile() && etag_entry().isFile()){
-      headers["If-Modified-Since"] = await mtime_entry().read()
+    if(etag_entry().isFile()){
       headers["If-None-Match"] = await etag_entry().read()
     } else if(mtime_entry().isFile()){
       headers["If-Modified-Since"] = await mtime_entry().read()
-    } else if(etag_entry().isFile()){
-      headers["If-None-Match"] = await etag_entry().read()
     }
 
     logger.replace(teal('querying'))
