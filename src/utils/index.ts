@@ -34,6 +34,7 @@ export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
     }
   }
   const rsp = await fetch(url, { headers })
+  if (!rsp.ok) throw new TeaError('http', { url, headers })
   const json = await rsp.json()
   return json as T
 }
@@ -259,13 +260,13 @@ export function tuplize<T extends any[]>(...elements: T) {
 export * as pkg from "./pkg.ts"
 
 ///////////////////////////////////////////////////////////////////// platform
-import { SupportedPlatform, SupportedArchitectures } from "types"
+import { SupportedPlatform, SupportedArchitecture } from "types"
 
 interface HostReturnValue {
   platform: SupportedPlatform
-  arch: SupportedArchitectures
+  arch: SupportedArchitecture
   target: string
-  build_ids: [SupportedPlatform, SupportedArchitectures]
+  build_ids: [SupportedPlatform, SupportedArchitecture]
 }
 
 export function host(): HostReturnValue {

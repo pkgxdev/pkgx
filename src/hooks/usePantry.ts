@@ -1,14 +1,13 @@
-import { Package, PackageRequirement, Installation, SupportedPlatforms, SupportedPlatform } from "types"
+// deno-lint-ignore-file no-cond-assign
+import { Package, PackageRequirement, Installation } from "types"
 import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
-import { ls } from "./usePantry.ls.ts"
+import { ls, pantry_paths, prefix } from "./usePantry.ls.ts"
 import SemVer, * as semver from "semver"
 import Path from "path"
 
-//TODO keeping this because some pantry scripts expect it
-export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 interface Entry {
   dir: Path
@@ -50,7 +49,7 @@ const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => 
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
 const getDeps = async (pkg: Package | PackageRequirement) => {
-  const yml =  await entry(pkg).yml()
+  const yml = await entry(pkg).yml()
   return {
     runtime: parse_pkgs_node(yml.dependencies),
     build: parse_pkgs_node(yml.build?.dependencies),
@@ -62,21 +61,11 @@ const getDeps = async (pkg: Package | PackageRequirement) => {
 function parse_pkgs_node(node: any) {
   if (!node) return []
   node = validate_plain_obj(node)
+  platform_reduce(node)
 
   const rv: PackageRequirement[] = []
-  const stack = Object.entries(node)
-  // deno-lint-ignore no-explicit-any
-  let pkg: [string, any] | undefined
-  // deno-lint-ignore no-cond-assign
-  while (pkg = stack.shift()) {
-    const [project, constraint] = pkg
-    if (SupportedPlatforms.includes(project as SupportedPlatform)) {
-      if (host().platform !== project) continue
-      if (constraint === null) continue
-      stack.unshift(...Object.entries(validate_plain_obj(constraint)))
-    } else {
-      rv.compact_push(validatePackageRequirement({ project, constraint }))
-    }
+  for (const [project, constraint] of Object.entries(node)) {
+    rv.compact_push(validatePackageRequirement({ project, constraint }))
   }
   return rv
 }
@@ -146,19 +135,6 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
   } else {
     return script(node)
   }
-}
-
-function pantry_paths(): Path[] {
-  const rv: Path[] = [prefix]
-  const env = Deno.env.get("TEA_PANTRY_PATH")
-  if (env) for (const path of env.split(":").reverse()) {
-    if (path.startsWith("/")) {
-      rv.unshift(new Path(path).join("projects"))
-    } else {
-      console.warn(`invalid path: ${path}`)
-    }
-  }
-  return rv
 }
 
 const getProvides = async (pkg: { project: string }) => {
@@ -282,37 +258,42 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
   const rsp = await useGitHubAPI().getVersions({ user, repo, type })
 
   const rv: SemVer[] = []
-  for (let name of rsp) {
-
-    name = strip(name)
+  for (const pre_strip_name of rsp) {
+    const name = strip(pre_strip_name)
 
     if (ignore.some(x => x.test(name))) {
-      console.debug({ignoring: name, reason: 'explicit'})
+      console.debug({ignoring: pre_strip_name, reason: 'explicit'})
     } else {
       const v = semver.parse(name)
       if (!v) {
-        console.warn({ignoring: name, reason: 'unparsable'})
+        console.warn({ignoring: pre_strip_name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
         console.verbose({ found: v.toString(), from: name })
         rv.push(v)
       } else {
-        console.debug({ignoring: name, reason: 'prerelease'})
+        console.debug({ignoring: pre_strip_name, reason: 'prerelease'})
       }
     }
   }
   return rv
 }
 
-function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
-  const env = {...env_}
+/// expands platform specific keys into the object
+/// expands inplace because JS is nuts and you have to suck it up
+function platform_reduce(env: PlainObject) {
   const sys = host()
-
   for (const [key, value] of Object.entries(env)) {
-    const match = key.match(/^(darwin|linux)(\/(x86-64|aarch64))?$/)
-    if (!match) continue
+    const [os, arch] = (() => {
+      let match = key.match(/^(darwin|linux)\/(aarch64|x86-64)$/)
+      if (match) return [match[1], match[2]]
+      if (match = key.match(/^(darwin|linux)$/)) return [match[1]]
+      if (match = key.match(/^(aarch64|x86-64)$/)) return [,match[1]]
+      return []
+    })()
+
+    if (!os && !arch) continue
     delete env[key]
-    const [, os, , arch] = match
-    if (os != sys.platform) continue
+    if (os && os != sys.platform) continue
     if (arch && arch != sys.arch) continue
 
     const dict = validate_plain_obj(value)
@@ -329,6 +310,13 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
       }
     }
   }
+}
+
+
+function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
+  const env = {...env_}
+
+  platform_reduce(env)
 
   return Object.entries(env).map(([key,value]) => {
     if (isArray(value)) {

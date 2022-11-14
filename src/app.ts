@@ -1,14 +1,15 @@
-import { usePrefix, useVirtualEnv, useSync } from "hooks"
+import { print, TeaError, UsageError } from "utils"
+import { usePrefix, useVirtualEnv } from "hooks"
 import * as logger from "hooks/useLogger.ts"
 import { useArgs } from "hooks/useFlags.ts"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
-import { print, TeaError, UsageError } from "utils"
+import syncf from "./app.sync.ts"
 import X from "./app.X.ts"
 import Path from "path"
 
-const [args, {sync, silent, debug}] = useArgs(Deno.args)
+const [args, {sync, silent, debug}] = useArgs(Deno.args, Deno.execPath())
 const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`
 // ^^ this is statically replaced at deployment
 
@@ -24,7 +25,7 @@ if (args.mode == "exec" || args.mode == undefined ||  args.mode == "eXec" || !De
 
 try {
   if (sync) {
-    await useSync()
+    await syncf(args)
   }
 
   if (args.mode == "exec" || args.mode == undefined) {

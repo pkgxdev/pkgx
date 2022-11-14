@@ -1,5 +1,18 @@
+import { usePrefix } from "hooks"
 import Path from "path"
-import { prefix } from "./usePantry.ts"
+
+//TODO keeping this because some pantry scripts expect it
+export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
+
+export function pantry_paths(): Path[] {
+  const rv: Path[] = [prefix]
+  const env = Deno.env.get("TEA_PANTRY_PATH")
+  if (env) for (const path of env.split(":").reverse()) {
+    rv.unshift(Path.cwd().join(path, "projects"))
+  }
+  return rv
+}
+
 
 interface Entry {
   project: string
@@ -7,10 +20,12 @@ interface Entry {
 }
 
 export async function* ls(): AsyncGenerator<Entry> {
-  for await (const path of _ls_pantry(prefix)) {
-    yield {
-      project: path.parent().relative({ to: prefix }),
-      path
+  for (const prefix of pantry_paths()) {
+    for await (const path of _ls_pantry(prefix)) {
+      yield {
+        project: path.parent().relative({ to: prefix }),
+        path
+      }
     }
   }
 }

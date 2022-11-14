@@ -49,7 +49,7 @@ export default async function exec(opts: Args) {
       await run({ cmd, env })  //TODO implement `execvp` for deno
     } else if (opts.pkgs.length) {
       await repl(installations, env)
-    } else if (verbosity <= Verbosity.normal) {
+    } else if (verbosity <= Verbosity.normal && !flags.sync) {
       // tea was called with no arguments we can use, eg. `tea`
       // so show usage and exit(1)
       // in quiet mode the usage output is actually eaten
@@ -57,6 +57,7 @@ export default async function exec(opts: Args) {
     } else {
       // tea was called with something like `tea -v`
       // show version (this was already done higher up)
+      // also this route for calling with `tea --sync`
     }
   } catch (err) {
     if (err instanceof TeaError || err instanceof UsageError) {
@@ -300,6 +301,8 @@ function urlify(arg0: string) {
   }
 }
 
+import { basename } from "deno/path/mod.ts"
+
 async function repl(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
   console.info('this is a temporary shell containing the following packages:')
@@ -309,9 +312,18 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   const cmd = [shell, '-i'] // interactive
 
   //TODO other shells pls #help-wanted
-  if (Path.abs(shell)?.basename() == 'zsh') {
+
+  switch (basename(shell)) {
+  case 'zsh':
     env['PS1'] = "%F{086}tea%F{reset} %~ "
     cmd.push('--no-rcs', '--no-globalrcs')
+    break
+  case 'fish':
+    cmd.push(
+      '--no-config',
+      '--init-command',
+      'function fish_prompt; set_color 5fffd7; echo -n "tea"; set_color grey; echo " %~ "; end'
+      )
   }
 
   await run({ cmd, env })

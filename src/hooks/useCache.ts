@@ -1,5 +1,5 @@
 import { usePrefix } from "hooks"
-import { Package, Stowed, SupportedArchitectures, SupportedPlatform, Stowage } from "types"
+import { Package, Stowed, SupportedArchitecture, SupportedPlatform, Stowage } from "types"
 import * as utils from "utils"
 import SemVer from "semver"
 import Path from "path"
@@ -48,7 +48,7 @@ function decode(path: Path): Stowed | undefined {
         type: 'bottle',
         host: {
           platform: platform as SupportedPlatform,
-          arch: arch as SupportedArchitectures
+          arch: arch as SupportedArchitecture
         },
         compression,
         path
