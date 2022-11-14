@@ -15,6 +15,11 @@ interface Entry {
   versions: Path
 }
 
+export interface Interpreter {
+  project: string // FIXME: should probably be a stronger type
+  args: string[]
+}
+
 export default function usePantry() {
   return {
     getClosestPackageSuggestion,
@@ -25,6 +30,7 @@ export default function usePantry() {
     getScript,
     getProvides,
     getYAML,
+    getInterpreter,
     resolve,
     ls,
     prefix
@@ -158,6 +164,23 @@ const getCompanions = async (pkg: {project: string}) => {
   const yml = await entry(pkg).yml()
   const node = yml["companions"]
   return parse_pkgs_node(node)
+}
+
+const getInterpreter = async (_extension: string): Promise<Interpreter | undefined> => {
+  const extension = _extension.slice(1)
+  for await (const pkg of ls()) {
+    const yml = await entry(pkg).yml()
+    const node = yml["interprets"]
+    if (!isPlainObject(node)) continue
+    try {
+      const args = yml["interprets"][extension]
+      if (isString(args)) return { project: pkg.project, args: [args] }
+      if (isArray(args)) return { project: pkg.project, args }
+    } catch {
+      continue
+    }
+  }
+  return undefined
 }
 
 // deno-lint-ignore no-explicit-any
