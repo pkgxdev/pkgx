@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.0
+# tea/cli 0.13.1
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -121,9 +121,10 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 ## tea: the Universal Interpreter
 
 ```sh
-$ tea https://github.com/teaxyz/demos/blob/main/demo.go input.txt
+$ tea https://gist.githubusercontent.com/i0bj/2b3afbe07a44179250474b5f36e7bd9b/raw/colors.go --yellow
 tea: installing go 1.18.3
-go: running demo.go
+go: installing deps
+go: running colors.go
 …
 ```
 
@@ -332,10 +333,10 @@ sh <(curl https://tea.xyz)
 In fact, the tea one-liner abstracts away installation:
 
 ```sh
-$ sh <(curl tea.xyz) https://example.com/script.ts
+$ sh <(curl tea.xyz) https://examples.deno.land/color-logging.ts
 
 # works the same as:
-$ tea https://example.com/script.ts
+$ tea https://examples.deno.land/color-logging.ts
 
 # if tea is installed, our one-liner uses the tea installation, if it’s not
 # installed then it **doesn’t install tea** or any dependencies, it creates a

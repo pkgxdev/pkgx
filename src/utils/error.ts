@@ -8,7 +8,8 @@ type ID =
   'http' |
   'not-found: pantry: package.yml' |
   'parser: pantry: package.yml' |
-  'not-found: virtual-env'
+  'not-found: virtual-env' |
+  'not-found: srcroot'
 
 export default class TeaError extends Error {
   id: ID
@@ -19,6 +20,7 @@ export default class TeaError extends Error {
       case 'not-found: tea -X: arg0': return 'spilt-tea-001'
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
       case 'not-found: exe/md: region': return 'spilt-tea-003'
+      case 'not-found: srcroot': return 'spilt-tea-004'
       case 'http': return 'spilt-tea-404'
       case 'not-found: pantry: package.yml': return 'spilt-tea-101'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
@@ -55,9 +57,11 @@ export default class TeaError extends Error {
       break
     case 'not-found: exe/md: default target':
       if (ctx.requirementsFile) {
-        msg = `default target (\`# Getting Started\`) not found in \`${ctx.requirementsFile}\``
+        msg = `markdown section \`# Getting Started\` not found in \`${ctx.requirementsFile}\``
       } else {
-        msg = "no `README' or `package.json' found"
+        msg = undent`
+          no \`README.md\` or \`package.json\` found.
+          `
       }
       break
     case 'http':
@@ -84,12 +88,20 @@ export default class TeaError extends Error {
       break
     case 'not-found: virtual-env':
       msg = undent`
-        the working directory is not a tea virtual environment.
+        \`${ctx.cwd}\` is not a tea virtual environment.
 
         currently, a virtual environment is defined by a \`README.md\` or \`package.json\`
-        existing alongside a \`.git\` directory.
+        existing alongside a source control directory (eg. \`.git\`).
         `
     break
+    case 'not-found: srcroot':
+      msg = undent`
+        we couldn’t determine \`$SRCROOT\` when descending from \`${ctx.cwd}\`.
+
+        currently, a virtual environment is defined by a \`README.md\` or \`package.json\`
+        existing alongside a source control directory (eg. \`.git\`).
+        `
+      break
     default: {
       const exhaustiveness_check: never = id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)

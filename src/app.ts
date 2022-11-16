@@ -1,5 +1,5 @@
 import { print, TeaError, UsageError } from "utils"
-import { usePrefix, useVirtualEnv } from "hooks"
+import { usePrefix, useRequirementsFile } from "hooks"
 import * as logger from "hooks/useLogger.ts"
 import { useArgs } from "hooks/useFlags.ts"
 import dump from "./app.dump.ts"
@@ -10,7 +10,7 @@ import X from "./app.X.ts"
 import Path from "path"
 
 const [args, {sync, silent, debug}] = useArgs(Deno.args, Deno.execPath())
-const version = `${(await useVirtualEnv({ cwd: new URL(import.meta.url).path().parent() }).swallow(/not-found/))?.version?.toString()}+dev`
+const version = `${(await useRequirementsFile(new URL(import.meta.url).path().join("../../README.md")).swallow(/not-found/))?.version}+dev`
 // ^^ this is statically replaced at deployment
 
 if (args.cd) {
@@ -72,7 +72,7 @@ try {
     console.error(logger.gray(stack ?? "null"))
     console.debug("------------------------------------------------------------------------")
     console.debug({ err })
-    console.error("<<------------------------------------------------------ attachment ends")
+    console.error("<<------------------------------------------------------- attachment end")
 
     // this way: deno will show the backtrace
     if (err instanceof Error == false) throw err
@@ -84,7 +84,7 @@ function announce() {
   const prefix = usePrefix().string
 
   if (self.basename() == "deno") {
-    console.verbose({ deno: self.string, prefix, import: import.meta })
+    console.verbose({ deno: self.string, prefix, import: import.meta, tea: version })
   } else {
     console.verbose(`${prefix}/tea.xyz/v${version}/bin/tea`)
   }

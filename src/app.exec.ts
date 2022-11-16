@@ -1,71 +1,40 @@
-import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, usePantry } from "hooks"
+import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, useRequirementsFile, usePantry } from "hooks"
+import { run, undent, pkg as pkgutils, UsageError, panic, TeaError, RunError } from "utils"
+import { hydrate, resolve, install as base_install, link } from "prefab"
+import { Installation, PackageRequirement, PackageSpecification } from "types"
+import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import useFlags, { Args } from "hooks/useFlags.ts"
-import { hydrate as base_hydrate, resolve, install as base_install, link } from "prefab"
-import { Installation, PackageRequirement, PackageSpecification, Verbosity } from "types"
-import { run, undent, pkg as pkgutils, RunError, TeaError, UsageError } from "utils"
+import { flatten } from "hooks/useShellEnv.ts"
+import { gray, red } from "hooks/useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
-import { isNumber } from "is_what"
-import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
-import { red, gray, Logger } from "./hooks/useLogger.ts"
 
-export default async function exec(opts: Args) {
+//TODO specifying explicit pkgs or versions on the command line should replace anything deeper
+//    RATIONALE: so you can override if you are testing locally
+
+
+export default async function(opts: Args) {
   const { debug, verbosity, ...flags } = useFlags()
-  const {args: cmd, pkgs: sparkles, blueprint, env: add_env} = await abracadabra(opts)
+  const assessment = assess(opts.args)
 
-  const installations = await install([...sparkles, ...opts.pkgs, ...blueprint?.requirements ?? []])
+  if (assessment.type == 'repl') {
+    if (!opts.pkgs.length && flags.sync) Deno.exit(0)    // `tea -S` is not an error or a repl
+    if (!opts.pkgs.length && verbosity > 0) Deno.exit(0) // `tea -v` is not an error or a repl
+    if (!opts.pkgs.length) throw new UsageError()
 
-  const env = Object.entries(useShellEnv({ installations })).reduce((memo, [k, v]) => {
-    memo[k] = v.join(':')
-    return memo
-  }, {} as Record<string, string>)
+    const { installed, env } = await install(opts.pkgs)
+    await repl(installed, env)
 
-  if (blueprint) {
-    env["SRCROOT"] = blueprint.srcroot.string
-    if (blueprint.version) env["VERSION"] = blueprint.version.toString()
-  }
-  if (flags.json) {
-    env["JSON"] = "1"
-  }
-  if (add_env) {
-    Object.assign(env, add_env)
-  }
-  if (blueprint) {
-    // if already set we shouldn’t override it
-    // however that changes behavior… so maybe we should?
-    // quite possibly this will be fine since how would we find a requirementsFile if TEA_DIR was set someplace else?
-    env["TEA_DIR"] ??= blueprint.requirementsFile.parent().string
-  }
-
-  try {
-    if (cmd.length) {
-      if (cmd[0] == '.') {
-        // if we got here and `.` wasn’t converted into something else
-        // then there was no default target or no exe/md and running `.`
-        // will just give a cryptic message, so let’s provide a better one
-        throw new TeaError('not-found: exe/md: default target', {opts})
-      }
-
-      await run({ cmd, env })  //TODO implement `execvp` for deno
-    } else if (opts.pkgs.length) {
-      await repl(installations, env)
-    } else if (verbosity <= Verbosity.normal && !flags.sync) {
-      // tea was called with no arguments we can use, eg. `tea`
-      // so show usage and exit(1)
-      // in quiet mode the usage output is actually eaten
-      throw new UsageError()
-    } else {
-      // tea was called with something like `tea -v`
-      // show version (this was already done higher up)
-      // also this route for calling with `tea --sync`
-    }
+  } else try {
+    const refinement = await refine(assessment)
+    await exec(refinement, opts.pkgs, {env: opts.env ?? false})
   } catch (err) {
-    if (err instanceof TeaError || err instanceof UsageError) {
+    if (err instanceof TeaError) {
       throw err
     } else if (debug) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
-      console.error("tea: command not found:", cmd[0])
+      console.error("tea: command not found:", assessment.args[0])
     } else if (err instanceof RunError == false) {
       const decapitalize = ([first, ...rest]: string) => first.toLowerCase() + rest.join("")
       console.error(`${red("error")}:`, decapitalize(err.message))
@@ -73,209 +42,140 @@ export default async function exec(opts: Args) {
     const code = err?.code ?? 1
     Deno.exit(isNumber(code) ? code : 1)
   }
+
 }
 
-/////////////////////////////////////////////////////////////
-async function install(dry: PackageSpecification[]) {
-  const { wet } = await hydrate(dry)
-  const gas = await resolve(wet.pkgs)  ; console.debug({gas})
+async function refine(ass: RV2): Promise<RV1> {
+  const { magic } = useFlags()
 
-  for (const pkg of gas.pending) {
-    const rq = wet.pkgs.find(rq => rq.project == pkg.project)
-    const logger = new Logger(pkgutils.str(rq ?? pkg))
-    const installation = await base_install(pkg, logger)
-    await link(installation)
-    gas.installed.push(installation)
-  }
-  return gas.installed
+  switch (ass.type) {
+  case 'url': {
+    const path = await useDownload().download({ src: ass.url })
+    ass = assess_file(path, ass.args)
+  } break
+
+  case 'dir':
+    //FIXME `README.md` is not the only spelling we accept
+    ass = { type: 'md', path: ass.path.join("README.md"), args: ass.args }
+    break
+
+  case 'cmd': {
+    if (!magic) break  // without magic you cannot specify exe/md targets without a path parameter
+    const blueprint = await useVirtualEnv().swallow(/^not-found/)
+    if (!blueprint) break // without a blueprint just passthru
+    const filename = blueprint.file
+    const sh = await useExecutableMarkdown({ filename }).findScript(ass.args[0]).swallow(/^not-found/)
+    if (!sh) break // no exe/md target called this so just passthru
+    ass = { type: 'md', path: filename, sh, blueprint, name: ass.args[0], args: ass.args.slice(1) }
+  }}
+
+  return ass
 }
 
-export async function hydrate(dry: PackageSpecification[]) {
-  const pantry = usePantry()
+async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}) {
+  const { debug, magic } = useFlags()
 
-  // companions are eg cargo for rust, pip for python
-  // users and other packages typically expect the companion so by default we just install them
-  //TODO for v1 we may want to rework this concept
-  //TODO this could be much more efficient with concurrency
-  //NOTE considering them “dry” is perhaps not a good idea
-  for (const pkg of [...dry]) {
-    dry.push(...await pantry.getCompanions(pkg))
-  }
+  switch (ass.type) {
+  case 'md': {
+    //TODO we should probably infer magic as meaning: find the v-env and add it
 
-  const wet = await base_hydrate(dry)  ; console.debug({wet})
+    const name = ass.name ?? 'getting-started'
+    const sh = ass.sh ?? await useExecutableMarkdown({ filename: ass.path }).findScript(name)
+    const { pkgs, version } = await useRequirementsFile(ass.path) ?? panic()
+    const { env } = await install(pkgs)
+    const basename = ass.path.string.replaceAll("/", "_") //FIXME this is not sufficient escaping
 
-  return {wet}
-}
-
-
-interface RV {
-  args: string[]
-  pkgs: PackageRequirement[]
-  blueprint?: VirtualEnv
-  env?: Record<string, string>
-}
-
-
-// this function is fragile, we need to write 100% coverage and then refactor
-// the fragility is because our magic is not very well defined
-async function abracadabra(opts: Args): Promise<RV> {
-  const { magic, debug } = useFlags()
-  const pkgs: PackageRequirement[] = []
-  const args = [...opts.args]
-  let add_env: Record<string, string> | undefined
-
-  let env = magic && opts.env !== false ? await useVirtualEnv().swallow(/^not-found/) : undefined
-
-  if (env && args.length) {
-    const sh = await useExecutableMarkdown({ filename: env.requirementsFile }).findScript(args[0]).swallow(/exe\/md/)
-    if (sh) {
-      return mksh(sh, args)
-    } else if (args.length == 0) {
-      throw new TeaError('not-found: exe/md: default target', env)
-    }
-  }
-
-  const path = await (async () => {
-    if (args.length == 0) return
-    const url = urlify(args[0])
-    if (url) {
-      const logger = url.path().basename()
-      const path = await useDownload().download({ src: url, logger })
-      args[0] = path.chmod(0o777).string
-      return path
-    } else {
-      const path = Path.cwd().join(args[0])
-      if (path.isDirectory()) {
-        return path.join("README.md").isFile()
-      } else {
-        return path.isFile()
-      }
-    }
-  })()
-
-  if (path) {
-    if (opts.env || isMarkdown(path)) {
-      // for scripts, we ignore the working directory as virtual-env finder
-      // and work from the script, note that the user had to `#!/usr/bin/env -S tea -E`
-      // for that to happen so in the shebang we are having that explicitly set
-      env = await useVirtualEnv({ cwd: path.parent() })
-
-      //NOTE this maybe is wrong? maybe we should read the script and check if we were shebanged
-      // with -E since `$ tea -E path/to/script` should perhaps use the active env?
-    } else {
-      //NOTE this REALLY may be wrong
-      env = undefined
+    if (version) {
+      env['VERSION'] = version.toString()
     }
 
-    if (isMarkdown(path)) {
-      // user has explicitly requested a markdown file
-      const sh = await useExecutableMarkdown({ filename: path }).findScript(args[1])
-      let args_ = args
-      if (args[1]) {
-        // we don’t want to pass the target-name to the script
-        args_ = [args[0], ...args.slice(2)]
-      }
-      //TODO if no `env` then we should extract deps from the markdown obv.
-      return mksh(sh, args_)
-
-    } else {
-      const yaml = await usePackageYAMLFrontMatter(path, env?.srcroot)
-
-      if (magic) {
-        // pushing at front so (any) later specification tromps it
-        const unshift = (project: string, ...new_args: string[]) => {
-          if (!yaml?.pkgs.length) {
-            pkgs.unshift({ project, constraint: new semver.Range("*") })
-          }
-          if (!yaml?.args.length) {
-            args.unshift(...new_args)
-          }
-        }
-
-        //FIXME no hardcode! pkg.yml knows these things
-        switch (path.extname()) {
-        case ".py":
-          unshift("python.org", "python")
-          break
-        case ".js":
-          unshift("nodejs.org", "node")
-          break
-        case ".ts":
-          unshift("deno.land", "deno", "run")
-          break
-        case ".go":
-          unshift("go.dev", "go", "run")
-          break
-        case ".pl":
-          unshift("perl.org", "perl")
-          break
-        case ".rb":
-          unshift("ruby-lang.org", "ruby")
-          break
-        }
-      }
-
-      if (yaml) {
-        args.unshift(...yaml.args)
-        pkgs.push(...yaml.pkgs)
-        add_env = yaml.env
-      }
-    }
-  }
-
-  return {args, pkgs, blueprint: env, env: add_env}
-
-  function isMarkdown(path: Path) {
-    //ref: https://superuser.com/a/285878
-    switch (path.extname()) {
-    case ".md":
-    case '.mkd':
-    case '.mdwn':
-    case '.mdown':
-    case '.mdtxt':
-    case '.mdtext':
-    case '.markdown':
-    case '.text':
-    case '.md.txt':
-      return true
-    }
-  }
-
-  function mksh(sh: string, args: string[]) {
-    //TODO no need to make the file, just pipe to stdin
-    //TODO should be able to specify script types
-    const [arg0, ...argv] = args
-
-    //FIXME won’t work as expected for various scenarios
-    // but not sure how else to represent this without adding an explcit requirement for "$@" in the script
-    // or without parsing the script to determine where to insert "$@"
-    // simple example of something difficult would be a for loop since it ends with `done` so we can't just stick the "$@" at the end of the last line
-    const oneliner = (() => {
-      const lines = sh.split("\n")
-      for (const line of lines.slice(0, -1)) {
-        if (!line.trim().endsWith("\\")) return false
-      }
-      return true
-    })()
-
-    //FIXME putting "$@" at the end can be invalid, it really depends on the script TBH
-    //FIXME shouldn’t necessarily default to bash
-
-    // This is short term until a longer term fix is available through a deno library
-    const saferArg0 = arg0.replaceAll("/", "_").replaceAll(".", "-")
-
-    const path = Path.mktmp().join(saferArg0).write({ force: true, text: undent`
+    const arg0 = Path.mktmp().join(`${basename}.bash`).write({ force: true, text: undent`
       #!/bin/bash
       set -e
       ${debug ? "set -x" : ""}
-      ${sh} ${oneliner ? '"$@"' : ''}
+      ${sh} ${is_oneliner(sh) ? '"$@"' : ''}
       ` }).chmod(0o500)
+    //FIXME ^^ putting "$@" at the end can be invalid, it really depends on the script TBH
+    //FIXME ^^ shouldn’t necessarily default to bash (or we should at least install it (duh))
 
-    return {
-      args: [path.string, ...argv],
-      pkgs,
-      blueprint: env
+    const cmd = [arg0, ...ass.args]
+
+    await run({cmd, env})
+
+  } break
+
+  case 'sh': {
+    const blueprint = opts.env ? await useVirtualEnv({ cwd: ass.path.parent() }) : undefined
+    const yaml = await usePackageYAMLFrontMatter(ass.path, blueprint?.srcroot)
+    const cmd = [...yaml?.args ?? [], ass.path, ...ass.args]
+    const pkgs: PackageRequirement[] = []
+
+    if (magic) {
+      const unshift = (project: string, ...new_args: string[]) => {
+        if (!yaml?.pkgs.length) {
+          pkgs.unshift({ project, constraint: new semver.Range("*") })
+        }
+        if (!yaml?.args.length) {
+          cmd.unshift(...new_args)
+        }
+      }
+      //FIXME package.ymls should define these behaviors
+      switch (ass.path.extname()) {
+        case ".py": unshift("python.org", "python"); break
+        case ".js": unshift("nodejs.org", "node"); break
+        case ".ts": unshift("deno.land", "deno", "run"); break
+        case ".go": unshift("go.dev", "go", "run"); break
+        case ".pl": unshift("perl.org", "perl"); break
+        case ".rb": unshift("ruby-lang.org", "ruby"); break
+      }
     }
+
+    const { env } = await install(pkgs)
+
+    supp(env, blueprint)
+    if (yaml?.env) Object.assign(env, yaml.env)  // explicit YAML-FM env takes precedence
+
+    await run({ cmd, env })
+
+  } break
+
+  case 'cmd': {
+    let blueprint: VirtualEnv | undefined
+    if (opts.env) {
+      blueprint = await useVirtualEnv()
+      pkgs.push(...blueprint.pkgs)
+    } else if (magic && (blueprint = await useVirtualEnv().swallow(/^not-found/))) {
+      pkgs.push(...blueprint.pkgs)
+    }
+    const { env } = await install(pkgs)
+    supp(env, blueprint)
+    await run({ cmd: ass.args, env })
+  }}
+}
+
+////
+
+function is_oneliner(sh: string) {
+  const lines = sh.split("\n")
+  for (const line of lines.slice(0, -1)) {
+    if (!line.trim().endsWith("\\")) return false
+  }
+  return true
+}
+
+function isMarkdown(path: Path) {
+  //ref: https://superuser.com/a/285878
+  switch (path.extname()) {
+  case ".md":
+  case '.mkd':
+  case '.mdwn':
+  case '.mdown':
+  case '.mdtxt':
+  case '.mdtext':
+  case '.markdown':
+  case '.text':
+  case '.md.txt':
+    return true
   }
 }
 
@@ -291,6 +191,7 @@ function urlify(arg0: string) {
     case "gist.github.com":
       url.host = "gist.githubusercontent.com"
       //FIXME this is not good enough
+      // for multifile gists this just gives us a bad URL
       //REF: https://gist.github.com/atenni/5604615
       url.pathname += "/raw"
       break
@@ -301,7 +202,15 @@ function urlify(arg0: string) {
   }
 }
 
+function supp(env: Record<string, string>, blueprint?: VirtualEnv) {
+  if (blueprint) {
+    if (blueprint.version) env['VERSION'] = blueprint.version?.toString()
+    env['SRCROOT'] = blueprint.srcroot.string
+  }
+}
+
 import { basename } from "deno/path/mod.ts"
+import { isNumber } from "is_what"
 
 async function repl(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
@@ -327,4 +236,57 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   }
 
   await run({ cmd, env })
+}
+
+type RV0 = { type: 'sh', path: Path, args: string[] } |
+           { type: 'md', path: Path, name?: string, sh?: string, blueprint?: VirtualEnv, args: string[] }
+type RV1 = RV0 |
+           { type: "cmd", args: string[] }
+type RV2 = RV1 |
+           { type: "url", url: URL, args: string[] } |
+           { type: "dir", path: Path, args: string[] }
+type RV3 = RV2 |
+           { type: 'repl' }
+
+function assess_file(path: Path, args: string[]): RV0 {
+  return isMarkdown(path)
+    ? { type: 'md', path, name: args[0], args: args.slice(1) }
+    : { type: 'sh', path, args }
+}
+
+function assess([arg0, ...args]: string[]): RV3 {
+  if (!arg0?.trim()) {
+    return { type: 'repl' }
+  }
+  const url = urlify(arg0)
+  if (url) {
+    return { type: 'url', url, args }
+  } else {
+    const path = Path.cwd().join(arg0)
+    if (path.isDirectory()) return { type: 'dir', path, args }
+    if (path.isFile()) return assess_file(path, args)
+    return { type: 'cmd', args: [arg0, ...args] }
+  }
+}
+
+async function install(pkgs: PackageSpecification[]): Promise<{ env: Record<string, string>, installed: Installation[] }> {
+  const flags = useFlags()
+
+  if (flags.magic) {
+    pkgs = [...pkgs]
+    const pantry = usePantry()
+    for (const pkg of pkgs) {
+      pkgs.push(...await pantry.getCompanions(pkg))
+    }
+  }
+
+  const { pkgs: wet } = await hydrate(pkgs)
+  const {installed, pending} = await resolve(wet, { update: flags.sync })
+  for (const pkg of pending) {
+    const install = await base_install(pkg)
+    await link(install)
+    installed.push(install)
+  }
+  const env = useShellEnv({ installations: installed })
+  return { env: flatten(env), installed }
 }
