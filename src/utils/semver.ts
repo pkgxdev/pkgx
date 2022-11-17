@@ -237,15 +237,25 @@ export function intersect(a: Range, b: Range): Range {
   if (a.set === '*') return b
   if (a.eq(b)) return a
 
-  if (a.set.length == 1 && b.set.length == 1) {
-    const [c,d] = [a.set[0], b.set[0]]
-    const e = c[0].gt(d[0]) ? c[0] : d[0]
-    const f = c[1].gt(d[1]) ? c[1] : d[1]
-    a.set = [[e,f]]
-    return a
+  // calculate the intersection between two semver.Ranges
+  const set: [SemVer, SemVer][] = []
+
+  for (let i = 0; i < a.set.length; i++) {
+    for (let j = 0; j < b.set.length; j++) {
+      const a1 = a.set[i][0]
+      const a2 = a.set[i][1]
+      const b1 = b.set[j][0]
+      const b2 = b.set[j][1]
+
+      if (a1.compare(b2) >= 0 || b1.compare(a2) >= 0) {
+        continue
+      }
+
+      set.push([a1.compare(b1) > 0 ? a1 : b1, a2.compare(b2) < 0 ? a2 : b2])
+    }
   }
 
-  throw new Error(`couldn’t intersect ${a} and ${b}`)
+  return new Range(set.map(([v1, v2]) => `>=${chomp(v1)}<${chomp(v2)}`).join(","))
 }
 
 
