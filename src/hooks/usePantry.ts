@@ -17,6 +17,7 @@ interface Entry {
 
 export default function usePantry() {
   return {
+    getClosestPackageSuggestion,
     getVersions,
     getDeps,
     getDistributable,
@@ -39,8 +40,8 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
 }
 
 //TODO take `T` and then type check it
-const getYAML = async (pkg: Package | PackageRequirement): Promise<{ path: Path, parse: () => Promise<PlainObject>}> => {
-  const foo = await entry(pkg)
+const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => PlainObject} => {
+  const foo = entry(pkg)
   return {
     path: foo.dir.join("package.yml"),
     parse: foo.yml
@@ -49,7 +50,7 @@ const getYAML = async (pkg: Package | PackageRequirement): Promise<{ path: Path,
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
 const getDeps = async (pkg: Package | PackageRequirement) => {
-  const yml = await (await entry(pkg)).yml()
+  const yml = await (entry(pkg)).yml()
   return {
     runtime: parse_pkgs_node(yml.dependencies),
     build: parse_pkgs_node(yml.build?.dependencies),
@@ -84,7 +85,7 @@ const getRawDistributableURL = (yml: PlainObject) => {
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
-  const yml = await (await entry(pkg)).yml()
+  const yml = await (entry(pkg)).yml()
   let urlstr = getRawDistributableURL(yml)
   if (!urlstr) return
   let stripComponents: number | undefined
@@ -103,7 +104,7 @@ const getDistributable = async (pkg: Package) => {
 }
 
 const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
-  const yml = await (await entry(pkg)).yml()
+  const yml = await (entry(pkg)).yml()
   const node = yml[key]
 
   const mm = useMoustaches()
@@ -138,7 +139,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 }
 
 const getProvides = async (pkg: { project: string }) => {
-  const yml = await (await entry(pkg)).yml()
+  const yml = await (entry(pkg)).yml()
   const node = yml["provides"]
   if (!node) return []
   if (!isArray(node)) throw new Error("bad-yaml")
@@ -154,7 +155,7 @@ const getProvides = async (pkg: { project: string }) => {
 }
 
 const getCompanions = async (pkg: {project: string}) => {
-  const yml = await (await entry(pkg)).yml()
+  const yml = await (entry(pkg)).yml()
   const node = yml["companions"]
   return parse_pkgs_node(node)
 }
@@ -164,7 +165,7 @@ function coerceNumber(input: any) {
   if (isNumber(input)) return input
 }
 
-async function entry({ project }: { project: string }): Promise<Entry> {
+function entry({ project }: { project: string }): Entry {
   for (const prefix of pantry_paths()) {
     const dir = prefix.join(project)
     const filename = dir.join("package.yml")
@@ -182,24 +183,24 @@ async function entry({ project }: { project: string }): Promise<Entry> {
     return { dir, yml, versions }
   }
 
-  const closestPkg = await getClosestPackageSuggestion(project);
-  throw new TeaError('not-found: pantry: package.yml', {project, closestPkg}, )
+  throw new TeaError('not-found: pantry: package.yml', {project}, )
 }
-async function getClosestPackageSuggestion(orgPkg:string): Promise<string>{
-  let closestPkg = '';
-  let minDistance = Infinity;
-  const pkgList = [];
-  for await (const {project} of ls()){
-    pkgList.push(project);
+
+async function getClosestPackageSuggestion(orgPkg: string): Promise<string> {
+  let closestPkg = ''
+  let minDistance = Infinity
+  const pkgList = []
+  for await (const {project} of ls()) {
+    pkgList.push(project)
   }
-  pkgList.forEach(pkgName=>{
-    const number = levenshteinDistance(pkgName, orgPkg);
-    if (number<minDistance){
-      minDistance = number;
-      closestPkg = pkgName;
+  for (const pkgName of pkgList) {
+    const number = levenshteinDistance(pkgName, orgPkg)
+    if (number<minDistance) {
+      minDistance = number
+      closestPkg = pkgName
     }
-  })
-  return closestPkg;
+  }
+  return closestPkg
 }
 
 function levenshteinDistance (str1: string, str2:string):number{
@@ -226,7 +227,7 @@ function levenshteinDistance (str1: string, str2:string):number{
 
 /// returns sorted versions
 async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]> {
-  const files = await entry(spec)
+  const files = entry(spec)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
