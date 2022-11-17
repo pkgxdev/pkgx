@@ -35,8 +35,29 @@ jobs:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
       - run: tea test
-      - run: tea typecheck
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
       - run: tea deno lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: teaxyz/setup@v0
+      - uses: actions/checkout@v3
+        with:
+          path: cli
+      - uses: actions/checkout@v3
+        with:
+          repository: teaxyz/pantry.core
+          path: pantry
+      - run: tea typecheck
+        working-directory: cli
+      - run: tea typecheck
+        working-directory: pantry  # check we didn’t break the pantry
 
   # test executable markdown on own repo
   test-markdown:
