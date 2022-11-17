@@ -5,7 +5,7 @@ import { Installation, PackageRequirement, PackageSpecification } from "types"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { flatten } from "hooks/useShellEnv.ts"
-import { gray, red } from "hooks/useLogger.ts"
+import { gray, Logger, red } from "hooks/useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
 
@@ -279,6 +279,9 @@ function assess([arg0, ...args]: string[]): RV3 {
 async function install(pkgs: PackageSpecification[]): Promise<{ env: Record<string, string>, installed: Installation[] }> {
   const flags = useFlags()
 
+  const logger = new Logger()
+  logger.replace("resolving package graph")
+
   if (flags.magic) {
     pkgs = [...pkgs]
     const pantry = usePantry()
@@ -289,7 +292,10 @@ async function install(pkgs: PackageSpecification[]): Promise<{ env: Record<stri
 
   const { pkgs: wet } = await hydrate(pkgs)
   const {installed, pending} = await resolve(wet, { update: flags.sync })
+  logger.clear()
+
   for (const pkg of pending) {
+
     const install = await base_install(pkg)
     await link(install)
     installed.push(install)
