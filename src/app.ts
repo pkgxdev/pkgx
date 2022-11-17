@@ -1,15 +1,16 @@
-import { print, TeaError, UsageError } from "utils"
 import { usePrefix, useRequirementsFile } from "hooks"
+import err_handler from "./app.err-handler.ts"
 import * as logger from "hooks/useLogger.ts"
 import { useArgs } from "hooks/useFlags.ts"
+import syncf from "./app.sync.ts"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
-import syncf from "./app.sync.ts"
+import { print } from "utils"
 import X from "./app.X.ts"
 import Path from "path"
 
-const [args, {sync, silent, debug}] = useArgs(Deno.args, Deno.execPath())
+const [args, {sync}] = useArgs(Deno.args, Deno.execPath())
 const version = `${(await useRequirementsFile(new URL(import.meta.url).path().join("../../README.md")).swallow(/not-found/))?.version}+dev`
 // ^^ this is statically replaced at deployment
 
@@ -48,35 +49,7 @@ try {
       await print(usePrefix().string)
     }
 } catch (err) {
-  if (silent) {
-    Deno.exit(1)
-  } else if (err instanceof UsageError) {
-    await help()
-    Deno.exit(1)
-  } else if (err instanceof TeaError) {
-    console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
-    console.error(err.message)
-    if (debug) console.error(err.ctx)
-  } else {
-    const { stack, message } = err ?? {}
-
-    const title = encodeURIComponent(`panic:${message ?? "null"}`).replaceAll('%20', '+')
-    const url = `https://github.com/teaxyz/cli/issues/new?title=${title}`
-
-    console.error()
-    console.error(`${logger.red("panic")}:`, "split tea. we’re sorry and we’ll fix it… but you have to report the bug!")
-    console.error()
-    console.error("   ", logger.gray(url))
-    console.error()
-    console.error("----------------------------------------------------->> attachment begin")
-    console.error(logger.gray(stack ?? "null"))
-    console.debug("------------------------------------------------------------------------")
-    console.debug({ err })
-    console.error("<<------------------------------------------------------- attachment end")
-
-    // this way: deno will show the backtrace
-    if (err instanceof Error == false) throw err
-  }
+  await err_handler(err)
 }
 
 function announce() {
