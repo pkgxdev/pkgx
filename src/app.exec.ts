@@ -34,7 +34,9 @@ export default async function(opts: Args) {
     } else if (debug) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
-      console.error("tea: command not found:", assessment.args[0])
+      // deno-lint-ignore no-explicit-any
+      console.error("tea: command not found:", (err as any).cmd)
+      //NOTE ^^ we add cmd into the error ourselves in utils/ru
     } else if (err instanceof RunError == false) {
       const decapitalize = ([first, ...rest]: string) => first.toLowerCase() + rest.join("")
       console.error(`${red("error")}:`, decapitalize(err.message))

@@ -30,7 +30,7 @@ const markdown_extensions = [
 
 function find({cwd}: {cwd?: Path} = {cwd: undefined}) {
   const TEA_DIR = Deno.env.get("TEA_DIR")
-  if (TEA_DIR) return Path.abs(TEA_DIR) ?? Path.cwd().join(TEA_DIR)
+  if (TEA_DIR) return Path.cwd().join(TEA_DIR)
 
   let dir = cwd ?? Path.cwd()
   const home = Path.home()
