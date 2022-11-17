@@ -108,7 +108,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     const blueprint = opts.env ? await useVirtualEnv({ cwd: ass.path.parent() }) : undefined
     const yaml = await usePackageYAMLFrontMatter(ass.path, blueprint?.srcroot)
     const cmd = [...yaml?.args ?? [], ass.path, ...ass.args]
-    const pkgs: PackageRequirement[] = []
+    const pkgs: PackageRequirement[] = blueprint?.pkgs ?? []
 
     if (magic) {
       const unshift = (project: string, ...new_args: string[]) => {
