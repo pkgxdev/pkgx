@@ -90,23 +90,28 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 > <details><summary><h3>Further Examples</h3></summary>
 >
 > It’s 202x so obviously we also can download scripts from the Internet:
+>
 > ```sh
 > $ sh <(curl tea.xyz) +charm.sh/gum https://github.com/charmbracelet/gum/blob/main/examples/demo.sh
 > ```
 >
 > Want to try out the latest version of node, but not sure if it will work
 > with your project? *tea makes it easy.*
+>
 > ```sh
 > $ tea +nodejs.org^19 npm start
 > ```
 >
 > One liner to create a react app:
+>
 > ```sh
 > $ sh <(curl tea.xyz) -X npx create-react-app my-app
 > ```
+>
 > </details>
 
 > ### Coming Soon
+>
 > tea pipelines are so interesting we intend to have a dedicated showcase for
 > them.
 
@@ -259,6 +264,7 @@ directory.
 > the call
 
 > ### Coming Soon
+>
 > * we’ll automatically load and unload completions
 > * we’ll allow customizations per package for your project
 
@@ -344,7 +350,7 @@ natively.
 
 As a bonus, the installer also updates tea.
 
-## *Now see here fella’, I *hate* installers…*
+## *Now see here fella’, I \*hate\* installers…*
 
 We get it! *We hate installers*. That’s why we package everything!
 If you don’t want it, then we fully support you in that.
@@ -662,6 +668,7 @@ lookups.
 >   tea -X $*
 > }
 > ```
+>
 > </details>
 
 > <details><summary><h4><code>bash</code></h4></summary>
@@ -675,6 +682,7 @@ lookups.
 >   tea -X $*
 > }
 > ```
+>
 > </details>
 
 > <details><summary><h4><code>fish</code></h4></summary>
@@ -684,6 +692,7 @@ lookups.
 >   tea -X $argv
 > end
 > ```
+>
 > </details>
 
 ## How do I find available packages?
