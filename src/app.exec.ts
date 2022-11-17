@@ -79,6 +79,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
   case 'md': {
     //TODO we should probably infer magic as meaning: find the v-env and add it
 
+    const blueprint = opts.env ? ass.blueprint ?? await useVirtualEnv() : undefined
     const name = ass.name ?? 'getting-started'
     const sh = ass.sh ?? await useExecutableMarkdown({ filename: ass.path }).findScript(name)
     const { pkgs, version } = await useRequirementsFile(ass.path) ?? panic()
@@ -87,6 +88,10 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
 
     if (version) {
       env['VERSION'] = version.toString()
+    }
+    if (blueprint) {
+      env['SRCROOT'] = blueprint.srcroot.string
+      pkgs.push(...blueprint.pkgs)
     }
 
     const arg0 = Path.mktmp().join(`${basename}.bash`).write({ force: true, text: undent`
