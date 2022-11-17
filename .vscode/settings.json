@@ -3,5 +3,8 @@
   "deno.lint": true,
   "deno.unstable": true,
   "deno.importMap": "./import-map.json",
-  "deno.config": "./tsconfig.json"
+  "deno.config": "./tsconfig.json",
+  "markdownlint.config": {
+    "extends": "./.github/markdownlint.yml"
+  }
 }
