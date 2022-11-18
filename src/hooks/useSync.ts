@@ -41,7 +41,7 @@ async function lock<T>(body: () => Promise<T>) {
   if (avoid_softlock) throw new Error("aborting to prevent softlock")
   avoid_softlock = true
 
-  const { rid } = Deno.openSync(pantry_dir.mkpath().string)
+  const { rid } = await Deno.open(pantry_dir.mkpath().string)
   await Deno.flock(rid, true)
 
   try {
@@ -49,6 +49,7 @@ async function lock<T>(body: () => Promise<T>) {
   } finally {
     //TODO if this gets stuck then nothing will work so need a handler for that
     await Deno.funlock(rid)
+    Deno.close(rid)  // docs aren't clear if we need to do this or not
     avoid_softlock = false
   }
 }

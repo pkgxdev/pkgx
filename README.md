@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.0
+# tea/cli 0.13.3
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -90,23 +90,28 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 > <details><summary><h3>Further Examples</h3></summary>
 >
 > It’s 202x so obviously we also can download scripts from the Internet:
+>
 > ```sh
 > $ sh <(curl tea.xyz) +charm.sh/gum https://github.com/charmbracelet/gum/blob/main/examples/demo.sh
 > ```
 >
 > Want to try out the latest version of node, but not sure if it will work
 > with your project? *tea makes it easy.*
+>
 > ```sh
 > $ tea +nodejs.org^19 npm start
 > ```
 >
 > One liner to create a react app:
+>
 > ```sh
 > $ sh <(curl tea.xyz) -X npx create-react-app my-app
 > ```
+>
 > </details>
 
 > ### Coming Soon
+>
 > tea pipelines are so interesting we intend to have a dedicated showcase for
 > them.
 
@@ -116,9 +121,10 @@ $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 ## tea: the Universal Interpreter
 
 ```sh
-$ tea https://github.com/teaxyz/demos/blob/main/demo.go input.txt
+$ tea https://gist.githubusercontent.com/i0bj/2b3afbe07a44179250474b5f36e7bd9b/raw/colors.go --yellow
 tea: installing go 1.18.3
-go: running demo.go
+go: installing deps
+go: running colors.go
 …
 ```
 
@@ -259,6 +265,7 @@ directory.
 > the call
 
 > ### Coming Soon
+>
 > * we’ll automatically load and unload completions
 > * we’ll allow customizations per package for your project
 
@@ -326,10 +333,10 @@ sh <(curl https://tea.xyz)
 In fact, the tea one-liner abstracts away installation:
 
 ```sh
-$ sh <(curl tea.xyz) https://example.com/script.ts
+$ sh <(curl tea.xyz) https://examples.deno.land/color-logging.ts
 
 # works the same as:
-$ tea https://example.com/script.ts
+$ tea https://examples.deno.land/color-logging.ts
 
 # if tea is installed, our one-liner uses the tea installation, if it’s not
 # installed then it **doesn’t install tea** or any dependencies, it creates a
@@ -344,7 +351,7 @@ natively.
 
 As a bonus, the installer also updates tea.
 
-## *Now see here fella’, I *hate* installers…*
+## *Now see here fella’, I \*hate\* installers…*
 
 We get it! *We hate installers*. That’s why we package everything!
 If you don’t want it, then we fully support you in that.
@@ -662,6 +669,7 @@ lookups.
 >   tea -X $*
 > }
 > ```
+>
 > </details>
 
 > <details><summary><h4><code>bash</code></h4></summary>
@@ -675,6 +683,7 @@ lookups.
 >   tea -X $*
 > }
 > ```
+>
 > </details>
 
 > <details><summary><h4><code>fish</code></h4></summary>
@@ -684,6 +693,7 @@ lookups.
 >   tea -X $argv
 > end
 > ```
+>
 > </details>
 
 ## How do I find available packages?

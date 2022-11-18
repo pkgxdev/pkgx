@@ -2,7 +2,7 @@ import { Package, PackageRequirement, Installation } from "types"
 import { useCellar, useInventory } from "hooks"
 
 /// NOTE resolves to bottles
-/// NOTE contract there are no duplicate projects
+/// NOTE contract there are no duplicate projects in input
 
 interface RT {
   /// fully resolved list (includes both installed and pending)
@@ -37,8 +37,11 @@ export default async function resolve(reqs: (Package | PackageRequirement)[], {u
         throw new Error("no bottle available")
       }
       const pkg = { version, project: req.project }
-      if (!update || !await cellar.has(pkg)) {
-        rv.pkgs.push(pkg)
+      rv.pkgs.push(pkg)
+
+      if ((installation = await cellar.has(pkg))) {
+        rv.installed.push(installation)
+      } else {
         rv.pending.push(pkg)
       }
     }

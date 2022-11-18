@@ -1,11 +1,11 @@
 import { usePantry, useCellar, useFlags, useVirtualEnv } from "hooks"
 import useShellEnv, { EnvKeys } from "hooks/useShellEnv.ts"
-import { Installation, PackageSpecification } from "types"
+import { Installation, PackageRequirement, PackageSpecification } from "types"
 import { flatmap, print, undent, pkg } from "utils"
 import { isPlainObject, isFullArray } from "is_what"
 import { basename } from "deno/path/mod.ts"
 import { Args } from "hooks/useFlags.ts"
-import { hydrate } from "./app.exec.ts";
+import { hydrate } from "prefab"
 
 //TODO should read from the shell configuration files to get originals properly
 //TODO don’t wait on each print, instead chain the promises to be more time-efficient
@@ -59,13 +59,21 @@ export default async function dump(args: Args) {
   })()
 
   const {installations, pending} = await (async () => {
+    const companions: PackageRequirement[] = await (() => {
+      if (!magic) return []
+      const pantry = usePantry()
+      return Promise.all(
+        args.pkgs.map(pkg => pantry.getCompanions(pkg))
+      ).then(x => x.flatMap(x => x))
+    })()
+
     const cellar = useCellar()
     const installations: Installation[] = []
     const pending: PackageSpecification[] = []
-    const pkgs = await hydrate([...args.pkgs, ...blueprint?.requirements ?? []])
-    const dry = new Set<string>(pkgs.wet.dry.map(x => x.project))
+    const pkgs = await hydrate([...args.pkgs, ...companions, ...blueprint?.pkgs ?? []])
+    const dry = new Set<string>(pkgs.dry.map(x => x.project))
 
-    for (const rq of pkgs.wet.dry) {
+    for (const rq of pkgs.dry) {
       const installation = await cellar.has(rq)
       if (installation) {
         installations.push(installation)
