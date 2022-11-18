@@ -81,17 +81,17 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
   case 'md': {
     //TODO we should probably infer magic as meaning: find the v-env and add it
 
-    const blueprint = opts.env ? ass.blueprint ?? await useVirtualEnv() : undefined
+    const blueprint = opts.env ? ass.blueprint ?? await useVirtualEnv() : magic ? ass.blueprint ?? await useVirtualEnv({ cwd: ass.path.parent() }).swallow(/not-found/) : undefined
+    // ^^ jeez we’ve overcomplicated this shit
+
     const name = ass.name ?? 'getting-started'
     const sh = ass.sh ?? await useExecutableMarkdown({ filename: ass.path }).findScript(name)
-    const { pkgs, version } = await useRequirementsFile(ass.path) ?? panic()
+    const { pkgs } = await useRequirementsFile(ass.path) ?? panic()
     const { env } = await install(pkgs)
     const basename = ass.path.string.replaceAll("/", "_") //FIXME this is not sufficient escaping
 
-    if (version) {
-      env['VERSION'] = version.toString()
-    }
     if (blueprint) {
+      if (blueprint.version) env['VERSION'] = blueprint.version.toString()
       env['SRCROOT'] = blueprint.srcroot.string
       pkgs.push(...blueprint.pkgs)
     }

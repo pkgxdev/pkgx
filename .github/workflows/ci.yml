@@ -54,10 +54,8 @@ jobs:
         with:
           repository: teaxyz/pantry.core
           path: pantry
-      - run: tea typecheck
-        working-directory: cli
-      - run: tea typecheck
-        working-directory: pantry  # check we didn’t break the pantry
+      - run: tea --cd cli typecheck
+      - run: tea --cd pantry typecheck  # check we didn’t break the pantry
 
   # test executable markdown on own repo
   test-markdown:
