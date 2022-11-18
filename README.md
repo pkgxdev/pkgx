@@ -468,6 +468,10 @@ can be surprisingly useful to automation scripts.
 
 These variables are also available to tea Scripts.
 
+> Our shell magic controls this feature, if you don’t want to add our
+> one-liner to your shell rc then you can just `tea sh` in your project
+> directory to get the same effect—albeit more laboriously.
+
 &nbsp;
 
 
@@ -575,7 +579,7 @@ tea: ~/.tea/deno.land/v1.18/bin/deno run \
 
 # Magic
 
-`tea` codifies the concept of magic.
+`tea` formalizes (in a CLI/TUI sense) the concept of magic.
 
 In an environment where there
 is magic we try to be clever and infer what you want. Without magic we are
@@ -593,10 +597,15 @@ We do some magic per dependency. This is currently hard-coded logic in tea/cli
 itself, but we intend to make it general with a `magic.ts` file per package
 in the [pantry].
 
-Currently magic is limited (and a great place for contributions).
+Currently magic is limited (and a great place for contributions†).
 
 For example, if we detect that your project is a GitHub Action we read the
 `action.yml` and make the right version of node available.
+
+> † is there a file that your environment or language always has and thus
+> `tea` should know to add packages to that environment? Open a [discussion]
+> or just go straight to contributing the PR!
+> Magic lives in `useVirtualEnv.ts`.
 
 &nbsp;
 

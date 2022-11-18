@@ -46,7 +46,7 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
   if (src.protocol === "file:") throw new Error()
 
   if (!ephemeral && dst.isReadableFile()) {
-    
+
     headers ??= {}
     if (etag_entry().isFile()) {
       headers["If-None-Match"] = await etag_entry().read()
@@ -85,9 +85,9 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
       await body(reader, f, sz)
 
       const text = rsp.headers.get("Last-Modified")
-      const etag = rsp.headers.get("etag")
+      const etag = rsp.headers.get("ETag")
 
-      if (text) mtime_entry().write({ text, force: true })
+      if (text) mtime_entry().write({text, force: true})
       if (etag) etag_entry().write({text: etag, force: true})
 
     } finally {

@@ -85,7 +85,7 @@ const getRawDistributableURL = (yml: PlainObject) => {
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   let urlstr = getRawDistributableURL(yml)
   if (!urlstr) return
   let stripComponents: number | undefined
@@ -104,7 +104,7 @@ const getDistributable = async (pkg: Package) => {
 }
 
 const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   const node = yml[key]
 
   const mm = useMoustaches()
@@ -139,7 +139,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 }
 
 const getProvides = async (pkg: { project: string }) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   const node = yml["provides"]
   if (!node) return []
   if (!isArray(node)) throw new Error("bad-yaml")
@@ -155,7 +155,7 @@ const getProvides = async (pkg: { project: string }) => {
 }
 
 const getCompanions = async (pkg: {project: string}) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   const node = yml["companions"]
   return parse_pkgs_node(node)
 }
@@ -228,7 +228,7 @@ function levenshteinDistance (str1: string, str2:string):number{
 
 /// returns sorted versions
 async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]> {
-  const files = await entry(spec)
+  const files = entry(spec)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
