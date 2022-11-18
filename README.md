@@ -809,10 +809,10 @@ export TMPDIR=${TMPDIR:-/tmp}
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR,TEA_PREFIX \
+ --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR,TEA_PREFIX,MUGGLE,MAGIC,JSON,NUMPTY \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
- --allow-write="$TMPDIR" \
+ --allow-write=$TEA_PREFIX/tea.xyz/var,$TMPDIR \
  --unstable \
  "$SRCROOT"/tests/**/*.test.ts
 ```
