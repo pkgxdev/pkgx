@@ -802,7 +802,7 @@ deno test \
  --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR,TEA_PREFIX,MUGGLE,MAGIC,JSON,NUMPTY \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
- --allow-write \
+ --allow-write=$TEA_PREFIX/tea.xyz/var,$TMPDIR \
  --unstable \
  "$SRCROOT"/tests/**/*.test.ts
 ```
