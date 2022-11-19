@@ -189,7 +189,7 @@ function isMarkdown(path: Path) {
 function urlify(arg0: string) {
   try {
     const url = new URL(arg0)
-    // we do some magic so github URLs are immediately usable
+    // we do some magic so GitHub URLs are immediately usable
     switch (url.host) {
     case "github.com":
       url.host = "raw.githubusercontent.com"

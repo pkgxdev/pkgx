@@ -31,7 +31,7 @@ async function getVersions({ user, repo, type }: GetVersionsOptions): Promise<st
     if (!isArray(json)) throw new Error("unexpected json")
     return json.map(({ tag_name, name }) => type == 'releases/tags' ? tag_name : name)
   } else {
-    // github tags API returns in reverse alphabetical order lol
+    // GitHub tags API returns in reverse alphabetical order lol
     // so we have to use their graphql endpoint
     // sadly the graph ql endpoint requires auth :/
 

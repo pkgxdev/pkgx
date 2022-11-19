@@ -64,7 +64,7 @@ export default async function hydrate(
           if (!bootstrap.has(dep.project)) {
             console.warn(`${dep.project} must be bootstrapped to build ${node.project}`)
 
-            //TODO the boostrap should keep the version constraint since it may be different
+            //TODO the bootstrap should keep the version constraint since it may be different
             bootstrap.add(dep.project)
           }
         } else {

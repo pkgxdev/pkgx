@@ -84,7 +84,7 @@ export default function useShellEnv({installations, pending, pristine}: Options)
 
    // this is how we use precise versions of libraries
    // for your virtual environment
-   //FIXME SIP on macOS prevents DYLD_FALLBACK_LIBRARY_PATH from propogating to grandchild processes
+   //FIXME SIP on macOS prevents DYLD_FALLBACK_LIBRARY_PATH from propagating to grandchild processes
    if (vars.LIBRARY_PATH) {
     vars.LD_LIBRARY_PATH = vars.LIBRARY_PATH
     if (isMac) {
