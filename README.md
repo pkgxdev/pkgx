@@ -86,7 +86,7 @@ This example downloads our white paper and renders it with [charm]’s excellent
 limited by the package manager for **too long**. It’s a fundamental limitation
 that tea is designed to overcome.
 
-> Notably, with `-X` syntax this can expressed more concisely:
+> Notably, with `-X` syntax this can be expressed more concisely:
 >
 > ```sh
 > $ tea -X wget -qO- tea.xyz/white-paper | tea -X glow -
@@ -460,11 +460,11 @@ directory and consider that the `SRCROOT` for your project. Then we check the
 tea attempts to further enhance your environment based on your workspace
 context:
 
-| Variable  | Description |
-| --------- | ----------- |
-| `VERSION` | Extracted from the `README` |
+| Variable  | Description                                                               |
+| --------- | ------------------------------------------------------------------------- |
+| `VERSION` | Extracted from the `README`                                               |
 | `SRCROOT` | We descend towards root until we find a source control marker, eg. `.git` |
-| `MANPATH` | So `man …` works for your deps |
+| `MANPATH` | So `man …` works for your deps                                            |
 
 We also provide eg. `PKG_CONFIG_PATH`, `LD_LIBRARY_PATH`, `DEVELOPER_DIR`,
 etc. so other tools can find your dependencies. We provide other variables for
@@ -723,7 +723,7 @@ We then suggest you add our one-liner to your shell `.rc` and a symlink
 for `/usr/local/bin/tea`.
 
 We might not have installed tea, if you used `sh <(curl tea.xyz) foo` and tea
-wasn’t already installed, then you we only fetched any packages, including
+wasn’t already installed, then we only fetched any packages, including
 tea, temporarily.
 
 ## I thought you were decentralized and web3 and shit
@@ -885,10 +885,10 @@ tea compile "$TEA_PREFIX/tea.xyz/v$VERSION/bin/tea"
 
 ## Dependencies
 
-|   Project   | Version |
-|-------------|---------|
-| deno.land   | ^1.27   |
-| tea.xyz     | ^0      |
+| Project   | Version |
+| --------- | ------- |
+| deno.land | ^1.27   |
+| tea.xyz   | ^0      |
 
 > macOS >= 11 || linux:glibc >= 23
 
