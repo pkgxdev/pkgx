@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.4
+# tea/cli 0.13.5
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -80,6 +80,11 @@ envisaged. Which leads us to `tea`-pipelines:
 ```sh
 $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 ```
+
+This example downloads our white paper and renders it with [charm]’s excellent
+`glow` terminal markdown renderer. This is a basic example, but UNIX has been
+limited by the package manager for **too long**. It’s a fundamental limitation
+that tea is designed to overcome.
 
 > Notably, with `-X` syntax this can expressed more concisely:
 >
@@ -931,3 +936,4 @@ of software.
 [white-paper]: ../../../white-paper
 [tea.xyz]: https://tea.xyz
 [`brew`]: https://brew.sh
+[charm]: https://charm.sh
