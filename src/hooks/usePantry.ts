@@ -194,6 +194,7 @@ async function getClosestPackageSuggestion(orgPkg: string): Promise<string> {
     pkgList.push(project)
   }
   for (const pkgName of pkgList) {
+    if(pkgName.includes(orgPkg)) return pkgName;
     const number = levenshteinDistance(pkgName, orgPkg)
     if (number<minDistance) {
       minDistance = number
