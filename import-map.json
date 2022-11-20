@@ -1,19 +1,19 @@
 {
   "imports": {
-    "path": "./src/vendor/Path.ts",
-    "types": "./src/types.ts",
+    "cliffy/": "https://deno.land/x/cliffy@v0.25.2/",
+    "deno/": "https://deno.land/std@0.156.0/",
     "hooks": "./src/hooks/index.ts",
     "hooks/": "./src/hooks/",
+    "is_what": "https://deno.land/x/is_what@v4.1.7/src/index.ts",
+    "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
+    "path": "./src/vendor/Path.ts",
     "prefab": "./src/prefab/index.ts",
     "prefab/": "./src/prefab/",
-    "deno/": "https://deno.land/std@0.156.0/",
-    "semver": "./src/utils/semver.ts",
-    "utils": "./src/utils/index.ts",
-    "utils/": "./src/utils/",
-    "is_what": "https://deno.land/x/is_what@v4.1.7/src/index.ts",
-    "cliffy/": "https://deno.land/x/cliffy@v0.25.2/",
+    "rimbu/": "https://deno.land/x/rimbu@0.12.3/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
-    "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
-    "rimbu/": "https://deno.land/x/rimbu@0.12.3/"
+    "semver": "./src/utils/semver.ts",
+    "types": "./src/types.ts",
+    "utils": "./src/utils/index.ts",
+    "utils/": "./src/utils/"
   }
 }
