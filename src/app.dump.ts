@@ -170,13 +170,13 @@ export default async function dump(args: Args) {
       break
     case 'fish':
       rv = undent`
-        function command_not_found_handler
-          switch "$argv[0]"`
+        function fish_command_not_found
+          switch "$argv[1]"\n\n`;
       for (const uninstalled of pending) {
         const exes = await pantry.getProvides(uninstalled)
         if (exes.length) {
           const cmds = exes.join(" ")
-          rv += `    case ${cmds}; tea '+${pkg.str(uninstalled)}' "$argv"\n`
+          rv += `    case ${cmds}; tea '+${pkg.str(uninstalled)}' $argv\n`
         }
       }
       rv += "  end\nend"
@@ -193,7 +193,7 @@ export default async function dump(args: Args) {
         await print("if typeset -f command_not_found_handle >/dev/null; then unset -f command_not_found_handle; fi")
         break
       case 'fish':
-        await print("if functions --query command_not_found_handler >/dev/null; functions --erase command_not_found_handler; end")
+        await print("if functions --query fish_command_not_found; functions --erase fish_command_not_found; end")
         break
     }
   }
