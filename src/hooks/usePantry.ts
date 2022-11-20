@@ -50,7 +50,7 @@ const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => 
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
 const getDeps = async (pkg: Package | PackageRequirement) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   return {
     runtime: parse_pkgs_node(yml.dependencies),
     build: parse_pkgs_node(yml.build?.dependencies),
@@ -194,6 +194,7 @@ async function getClosestPackageSuggestion(orgPkg: string): Promise<string> {
     pkgList.push(project)
   }
   for (const pkgName of pkgList) {
+    if(pkgName.includes(orgPkg)) return pkgName;
     const number = levenshteinDistance(pkgName, orgPkg)
     if (number<minDistance) {
       minDistance = number
@@ -227,7 +228,7 @@ function levenshteinDistance (str1: string, str2:string):number{
 
 /// returns sorted versions
 async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]> {
-  const files = entry(spec)
+  const files = await entry(spec)
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
