@@ -16,8 +16,6 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const { project, version } = pkg
   logger ??= new Logger(pkgutils.str(pkg))
 
-  logger.replace(teal("querying"))
-
   const { download_with_sha: download } = useDownload()
   const cellar = useCellar()
   const { verbosity } = useFlags()
@@ -26,41 +24,62 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const dst = useCache().path(stowage)
-  const { path: tarball, sha } = await download({ src: url, dst, logger })
 
-  //FIXME if we already have the gz or xz versions don’t download the other version!
+  logger.replace(teal("locking"))
+
+  const { rid } = await Deno.open(dstdir.string)
+  await Deno.flock(rid, true)
 
   try {
-    const url = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
-    logger.replace(teal("verifying"))
-    await sumcheck(sha, new URL(`${url}.sha256sum`))
-  } catch (err) {
-    logger.replace(red('error'))
-    tarball.rm()
-    console.error("we deleted the invalid tarball. try again?")
-    throw err
+    await (async () => {
+      const installation = await cellar.has(pkg)
+      if (installation) {
+        logger.replace(teal("installed"))
+        return installation
+      }
+    })()
+
+    logger.replace(teal("querying"))
+
+    //FIXME if we already have the gz or xz versions don’t download the other version!
+    const { path: tarball, sha } = await download({ src: url, dst, logger })
+
+    try {
+      const url = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
+      logger.replace(teal("verifying"))
+      await sumcheck(sha, new URL(`${url}.sha256sum`))
+    } catch (err) {
+      logger.replace(red('error'))
+      tarball.rm()
+      console.error("we deleted the invalid tarball. try again?")
+      throw err
+    }
+
+    const cmd = new TarballUnarchiver({
+      zipfile: tarball, dstdir, verbosity
+    }).args()
+
+    logger.replace(teal('extracting'))
+
+    await run({ cmd, clearEnv: true })
+
+    const install = await cellar.resolve(pkg)
+
+    await unquarantine(install)
+
+    const str = [
+      gray(usePrefix().prettyString()),
+      install.pkg.project,
+      `${gray('v')}${install.pkg.version}`
+    ].join(gray('/'))
+    logger.replace(`installed: ${str}`, { prefix: false })
+
+    return install
+
+  } finally {
+    await Deno.funlock(rid)
+    Deno.close(rid)  // docs aren't clear if we need to do this or not
   }
-
-  const cmd = new TarballUnarchiver({
-    zipfile: tarball, dstdir, verbosity
-  }).args()
-
-  logger.replace(teal('extracting'))
-
-  await run({ cmd, clearEnv: true })
-
-  const install = await cellar.resolve(pkg)
-
-  await unquarantine(install)
-
-  const str = [
-    gray(usePrefix().prettyString()),
-    install.pkg.project,
-    `${gray('v')}${install.pkg.version}`
-  ].join(gray('/'))
-  logger.replace(`installed: ${str}`, { prefix: false })
-
-  return install
 }
 
 //TODO strictly the checksum file needs to be rewritten

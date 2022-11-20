@@ -212,20 +212,22 @@ export async function run({ spin, ...opts }: RunOptions) {
   if (spin) {
     stdio.stderr = stdio.stdout = 'piped'
   }
-  const proc = Deno.run({ ...opts, cmd, cwd, ...stdio })
 
+  let proc: Deno.Process | undefined
   try {
+    proc = Deno.run({ ...opts, cmd, cwd, ...stdio })
     const exit = await proc.status()
     console.verbose({ exit })
     if (!exit.success) throw new RunError(exit.code, cmd)
   } catch (err) {
-    if (spin) {
+    if (spin && proc) {
       //FIXME this doesn’t result in the output being correctly interlaced
       // ie. stderr and stdout may (probably) have been output interleaved rather than sequentially
       const decode = (() => { const e = new TextDecoder(); return e.decode.bind(e) })()
       console.error(decode(await proc.output()))
       console.error(decode(await proc.stderrOutput()))
     }
+    err.cmd = cmd  // help us out since deno-devs don’t want to
     throw err
   }
 }

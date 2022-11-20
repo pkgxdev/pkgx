@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: nosborn/github-action-markdown-cli@v3.2.0
         with:
+          config_file: .github/markdownlint.yml
           files: .
           dot: true
 
@@ -34,8 +35,27 @@ jobs:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
       - run: tea test
-      - run: tea typecheck
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: teaxyz/setup@v0
       - run: tea deno lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: teaxyz/setup@v0
+      - uses: actions/checkout@v3
+        with:
+          path: cli
+      - uses: actions/checkout@v3
+        with:
+          repository: teaxyz/pantry.core
+          path: pantry
+      - run: tea --cd cli typecheck
+      - run: tea --cd pantry typecheck  # check we didn’t break the pantry
 
   # test executable markdown on own repo
   test-markdown:
@@ -95,4 +115,4 @@ jobs:
             --output /usr/local/bin/tea \
             ./cli/src/app.ts
 
-      - run: tea -S +curl.se curl -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -

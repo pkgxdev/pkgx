@@ -58,4 +58,43 @@ Deno.test("semver", async test => {
     const e = new semver.Range("~1")
     assertEquals(e.toString(), "^1")  // indeed: we change the ~ to ^
   })
+
+  await test.step("intersection", async test => {
+    await test.step("^3.7…@3.11", () => {
+      const a = new semver.Range("^3.7")
+      const b = new semver.Range("3.11.0")
+
+      assertEquals(b.toString(), "@3.11.0")
+
+      const c = semver.intersect(a, b)
+      assertEquals(c.toString(), "@3.11.0")
+    })
+
+    await test.step("^3.7…^3.9", () => {
+      const a = new semver.Range("^3.7")
+      const b = new semver.Range("^3.9")
+
+      assertEquals(b.toString(), "^3.9")
+
+      const c = semver.intersect(a, b)
+      assertEquals(c.toString(), "^3.9")
+    })
+
+    await test.step("^3.7…*", () => {
+      const a = new semver.Range("^3.7")
+      const b = new semver.Range("*")
+
+      assertEquals(b.toString(), "*")
+
+      const c = semver.intersect(a, b)
+      assertEquals(c.toString(), "^3.7")
+    })
+
+    await test.step("~3.7…~3.8", () => {
+      const a = new semver.Range("~3.7")
+      const b = new semver.Range("~3.8")
+
+      assertThrows(() => semver.intersect(a, b))
+    })
+  })
 })
