@@ -9,6 +9,7 @@
     "path": "./src/vendor/Path.ts",
     "prefab": "./src/prefab/index.ts",
     "prefab/": "./src/prefab/",
+    "retried": "https://deno.land/x/retried@1.0.1/mod.ts",
     "rimbu/": "https://deno.land/x/rimbu@0.12.3/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "semver": "./src/utils/semver.ts",
