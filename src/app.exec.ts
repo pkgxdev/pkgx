@@ -230,6 +230,12 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   //TODO other shells pls #help-wanted
 
   switch (basename(shell)) {
+  case 'bash':
+    cmd.splice(1, 0, '--norc', '--noprofile') // longopts must precede shortopts
+    // fall through
+  case 'sh':
+    env['PS1'] = "\\[\\033[38;5;86m\\]tea\\[\\033[0m\\] %~ "
+    break
   case 'zsh':
     env['PS1'] = "%F{086}tea%F{reset} %~ "
     cmd.push('--no-rcs', '--no-globalrcs')
