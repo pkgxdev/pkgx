@@ -39,14 +39,21 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
     return () => memo ?? (memo = hash_key(src))
   })()
   const mtime_entry = () => hash().join("mtime")
+  const etag_entry = () => hash().join("etag")
 
   const { numpty } = useFlags()
   dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
-  if (!ephemeral && mtime_entry().isFile() && dst.isReadableFile()) {
+  if (!ephemeral && dst.isReadableFile()) {
+
     headers ??= {}
-    headers["If-Modified-Since"] = await mtime_entry().read()
+    if (etag_entry().isFile()) {
+      headers["If-None-Match"] = await etag_entry().read()
+    } else if (mtime_entry().isFile()) {
+      headers["If-Modified-Since"] = await mtime_entry().read()
+    }
+
     logger.replace(teal('querying'))
   } else {
     logger.replace(teal('downloading'))
@@ -77,9 +84,11 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
       dst.parent().mkpath()
       await body(reader, f, sz)
 
-      //TODO etags too
       const text = rsp.headers.get("Last-Modified")
-      if (text) mtime_entry().write({ text, force: true })
+      const etag = rsp.headers.get("ETag")
+
+      if (text) mtime_entry().write({text, force: true})
+      if (etag) etag_entry().write({text: etag, force: true})
 
     } finally {
       f.close()
