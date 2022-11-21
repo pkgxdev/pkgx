@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.4
+# tea/cli 0.13.6
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -80,6 +80,11 @@ envisaged. Which leads us to `tea`-pipelines:
 ```sh
 $ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
 ```
+
+This example downloads our white paper and renders it with [charm]’s excellent
+`glow` terminal markdown renderer. This is a basic example, but UNIX has been
+limited by the package manager for **too long**. It’s a fundamental limitation
+that tea is designed to overcome.
 
 > Notably, with `-X` syntax this can expressed more concisely:
 >
@@ -468,6 +473,10 @@ can be surprisingly useful to automation scripts.
 
 These variables are also available to tea Scripts.
 
+> Our shell magic controls this feature, if you don’t want to add our
+> one-liner to your shell rc then you can just `tea sh` in your project
+> directory to get the same effect—albeit more laboriously.
+
 &nbsp;
 
 
@@ -575,7 +584,7 @@ tea: ~/.tea/deno.land/v1.18/bin/deno run \
 
 # Magic
 
-`tea` codifies the concept of magic.
+`tea` formalizes (in a CLI/TUI sense) the concept of magic.
 
 In an environment where there
 is magic we try to be clever and infer what you want. Without magic we are
@@ -593,10 +602,15 @@ We do some magic per dependency. This is currently hard-coded logic in tea/cli
 itself, but we intend to make it general with a `magic.ts` file per package
 in the [pantry].
 
-Currently magic is limited (and a great place for contributions).
+Currently magic is limited (and a great place for contributions†).
 
 For example, if we detect that your project is a GitHub Action we read the
 `action.yml` and make the right version of node available.
+
+> † is there a file that your environment or language always has and thus
+> `tea` should know to add packages to that environment? Open a [discussion]
+> or just go straight to contributing the PR!
+> Magic lives in `useVirtualEnv.ts`.
 
 &nbsp;
 
@@ -922,3 +936,4 @@ of software.
 [white-paper]: ../../../white-paper
 [tea.xyz]: https://tea.xyz
 [`brew`]: https://brew.sh
+[charm]: https://charm.sh

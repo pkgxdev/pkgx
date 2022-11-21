@@ -50,7 +50,7 @@ const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => 
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
 const getDeps = async (pkg: Package | PackageRequirement) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   return {
     runtime: parse_pkgs_node(yml.dependencies),
     build: parse_pkgs_node(yml.build?.dependencies),
@@ -85,7 +85,7 @@ const getRawDistributableURL = (yml: PlainObject) => {
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   let urlstr = getRawDistributableURL(yml)
   if (!urlstr) return
   let stripComponents: number | undefined
@@ -104,7 +104,7 @@ const getDistributable = async (pkg: Package) => {
 }
 
 const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   const node = yml[key]
 
   const mm = useMoustaches()
@@ -139,7 +139,7 @@ const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation
 }
 
 const getProvides = async (pkg: { project: string }) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   const node = yml["provides"]
   if (!node) return []
   if (!isArray(node)) throw new Error("bad-yaml")
@@ -155,7 +155,7 @@ const getProvides = async (pkg: { project: string }) => {
 }
 
 const getCompanions = async (pkg: {project: string}) => {
-  const yml = await (entry(pkg)).yml()
+  const yml = await entry(pkg).yml()
   const node = yml["companions"]
   return parse_pkgs_node(node)
 }
@@ -194,6 +194,7 @@ async function getClosestPackageSuggestion(orgPkg: string): Promise<string> {
     pkgList.push(project)
   }
   for (const pkgName of pkgList) {
+    if(pkgName.includes(orgPkg)) return pkgName;
     const number = levenshteinDistance(pkgName, orgPkg)
     if (number<minDistance) {
       minDistance = number

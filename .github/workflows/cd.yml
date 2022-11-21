@@ -100,10 +100,31 @@ jobs:
           path: tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
           if-no-files-found: error
 
+  bundle-src:
+    runs-on: ubuntu-latest
+    needs: [ci]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: tea
+      - uses: teaxyz/setup@v0
+        id: tea
+        with:
+          srcroot: tea
+      - run: sed -i.bak "s/^const version = .*$/const version = \"{{ steps.tea.outputs.version }}\"/" src/app.ts
+        working-directory: tea
+      - run: mv tea tea-${{ steps.tea.outputs.version }}
+      - run: tar cJf tea-${{ steps.tea.outputs.version }}.tar.xz ./tea-${{ steps.tea.outputs.version }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tarballs
+          path: tea-${{ steps.tea.outputs.version }}.tar.xz
+          if-no-files-found: error
+
   release:
     permissions:
       contents: write
-    needs: [check, compile]
+    needs: [check, compile, bundle-src]
     runs-on: ubuntu-latest
     env:
       TAG: v${{ needs.check.outputs.version }}
