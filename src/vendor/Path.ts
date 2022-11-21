@@ -42,7 +42,7 @@ export default class Path {
   constructor(input: string | Path) {
     if (input instanceof Path) {
       this.string = input.string
-    } else if (input[0] != '/') {
+    } else if (!input || input[0] != '/') {
       throw new Error(`invalid absolute path: ${input}`)
     } else {
       this.string = sys.normalize(input)
