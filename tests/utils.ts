@@ -1,61 +1,73 @@
 import Path from "path"
-import { usePrefix } from "hooks"
 
-interface Parameters { tea: string[], cwd?: Path, net?: boolean, env?: Record<string, string>, stdout?: "piped" }
+interface Parameters { args: string[], net?: boolean, env?: Record<string, string> }
 
-function internal({ tea: args, cwd, net, env, stdout }: Parameters) {
-  const srcroot = Deno.env.get("SRCROOT")
-  const cmd = [
-    'deno',
-    'run',
-    '--allow-env', '--allow-read', '--allow-run'
-  ]
-
-  if (net) cmd.push('--allow-net')
-
-  const PATH = Deno.env.get("PATH")
-  const TEA_PREFIX = env?.TEA_PREFIX || Deno.env.get("TEA_PREFIX")
-  const HOME = Deno.env.get("HOME")
-  if (!env) env = {}
-  Object.assign(env, { PATH, TEA_PREFIX, HOME })
-
-  const prefix = TEA_PREFIX || usePrefix()
-
-  cmd.push(
-    '--unstable',
-    `--allow-write=${prefix}`,
-    `--import-map=${srcroot}/import-map.json`,
-    `${srcroot}/src/app.ts`,
-    ...args
-  )
-
-  return Deno.run({ cmd, cwd: cwd?.string, stdout, env, clearEnv: true})
+interface Enhancements {
+  stdout(): Promise<string>
 }
 
-export async function backticks(opts: Parameters) {
-  const proc = internal({...opts, stdout: "piped"})
-  const raw = await proc.output()
-  const code = await proc.status()
-  proc.close()
-
-  if (!code.success) throw {error: true, opts}
-
-  return new TextDecoder().decode(raw)
+interface Tea {
+  run(opts: Parameters): Promise<number> & Enhancements
+  tmpdir: Path
 }
 
-export async function system(opts: Parameters) {
-  const proc = internal(opts)
-  const code = await proc.status()
-  proc.close()
-  if (!code.success) throw {error: true, opts}
-  return code
-}
+export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
+  const TEA_PREFIX = new Path(await Deno.makeTempDir({ prefix: "tea" }))
 
-export async function sandbox<T>(body: (tmpdir: Path) => Promise<T>) {
-  const path = new Path(await Deno.makeTempDir({ prefix: "tea" }))
+  const run = ({args, net, env}: Parameters) => {
+    const srcroot = Deno.env.get("SRCROOT")
+    const cmd = [
+      'deno',
+      'run',
+      '--allow-env', '--allow-read', '--allow-run'
+    ]
+
+    if (net) cmd.push('--allow-net')
+
+    const PATH = Deno.env.get("PATH")
+    const HOME = Deno.env.get("HOME")
+    if (!env) env = {}
+    Object.assign(env, { PATH, TEA_PREFIX: TEA_PREFIX.string, HOME })
+
+    cmd.push(
+      '--unstable',
+      //TODO allow read only this prefix too
+      `--allow-write=${TEA_PREFIX}`,
+      `--import-map=${srcroot}/import-map.json`,
+      `${srcroot}/src/app.ts`,
+      ...args.map(x => `${x}`)
+    )
+
+    let stdout: "piped" | undefined
+    let proc: Deno.Process | undefined
+
+    // we delay instantiating the proc so we can set `stdout` if the user calls that function
+    // so the contract is the user must call `stdout` within this event loop iteration
+    const p = Promise.resolve().then(() => {
+      proc = Deno.run({ cmd, cwd: TEA_PREFIX.string, stdout, env, clearEnv: true})
+      return proc.status()
+    }) as Promise<number> & Enhancements
+
+    p.stdout = () => {
+      stdout = "piped"
+      return p.then(async () => {
+        const out = await proc!.output()
+        return new TextDecoder().decode(out)
+      })
+    }
+
+    p.then(() => proc!.close())
+    p.catch(() => proc?.close())
+
+    return p
+  }
+
   try {
-    return await body(path)
+    return await body({
+      tmpdir: TEA_PREFIX,
+      run
+    })
   } finally {
-    await Deno.remove(path.string, { recursive: true })
+    await Deno.remove(TEA_PREFIX.string, { recursive: true })
   }
 }

@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "deno/testing/asserts.ts"
 import { useExecutableMarkdown } from "hooks"
 import { undent } from "utils"
-import { backticks, sandbox } from "../utils.ts"
+import { sandbox } from "../utils.ts"
 
 ////////////////////////////////////////////////////////////////////////// unit
 Deno.test("find-script-simple", async () => {
@@ -56,7 +56,7 @@ Deno.test("find-script-complex", async () => {
 ////////////////////////////////////////////////////////////////////////// impl
 Deno.test("tea build", async () => {
   const { markdown } = fixture()
-  const output = await sandbox(async tmpdir => {
+  const output = await sandbox(async ({ tmpdir, run }) => {
     tmpdir.join(".git").mkdir()
     tmpdir.join("README.md").write({ text: undent`
       # Build
@@ -68,7 +68,7 @@ Deno.test("tea build", async () => {
       | Version | 1.2.3   |
       `})
     //FIXME metadata table because depending on tea.xyz is silently ignored
-    return await backticks({ tea: ["build"], cwd: tmpdir })
+    return await run({args: ["build"]}).stdout()
   })
   assertEquals(output, "foo bar\n")
 })
