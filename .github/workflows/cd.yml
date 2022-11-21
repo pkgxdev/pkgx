@@ -114,11 +114,11 @@ jobs:
       - run: sed -i.bak "s/^const version = .*$/const version = \"{{ steps.tea.outputs.version }}\"/" src/app.ts
         working-directory: tea
       - run: mv tea tea-${{ steps.tea.outputs.version }}
-      - run: tar cJf tea-${{ steps.tea.outputs.version }}.tar.xz ./tea
+      - run: tar cJf tea-${{ steps.tea.outputs.version }}.tar.xz ./tea-${{ steps.tea.outputs.version }}
       - uses: actions/upload-artifact@v3
         with:
           name: tarballs
-          path: tea-${{ steps.tea.outputs.version }}.tar.xz ./tea
+          path: tea-${{ steps.tea.outputs.version }}.tar.xz
           if-no-files-found: error
 
   release:
