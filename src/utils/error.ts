@@ -6,6 +6,7 @@ type ID =
   'not-found: exe/md: default target' |
   'not-found: exe/md: region' |
   'http' |
+  'not-found: pantry' |
   'not-found: pantry: package.yml' |
   'parser: pantry: package.yml' |
   'not-found: virtual-env' |
@@ -25,6 +26,7 @@ export default class TeaError extends Error {
       case 'not-found: pantry: package.yml': return 'spilt-tea-101'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
       case 'not-found: virtual-env': return 'spilt-tea-004'
+      case 'not-found: pantry': return 'spilt-tea-005'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
@@ -63,6 +65,9 @@ export default class TeaError extends Error {
           no \`README.md\` or \`package.json\` found.
           `
       }
+      break
+    case 'not-found: pantry':
+      msg = 'no pantry: run `tea --sync`'
       break
     case 'http':
       msg = ctx.underr?.message ?? "contract violated"
@@ -106,6 +111,7 @@ export default class TeaError extends Error {
       const exhaustiveness_check: never = id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
     }}
+
     super(msg)
     this.id = id ?? msg
     this.ctx = ctx

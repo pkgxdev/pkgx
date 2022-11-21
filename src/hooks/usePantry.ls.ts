@@ -1,5 +1,6 @@
 import { usePrefix } from "hooks"
 import Path from "path"
+import TeaError from "utils/error.ts"
 
 //TODO keeping this because some pantry scripts expect it
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
@@ -12,7 +13,6 @@ export function pantry_paths(): Path[] {
   }
   return rv
 }
-
 
 interface Entry {
   project: string
@@ -31,7 +31,7 @@ export async function* ls(): AsyncGenerator<Entry> {
 }
 
 async function* _ls_pantry(dir: Path): AsyncGenerator<Path> {
-  if (!dir.isDirectory()) throw new Error()
+  if (!dir.isDirectory()) throw new TeaError('not-found: pantry', { path: dir })
 
   for await (const [path, { name, isDirectory }] of dir.ls()) {
     if (isDirectory) {

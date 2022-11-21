@@ -151,12 +151,16 @@ export function pivot<E, L, R>(input: E[], body: (e: E) => ['L', L] | ['R', R]):
 
 declare global {
   interface Promise<T> {
-    swallow(err: unknown): Promise<T | undefined>
+    swallow(err?: unknown): Promise<T | undefined>
   }
 }
 
-Promise.prototype.swallow = function(gristle: unknown) {
+Promise.prototype.swallow = function(gristle?: unknown) {
   return this.catch((err: unknown) => {
+    if (gristle === undefined) {
+      return
+    }
+
     if (err instanceof TeaError) {
       err = err.id
     } else if (err instanceof Error) {

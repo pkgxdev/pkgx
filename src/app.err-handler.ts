@@ -4,6 +4,7 @@ import { TeaError, UsageError } from "utils"
 import help from "./app.help.ts"
 
 async function suggestions(err: TeaError) {
+  console.log(err)
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
     const suggestion = await usePantry().getClosestPackageSuggestion(err.ctx.project)
@@ -20,7 +21,7 @@ export default async function(err: Error) {
     await help()
     Deno.exit(1)
   } else if (err instanceof TeaError) {
-    const suggestion = await suggestions(err)
+    const suggestion = await suggestions(err).swallow()
     console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
     if (suggestion) {
       console.error()
