@@ -65,7 +65,7 @@ export default class TeaError extends Error {
       }
       break
     case 'http':
-      msg = ctx.underr?.message ?? "contact violated"
+      msg = ctx.underr?.message ?? "contract violated"
       break
     case 'not-found: pantry: package.yml':
       msg = undent`
@@ -73,7 +73,7 @@ export default class TeaError extends Error {
         your time to shine? we’ll see you on GitHub…
 
             https://github.com/teaxyz/pantry.extra#how-to-contribute
-        
+
         `
       break
     case 'parser: pantry: package.yml':

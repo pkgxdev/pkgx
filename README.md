@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.6
+# tea/cli 0.13.7
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -823,7 +823,7 @@ export TMPDIR=${TMPDIR:-/tmp}
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT,GITHUB_TOKEN,TMPDIR,TEA_PREFIX,MUGGLE,MAGIC,JSON,NUMPTY \
+ --allow-env=SRCROOT,TMPDIR,TEA_PREFIX,MUGGLE,MAGIC,JSON,NUMPTY,PATH,HOME \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
  --allow-write=$TEA_PREFIX/tea.xyz/var,$TMPDIR \

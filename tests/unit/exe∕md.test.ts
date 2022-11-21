@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "deno/testing/asserts.ts"
 import { useExecutableMarkdown } from "hooks"
 import { undent } from "utils"
-import { shout, sandbox } from "../utils.ts"
+import { backticks, sandbox } from "../utils.ts"
 
 ////////////////////////////////////////////////////////////////////////// unit
 Deno.test("find-script-simple", async () => {
@@ -68,7 +68,7 @@ Deno.test("tea build", async () => {
       | Version | 1.2.3   |
       `})
     //FIXME metadata table because depending on tea.xyz is silently ignored
-    return await shout({ tea: ["build"], cwd: tmpdir })
+    return await backticks({ tea: ["build"], cwd: tmpdir })
   })
   assertEquals(output, "foo bar\n")
 })

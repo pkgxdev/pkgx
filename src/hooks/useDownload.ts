@@ -79,9 +79,10 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
     logger.replace(txt)
 
     const reader = rsp.body ?? error.panic()
+    dst.parent().mkpath()
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
+
     try {
-      dst.parent().mkpath()
       await body(reader, f, sz)
 
       const text = rsp.headers.get("Last-Modified")
