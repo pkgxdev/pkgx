@@ -634,6 +634,19 @@ tea run foo       # runs the local checkout passing `foo` as an argument
 tea install-self  # deploys the local checkout into your `~/.tea`
 ```
 
+This alias makes it so you can execute your local checkout from anywhere:
+
+```sh
+alias teal="$HOME/.tea/deno.land/v1/bin/deno run \
+  --import-map=$HOME/tea/cli/import-map.json \
+  --unstable \
+  --allow-all \
+  $HOME/tea/cli/src/app.ts"
+
+# ^^ change the paths!
+# ^^ add to your `~/.shellrc` file
+```
+
 ### Things we Need
 
 * We really need more tests!
