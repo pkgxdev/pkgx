@@ -10,7 +10,8 @@ type ID =
   'not-found: pantry: package.yml' |
   'parser: pantry: package.yml' |
   'not-found: virtual-env' |
-  'not-found: srcroot'
+  'not-found: srcroot' |
+  '#helpwanted'
 
 export default class TeaError extends Error {
   id: ID
@@ -27,6 +28,7 @@ export default class TeaError extends Error {
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
       case 'not-found: virtual-env': return 'spilt-tea-004'
       case 'not-found: pantry': return 'spilt-tea-005'
+      case '#helpwanted': return 'spilt-tea-411'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
@@ -49,9 +51,10 @@ export default class TeaError extends Error {
       msg = undent`
         couldn’t find a pkg to provide: \`${ctx.arg0}'
 
-        open a pull-request to add it to the pantry:
+        you could be the one to add it to \`tea\`:
 
-            https://github.com/teaxyz/pantry.extra
+            https://github.com/teaxyz/pantry.zero#contributing
+
         `
         break
     case 'not-found: exe/md: region':
@@ -77,7 +80,7 @@ export default class TeaError extends Error {
         no pantry entry for: ${ctx.project}
         your time to shine? we’ll see you on GitHub…
 
-            https://github.com/teaxyz/pantry.extra#how-to-contribute
+            https://github.com/teaxyz/pantry.zero#contributing
 
         `
       break
@@ -106,6 +109,9 @@ export default class TeaError extends Error {
         currently, a virtual environment is defined by a \`README.md\` or \`package.json\`
         existing alongside a source control directory (eg. \`.git\`).
         `
+      break
+    case '#helpwanted':
+      msg = ctx.details
       break
     default: {
       const exhaustiveness_check: never = id
