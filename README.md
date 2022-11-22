@@ -16,7 +16,7 @@ All you need is `tea`.
 
 &nbsp;
 
-> tea is pre v1. This means there may still be some niggles in day to day use.
+> tea is pre v1. This means there may still be some rough edges in day to day use.
 > It also means that you should absolutely get involved. This is the key and
 > golden time when getting involved is both easy and hugely fun. We look
 > forward to meeting you 👊
