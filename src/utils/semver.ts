@@ -147,7 +147,7 @@ export class Range {
         }
 
         match = input.match(/^>=((\d+\.)*\d+)\s*(<((\d+\.)*\d+))?$/)
-        if (!match) throw new Error(`invalid semver range: ${input}`)
+        if (!match) throw new Error(`invalid semver range: \`${input}\``)
         const v1 = parse(match[1])!
         const v2 = match[3] ? parse(match[4])! : new SemVer([Infinity, Infinity, Infinity])
         return [v1, v2]
@@ -254,6 +254,8 @@ export function intersect(a: Range, b: Range): Range {
       set.push([a1.compare(b1) > 0 ? a1 : b1, a2.compare(b2) < 0 ? a2 : b2])
     }
   }
+
+  if (set.length <= 0) throw new Error(`cannot intersect: ${a} && ${b}`)
 
   return new Range(set.map(([v1, v2]) => `>=${chomp(v1)}<${chomp(v2)}`).join(","))
 }

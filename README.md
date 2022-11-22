@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.11
+# tea/cli 0.14.0
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -806,12 +806,12 @@ complementary. Still where we have overlapping features:
 
 * tea doesn’t require you install the Xcode Command Line Tools
 * tea packages are relocatable
-* tea aims to be zippier in all usage
+* tea aims to be as zippy as possible in all usage
 * tea doesn’t make global changes to your system
 * tea aims to enhance the way you work, rather than impose the way you work
 * tea installs independently for every user on the machine
 * tea is somewhat decentralized and aims to be completely decentralized
-* tea is a tight series of tight, easy-to-understand codebases
+* tea is a small series of tight, easy-to-understand codebases
 * tea starts building new releases for tools almost immediately
 * tea’s packages are named in a fully-qualified manner
 * tea’s philosophy is user-first and not tea-maintainer-first

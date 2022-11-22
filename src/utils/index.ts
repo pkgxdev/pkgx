@@ -136,6 +136,15 @@ export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undef
   }
 }
 
+export async function async_flatmap<S, T>(t: Promise<T | undefined | null>, body: (t: T) => Promise<S> | undefined, opts?: {rescue?: boolean}): Promise<NonNullable<S> | undefined> {
+  try {
+    const tt = await t
+    if (tt) return await body(tt) ?? undefined
+  } catch (err) {
+    if (!opts?.rescue) throw err
+  }
+}
+
 export function pivot<E, L, R>(input: E[], body: (e: E) => ['L', L] | ['R', R]): [L[], R[]] {
   const rv = {
     'L': [] as L[],
