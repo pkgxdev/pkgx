@@ -81,7 +81,11 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
   case 'md': {
     //TODO we should probably infer magic as meaning: find the v-env and add it
 
-    const blueprint = opts.env ? ass.blueprint ?? await useVirtualEnv() : magic ? ass.blueprint ?? await useVirtualEnv().swallow(/not-found/) : undefined
+    const blueprint = opts.env
+      ? ass.blueprint ?? await useVirtualEnv()
+      : magic
+        ? ass.blueprint ?? await useVirtualEnv({ cwd: ass.path.parent() }).swallow(/not-found/)
+        : undefined
     // ^^ jeez we’ve overcomplicated this shit
 
     const name = ass.name ?? 'getting-started'
@@ -248,7 +252,15 @@ async function repl(installations: Installation[], env: Record<string, string>) 
       )
   }
 
-  await run({ cmd, env })
+  try {
+    await run({ cmd, env })
+  } catch (err) {
+    if (err instanceof RunError) {
+      Deno.exit(err.code)
+    } else {
+      throw err
+    }
+  }
 }
 
 type RV0 = { type: 'sh', path: Path, args: string[] } |
