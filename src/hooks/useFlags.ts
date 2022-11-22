@@ -68,7 +68,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   if (/(.+\/|^)tea_([^\/]+)$/.test(arg0)) {
     args = [...args]  // args is usually the immutable `Deno.args`
     //TODO apply muggle mode
-    const match = arg0.match(/tea_(.+)$/)!
+    const match = arg0.match(/tea_([^\/]+)$/)!
     args.unshift("-X", match[1])
   }
 
