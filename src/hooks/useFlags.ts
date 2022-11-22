@@ -65,11 +65,16 @@ export type Args = {
 export function useArgs(args: string[], arg0: string): [Args, Flags & ConvenienceFlags] {
   if (flags) throw new Error("contract-violated")
 
-  if (/(.+\/|^)tea_([^\/]+)$/.test(arg0)) {
-    args = [...args]  // args is usually the immutable `Deno.args`
-    //TODO apply muggle mode
-    const match = arg0.match(/tea_([^\/]+)$/)!
-    args.unshift("-X", match[1])
+  const arg0_basename = new Path(arg0).basename()
+  if (arg0_basename != arg0) {
+	args = [...args]  // args is usually the immutable `Deno.args`
+	if (/(.+\/|^)tea_([^\/]+)$/.test(arg0)) {
+	  //TODO apply muggle mode
+	  const match = arg0.match(/tea_([^\/]+)$/)!
+	  args.unshift("-X", match[1])
+	} else {
+	  args.unshift("-X", arg0_basename)
+	}
   }
 
   const rv: Args = {
