@@ -70,9 +70,9 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
     const arg0_basename = new Path(arg0).basename()
     if (arg0_basename != "tea") {
       args = [...args]  // args is usually the immutable `Deno.args`
-      if (/tea_([^\/]+)$/.test(arg0_basename)) {
+      if (/^tea_([^\/]+)$/.test(arg0_basename)) {
         //TODO apply muggle mode
-        const match = arg0_basename.match(/tea_([^\/]+)$/)!
+        const match = arg0_basename.match(/^tea_([^\/]+)$/)!
         args.unshift("-X", match[1])
       } else {
         args.unshift("-X", arg0_basename)
