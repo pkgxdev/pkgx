@@ -22,7 +22,6 @@ interface Flags {
 interface ConvenienceFlags {
   verbose: boolean
   debug: boolean
-  muggle: boolean
   silent: boolean
 }
 
@@ -45,7 +44,6 @@ export default function useFlags(): Flags & ConvenienceFlags {
     ...flags,
     verbose: flags.verbosity >= Verbosity.loud,
     debug: flags.verbosity >= Verbosity.debug,
-    muggle: !flags.magic,
     silent: flags.verbosity <= Verbosity.quiet
   }
 }
@@ -67,7 +65,6 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
 
   if (/(.+\/|^)tea_(.+)$/.test(arg0)) {
     args = [...args]  // args is usually the immutable `Deno.args`
-    //TODO apply muggle mode
     const match = arg0.match(/tea_(.+)$/)!
     args.unshift("-X", match[1])
   }
@@ -77,7 +74,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
     pkgs: []
   }
 
-  let muggle: boolean | undefined
+  let magic: boolean | undefined
   let v: number | undefined
   let sync = false
   const it = args[Symbol.iterator]()
@@ -133,10 +130,10 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         break
       case 'muggle':
       case 'disable-magic':
-        muggle = true
+        magic = false
         break
       case 'magic':
-        muggle = false
+        magic = !!parseBool(value)
         break
       case 'silent':
         v = -1
@@ -175,10 +172,10 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           rv.cd = Path.cwd().join(validate_str(it.next().value))
           break
         case 'm':
-          muggle = true
+          magic = false
           break
         case 'M':
-          muggle = false
+          magic = true
           break
         case 's':
           v = -1;
@@ -203,7 +200,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
 
   flags = {
     verbosity: getVerbosity(v),
-    magic: getMagic(muggle),
+    magic: getMagic(magic),
     json: !!Deno.env.get("JSON"),
     numpty: !!Deno.env.get("NUMPTY"),
     sync
@@ -225,9 +222,8 @@ function getVerbosity(v: number | undefined): Verbosity {
   return isNumber(env) ? env : Verbosity.normal
 }
 
-function getMagic(muggle: boolean | undefined): boolean {
-  if (muggle !== undefined) return !muggle
-  if (Deno.env.get("MUGGLE") == "1") return false
+function getMagic(magic: boolean | undefined): boolean {
+  if (magic !== undefined) return magic
   const env = Deno.env.get("MAGIC")
   //NOTE darwinsys.com/file uses `MAGIC` and has since 1995 so they have dibs
   // however it’s basically ok since we provide the above hatch to disable

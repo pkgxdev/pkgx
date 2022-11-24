@@ -439,7 +439,7 @@ your `README`.
 > ```
 >
 > We check `README.md` before `package.json`. You can force use of
-> `package.json` by disabling magic with `--muggle`.
+> `package.json` by disabling magic with `--disable-magic`.
 >
 > </details>
 
@@ -590,8 +590,8 @@ In an environment where there
 is magic we try to be clever and infer what you want. Without magic we are
 strict and require precise specification of your intent.
 
-You can disable magic by specifying `--muggle` or exporting `MAGIC=0` to your
-shell environment.
+You can disable magic by specifying `--disable-magic` or exporting `MAGIC=0`
+to your shell environment.
 
 The primary magic we apply is determining if you want to use your virtual
 environment or not. Strictly `tea --env` is required to inject it, but when
@@ -836,7 +836,7 @@ export TMPDIR=${TMPDIR:-/tmp}
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT,TMPDIR,TEA_PREFIX,MUGGLE,MAGIC,JSON,NUMPTY,PATH,HOME \
+ --allow-env=SRCROOT,TMPDIR,TEA_PREFIX,MAGIC,JSON,NUMPTY,PATH,HOME \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
  --allow-write=$TEA_PREFIX/tea.xyz/var,$TMPDIR \
