@@ -16,7 +16,7 @@ All you need is `tea`.
 
 &nbsp;
 
-> tea is pre v1. This means there may still be some niggles in day to day use.
+> tea is pre v1. This means there may still be some rough edges in day to day use.
 > It also means that you should absolutely get involved. This is the key and
 > golden time when getting involved is both easy and hugely fun. We look
 > forward to meeting you 👊
@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.13.8
+# tea/cli 0.14.1
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -439,7 +439,7 @@ your `README`.
 > ```
 >
 > We check `README.md` before `package.json`. You can force use of
-> `package.json` by disabling magic with `--muggle`.
+> `package.json` by disabling magic with `--disable-magic`.
 >
 > </details>
 
@@ -590,8 +590,8 @@ In an environment where there
 is magic we try to be clever and infer what you want. Without magic we are
 strict and require precise specification of your intent.
 
-You can disable magic by specifying `--muggle` or exporting `MAGIC=0` to your
-shell environment.
+You can disable magic by specifying `--disable-magic` or exporting `MAGIC=0`
+to your shell environment.
 
 The primary magic we apply is determining if you want to use your virtual
 environment or not. Strictly `tea --env` is required to inject it, but when
@@ -632,6 +632,19 @@ cd tea
 
 tea run foo       # runs the local checkout passing `foo` as an argument
 tea install-self  # deploys the local checkout into your `~/.tea`
+```
+
+This alias makes it so you can execute your local checkout from anywhere:
+
+```sh
+alias teal="$HOME/.tea/deno.land/v1/bin/deno run \
+  --import-map=$HOME/tea/cli/import-map.json \
+  --unstable \
+  --allow-all \
+  $HOME/tea/cli/src/app.ts"
+
+# ^^ change the paths!
+# ^^ add to your `~/.shellrc` file
 ```
 
 ### Things we Need
@@ -793,12 +806,12 @@ complementary. Still where we have overlapping features:
 
 * tea doesn’t require you install the Xcode Command Line Tools
 * tea packages are relocatable
-* tea aims to be zippier in all usage
+* tea aims to be as zippy as possible in all usage
 * tea doesn’t make global changes to your system
 * tea aims to enhance the way you work, rather than impose the way you work
 * tea installs independently for every user on the machine
 * tea is somewhat decentralized and aims to be completely decentralized
-* tea is a tight series of tight, easy-to-understand codebases
+* tea is a small series of tight, easy-to-understand codebases
 * tea starts building new releases for tools almost immediately
 * tea’s packages are named in a fully-qualified manner
 * tea’s philosophy is user-first and not tea-maintainer-first
@@ -823,7 +836,7 @@ export TMPDIR=${TMPDIR:-/tmp}
 deno test \
  --allow-net \
  --allow-read \
- --allow-env=SRCROOT,TMPDIR,TEA_PREFIX,MUGGLE,MAGIC,JSON,NUMPTY,PATH,HOME \
+ --allow-env=SRCROOT,TMPDIR,TEA_PREFIX,MAGIC,JSON,NUMPTY,PATH,HOME \
  --allow-run \
  --import-map=$SRCROOT/import-map.json \
  --allow-write=$TEA_PREFIX/tea.xyz/var,$TMPDIR \

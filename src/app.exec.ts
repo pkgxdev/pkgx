@@ -1,7 +1,7 @@
 import { useShellEnv, useExecutableMarkdown, useVirtualEnv, useDownload, usePackageYAMLFrontMatter, useRequirementsFile, usePantry } from "hooks"
-import { run, undent, pkg as pkgutils, UsageError, panic, TeaError, RunError } from "utils"
+import { run, undent, pkg as pkgutils, UsageError, panic, TeaError, RunError, async_flatmap } from "utils"
 import { hydrate, resolve, install as base_install, link } from "prefab"
-import { Installation, PackageRequirement, PackageSpecification } from "types"
+import { Installation, PackageSpecification } from "types"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import useFlags, { Args } from "hooks/useFlags.ts"
 import { flatten } from "hooks/useShellEnv.ts"
@@ -53,7 +53,7 @@ async function refine(ass: RV2): Promise<RV1> {
   switch (ass.type) {
   case 'url': {
     const path = await useDownload().download({ src: ass.url })
-    ass = assess_file(path, ass.args)
+    ass = assess_file(path.chmod(0o500), ass.args)
   } break
 
   case 'dir':
@@ -81,7 +81,11 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
   case 'md': {
     //TODO we should probably infer magic as meaning: find the v-env and add it
 
-    const blueprint = opts.env ? ass.blueprint ?? await useVirtualEnv() : magic ? ass.blueprint ?? await useVirtualEnv().swallow(/not-found/) : undefined
+    const blueprint = opts.env
+      ? ass.blueprint ?? await useVirtualEnv()
+      : magic
+        ? ass.blueprint ?? await useVirtualEnv({ cwd: ass.path.parent() }).swallow(/not-found/)
+        : undefined
     // ^^ jeez we’ve overcomplicated this shit
 
     const name = ass.name ?? 'getting-started'
@@ -115,25 +119,53 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     const blueprint = opts.env ? await useVirtualEnv({ cwd: ass.path.parent() }) : undefined
     const yaml = await usePackageYAMLFrontMatter(ass.path, blueprint?.srcroot)
     const cmd = [...yaml?.args ?? [], ass.path, ...ass.args]
-    const pkgs: PackageRequirement[] = [...blueprint?.pkgs ?? [], ...yaml?.pkgs ?? []]
+
+    if (blueprint) pkgs.push(...blueprint.pkgs)
+    if (yaml) pkgs.push(...yaml.pkgs)
 
     if (magic) {
-      const unshift = (project: string, ...new_args: string[]) => {
-        if (!yaml?.pkgs.length) {
-          pkgs.unshift({ project, constraint: new semver.Range("*") })
+      const found = await async_flatmap(extract_shebang(ass.path), which)
+
+      if (found) {
+        pkgs.unshift(found)
+
+        //TODO how do we make these tools behave exactly as they would
+        // during “shebang” executed mode? Because then we don’t need
+        // any special casing, we just run the shebang
+
+        switch (found.project) {
+          case "deno.land":
+            cmd.unshift("deno", "run"); break
+          case "gnu.org/bash":
+            cmd.unshift("bash", "-e"); break
+          case "go.dev":
+            throw new TeaError('#helpwanted', { details: undent`
+              go does not support shebangs, but there is a package called gorun
+              that we could use to do this, please package for us 🙏
+              `})
+          default:
+            cmd.unshift(found.shebang)
         }
-        if (!yaml?.args.length) {
-          cmd.unshift(...new_args)
+      } else {
+        const unshift = (project: string, ...new_args: string[]) => {
+          if (!yaml?.pkgs.length) {
+            pkgs.unshift({ project, constraint: new semver.Range("*") })
+          }
+          if (!yaml?.args.length) {
+            cmd.unshift(...new_args)
+          }
         }
-      }
-      //FIXME package.ymls should define these behaviors
-      switch (ass.path.extname()) {
-        case ".py": unshift("python.org", "python"); break
-        case ".js": unshift("nodejs.org", "node"); break
-        case ".ts": unshift("deno.land", "deno", "run"); break
-        case ".go": unshift("go.dev", "go", "run"); break
-        case ".pl": unshift("perl.org", "perl"); break
-        case ".rb": unshift("ruby-lang.org", "ruby"); break
+        //FIXME package.ymls should define these behaviors
+        switch (ass.path.extname()) {
+          case ".py": unshift("python.org", "python"); break
+          case ".js": unshift("nodejs.org", "node"); break
+          case ".ts": unshift("deno.land", "deno", "run"); break
+          case ".go": unshift("go.dev", "go", "run"); break
+          case ".pl": unshift("perl.org", "perl"); break
+          case ".rb": unshift("ruby-lang.org", "ruby"); break
+          case ".bash": unshift("gnu.org/bash", "bash", "-e"); break
+          case ".sh": cmd.unshift("sh"); break
+        }
       }
     }
 
@@ -161,6 +193,47 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
 }
 
 ////
+
+import {readLines} from "deno/io/buffer.ts"
+
+async function extract_shebang(path: Path) {
+  const f = await Deno.open(path.string, { read: true })
+  const line = (await readLines(f).next()).value
+  let shebang = line.match(/^\s*#!(\S+)$/)?.[1]
+  if (shebang) {
+    return Path.abs(shebang)?.basename()
+  }
+  shebang = line.match(/^\s*#!\/usr\/bin\/env (\S+)$/)?.[1]
+  if (shebang) {
+    return shebang[1] ?? panic()
+  }
+}
+
+async function which(arg0: string) {
+  /// some special casing because we cannot represent version’d stuff in pantry yet
+  switch (arg0) {
+  case 'python2':
+    return { project: 'python.org', constraint: new semver.Range("2"), shebang: arg0 }
+  case 'python3':
+    return { project: 'python.org', constraint: new semver.Range("3"), shebang: arg0 }
+  }
+
+  const pantry = usePantry()
+  let found: { project: string } | undefined
+
+  for await (const entry of pantry.ls()) {
+    if (found) break
+    pantry.getProvides(entry).then(provides => {
+      if (!found && provides.includes(arg0)) {
+        found = entry
+      }
+    })
+  }
+
+  if (found) {
+    return {...found, constraint: new semver.Range("*"), shebang: arg0}
+  }
+}
 
 function is_oneliner(sh: string) {
   const lines = sh.split("\n")
@@ -248,7 +321,15 @@ async function repl(installations: Installation[], env: Record<string, string>) 
       )
   }
 
-  await run({ cmd, env })
+  try {
+    await run({ cmd, env })
+  } catch (err) {
+    if (err instanceof RunError) {
+      Deno.exit(err.code)
+    } else {
+      throw err
+    }
+  }
 }
 
 type RV0 = { type: 'sh', path: Path, args: string[] } |
@@ -295,6 +376,8 @@ async function install(pkgs: PackageSpecification[]): Promise<{ env: Record<stri
       pkgs.push(...await pantry.getCompanions(pkg))
     }
   }
+
+  console.debug({hydrating: pkgs})
 
   const { pkgs: wet } = await hydrate(pkgs)
   const {installed, pending} = await resolve(wet, { update: flags.sync })
