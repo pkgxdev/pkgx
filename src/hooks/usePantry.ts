@@ -173,9 +173,11 @@ const getInterpreter = async (_extension: string): Promise<Interpreter | undefin
     const node = yml["interprets"]
     if (!isPlainObject(node)) continue
     try {
-      const args = yml["interprets"][extension]
-      if (isString(args)) return { project: pkg.project, args: [args] }
-      if (isArray(args)) return { project: pkg.project, args }
+      const { extensions, args } = yml["interprets"]
+      if ((isString(extensions) && extensions === extension) ||
+        (isArray(extensions) && extensions.includes(extension))) {
+        return { project: pkg.project, args: isArray(args) ? args : [args] }
+      }
     } catch {
       continue
     }
