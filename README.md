@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.14.1
+# tea/cli 0.14.2
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -762,6 +762,11 @@ same. And ofc. you are licensed to do so. Honestly we think you should
 absolutely bundle and deploy tea’s prefix with your software. We designed it
 so that it would be easier for you to do this than anything that has come
 before.
+
+## Will you support platform `foo`
+
+We want to support *all* platforms.
+Start a [discussion] and let’s talk about how to move forward with that.
 
 ## I have another question
 

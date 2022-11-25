@@ -133,7 +133,9 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
         // during “shebang” executed mode? Because then we don’t need
         // any special casing, we just run the shebang
 
-        switch (found.project) {
+        if (yaml?.args.length) {
+          cmd.unshift(...yaml.args)
+        } else switch (found.project) {
           case "deno.land":
             cmd.unshift("deno", "run"); break
           case "gnu.org/bash":
