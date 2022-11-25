@@ -12,7 +12,7 @@ export default function useMoustaches() {
 }
 
 function tokenizeVersion(version: SemVer, prefix = 'version') {
-  return  [
+  const rv = [
     { from:    prefix,             to: `${version}` },
     { from: `${prefix}.major`,     to: `${version.major}` },
     { from: `${prefix}.minor`,     to: `${version.minor}` },
@@ -21,6 +21,10 @@ function tokenizeVersion(version: SemVer, prefix = 'version') {
     { from: `${prefix}.build`,     to: version.build.join('+') },
     { from: `${prefix}.raw`,       to: version.raw },
   ]
+  if ('tag' in version) {
+    rv.push({from: `${prefix}.tag`, to: (version as unknown as {tag: string}).tag})
+  }
+  return rv
 }
 
 //TODO replace `hw` with `host`

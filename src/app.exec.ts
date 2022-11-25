@@ -133,9 +133,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
         // during “shebang” executed mode? Because then we don’t need
         // any special casing, we just run the shebang
 
-        if (yaml?.args.length) {
-          cmd.unshift(...yaml.args)
-        } else switch (found.project) {
+        if (!isArray(yaml?.args)) switch (found.project) {
           case "deno.land":
             cmd.unshift("deno", "run"); break
           case "gnu.org/bash":
@@ -148,6 +146,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
           default:
             cmd.unshift(found.shebang)
         }
+
       } else {
         const unshift = (project: string, ...new_args: string[]) => {
           if (!yaml?.pkgs.length) {
@@ -292,7 +291,7 @@ function supp(env: Record<string, string>, blueprint?: VirtualEnv) {
 }
 
 import { basename } from "deno/path/mod.ts"
-import { isNumber } from "is_what"
+import { isArray, isNumber } from "is_what"
 
 async function repl(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")

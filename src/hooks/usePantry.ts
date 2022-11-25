@@ -311,7 +311,9 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
       if (!v) {
         console.warn({ignoring: pre_strip_name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
-        console.verbose({ found: v.toString(), from: name })
+        console.verbose({ found: v.toString(), from: name });
+        // used by some packages
+        (v as unknown as {tag: string}).tag = pre_strip_name
         rv.push(v)
       } else {
         console.debug({ignoring: pre_strip_name, reason: 'prerelease'})
