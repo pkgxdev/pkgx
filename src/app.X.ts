@@ -12,9 +12,16 @@ export default async function X(opts: Args) {
   let found: { project: string } | undefined | true
 
   for (const path of Deno.env.get("PATH")?.split(":") ?? []) {
-    if (path.startsWith("/") && new Path(path).join(arg0).isExecutableFile()) {
-      found = true
-      break
+    if (path.startsWith("/")) {
+      const tool = new Path(path).join(arg0)
+      if (tool.isSymlink() && tool.readlink().basename() == "tea") {
+        // don’t infinitely recurse
+        continue
+      }
+      if (tool.isExecutableFile()) {
+        found = true
+        break
+      }
     }
   }
 
