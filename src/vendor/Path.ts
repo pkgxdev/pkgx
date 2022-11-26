@@ -115,7 +115,7 @@ export default class Path {
   }
 
   /// Returns true if the path represents an actual filesystem entry that is *not* a directory.
-  /// NOTE we use `stat`, so if the file is a synlink it is resolved, usually this is what you want
+  /// NOTE we use `stat`, so if the file is a symlink it is resolved, usually this is what you want
   isFile(): Path | undefined {
     try {
       return Deno.statSync(this.string).isFile ? this : undefined
@@ -172,7 +172,7 @@ export default class Path {
   }
 
   /// Returns true if the path represents an actual directory.
-  /// NOTE we use `stat`, so if the file is a synlink it is resolved, usually this is what you want
+  /// NOTE we use `stat`, so if the file is a symlink it is resolved, usually this is what you want
   isDirectory(): Path | undefined {
     try {
       return Deno.statSync(this.string).isDirectory ? this : undefined
