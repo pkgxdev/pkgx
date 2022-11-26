@@ -1,9 +1,9 @@
 import { isPlainObject, PlainObject } from "is_what"
 import { PackageRequirement } from "../types.ts"
+import { candidateType, RequirementsCandidate, RequirementsCandidateType } from "common/requirementsCandidate.ts"
 import { flatmap } from "utils"
 import Path from "../vendor/Path.ts"
 import SemVer, * as semver from "semver"
-
 
 export interface RequirementsFile {
   file: Path
@@ -14,23 +14,55 @@ export interface RequirementsFile {
 /// undefined if this file contains nothing we use to consider it a “requirements file”
 //FIXME well, not doing this for markdown yet as would complicate code a lot
 export default function useRequirementsFile(file: Path): Promise<RequirementsFile | undefined> {
-  if (file.basename() == "package.json") {
-    return package_json(file)
-  } else {
-    return markdown(file)
+  //TODO Add proper validation rather than an assertion
+  const cType = candidateType(file.basename() as RequirementsCandidate)
+  switch(cType) {
+    case RequirementsCandidateType.TEA_YAML: 
+    case RequirementsCandidateType.PACKAGE_JSON: return config_file(file, cType)
+    case RequirementsCandidateType.README:    
+    default:  return markdown(file)
   }
 }
 
-async function package_json(path: Path): Promise<RequirementsFile | undefined> {
-  const json = await path.readJSON()
-  if (!isPlainObject(json)) throw new Error("bad-json")
-  if (!json.tea) return
-  const requirements = (() => {
-    if (!json.tea.dependencies) return
-    if (!isPlainObject(json.tea?.dependencies)) throw new Error("bad-json")
-    return parsePackageRequirements(json.tea.dependencies)
-  })()
-  const version = flatmap(json.version, x => new SemVer(x))
+//TODO is this the config version or the project version?
+//TODO what version should this be??
+const CURRENT_CONFIG_VERSION = "1.0.0" as const
+
+type configFile = {
+  version: typeof CURRENT_CONFIG_VERSION,
+  tea: {
+    dependencies: Record<string, string>
+  }
+}
+
+function config_file_is_valid(config: unknown, errorString: string): config is configFile {
+  console.log("checking config file:", config)
+  //TODO should we check for version in here?
+  const presumedConfig = config as configFile
+  if(!presumedConfig) return false
+  if(!presumedConfig.tea) return false
+  if(!isPlainObject(presumedConfig.tea))
+    throw Error(`Bad ${errorString}, key: \`tea\` is not a valid object.`)
+  if(!presumedConfig.tea.dependencies) return false
+  if(!isPlainObject(presumedConfig.tea.dependencies))
+    throw Error(`Bad ${errorString}, key: \`tea.dependencies\` is not a valid object.`)
+  console.log("config is valid")
+  return true
+}
+
+const parse_config = async (path: Path, candidateType: RequirementsCandidateType): Promise<configFile | undefined> => {
+  const isYaml = candidateType === RequirementsCandidateType.TEA_YAML;
+  const errorString = isYaml ? "yaml" : "json"
+  const parsedObject = await (isYaml ? path.readYAML() : path.readJSON()) 
+  if(config_file_is_valid(parsedObject, errorString)) return parsedObject
+  return undefined
+}
+
+async function config_file(path: Path, candidateType: RequirementsCandidateType): Promise<RequirementsFile | undefined> {
+  const config = await parse_config(path, candidateType)
+  if(!config) return undefined
+  const requirements = parsePackageRequirements(config.tea.dependencies)
+  const version = new SemVer(config.version)
   return { file: path, pkgs: requirements ?? [], version }
 }
 

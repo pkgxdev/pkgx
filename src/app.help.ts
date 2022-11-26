@@ -14,6 +14,7 @@ export default async function help() {
   if (!verbose) {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
+      // TODO JL REMOVE !!!!!! DEV MODE
       usage:
         tea [-xdX] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
 
