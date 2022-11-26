@@ -29,16 +29,16 @@ Deno.test("shebangs", async harness => {
     await sandbox(async ({ run, tmpdir }) => {
       const fuzz = "hi"
       const fixture = tmpdir.join("fixture.sh").write({ text: undent`
-        #!/usr/bin/env bash
+        #!/bin/bash
 
         #---
         # args: [sh]
         #---
 
-        echo "${fuzz}"
+        echo -n "${fuzz}"
         `
       }).chmod(0o500)
-      const out = await run({args: ["--sync", fixture.string], net: true , env: {VERBOSE: '1'}}).stdout()
+      const out = await run({args: ["--sync", fixture.string], net: true}).stdout()
       assertEquals(out, fuzz)
     })
   })

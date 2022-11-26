@@ -27,7 +27,17 @@ export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
     const PATH = Deno.env.get("PATH")
     const HOME = Deno.env.get("HOME")
     if (!env) env = {}
-    Object.assign(env, { PATH, TEA_PREFIX: TEA_PREFIX.string, HOME })
+    Object.assign(env, {
+      PATH,
+      TEA_PREFIX: TEA_PREFIX.string,
+      HOME
+    })
+
+    const existing_www_cache = Path.home().join(".tea/tea.xyz/var/www")
+    if (existing_www_cache.isDirectory()) {
+      // we're not testing our ISP
+      TEA_PREFIX.join("tea.xyz/var").mkpath().join("www").ln('s', {to: existing_www_cache})
+    }
 
     cmd.push(
       '--unstable',
