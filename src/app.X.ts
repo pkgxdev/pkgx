@@ -3,27 +3,12 @@ import { usePantry } from "hooks"
 import * as semver from "semver"
 import exec from "./app.exec.ts"
 import { TeaError, UsageError } from "utils"
-import Path from "./vendor/Path.ts"
 
 export default async function X(opts: Args) {
   const arg0 = opts.args[0]
   if (!arg0) throw new UsageError()
 
   let found: { project: string } | undefined | true
-
-  for (const path of Deno.env.get("PATH")?.split(":") ?? []) {
-    if (path.startsWith("/")) {
-      const tool = new Path(path).join(arg0)
-      if (tool.isSymlink() && tool.readlink().basename() == "tea") {
-        // don’t infinitely recurse
-        continue
-      }
-      if (tool.isExecutableFile()) {
-        found = true
-        break
-      }
-    }
-  }
 
   const pantry = usePantry()
   for await (const entry of pantry.ls()) {
