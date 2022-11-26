@@ -8,6 +8,7 @@ import { flatten } from "hooks/useShellEnv.ts"
 import { gray, Logger, red } from "hooks/useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
+import { Interpreter } from "hooks/usePantry.ts";
 
 //TODO specifying explicit pkgs or versions on the command line should replace anything deeper
 //    RATIONALE: so you can override if you are testing locally
@@ -148,7 +149,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
         }
 
       } else {
-        const unshift = (project: string, ...new_args: string[]) => {
+        const unshift = ({ project, args: new_args }: Interpreter) => {
           if (!yaml?.pkgs.length) {
             pkgs.unshift({ project, constraint: new semver.Range("*") })
           }
@@ -156,17 +157,9 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
             cmd.unshift(...new_args)
           }
         }
-        //FIXME package.ymls should define these behaviors
-        switch (ass.path.extname()) {
-          case ".py": unshift("python.org", "python"); break
-          case ".js": unshift("nodejs.org", "node"); break
-          case ".ts": unshift("deno.land", "deno", "run"); break
-          case ".go": unshift("go.dev", "go", "run"); break
-          case ".pl": unshift("perl.org", "perl"); break
-          case ".rb": unshift("ruby-lang.org", "ruby"); break
-          case ".bash": unshift("gnu.org/bash", "bash", "-e"); break
-          case ".sh": cmd.unshift("sh"); break
-        }
+
+        const interpreter = await usePantry().getInterpreter(ass.path.extname())
+        if (interpreter) unshift(interpreter)
       }
     }
 
