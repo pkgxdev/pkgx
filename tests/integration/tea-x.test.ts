@@ -4,8 +4,14 @@ import { sandbox } from '../utils.ts'
 
 Deno.test("tea -x", async () => {
   await sandbox(async ({ run, tmpdir }) => {
-    tmpdir.join("setup.py").write({ text: "print('hello')" })
-    const out = await run({args: ["--sync", "setup.py"], net: true }).stdout()
+    tmpdir.join("fixture.py").write({ text: "print('hello')" })
+    const out = await run({args: ["--sync", "fixture.py"], net: true }).stdout()
+    assertEquals(out, "hello\n")
+  })
+
+  await sandbox(async ({ run, tmpdir }) => {
+    tmpdir.join("fixture.ts").write({ text: "console.log('hello')" })
+    const out = await run({args: ["--sync", "fixture.ts"], net: true }).stdout()
     assertEquals(out, "hello\n")
   })
 })
@@ -35,11 +41,11 @@ Deno.test("shebangs", async harness => {
         # args: [sh]
         #---
 
-        echo -n "${fuzz}"
+        echo "${fuzz}"
         `
       }).chmod(0o500)
       const out = await run({args: ["--sync", fixture.string], net: true}).stdout()
-      assertEquals(out, fuzz)
+      assertEquals(out.trim(), fuzz)
     })
   })
 })

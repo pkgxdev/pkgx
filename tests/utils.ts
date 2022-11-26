@@ -14,12 +14,24 @@ interface Tea {
 export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
   const TEA_PREFIX = new Path(await Deno.makeTempDir({ prefix: "tea" }))
 
+  const existing_www_cache = Path.home().join(".tea/tea.xyz/var/www")
+  if (existing_www_cache.isDirectory()) {
+    // we're not testing our ISP
+    const to = TEA_PREFIX.join("tea.xyz/var").mkpath().join("www")
+    const proc = Deno.run({cmd: [
+      'ln', '-s', existing_www_cache.string, to.string
+    ]})
+    await proc.status()
+    proc.close()
+  }
+
   const run = ({args, net, env}: Parameters) => {
     const srcroot = Deno.env.get("SRCROOT")
     const cmd = [
       'deno',
       'run',
-      '--allow-env', '--allow-read', '--allow-run'
+      '--allow-env', '--allow-run',
+      '--allow-read'  // required for Deno.execPath() (sigh)
     ]
 
     if (net) cmd.push('--allow-net')
@@ -33,16 +45,9 @@ export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
       HOME
     })
 
-    const existing_www_cache = Path.home().join(".tea/tea.xyz/var/www")
-    if (existing_www_cache.isDirectory()) {
-      // we're not testing our ISP
-      TEA_PREFIX.join("tea.xyz/var").mkpath().join("www").ln('s', {to: existing_www_cache})
-    }
-
     cmd.push(
       '--unstable',
-      //TODO allow read only this prefix too
-      `--allow-write=${TEA_PREFIX}`,
+      `--allow-write=${TEA_PREFIX},${existing_www_cache}`,
       `--import-map=${srcroot}/import-map.json`,
       `${srcroot}/src/app.ts`,
       ...args.map(x => `${x}`)
