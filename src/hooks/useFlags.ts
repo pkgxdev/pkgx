@@ -4,7 +4,6 @@ import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
 import Path from "path"
-import { lstatSync } from "https://deno.land/std@0.165.0/node/fs.ts";
 
 // doing here as this is the only file all our scripts import
 set_tmp(usePrefix().join('tea.xyz/tmp'))
@@ -62,21 +61,14 @@ export type Args = {
 }
 
 export function useArgs(args: string[], arg0: string): [Args, Flags & ConvenienceFlags] {
-  if (flags) throw new Error("contract-violated")
+  if (flags) throw new Error("contract-violated");
 
-  if (lstatSync(arg0).isSymbolicLink()) {
-    const arg0_basename = new Path(arg0).basename()
-    if (arg0_basename != "tea") {
-      args = [...args]  // args is usually the immutable `Deno.args`
-      if (/^tea_([^\/]+)$/.test(arg0_basename)) {
-        //TODO apply non-magic mode
-        const match = arg0_basename.match(/^tea_([^\/]+)$/)!
-        args.unshift("-X", match[1])
-      } else {
-        args.unshift("-X", arg0_basename)
-      }
-    }
-  }
+  (() => {
+    const base = new Path(arg0).isSymlink()?.basename()
+    if (base === undefined || base === "tea") return
+    const match = base.match(/^tea_([^\/]+)$/)
+    args = ["-X", match?.[1] ?? base, ...args]
+  })()
 
   const rv: Args = {
     args: [],
