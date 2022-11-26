@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.14.3
+# tea/cli 0.14.4
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -171,6 +171,10 @@ Type ".help" for more information.
 Typically `tea` uses fully-qualified-names for packages, but we know what
 tools they provide, so as long as you know what tool you’re looking for we can
 figure out the rest.
+
+Notably if you create a symlink of `foo` to `tea` (or `tea_foo`) we will
+interpret that as `tea -X foo [args…]`, yet another way using `tea` can be
+completely transparent to your everyday workflows.
 
 > ### Coming Soon
 >
