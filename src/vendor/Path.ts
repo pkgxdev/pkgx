@@ -311,6 +311,7 @@ export default class Path {
   }
 
   /// creates a symlink of `from` aliased as a relative path `to`, relative to directory `this`
+  //TODO deprecate
   async symlink({from, to, force}: { from: Path, to: Path, force?: boolean }): Promise<Path> {
     // NOTE that we use Deno.run as there is no other way in Deno currently to create
     // relative symlinks. Also Deno.symlink requires full write permissions for no reason that I understand.
@@ -327,6 +328,12 @@ export default class Path {
 
     if (status.code != 0) throw new Error(`failed: cd ${this} && ln -sf ${src} ${dst}`)
 
+    return to
+  }
+
+  /// creates a symlink from `this` to `to`
+  ln(_: 's', {to}: { to: Path }): Path {
+    Deno.symlinkSync(this.string, to.string)
     return to
   }
 
