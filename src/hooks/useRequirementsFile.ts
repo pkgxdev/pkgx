@@ -24,19 +24,14 @@ export default function useRequirementsFile(file: Path): Promise<RequirementsFil
   }
 }
 
-//TODO is this the config version or the project version?
-//TODO what version should this be??
-const CURRENT_CONFIG_VERSION = "1.0.0" as const
-
 type configFile = {
-  version: typeof CURRENT_CONFIG_VERSION,
+  version: string,
   tea: {
     dependencies: Record<string, string>
   }
 }
 
 function config_file_is_valid(config: unknown, errorString: string): config is configFile {
-  console.log("checking config file:", config)
   //TODO should we check for version in here?
   const presumedConfig = config as configFile
   if(!presumedConfig) return false
@@ -46,7 +41,6 @@ function config_file_is_valid(config: unknown, errorString: string): config is c
   if(!presumedConfig.tea.dependencies) return false
   if(!isPlainObject(presumedConfig.tea.dependencies))
     throw Error(`Bad ${errorString}, key: \`tea.dependencies\` is not a valid object.`)
-  console.log("config is valid")
   return true
 }
 
@@ -62,7 +56,7 @@ async function config_file(path: Path, candidateType: RequirementsCandidateType)
   const config = await parse_config(path, candidateType)
   if(!config) return undefined
   const requirements = parsePackageRequirements(config.tea.dependencies)
-  const version = new SemVer(config.version)
+  const version = config.version ? new SemVer(config.version) : undefined
   return { file: path, pkgs: requirements ?? [], version }
 }
 
@@ -73,7 +67,6 @@ function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
     if (included.has(project)) throw new Error(`duplicate-constraint:${project}`)
     const rq: PackageRequirement = { project, constraint: new semver.Range(v.toString()) }
     rv.push(rq)
-    console.verbose({ found: rq })
   }
   return rv
 }

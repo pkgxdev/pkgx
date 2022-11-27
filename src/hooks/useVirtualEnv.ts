@@ -43,22 +43,20 @@ export default async function useVirtualEnv(opts?: { cwd: Path }): Promise<Virtu
   const files: RequirementsFile[] = await (async () => {
     const rv: RequirementsFile[] = []
     const basenames = buildRequirementsCandidates()
-    console.log("VALID FILES " + basenames + " //////")
     for (const basename of basenames) {
       const path = srcroot.join(basename).isFile()
       if (!path) continue
-        console.log("found:", path)
       const rf = await useRequirementsFile(path)
       if (rf) rv.push(rf)
     }
     return rv
   })()
 
+
   if (files.length < 1) throw new TeaError("not-found: virtual-env", ctx)
 
   //TODO would it be better to test the readme for a deps table if it exists?
   const { file, version } = files.find(x => /^tea.ya?ml$/.test(x.file.basename())) ?? files.find(x => x.file.basename() == "README.md") ?? files[0]
-  console.log("FILE " + file + "//////////")
   const pkgs = files.flatMap(x => x.pkgs)
 
   //TODO magic deps should not conflict with requirements files deps
