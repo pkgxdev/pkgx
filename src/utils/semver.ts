@@ -257,7 +257,10 @@ export function intersect(a: Range, b: Range): Range {
 
   if (set.length <= 0) throw new Error(`cannot intersect: ${a} && ${b}`)
 
-  return new Range(set.map(([v1, v2]) => `>=${chomp(v1)}<${chomp(v2)}`).join(","))
+  return new Range(set.map(([v1, v2]) =>
+    v2.major == Infinity
+      ? `>=${chomp(v1)}`
+      : `>=${chomp(v1)}<${chomp(v2)}`).join(","))
 }
 
 
