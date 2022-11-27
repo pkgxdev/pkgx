@@ -91,7 +91,7 @@ export default class TeaError extends Error {
       msg = undent`
         pantry entry invalid. please report this bug!
 
-            https://github.com/teaxyz/pantry.code/issues/new
+            https://github.com/teaxyz/pantry.core/issues/new
         `
       break
     case 'not-found: virtual-env':
