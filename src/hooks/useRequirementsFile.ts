@@ -18,9 +18,11 @@ export default function useRequirementsFile(file: Path): Promise<RequirementsFil
   const cType = candidateType(file.basename() as RequirementsCandidate)
   switch(cType) {
     case RequirementsCandidateType.TEA_YAML: 
-    case RequirementsCandidateType.PACKAGE_JSON: return config_file(file, cType)
+    case RequirementsCandidateType.PACKAGE_JSON:
+      return config_file(file, cType)
     case RequirementsCandidateType.README:    
-    default:  return markdown(file)
+    default:
+      return markdown(file)
   }
 }
 
@@ -31,12 +33,18 @@ type configFile = {
   }
 }
 
+function is_valid_semver_string(ver: string) {
+  return /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/.test(ver)
+}
+
 function config_file_is_valid(config: unknown, errorString: string): config is configFile {
   const presumedConfig = config as configFile
   if(!presumedConfig) return false
-  //TODO swap string check for a semver regex test
-  if(presumedConfig.version && typeof presumedConfig.version !== 'string')
-    throw Error(`Bad ${errorString}, key \`version\` is not a valid string`)
+  if(
+    presumedConfig.version &&
+    typeof presumedConfig.version !== 'string' &&
+    is_valid_semver_string(presumedConfig.version)
+  ) throw Error(`Bad ${errorString}, key \`version\` is not a valid semver string`)
   if(!presumedConfig.tea) return false
   if(!isPlainObject(presumedConfig.tea))
     throw Error(`Bad ${errorString}, key: \`tea\` is not a valid object.`)
