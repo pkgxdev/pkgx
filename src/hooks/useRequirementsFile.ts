@@ -32,9 +32,11 @@ type configFile = {
 }
 
 function config_file_is_valid(config: unknown, errorString: string): config is configFile {
-  //TODO should we check for version in here?
   const presumedConfig = config as configFile
   if(!presumedConfig) return false
+  //TODO swap string check for a semver regex test
+  if(presumedConfig.version && typeof presumedConfig.version !== 'string')
+    throw Error(`Bad ${errorString}, key \`version\` is not a valid string`)
   if(!presumedConfig.tea) return false
   if(!isPlainObject(presumedConfig.tea))
     throw Error(`Bad ${errorString}, key: \`tea\` is not a valid object.`)
