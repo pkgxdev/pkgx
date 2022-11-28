@@ -112,7 +112,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
 
     const cmd = [arg0, ...ass.args]
 
-    await run({cmd, env, useSandboxExec: true})
+    await run({cmd, env, useSandboxExec: false})
 
   } break
 
@@ -168,7 +168,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     supp(env, blueprint)
     if (yaml?.env) Object.assign(env, yaml.env)  // explicit YAML-FM env takes precedence
 
-    await run({ cmd, env, useSandboxExec: true })
+    await run({ cmd, env, useSandboxExec: false })
 
   } break
 
@@ -182,7 +182,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     }
     const { env } = await install(pkgs)
     supp(env, blueprint)
-    await run({ cmd: ass.args, env, useSandboxExec: true })
+    await run({ cmd: ass.args, env, useSandboxExec: false })
   }}
 }
 
