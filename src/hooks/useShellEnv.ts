@@ -1,7 +1,7 @@
 import { Installation, PackageSpecification } from "types"
 import { OrderedHashSet } from "rimbu/ordered/set/index.ts"
 import { host } from "utils"
-import { usePrefix } from "hooks"
+import { usePrefix, usePantry } from "hooks"
 import Path from "path"
 
 // returns an environment that supports the provided packages
@@ -31,7 +31,9 @@ interface Options {
   pristine?: boolean
 }
 
-export default function useShellEnv({installations, pending, pristine}: Options): Record<string, string[]> {
+export default async function useShellEnv({installations, pending, pristine}: Options): Promise<Record<string, string[]>> {
+  const {getRuntimeEnvironment} = usePantry()
+
   const vars: Record<string, OrderedHashSet<string>> = {}
   const isMac = host().platform == 'darwin'
   pending ??= []
@@ -39,6 +41,8 @@ export default function useShellEnv({installations, pending, pristine}: Options)
   const projects = new Set([...installations.map(x => x.pkg.project), ...pending.map(x=>x.project)])
   const has_cmake = projects.has('cmake.org')
   const archaic = true
+
+  const rv: Record<string, string[]> = {}
 
   for (const installation of installations) {
     for (const key of EnvKeys) {
@@ -80,6 +84,13 @@ export default function useShellEnv({installations, pending, pristine}: Options)
     if (installation.pkg.project === 'npmjs.com') {
       vars.npm_config_prefix = OrderedHashSet.of(installation.path.string)
     }
+
+    // pantry configured runtime environment
+    const runtime = await getRuntimeEnvironment(installation.pkg)
+    for (const key in runtime) {
+        rv[key] ??= []
+        rv[key].push(runtime[key])
+    }
   }
 
    // this is how we use precise versions of libraries
@@ -95,7 +106,6 @@ export default function useShellEnv({installations, pending, pristine}: Options)
   }
 
   //FIXME refactor lol
-  const rv: Record<string, string[]> = {}
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
     if (!vars[key] || vars[key].isEmpty) continue

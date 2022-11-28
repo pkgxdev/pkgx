@@ -383,6 +383,6 @@ async function install(pkgs: PackageSpecification[]): Promise<{ env: Record<stri
     await link(install)
     installed.push(install)
   }
-  const env = useShellEnv({ installations: installed })
+  const env = await useShellEnv({ installations: installed })
   return { env: flatten(env), installed }
 }

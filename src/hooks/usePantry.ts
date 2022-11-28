@@ -31,6 +31,7 @@ export default function usePantry() {
     getProvides,
     getYAML,
     getInterpreter,
+    getRuntimeEnvironment,
     resolve,
     ls,
     prefix
@@ -183,6 +184,11 @@ const getInterpreter = async (_extension: string): Promise<Interpreter | undefin
     }
   }
   return undefined
+}
+
+const getRuntimeEnvironment = async (pkg: {project: string}): Promise<Record<string, string>> => {
+  const yml = await entry(pkg).yml()
+  return yml["runtime"]?.["env"] ?? {}
 }
 
 // deno-lint-ignore no-explicit-any
