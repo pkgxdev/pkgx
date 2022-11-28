@@ -112,7 +112,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
 
     const cmd = [arg0, ...ass.args]
 
-    await run({cmd, env})
+    await run({cmd, env, useSandboxExec: true})
 
   } break
 
@@ -168,7 +168,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     supp(env, blueprint)
     if (yaml?.env) Object.assign(env, yaml.env)  // explicit YAML-FM env takes precedence
 
-    await run({ cmd, env })
+    await run({ cmd, env, useSandboxExec: true })
 
   } break
 
@@ -182,7 +182,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     }
     const { env } = await install(pkgs)
     supp(env, blueprint)
-    await run({ cmd: ass.args, env })
+    await run({ cmd: ass.args, env, useSandboxExec: true })
   }}
 }
 
@@ -316,7 +316,7 @@ async function repl(installations: Installation[], env: Record<string, string>) 
   }
 
   try {
-    await run({ cmd, env })
+    await run({ cmd, env, useSandboxExec: true })
   } catch (err) {
     if (err instanceof RunError) {
       Deno.exit(err.code)

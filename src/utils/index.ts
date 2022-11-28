@@ -200,12 +200,15 @@ export { Unarchiver, TarballUnarchiver, ZipUnarchiver }
 
 ////////////////////////////////////////////////////////////////////////// run
 import Path from "path"
+import { host as utilsHost } from "utils"
+import {sandboxExecCmd} from './sandbox.ts'
 
 export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'stderr'> {
   cmd: (string | Path)[] | Path
   cwd?: (string | Path)
   clearEnv?: boolean  //NOTE might not be cross platform!
   spin?: boolean  // hide output unless an error occurs
+  useSandboxExec?: boolean // Allow usage of sandbox-exec if on darwin
 }
 
 export class RunError extends Error {
@@ -226,12 +229,16 @@ export async function run({ spin, ...opts }: RunOptions) {
     stdio.stderr = stdio.stdout = 'piped'
   }
 
+  const { platform } = utilsHost()
+  const useMacSandbox = platform == 'darwin' && opts?.useSandboxExec && opts.env?.["TEA_PREFIX"]
+  const runCmd = useMacSandbox ? await sandboxExecCmd(cmd, opts.env?.["TEA_PREFIX"] as string) : cmd
+
   let proc: Deno.Process | undefined
   try {
-    proc = Deno.run({ ...opts, cmd, cwd, ...stdio })
+    proc = Deno.run({ ...opts, cmd: runCmd, cwd, ...stdio })
     const exit = await proc.status()
     console.verbose({ exit })
-    if (!exit.success) throw new RunError(exit.code, cmd)
+    if (!exit.success) throw new RunError(exit.code, runCmd)
   } catch (err) {
     if (spin && proc) {
       //FIXME this doesn’t result in the output being correctly interlaced
@@ -240,7 +247,7 @@ export async function run({ spin, ...opts }: RunOptions) {
       console.error(decode(await proc.output()))
       console.error(decode(await proc.stderrOutput()))
     }
-    err.cmd = cmd  // help us out since deno-devs don’t want to
+    err.cmd = runCmd  // help us out since deno-devs don’t want to
     throw err
   }
 }
