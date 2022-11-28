@@ -125,7 +125,7 @@ export default async function dump(args: Args) {
     await print(unsetEnv("VERSION"))
   }
 
-  const env = useShellEnv({installations, pending, pristine: true})
+  const env = await useShellEnv({installations, pending, pristine: true})
 
   //TODO if PATH is the same as the current PATH maybe don't do it
   // though that makes the behavior of --env --dump very specific
