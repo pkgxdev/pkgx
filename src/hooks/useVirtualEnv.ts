@@ -65,7 +65,12 @@ export default async function useVirtualEnv(opts?: { cwd: Path }): Promise<Virtu
 
   if (files.length < 1) throw new TeaError("not-found: virtual-env", ctx)
 
-  const { file, version } = files.find(x => x.file.basename() == "README.md") ?? files[0]
+  const { file, version: req_version } = files.find(x => x.file.basename() == "README.md") ?? files[0]
+
+  const version_file = srcroot.join("VERSION").isFile()
+
+  const version = version_file ? semver.parse(await version_file.read()) ?? req_version : req_version
+
   const pkgs = files.flatMap(x => x.pkgs)
 
   //TODO magic deps should not conflict with requirements files deps
