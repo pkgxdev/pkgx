@@ -957,6 +957,5 @@ of software.
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [white-paper]: ../../../white-paper
-[tea.xyz]: https://tea.xyz
 [`brew`]: https://brew.sh
 [charm]: https://charm.sh

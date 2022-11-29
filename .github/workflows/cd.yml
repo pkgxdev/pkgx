@@ -15,7 +15,6 @@ concurrency:
 
 env:
   VERBOSE: 1
-  TEA_SECRET: ${{ secrets.TEA_SECRET }}
 
 jobs:
   check:
@@ -99,6 +98,12 @@ jobs:
           name: tarballs
           path: tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
           if-no-files-found: error
+      - run: mv ./tea tea-${{ matrix.platform.build-id }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: tea-${{ matrix.platform.build-id }}
+          if-no-files-found: error
 
   bundle-src:
     runs-on: ubuntu-latest
@@ -145,3 +150,28 @@ jobs:
           tag_name: ${{ env.TAG }}
           files: artifacts/*
           fail_on_unmatched_files: true
+
+  upload-binaries:
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: binaries
+          path: binaries
+      - name: AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload to S3
+        run: |
+          aws s3 sync binaries s3://www.tea.xyz/ \
+            --metadata-directive REPLACE \
+            --cache-control no-cache,must-revalidate
+      - name: Invalidate cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }} \
+            --paths /binaries/*
