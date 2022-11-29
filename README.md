@@ -729,7 +729,8 @@ lookups.
 
 ## How do I find available packages?
 
-We list all packages at [tea.xyz]. Or `open ~/.tea/tea.xyz/var/pantry`. We
+We list all packages at [tea.xyz](https://tea.xyz/+/).
+Or `open ~/.tea/tea.xyz/var/pantry`. We
 agree this is not great UX.
 
 ## What are you doing to my computer?
