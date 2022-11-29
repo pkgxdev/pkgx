@@ -336,6 +336,12 @@ sh <(curl https://tea.xyz)
 # • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
 
+> <details><summary><i>Click here for a preview gif…</i></summary>
+>
+> ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
+>
+> </details>
+
 > † if you want tea’s virtual environment manager functionality, the installer
 > is the easiest way.
 
