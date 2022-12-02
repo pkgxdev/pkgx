@@ -376,22 +376,22 @@ As a bonus, the installer also updates tea.
 
 ## *Now see here fella’, I \*hate\* installers…*
 
-We get it! *We hate installers*. That’s why we package everything!
-If you don’t want it, then we fully support you in that.
+Us too! *That’s why we package everything!*
 
 > <details><summary><i>Installing Without the Installer</i></summary><br>
 >
 > We got options, pick one:
 >
-> * Download from [releases]†
-> * `curl dist.tea.xyz` for a *plain/text* listing of binary downloads
-> * Or there’s this fancy one-liner:
->         sudo install -m 755 <(curl -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
->
-> > † On macOS you will probably need to unquarantine the binary:
-> > ```sh
-> > $ xattr -d com.apple.quarantine ./tea
-> > ```
+> * Grab the latest from our [releases]. On macOS you’ll have to unquarantine the binary:
+>   ```sh
+>   $ xattr -d com.apple.quarantine ./tea
+>   ```
+> * ```sh
+>   $ curl dist.tea.xyz  # outputs a *plain/text* listing of binary downloads
+>   ```
+> * ```sh
+>   $ sudo install -m 755 <(curl --compressed -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
+>   ```
 >
 > You can try it out from the download location, but you will probably want to
 > move it to `/usr/local/bin` or another directory in your `PATH` if you want
@@ -408,7 +408,8 @@ If you don’t want it, then we fully support you in that.
 >
 > If this sourcery seems a bit much, you can just use tea as an interpreter
 > instead. eg. `tea npm start` will execute the correct `npm` for your
-> environment.
+> environment. Also, you can always open a new shell with the environment with
+> `tea sh`.
 >
 > </details>
 
