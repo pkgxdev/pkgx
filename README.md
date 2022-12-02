@@ -390,7 +390,7 @@ Us too! *That’s why we wrote a package manager!*
 >   ```
 > * Or if you want to get fancy there’s this:
 >   ```sh
->   $ sudo install -m 755 <(curl --compressed -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
+>   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
 >
 > Our (optional) virtual environment manager functionality needs a shell hook
