@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.14.5
+# tea/cli 0.15.0
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -327,7 +327,7 @@ Check out [teaxyz/setup] for all that you can do with our GitHub Action.
 # Getting Started
 
 tea is a standalone binary so, if you like, you can just download it
-yourself. For a little more magic†, however, we recommend our installer:
+yourself†. For a little more magic‡, however, we recommend our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
@@ -335,14 +335,18 @@ sh <(curl https://tea.xyz)
 # • asks you to confirm before adding one line to your `~/.shellrc`
 # • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
-
 > <details><summary><i>Click here for a preview gif…</i></summary>
 >
 > ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
 >
 > </details>
 
-> † if you want tea’s virtual environment manager functionality, the installer
+> † so… we think this is pretty cool:
+> ```sh
+> $ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
+> $ ./tea --help
+
+> ‡ if you want tea’s virtual environment manager functionality, the installer
 > is the easiest way.
 
 In fact, the tea one-liner abstracts away installation:
