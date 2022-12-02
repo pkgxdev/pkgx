@@ -47,21 +47,23 @@ jobs:
       - run: tea --cd cli typecheck
       - run: tea --cd pantry typecheck  # check we didn’t break the pantry
 
-  # test executable markdown on own repo
-  test-markdown:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-      # execute run target from https://github.com/teaxyz/cli/blob/main/README.md#run
-      # using "external `tea`", which will execute "`tea` from source", passing '.' to it
-      # passing '.' to "`tea` from source" makes it build default README.md target
-      - run: tea run .
+  # disabled until exe/md supports stripping `$`
+  # test-exe-md:
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os:
+  #         - macos-latest
+  #         - ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         repo: teaxyz/www
+  #     - uses: teaxyz/setup@v0
+  #     # execute run target from https://github.com/teaxyz/cli/blob/main/README.md#run
+  #     # using "external `tea`", which will execute "`tea` from source", passing '.' to it
+  #     # passing '.' to "`tea` from source" makes it build default README.md target
+  #     - run: tea run .
 
   # in stuations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
