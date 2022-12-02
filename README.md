@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.14.5
+# tea/cli 0.15.0
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -326,24 +326,29 @@ Check out [teaxyz/setup] for all that you can do with our GitHub Action.
 
 # Getting Started
 
-tea is a standalone binary so, if you like, you can just download it
-yourself. For a little more magic†, however, we recommend our installer:
+tea is a standalone binary. Grab it from [releases] or `curl` it:
+
+```sh
+$ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
+$ chmod u+x ./tea
+
+$ echo '# tea *really is* a standalone binary' | ./tea -X glow -
+```
+
+However, we recommend our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
-# • asks you to confirm before it sets tea up in `~/.tea`
+# • asks you to confirm before it sets up `~/.tea`
 # • asks you to confirm before adding one line to your `~/.shellrc`
 # • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
 
-> <details><summary><i>Click here for a preview gif…</i></summary>
->
-> ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
->
-> </details>
+<details><summary><code>`preview.gif`</code></summary>
 
-> † if you want tea’s virtual environment manager functionality, the installer
-> is the easiest way.
+![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
+
+</details>
 
 In fact, the tea one-liner abstracts away installation:
 
@@ -358,47 +363,42 @@ $ tea https://examples.deno.land/color-logging.ts
 # sandbox and runs everything in there
 ```
 
-Now in your blog posts, tweets and tutorials you don’t have to start
-with any “how to install tea” preamble nor will they need to google anything.
-If they want to learn about tea first they can go to the same URL as they’re
-curl’ing. We already work on Linux, macOS, and WSL; soon we’ll support Windows
-natively.
+> Now in your blog posts, tweets and tutorials you don’t have to start
+> with any “how to install tea” preamble nor will they need to google anything.
+> If they want to learn about tea first they can go to the same URL as they’re
+> curl’ing. We already work on Linux, macOS, and WSL; soon we’ll support Windows
+> natively.
 
-As a bonus, the installer also updates tea.
+As a bonus the installer also updates tea.
 
 ## *Now see here fella’, I \*hate\* installers…*
 
-We get it! *We hate installers*. That’s why we package everything!
-If you don’t want it, then we fully support you in that.
+Us too! *That’s why we wrote a package manager!*
 
-> <details><summary><i>Installing Without the Installer</i></summary><br>
+> <details><summary><i>Installing without the installer</i></summary><br>
 >
-> `tea` is a single binary that you can [install yourself][releases].
-> If you prefer `curl dist.tea.xyz` for a *plain/text* listing of binary
-> downloads for all platforms.
+> Pick *one* of these:
 >
-> On macOS you will probably need to unquarantine the binary:
+> * Grab the latest [release][releases] with your browser. On macOS you’ll
+>   have to unquarantine the binary:
+>   ```sh
+>   $ xattr -d com.apple.quarantine ./tea
+>   ```
+> * Or get a plain text listing of binary downloads:
+>   ```sh
+>   $ curl dist.tea.xyz   # pick your platform and `curl` it
+>   ```
+> * Or if you want to get fancy there’s this:
+>   ```sh
+>   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
+>   ```
 >
-> ```sh
-> $ xattr -d com.apple.quarantine ./tea
-> ```
->
-> You can try it out from the download location, but you will probably want to
-> move it to `/usr/local/bin` or another directory in your `PATH` if you want
-> to “install” it.
->
-> Now `tea`’s installed you can omit any instance of `sh <(curl tea.xyz)` and
-> instead use your locally installed copy of `tea`.
->
-> Our (optional) magic `PATH` restructuring requires a hook in your `~/.zshrc`:
+> Our (optional) virtual environment manager functionality needs a shell hook
+> in the relevant `.rc` file:
 >
 > ```sh
 > add-zsh-hook -Uz chpwd(){ source <(tea -Eds) }
 > ```
->
-> If this sourcery seems a bit much, you can just use tea as an interpreter
-> instead. eg. `tea npm start` will execute the correct `npm` for your
-> environment.
 >
 > </details>
 
@@ -481,11 +481,13 @@ etc. so other tools can find your dependencies. We provide other variables for
 convenience too, like `GITHUB_SLUG` (extracted from your `git remote`) which
 can be surprisingly useful to automation scripts.
 
-These variables are also available to tea Scripts.
+These variables are also available to “tea Scripts”.
 
 > Our shell magic controls this feature, if you don’t want to add our
 > one-liner to your shell rc then you can just `tea sh` in your project
 > directory to get the same effect—albeit more laboriously.
+>
+> Or you can run tools directly with eg. `tea foo`
 
 &nbsp;
 
@@ -820,15 +822,17 @@ If you got this error message, you need to install tea:
 We don’t aim to replace `brew`, we see our offerings as somewhat
 complementary. Still where we have overlapping features:
 
-* tea doesn’t require you install the Xcode Command Line Tools
+* tea supports more platforms
+* tea is transparently cross-platform in usage
 * tea packages are relocatable
-* tea aims to be as zippy as possible in all usage
+* tea aims to be zippy and stay zippy
 * tea doesn’t make global changes to your system
+* tea doesn’t require you install the Xcode Command Line Tools
 * tea aims to enhance the way you work, rather than impose the way you work
 * tea installs independently for every user on the machine
 * tea is somewhat decentralized and aims to be completely decentralized
-* tea is a small series of tight, easy-to-understand codebases
-* tea starts building new releases for tools almost immediately
+* tea is a handful of tight, easy-to-understand codebases
+* tea starts building new releases for tools almost instantly
 * tea’s packages are named in a fully-qualified manner
 * tea’s philosophy is user-first and not tea-maintainer-first
 
