@@ -375,7 +375,7 @@ As a bonus the installer also updates tea.
 
 Us too! *That’s why we wrote a package manager!*
 
-> <details><summary><i>Installing Without the Installer</i></summary><br>
+> <details><summary><i>Installing without the installer</i></summary><br>
 >
 > Pick *one* of these:
 >
