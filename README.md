@@ -363,13 +363,13 @@ $ tea https://examples.deno.land/color-logging.ts
 # sandbox and runs everything in there
 ```
 
-Now in your blog posts, tweets and tutorials you don’t have to start
-with any “how to install tea” preamble nor will they need to google anything.
-If they want to learn about tea first they can go to the same URL as they’re
-curl’ing. We already work on Linux, macOS, and WSL; soon we’ll support Windows
-natively.
+> Now in your blog posts, tweets and tutorials you don’t have to start
+> with any “how to install tea” preamble nor will they need to google anything.
+> If they want to learn about tea first they can go to the same URL as they’re
+> curl’ing. We already work on Linux, macOS, and WSL; soon we’ll support Windows
+> natively.
 
-As a bonus, the installer also updates tea.
+As a bonus the installer also updates tea.
 
 ## *Now see here fella’, I \*hate\* installers…*
 
