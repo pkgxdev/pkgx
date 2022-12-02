@@ -381,14 +381,19 @@ Us too! *That’s why we wrote a package manager!*
 >
 > * Grab the latest [release][releases] with your browser. On macOS you’ll
 >   have to unquarantine the binary:
+>
 >   ```sh
 >   $ xattr -d com.apple.quarantine ./tea
 >   ```
+>
 > * Or get a plain text listing of binary downloads:
+>
 >   ```sh
 >   $ curl dist.tea.xyz   # pick your platform and `curl` it
 >   ```
+>
 > * Or if you want to get fancy there’s this:
+>
 >   ```sh
 >   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
