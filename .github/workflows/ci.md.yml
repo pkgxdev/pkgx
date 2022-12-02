@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     paths:
-      - '**/*.md'
+      - '**.md'
 
 concurrency:
   group: ${{ github.ref }}
