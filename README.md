@@ -42,6 +42,15 @@ All you need is `tea`.
 
 &nbsp;
 
+### Other related and important repositories
+
+tea requires a decentralized package registry. Our pantries are our tentative first step towards that goal. 
+Learn more about contributing a package and our pantries in the repositories below:
+
+- [pantry.zero](https://github.com/teaxyz/pantry.zero): the root of all pantries
+- [pantry.core](https://github.com/teaxyz/pantry.core): the most essential open source packages in the world
+- [pantry.extra](https://github.com/teaxyz/pantry.extra): all other open source packages; _please contribute new packages here_.
+
 
 # tea/cli 0.14.5
 
