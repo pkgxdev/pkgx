@@ -821,6 +821,7 @@ We don’t aim to replace `brew`, we see our offerings as somewhat
 complementary. Still where we have overlapping features:
 
 * tea supports more platforms
+* tea is transparently cross-platform in usage
 * tea packages are relocatable
 * tea aims to be zippy and stay zippy
 * tea doesn’t make global changes to your system
