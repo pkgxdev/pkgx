@@ -386,7 +386,7 @@ Us too! *That’s why we wrote a package manager!*
 >   ```
 > * Or get a plain text listing of binary downloads:
 >   ```sh
->   $ curl dist.tea.xyz   # pick your platform from the options and `curl` it
+>   $ curl dist.tea.xyz   # pick your platform and `curl` it
 >   ```
 > * Or if you want to get fancy there’s this:
 >   ```sh
@@ -820,15 +820,16 @@ If you got this error message, you need to install tea:
 We don’t aim to replace `brew`, we see our offerings as somewhat
 complementary. Still where we have overlapping features:
 
-* tea doesn’t require you install the Xcode Command Line Tools
+* tea supports more platforms
 * tea packages are relocatable
-* tea aims to be as zippy as possible in all usage
+* tea aims to be zippy and stay zippy
 * tea doesn’t make global changes to your system
+* tea doesn’t require you install the Xcode Command Line Tools
 * tea aims to enhance the way you work, rather than impose the way you work
 * tea installs independently for every user on the machine
 * tea is somewhat decentralized and aims to be completely decentralized
-* tea is a small series of tight, easy-to-understand codebases
-* tea starts building new releases for tools almost immediately
+* tea is a handful of tight, easy-to-understand codebases
+* tea starts building new releases for tools almost instantly
 * tea’s packages are named in a fully-qualified manner
 * tea’s philosophy is user-first and not tea-maintainer-first
 
