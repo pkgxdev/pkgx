@@ -344,7 +344,7 @@ sh <(curl https://tea.xyz)
 # • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
 
-> <details><summary><i>`.gif` of that</i></summary>
+> <details><summary><code>`preview.gif`</code></summary>
 >
 > ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
 >
