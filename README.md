@@ -1,8 +1,27 @@
 ![tea](https://tea.xyz/banner.png)
 
-tea is not a package manager.
+<h1 align="center">tea/<strong>cli</strong></h1>
+<p align="center">
+  tea is a decentralized, unified package manager that puts the entire open source ecosystem at your fingertips – no matter which stack.
+</p>
 
-*tea is unified packaging infrastructure*.
+<p align="center">
+  <a href="#">
+    <img src="https://img.shields.io/github/v/release/teaxyz/cli?label=version" alt="Version" />
+  </a>
+  <a href="https://github.com/teaxyz/cli/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/teaxyz/cli?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="#introduction"><strong>Introduction</strong></a> ·
+  <a href="#getting-started"><strong>Getting Started</strong></a> ·
+  <a href="#contributing"><strong>Contributing</strong></a>
+</p>
+&nbsp;
+
+# Introduction 
 
 From the creator of [`brew`], tea is a standalone, binary download for all
 platforms that puts the entire open
