@@ -481,11 +481,13 @@ etc. so other tools can find your dependencies. We provide other variables for
 convenience too, like `GITHUB_SLUG` (extracted from your `git remote`) which
 can be surprisingly useful to automation scripts.
 
-These variables are also available to tea Scripts.
+These variables are also available to “tea Scripts”.
 
 > Our shell magic controls this feature, if you don’t want to add our
 > one-liner to your shell rc then you can just `tea sh` in your project
 > directory to get the same effect—albeit more laboriously.
+>
+> Or you can run tools directly with eg. `tea foo`
 
 &nbsp;
 
