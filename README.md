@@ -330,7 +330,6 @@ tea is a standalone binary. Grab it from [releases] or `curl` it:
 
 ```sh
 $ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
-curl: downloaded ./tea
 $ chmod +x ./tea
 
 $ echo '# tea *really is* a standalone binary' | ./tea -X glow -
