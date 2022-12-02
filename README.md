@@ -377,7 +377,7 @@ Us too! *That’s why we wrote a package manager!*
 
 > <details><summary><i>Installing without the installer</i></summary><br>
 >
-> Pick *one* of these:
+> Take your pick:
 >
 > * Grab the latest [release][releases] with your browser. On macOS you’ll
 >   have to unquarantine the binary:
