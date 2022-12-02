@@ -326,8 +326,17 @@ Check out [teaxyz/setup] for all that you can do with our GitHub Action.
 
 # Getting Started
 
-tea is a standalone binary so, if you like, you can just download it
-yourself†. For a little more magic‡, however, we recommend our installer:
+tea is a standalone binary. Grab it from [releases] or `curl` it:
+
+```sh
+$ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
+curl: downloaded ./tea
+$ chmod +x ./tea
+
+$ echo '# tea *really is* a standalone binary' | ./tea -X glow -
+```
+
+However, for a little more magic‡, we recommend our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
@@ -340,11 +349,6 @@ sh <(curl https://tea.xyz)
 > ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
 >
 > </details>
-
-> † so… we think this is pretty cool:
-> ```sh
-> $ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
-> $ ./tea --help
 
 > ‡ if you want tea’s virtual environment manager functionality, the installer
 > is the easiest way.
@@ -377,9 +381,10 @@ If you don’t want it, then we fully support you in that.
 
 > <details><summary><i>Installing Without the Installer</i></summary><br>
 >
-> `tea` is a single binary that you can [install yourself][releases].
-> If you prefer `curl dist.tea.xyz` for a *plain/text* listing of binary
-> downloads for all platforms.
+> * Download from [releases].
+> * `curl dist.tea.xyz` for a *plain/text* listing of binary downloads
+> * Or there’s this fancy one-liner:
+>       sudo install -m 755 <(curl -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >
 > On macOS you will probably need to unquarantine the binary:
 >
