@@ -2,7 +2,7 @@
 import useRequirementsFile, { RequirementsFile } from "./useRequirementsFile.ts"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
-import { TeaError } from "utils"
+import { flatmap, TeaError } from "utils"
 import { useFlags } from "hooks"
 import Path from "path"
 
@@ -65,11 +65,9 @@ export default async function useVirtualEnv(opts?: { cwd: Path }): Promise<Virtu
 
   if (files.length < 1) throw new TeaError("not-found: virtual-env", ctx)
 
-  const { file, version: req_version } = files.find(x => x.file.basename() == "README.md") ?? files[0]
+  const { file, version: version_README } = files.find(x => x.file.basename() == "README.md") ?? files[0]
 
-  const version_file = srcroot.join("VERSION").isFile()
-
-  const version = version_file ? semver.parse(await version_file.read()) ?? req_version : req_version
+  const version = flatmap(srcroot.join("VERSION").isFile(), x => semver.parse(x.string)) ?? version_README
 
   const pkgs = files.flatMap(x => x.pkgs)
 
