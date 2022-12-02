@@ -381,16 +381,17 @@ If you don’t want it, then we fully support you in that.
 
 > <details><summary><i>Installing Without the Installer</i></summary><br>
 >
-> * Download from [releases].
+> We got options, pick one:
+>
+> * Download from [releases]†
 > * `curl dist.tea.xyz` for a *plain/text* listing of binary downloads
 > * Or there’s this fancy one-liner:
->       sudo install -m 755 <(curl -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
+>         sudo install -m 755 <(curl -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >
-> On macOS you will probably need to unquarantine the binary:
->
-> ```sh
-> $ xattr -d com.apple.quarantine ./tea
-> ```
+> > † On macOS you will probably need to unquarantine the binary:
+> > ```sh
+> > $ xattr -d com.apple.quarantine ./tea
+> > ```
 >
 > You can try it out from the download location, but you will probably want to
 > move it to `/usr/local/bin` or another directory in your `PATH` if you want
