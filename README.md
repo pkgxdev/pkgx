@@ -330,7 +330,7 @@ tea is a standalone binary. Grab it from [releases] or `curl` it:
 
 ```sh
 $ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
-$ chmod +x ./tea
+$ chmod u+x ./tea
 
 $ echo '# tea *really is* a standalone binary' | ./tea -X glow -
 ```
@@ -385,9 +385,11 @@ Us too! *That’s why we package everything!*
 >   ```sh
 >   $ xattr -d com.apple.quarantine ./tea
 >   ```
+>
 > * ```sh
 >   $ curl dist.tea.xyz  # outputs a *plain/text* listing of binary downloads
 >   ```
+>
 > * ```sh
 >   $ sudo install -m 755 <(curl --compressed -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
