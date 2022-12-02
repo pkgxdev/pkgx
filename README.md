@@ -393,8 +393,8 @@ Us too! *That’s why we wrote a package manager!*
 >   $ sudo install -m 755 <(curl --compressed -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
 >
-> Our (optional) virtual environment manager functionality requires a shell
-> hook in your shell’s `.rc` file:
+> Our (optional) virtual environment manager functionality needs a shell hook
+> in the relevant `.rc` file:
 >
 > ```sh
 > add-zsh-hook -Uz chpwd(){ source <(tea -Eds) }
