@@ -6,7 +6,7 @@ on:
       - '**.md'
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.ref }}/md
   cancel-in-progress: true
 
 jobs:
