@@ -477,7 +477,7 @@ context:
 
 | Variable  | Description                                                               |
 | --------- | ------------------------------------------------------------------------- |
-| `VERSION` | Extracted from the `README`                                               |
+| `VERSION` | Extracted from the `README.md`, `VERSION` or `package.json`               |
 | `SRCROOT` | We descend towards root until we find a source control marker, eg. `.git` |
 | `MANPATH` | So `man …` works for your deps                                            |
 
