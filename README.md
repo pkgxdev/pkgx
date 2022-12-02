@@ -335,7 +335,7 @@ $ chmod u+x ./tea
 $ echo '# tea *really is* a standalone binary' | ./tea -X glow -
 ```
 
-However, for a little more magic‡, we recommend our installer:
+However, we recommend our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
@@ -343,14 +343,11 @@ sh <(curl https://tea.xyz)
 # • asks you to confirm before adding one line to your `~/.shellrc`
 # • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
-> <details><summary><i>Click here for a preview gif…</i></summary>
+> <details><summary><i>`.gif` of that</i></summary>
 >
 > ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
 >
 > </details>
-
-> ‡ if you want tea’s virtual environment manager functionality, the installer
-> is the easiest way.
 
 In fact, the tea one-liner abstracts away installation:
 
@@ -375,21 +372,19 @@ As a bonus, the installer also updates tea.
 
 ## *Now see here fella’, I \*hate\* installers…*
 
-Us too! *That’s why we package everything!*
+Us too! *That’s why we wrote a package manager!*
 
 > <details><summary><i>Installing Without the Installer</i></summary><br>
 >
 > We got options, pick one:
 >
 > * Grab the latest from our [releases]. On macOS you’ll have to unquarantine the binary:
->   ```sh
->   $ xattr -d com.apple.quarantine ./tea
->   ```
->
+>     ```sh
+>     $ xattr -d com.apple.quarantine ./tea
+>     ```
 > * ```sh
 >   $ curl dist.tea.xyz  # outputs a *plain/text* listing of binary downloads
 >   ```
->
 > * ```sh
 >   $ sudo install -m 755 <(curl --compressed -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
