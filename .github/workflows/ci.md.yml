@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nosborn/github-action-markdown-cli@v3.2.0
+        with:
+          config_file: .github/markdownlint.yml
+          files: .
+          dot: true
