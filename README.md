@@ -339,10 +339,11 @@ However, we recommend our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
-# • asks you to confirm before it sets tea up in `~/.tea`
+# • asks you to confirm before it sets up `~/.tea`
 # • asks you to confirm before adding one line to your `~/.shellrc`
 # • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
+
 > <details><summary><i>`.gif` of that</i></summary>
 >
 > ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
@@ -376,36 +377,28 @@ Us too! *That’s why we wrote a package manager!*
 
 > <details><summary><i>Installing Without the Installer</i></summary><br>
 >
-> We got options, pick one:
+> Pick *one* of these:
 >
-> * Grab the latest from our [releases]. On macOS you’ll have to unquarantine the binary:
->     ```sh
->     $ xattr -d com.apple.quarantine ./tea
->     ```
-> * ```sh
->   $ curl dist.tea.xyz  # outputs a *plain/text* listing of binary downloads
+> * Grab the latest [release][releases] with your browser. On macOS you’ll
+>   have to unquarantine the binary:
+>   ```sh
+>   $ xattr -d com.apple.quarantine ./tea
 >   ```
-> * ```sh
+> * Or get a plain text listing of binary downloads:
+>   ```sh
+>   $ curl dist.tea.xyz   # pick your platform from the options and `curl` it
+>   ```
+> * Or if you want to get fancy there’s this:
+>   ```sh
 >   $ sudo install -m 755 <(curl --compressed -Ssf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
 >
-> You can try it out from the download location, but you will probably want to
-> move it to `/usr/local/bin` or another directory in your `PATH` if you want
-> to “install” it.
->
-> Now `tea`’s installed you can omit any instance of `sh <(curl tea.xyz)` and
-> instead use your locally installed copy of `tea`.
->
-> Our (optional) magic `PATH` restructuring requires a hook in your `~/.zshrc`:
+> Our (optional) virtual environment manager functionality requires a shell
+> hook in your shell’s `.rc` file:
 >
 > ```sh
 > add-zsh-hook -Uz chpwd(){ source <(tea -Eds) }
 > ```
->
-> If this sourcery seems a bit much, you can just use tea as an interpreter
-> instead. eg. `tea npm start` will execute the correct `npm` for your
-> environment. Also, you can always open a new shell with the environment with
-> `tea sh`.
 >
 > </details>
 
