@@ -81,9 +81,9 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   const it = args[Symbol.iterator]()
 
   for (const arg of it) {
-    if (arg.startsWith('+')) {
+    if (arg.startsWith('+') && arg.length > 1) {
       rv.pkgs.push(pkg.parse(arg.slice(1)))
-    } else if (arg.startsWith('--')) {
+    } else if (arg.startsWith('--') && arg.length > 2) {
       const [,key, , value] = arg.match(/^--([\w-]+)(=(.+))?$/)!
 
       switch (key) {
@@ -151,7 +151,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
       default:
         throw new Error(`unknown flag: --${key}`)
       }
-    } else if (arg.startsWith('-')) {
+    } else if (arg.startsWith('-') && arg.length > 1) {
       for (const c of arg.slice(1)) {
         switch (c) {
         case 'x':
