@@ -73,7 +73,7 @@ export default async function dump(args: Args) {
     const pkgs = await hydrate([...args.pkgs, ...companions, ...blueprint?.pkgs ?? []])
     const dry = new Set<string>(pkgs.dry.map(x => x.project))
 
-    for (const rq of pkgs.dry) {
+    for (const rq of pkgs.pkgs) {
       const installation = await cellar.has(rq)
       if (installation) {
         installations.push(installation)
