@@ -45,7 +45,7 @@ export default function useExecutableMarkdown(parameters: Parameters) {
     const sh: string[] = []
     for (const line of lines) {
       if (line.match(/^```\s*$/)) return sh.join("\n")
-      sh.push(line)
+      sh.push(line.replace(/^\$\s*/, ''))
     }
 
     throw { error: true, script: name, ...parameters, code: "exe/md:cannot-parse" }
