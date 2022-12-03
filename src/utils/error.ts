@@ -1,5 +1,6 @@
 import { PlainObject } from "is_what"
 import { undent } from "utils"
+import * as logger from "hooks/useLogger.ts"
 
 type ID =
   'not-found: tea -X: arg0' |
@@ -128,7 +129,10 @@ export class UsageError extends Error
 {}
 
 export function panic(message?: string): never {
-  throw new Error(message)
+  if (message) {
+    console.error(`panic: ${message}`)
+  }
+  Deno.exit(1)
 }
 
 export const wrap = <T extends Array<unknown>, U>(fn: (...args: T) => U, id: ID) => {
