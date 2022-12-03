@@ -143,6 +143,9 @@ export default async function useShellEnv({installations, pending, pristine}: Op
 
   rv["TEA_PREFIX"] = [usePrefix().string]
 
+  // don’t break `man` lol
+  rv["MANPATH"]?.push("/usr/share/man")
+
   return rv
 }
 
