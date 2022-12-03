@@ -10,7 +10,7 @@ export default async function sync(opts: Args) {
   // always sync pantry
   await useSync()
 
-  const pkgs = opts.pkgs
+  const pkgs = [...opts.pkgs]
 
   if (opts.env) {
     pkgs.push(...(await useVirtualEnv()).pkgs)
