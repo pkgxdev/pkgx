@@ -173,20 +173,26 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
   } break
 
   case 'cmd': {
-    let blueprint: VirtualEnv | undefined
-    if (opts.env) {
-      blueprint = await useVirtualEnv()
-      pkgs.push(...blueprint.pkgs)
-    } else if (magic && (blueprint = await useVirtualEnv().swallow(/^not-found/))) {
-      pkgs.push(...blueprint.pkgs)
-    }
-    const { env } = await install(pkgs)
-    supp(env, blueprint)
+    const { env } = await prepare_exec_cmd(pkgs, opts)
     await run({ cmd: ass.args, env })
   }}
 }
 
 ////
+
+export async function prepare_exec_cmd(pkgs: PackageSpecification[], opts: {env: boolean}) {
+  const { magic } = useFlags()
+  let blueprint: VirtualEnv | undefined
+  if (opts.env) {
+    blueprint = await useVirtualEnv()
+    pkgs.push(...blueprint.pkgs)
+  } else if (magic && (blueprint = await useVirtualEnv().swallow(/^not-found/))) {
+    pkgs.push(...blueprint.pkgs)
+  }
+  const { env } = await install(pkgs)
+  supp(env, blueprint)
+  return { env, pkgs }
+}
 
 import {readLines} from "deno/io/buffer.ts"
 
