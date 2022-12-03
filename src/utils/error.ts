@@ -1,6 +1,5 @@
 import { PlainObject } from "is_what"
 import { undent } from "utils"
-import * as logger from "hooks/useLogger.ts"
 
 type ID =
   'not-found: tea -X: arg0' |
