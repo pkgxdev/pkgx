@@ -1,4 +1,4 @@
-// deno-lint-ignore-file no-cond-assign
+import { isArray, isString } from "is_what"
 
 /**
  * we have our own implementation because open source is full of weird
@@ -8,46 +8,65 @@
  * it also allows us to implement semver_intersection without hating our lives
  */
 export default class SemVer {
+  readonly components: number[]
+
   major: number
   minor: number
   patch: number
 
   //FIXME
-  prerelease: string[] = []
-  build: string[] = []
+  readonly prerelease: string[] = []
+  readonly build: string[] = []
 
-  raw: string
+  readonly raw: string
+  readonly pretty?: string
 
-  constructor(input: string | [number,number,number] | number | Range) {
+  constructor(input: string | number[] | Range | SemVer) {
     if (typeof input == 'string') {
-      const match = input.match(/(\d+)\.(\d+)\.(\d+)/)
-      if (!match) throw new Error(`invalid semver: ${input}`)
-      this.major = parseInt(match[1])!
-      this.minor = parseInt(match[2])!
-      this.patch = parseInt(match[3])!
+      if (input.startsWith('v')) input = input.slice(1)
+      const parts = input.split('.')
+      let pretty_is_raw = false
+      this.components = parts.flatMap((x, index) => {
+        const match = x.match(/^(\d+)([a-z])$/)
+        if (match) {
+          if (index != parts.length - 1) throw new Error(`invalid version: ${input}`)
+          const n = parseInt(match[1])
+          if (isNaN(n)) throw new Error(`invalid version: ${input}`)
+          pretty_is_raw = true
+          return [n, char_to_num(match[2])]
+        } else {
+          const n = parseInt(x)
+          if (isNaN(n)) throw new Error(`invalid version: ${input}`)
+          return [n]
+        }
+      })
       this.raw = input
-    } else if (typeof input == 'number') {
-      this.major = input
-      this.minor = 0
-      this.patch = 0
-      this.raw = input.toString()
-    } else if (input instanceof Range) {
-      const v = input.single()
+      if (pretty_is_raw) this.pretty = input
+    } else if (input instanceof Range || input instanceof SemVer) {
+      const v = input instanceof Range ? input.single() : input
       if (!v) throw new Error(`range represents more than a single version: ${input}`)
-      this.major = v.major
-      this.minor = v.minor
-      this.patch = v.patch
+      this.components = v.components
       this.raw = v.raw
+      this.pretty = v.pretty
     } else {
-      this.major = input[0]
-      this.minor = input[1]
-      this.patch = input[2]
-      this.raw = `${this.major}.${this.minor}.${this.patch}`
+      this.components = input
+      this.raw = input.join('.')
+    }
+
+    this.major = this.components[0]
+    this.minor = this.components[1] ?? 0
+    this.patch = this.components[2] ?? 0
+
+    function char_to_num(c: string) {
+      return c.charCodeAt(0) - 'a'.charCodeAt(0) + 1
     }
   }
 
   toString(): string {
-    return `${this.major}.${this.minor}.${this.patch}`
+    return this.pretty ??
+      (this.components.length <= 3
+        ? `${this.major}.${this.minor}.${this.patch}`
+        : this.components.join('.'))
   }
 
   eq(that: SemVer): boolean {
@@ -55,23 +74,19 @@ export default class SemVer {
   }
 
   neq(that: SemVer): boolean {
-    return !this.eq(that)
+    return this.compare(that) != 0
   }
 
   gt(that: SemVer): boolean {
-    return this.compare(that) >= 0
+    return this.compare(that) > 0
   }
 
   lt(that: SemVer): boolean {
-    return this.compare(that) <= 0
+    return this.compare(that) < 0
   }
 
   compare(that: SemVer): number {
     return _compare(this, that)
-  }
-
-  components(): [number, number, number] {
-    return [this.major, this.minor, this.patch]
   }
 
   [Symbol.for("Deno.customInspect")]() {
@@ -79,89 +94,66 @@ export default class SemVer {
   }
 }
 
-/// more tolerant parser
+/// the same as the constructor but swallows the error returning undefined instead
 export function parse(input: string) {
-  const v = new SemVer([0,0,0])
-  v.raw = input
-
-  let match: RegExpMatchArray | number | null | undefined
-
-  if (match = input.match(/^v?(\d+)\.(\d+)\.(\d+)?$/)) {
-    v.major = parseInt(match[1])!
-    v.minor = parseInt(match[2])!
-    v.patch = parseInt(match[3] ?? '0')!
-  } else if (match = input.match(/^v?(\d+)\.(\d+)$/)) {
-    v.major = parseInt(match[1])!
-    v.minor = parseInt(match[2])!
-  } else if (match = input.match(/^v?(\d+)$/)) {
-    v.major = parseInt(match[1])!
-  } else {
+  try {
+    return new SemVer(input)
+  } catch {
     return undefined
   }
-
-  return v
 }
 
 /// we don’t support as much as node-semver but we refuse to do so because it is badness
 export class Range {
   // contract [0, 1] where 0 != 1 and 0 < 1
-  set: [SemVer, SemVer][] | '*'
-  raw: string
+  readonly set: ([SemVer, SemVer] | SemVer)[] | '*'
 
-  constructor(input: string) {
-    this.raw = input
-
+  constructor(input: string | ([SemVer, SemVer] | SemVer)[]) {
     if (input === "*") {
       this.set = '*'
+    } else if (!isString(input)) {
+      this.set = input
     } else {
       input = input.trim()
 
+      const err = () => new Error(`invalid semver range: ${input}`)
+
       this.set = input.split(/(?:,|\s*\|\|\s*)/).map(input => {
-        if (input.startsWith("^")) {
-          const v1 = parse(input.slice(1))!
-          const v2 = new SemVer([v1.major + 1,0,0])
-          return [v1, v2]
-        }
-
-        let match = input.match(/^\d+(\.\d+(\.\d+)?)?$/)
+        let match = input.match(/^>=((\d+\.)*\d+)\s*(<((\d+\.)*\d+))?$/)
         if (match) {
-          const v1 = parse(match[0])!
-          const v2 = new SemVer(v1.components())
-          if (!match[1]) {
-            v2.major++
-          } else if (!match[2]) {
-            v2.minor++
-          } else {
-            v2.patch++
+          const v1 = new SemVer(match[1])
+          const v2 = match[3] ? new SemVer(match[4])! : new SemVer([Infinity, Infinity, Infinity])
+          return [v1, v2]
+        } else if ((match = input.match(/^([~=<^])((\d+)(\.\d+)*)$/))) {
+          let v1: SemVer | undefined, v2: SemVer | undefined
+          switch (match[1]) {
+          case "^":
+            v1 = new SemVer(match[2])
+            v2 = new SemVer([v1.major + 1])
+            return [v1, v2]
+          case "~": {
+            v1 = new SemVer(match[2])
+            // for official semver ~1 is in fact equivalent to ^1 but this is dumb so we ignore it
+            v2 = new SemVer([v1.major, v1.minor + 1])
+          } return [v1, v2]
+          case "<":
+            v1 = new SemVer([0])
+            v2 = new SemVer(match[2])
+            return [v1, v2]
+          case "=":
+            return new SemVer(match[2])
           }
-          return [v1, v2]
         }
-
-        match = input.match(/^~(\d+(\.\d+(\.\d+)?)?)$/)
-        if (match) {
-          const v1 = parse(match[1])!
-          const v2 = match[2]
-            ? new SemVer([v1.major, v1.minor + 1, 0])
-            : new SemVer([v1.major + 1, 0, 0])
-          return [v1, v2]
-        }
-
-        match = input.match(/^>=((\d+\.)*\d+)\s*(<((\d+\.)*\d+))?$/)
-        if (match) {
-          const v1 = parse(match[1])!
-          const v2 = match[3] ? parse(match[4])! : new SemVer([Infinity, Infinity, Infinity])
-          return [v1, v2]
-        }
-
-        match = input.match(/^<\d+(\.\d+)*$/)
-        if (!match) throw new Error(`invalid semver range: \`${input}\``)
-
-        const v1 = new SemVer([0,0,0])
-        const v2 = parse(match[0].slice(1)) ?? (() => {throw new Error()})()
-        return [v1, v2]
+        throw err()
       })
 
-      if (this.set.length == 0) throw new Error(`invalid semver range: ${input}`)
+      if (this.set.length == 0) {
+        throw err()
+      }
+
+      for (const i of this.set) {
+        if (isArray(i) && !i[0].lt(i[1])) throw err()
+      }
     }
   }
 
@@ -169,7 +161,9 @@ export class Range {
     if (this.set === '*') {
       return '*'
     } else {
-      return this.set.map(([v1, v2]) => {
+      return this.set.map(v => {
+        if (!isArray(v)) return `=${v.toString()}`
+        const [v1, v2] = v
         if (v2.major == v1.major + 1 && v2.minor == 0 && v2.patch == 0) {
           const v = chomp(v1)
           return `^${v}`
@@ -180,36 +174,38 @@ export class Range {
           const v = chomp(v1)
           return `>=${v}`
         } else {
-          const v = this.single()
-          if (v) {
-            return `@${v}`
-          } else {
-            return `>=${chomp(v1)}<${chomp(v2)}`
-          }
+          return `>=${chomp(v1)}<${chomp(v2)}`
         }
       }).join(",")
     }
   }
 
-  eq(that: Range): boolean {
-    if (this.set.length !== that.set.length) return false
-    for (let i = 0; i < this.set.length; i++) {
-      const [a,b] = [this.set[i], that.set[i]]
-      if (typeof a !== 'string' && typeof b !== 'string') {
-        if (a[0].neq(b[0])) return false
-        if (a[1].neq(b[1])) return false
-      } else if (a != b) {
-        return false
-      }
-    }
-    return true
-  }
+  // eq(that: Range): boolean {
+  //   if (this.set.length !== that.set.length) return false
+  //   for (let i = 0; i < this.set.length; i++) {
+  //     const [a,b] = [this.set[i], that.set[i]]
+  //     if (typeof a !== 'string' && typeof b !== 'string') {
+  //       if (a[0].neq(b[0])) return false
+  //       if (a[1].neq(b[1])) return false
+  //     } else if (a != b) {
+  //       return false
+  //     }
+  //   }
+  //   return true
+  // }
 
   satisfies(version: SemVer): boolean {
     if (this.set === '*') {
       return true
     } else {
-      return this.set.some(([v1, v2]) => version.compare(v1) >= 0 && version.compare(v2) < 0)
+      return this.set.some(v => {
+        if (isArray(v)) {
+          const [v1, v2] = v
+          return version.compare(v1) >= 0 && version.compare(v2) < 0
+        } else {
+          return version.eq(v)
+        }
+      })
     }
   }
 
@@ -220,10 +216,7 @@ export class Range {
   single(): SemVer | undefined {
     if (this.set === '*') return
     if (this.set.length > 1) return
-    const [a,b] = this.set[0]
-    if (a.major != b.major) return
-    if (a.minor != b.minor) return
-    if (a.patch == b.patch - 1) return a
+    return isArray(this.set[0]) ? undefined : this.set[0]
   }
 
   [Symbol.for("Deno.customInspect")]() {
@@ -231,11 +224,20 @@ export class Range {
   }
 }
 
+function zip<T, U>(a: T[], b: U[]) {
+  const N = Math.max(a.length, b.length)
+  const rv: [T | undefined, U | undefined][] = []
+  for (let i = 0; i < N; ++i) {
+    rv.push([a[i], b[i]])
+  }
+  return rv
+}
 
 function _compare(a: SemVer, b: SemVer): number {
-  if (a.major != b.major) return a.major - b.major
-  if (a.minor != b.minor) return a.minor - b.minor
-  return a.patch - b.patch
+  for (const [c,d] of zip(a.components, b.components)) {
+    if (c != d) return (c ?? 0) - (d ?? 0)
+  }
+  return 0
 }
 export { _compare as compare }
 
@@ -243,32 +245,38 @@ export { _compare as compare }
 export function intersect(a: Range, b: Range): Range {
   if (b.set === '*') return a
   if (a.set === '*') return b
-  if (a.eq(b)) return a
 
   // calculate the intersection between two semver.Ranges
-  const set: [SemVer, SemVer][] = []
+  const set: ([SemVer, SemVer] | SemVer)[] = []
 
-  for (let i = 0; i < a.set.length; i++) {
-    for (let j = 0; j < b.set.length; j++) {
-      const a1 = a.set[i][0]
-      const a2 = a.set[i][1]
-      const b1 = b.set[j][0]
-      const b2 = b.set[j][1]
+  for (const aa of a.set) {
+    for (const bb of b.set) {
+      if (!isArray(aa) && !isArray(bb)) {
+        if (aa.eq(bb)) set.push(aa)
+      } else if (!isArray(aa)) {
+        const bbb = bb as [SemVer, SemVer]
+        if (aa.compare(bbb[0]) >= 0 && aa.lt(bbb[1])) set.push(aa)
+      } else if (!isArray(bb)) {
+        const aaa = aa as [SemVer, SemVer]
+        if (bb.compare(aaa[0]) >= 0 && bb.lt(aaa[1])) set.push(bb)
+      } else {
+        const a1 = aa[0]
+        const a2 = aa[1]
+        const b1 = bb[0]
+        const b2 = bb[1]
 
-      if (a1.compare(b2) >= 0 || b1.compare(a2) >= 0) {
-        continue
+        if (a1.compare(b2) >= 0 || b1.compare(a2) >= 0) {
+          continue
+        }
+
+        set.push([a1.compare(b1) > 0 ? a1 : b1, a2.compare(b2) < 0 ? a2 : b2])
       }
-
-      set.push([a1.compare(b1) > 0 ? a1 : b1, a2.compare(b2) < 0 ? a2 : b2])
     }
   }
 
   if (set.length <= 0) throw new Error(`cannot intersect: ${a} && ${b}`)
 
-  return new Range(set.map(([v1, v2]) =>
-    v2.major == Infinity
-      ? `>=${chomp(v1)}`
-      : `>=${chomp(v1)}<${chomp(v2)}`).join(","))
+  return new Range(set)
 }
 
 

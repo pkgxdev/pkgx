@@ -74,9 +74,7 @@ String.prototype.chuzzle = function() {
   return this.trim() || undefined
 }
 
-export function chuzzle(input: number) {
-  return Number.isNaN(input) ? undefined : input
-}
+export { chuzzle } from "./safe-utils.ts"
 
 Set.prototype.insert = function<T>(t: T) {
   if (this.has(t)) {
