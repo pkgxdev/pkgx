@@ -128,10 +128,7 @@ export class UsageError extends Error
 {}
 
 export function panic(message?: string): never {
-  if (message) {
-    console.error(`panic: ${message}`)
-  }
-  Deno.exit(1)
+  throw new Error(message)
 }
 
 export const wrap = <T extends Array<unknown>, U>(fn: (...args: T) => U, id: ID) => {

@@ -149,7 +149,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         rv.env = false
         break
       default:
-        panic(`unknown flag: --${key}`)
+        throw new Error(`unknown flag: --${key}`)
       }
     } else if (arg.startsWith('-') && arg.length > 1 && !arg.startsWith('--')) {
       for (const c of arg.slice(1)) {
@@ -188,7 +188,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           rv.mode = ['dump', 'help']
           break
         default:
-          panic(`unknown flag: -${c}`)
+          throw new Error(`unknown flag: -${c}`)
         }
       }
     } else {
