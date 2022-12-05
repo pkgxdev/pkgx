@@ -149,7 +149,8 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         rv.env = false
         break
       default:
-        throw new Error(`unknown flag: --${key}`)
+        internalSetVerbosity()
+        panic(`unknown flag: --${key}`)
       }
     } else if (arg.startsWith('-') && arg.length > 1 && !arg.startsWith('--')) {
       for (const c of arg.slice(1)) {
@@ -188,7 +189,8 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           rv.mode = ['dump', 'help']
           break
         default:
-          throw new Error(`unknown flag: -${c}`)
+          internalSetVerbosity()
+          panic(`unknown flag: -${c}`)
         }
       }
     } else {
@@ -199,16 +201,20 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
     }
   }
 
-  flags = {
-    verbosity: getVerbosity(v),
-    magic: getMagic(magic),
-    json: !!Deno.env.get("JSON"),
-    numpty: !!Deno.env.get("NUMPTY"),
-    sync
+  function internalSetVerbosity() {
+
+    flags = {
+      verbosity: getVerbosity(v),
+      magic: getMagic(magic),
+      json: !!Deno.env.get("JSON"),
+      numpty: !!Deno.env.get("NUMPTY"),
+      sync
+    }
+
+    applyVerbosity()
   }
 
-  applyVerbosity()
-
+  internalSetVerbosity();
   const full_flags = useFlags()
   console.debug({ args: rv, flags: full_flags })
 
