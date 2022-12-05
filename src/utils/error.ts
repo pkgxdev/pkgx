@@ -1,6 +1,6 @@
 import { PlainObject } from "is_what"
 import { undent } from "utils"
-import {useFlags} from "../hooks/index.ts";
+import { useFlags } from "hooks";
 
 type ID =
   'not-found: tea -X: arg0' |
