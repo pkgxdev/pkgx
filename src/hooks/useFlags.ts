@@ -9,7 +9,7 @@ import Path from "path"
 set_tmp(usePrefix().join('tea.xyz/tmp'))
 
 
-export type Mode = 'exec' | 'eXec' | ['dump', 'env' | 'help' | 'version' | 'prefix']
+export type Mode = 'exec' | 'eXec' | ['dump', 'env' | 'help' | 'version' | 'prefix'] | 'gui'
 
 interface Flags {
   verbosity: Verbosity
@@ -191,6 +191,8 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           throw new Error(`unknown flag: -${c}`)
         }
       }
+    } else if (arg === 'gui') {
+      rv.mode = 'gui';
     } else {
       rv.args.push(arg)
       for (const arg of it) {

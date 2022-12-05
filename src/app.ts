@@ -6,6 +6,7 @@ import syncf from "./app.sync.ts"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
 import help from "./app.help.ts"
+import gui from "./app.gui.ts"
 import { print } from "utils"
 import X from "./app.X.ts"
 import Path from "path"
@@ -28,13 +29,14 @@ try {
   if (sync) {
     await syncf(args)
   }
-
   if (args.mode == "exec" || args.mode == undefined) {
     announce()
     await exec(args)
   } else if (args.mode == "eXec") {
     announce()
     await X(args)
+  } else if (args.mode === "gui") {
+    await gui()
   } else switch (args.mode[1]) {
     case "env":
       await dump(args)
@@ -47,7 +49,8 @@ try {
       break
     case "prefix":
       await print(usePrefix().string)
-    }
+      break
+  }
 } catch (err) {
   await err_handler(err)
 }
