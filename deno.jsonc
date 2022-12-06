@@ -8,6 +8,7 @@
     "build": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output tea src/app.ts",
     "test": "deno test --allow-read --allow-write --allow-net --allow-run --allow-env --unstable"
   },
+  // ignore all files since the current style deviates from deno's default style.
   "fmt": {
     "files": {
       "exclude": [
