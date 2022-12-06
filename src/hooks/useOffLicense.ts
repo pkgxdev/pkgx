@@ -20,9 +20,9 @@ function key(stowage: Stowage) {
   } else {
     fn +=  stowage.extname
   }
-  return rv.join(fn).string
+  return rv.join(fn).string.slice(1)
 }
 
 function url(stowage: Stowage) {
-  return new URL(`https://dist.tea.xyz${key(stowage)}`)
+  return new URL(`https://dist.tea.xyz/${key(stowage)}`)
 }
