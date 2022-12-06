@@ -9,8 +9,9 @@ import help from "./app.help.ts"
 import { print } from "utils"
 import X from "./app.X.ts"
 import Path from "path"
+import { Verbosity } from "./types.ts"
 
-const [args, {sync}] = useArgs(Deno.args, Deno.execPath())
+const [args, {sync, verbosity}] = useArgs(Deno.args, Deno.execPath())
 const version = `${(await useRequirementsFile(new URL(import.meta.url).path().join("../../README.md")).swallow(/not-found/))?.version}+dev`
 // ^^ this is statically replaced at deployment
 
@@ -30,10 +31,10 @@ try {
   }
 
   if (args.mode == "exec" || args.mode == undefined) {
-    announce()
+    await announce()
     await exec(args)
   } else if (args.mode == "eXec") {
-    announce()
+    await announce()
     await X(args)
   } else switch (args.mode[1]) {
     case "env":
@@ -43,7 +44,7 @@ try {
       await help()
       break
     case "version":
-      await print(`tea ${version}`)
+      await print_version()
       break
     case "prefix":
       await print(usePrefix().string)
@@ -52,13 +53,23 @@ try {
   await err_handler(err)
 }
 
-function announce() {
+async function announce() {
   const self = new Path(Deno.execPath())
   const prefix = usePrefix().string
 
-  if (self.basename() == "deno") {
-    console.verbose({ deno: self.string, prefix, import: import.meta, tea: version })
-  } else {
-    console.verbose(`${prefix}/tea.xyz/v${version}/bin/tea`)
+  switch (verbosity) {
+  case Verbosity.debug:
+    if (self.basename() == "deno") {
+      console.debug({ deno: self.string, prefix, import: import.meta, tea: version })
+    } else {
+      console.debug(`${prefix}/tea.xyz/v${version}/bin/tea`)
+    }
+    break
+  case Verbosity.loud:
+    await print_version()
   }
+}
+
+async function print_version() {
+  await print(`tea ${version}`)
 }

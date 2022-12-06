@@ -1,7 +1,7 @@
 import { Args } from "hooks/useFlags.ts"
 import { useCellar, usePantry } from "hooks"
 import * as semver from "semver"
-import { prepare_exec_cmd } from "./app.exec.ts"
+import { handler, prepare_exec_cmd } from "./app.exec.ts"
 import { panic, run, TeaError, UsageError } from "utils"
 
 export default async function X(opts: Args) {
@@ -32,5 +32,9 @@ export default async function X(opts: Args) {
   const install = await useCellar().resolve(pkg)
   const cmd = opts.args
   cmd[0] = install.path.join('bin', arg0).string  // force full path to avoid infinite recursion
-  await run({ cmd, env })
+  try {
+    await run({ cmd, env })
+  } catch (err) {
+    handler(err)
+  }
 }

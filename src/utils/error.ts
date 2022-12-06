@@ -71,7 +71,11 @@ export default class TeaError extends Error {
       }
       break
     case 'not-found: pantry':
-      msg = 'no pantry: run `tea --sync`'
+      if (ctx.path) {
+        msg = `no pantry at path: ${ctx.path}, try \`tea --sync\``
+      } else {
+        msg = 'no pantry: run `tea --sync`'
+      }
       break
     case 'http':
       msg = ctx.underr?.message ?? "contract violated"
