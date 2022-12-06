@@ -198,7 +198,7 @@ function coerceNumber(input: any) {
 
 function entry({ project }: { project: string }): Entry {
   for (const prefix of pantry_paths()) {
-    if (!prefix.exists()) throw new TeaError('not-found: pantry', { path: prefix })
+    if (!prefix.exists()) throw new TeaError('not-found: pantry', { path: prefix.parent() })
     const dir = prefix.join(project)
     const filename = dir.join("package.yml")
     if (!filename.exists()) continue
