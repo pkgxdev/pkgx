@@ -1,6 +1,7 @@
 import { Package, PackageRequirement } from "types"
 import { host, error } from "utils"
 import SemVer from "semver"
+import Path from "../vendor/Path.ts"
 
 export interface Inventory {
   [project: string]: {
@@ -12,7 +13,10 @@ export interface Inventory {
 
 const select = async (rq: PackageRequirement | Package) => {
   const { platform, arch } = host()
-  const url = `https://dist.tea.xyz/${rq.project}/${platform}/${arch}/versions.txt`
+
+  const url = new URL('https://dist.tea.xyz')
+  url.pathname = Path.root.join(rq.project, platform, arch, 'versions.txt').string
+
   const rsp = await fetch(url)
 
   if (!rsp.ok) throw new Error(`404-not-found: ${url}`) //FIXME
