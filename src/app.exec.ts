@@ -15,7 +15,7 @@ import { Interpreter } from "hooks/usePantry.ts";
 
 
 export default async function(opts: Args) {
-  const { debug, verbosity, ...flags } = useFlags()
+  const { verbosity, ...flags } = useFlags()
   const assessment = assess(opts.args)
 
   if (assessment.type == 'repl') {
@@ -30,22 +30,28 @@ export default async function(opts: Args) {
     const refinement = await refine(assessment)
     await exec(refinement, opts.pkgs, {env: opts.env ?? false})
   } catch (err) {
-    if (err instanceof TeaError) {
-      throw err
-    } else if (debug) {
-      console.error(err)
-    } else if (err instanceof Deno.errors.NotFound) {
-      // deno-lint-ignore no-explicit-any
-      console.error("tea: command not found:", (err as any).cmd)
-      //NOTE ^^ we add cmd into the error ourselves in utils/ru
-    } else if (err instanceof RunError == false) {
-      const decapitalize = ([first, ...rest]: string) => first.toLowerCase() + rest.join("")
-      console.error(`${red("error")}:`, decapitalize(err.message))
-    }
-    const code = err?.code ?? 1
-    Deno.exit(isNumber(code) ? code : 1)
+    handler(err)
   }
+}
 
+// deno-lint-ignore no-explicit-any
+export function handler(err: any) {
+  const { debug } = useFlags()
+
+  if (err instanceof TeaError) {
+    throw err
+  } else if (debug) {
+    console.error(err)
+  } else if (err instanceof Deno.errors.NotFound) {
+    // deno-lint-ignore no-explicit-any
+    console.error("tea: command not found:", (err as any).cmd)
+    //NOTE ^^ we add cmd into the error ourselves in utils/ru
+  } else if (err instanceof RunError == false) {
+    const decapitalize = ([first, ...rest]: string) => first.toLowerCase() + rest.join("")
+    console.error(`${red("error")}:`, decapitalize(err.message))
+  }
+  const code = err?.code ?? 1
+  Deno.exit(isNumber(code) ? code : 1)
 }
 
 async function refine(ass: RV2): Promise<RV1> {
