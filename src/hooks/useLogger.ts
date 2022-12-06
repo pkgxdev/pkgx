@@ -31,11 +31,18 @@ export default function useLogger(prefix?: string) {
   return new Logger(prefix)
 }
 
-export const teal = (x: string) => colors.rgb8(x, 86)
-export const red = colors.brightRed
-export const gray = (x: string) => colors.rgb8(x, 244)
-export const dark = (x: string) => colors.rgb8(x, 238)
-export const lite = (x: string) => colors.rgb8(x, 252)
+function colorIfTTY(x: string, colorMethod: (x: string)=>string) {
+  if(Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stderr.rid)) {
+    return colorMethod(x)
+  }
+  return x
+}
+
+export const teal = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 86))
+export const red = (x: string) => colorIfTTY(x, colors.brightRed)
+export const gray = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 244))
+export const dark = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 238))
+export const lite = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 252))
 
 export class Logger {
   readonly prefix: string
