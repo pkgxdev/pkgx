@@ -378,6 +378,11 @@ export default class Path {
     return this
   }
 
+  touch(): Path {
+    //FIXME work more as expected
+    return this.write({force: true, text: ""})
+  }
+
   chmod(mode: number): Path {
     Deno.chmodSync(this.string, mode)
     return this
