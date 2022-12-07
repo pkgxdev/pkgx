@@ -57,6 +57,13 @@ Deno.test("semver", async test => {
 
     const e = new semver.Range("~1")
     assertEquals(e.toString(), "^1")  // indeed: we change the ~ to ^
+
+    const f = new semver.Range("^14||^16||^18")
+    assert(f.satisfies(new SemVer("14.0.0")))
+    assertFalse(f.satisfies(new SemVer("15.0.0")))
+    assert(f.satisfies(new SemVer("16.0.0")))
+    assertFalse(f.satisfies(new SemVer("17.0.0")))
+    assert(f.satisfies(new SemVer("18.0.0")))
   })
 
   await test.step("intersection", async test => {

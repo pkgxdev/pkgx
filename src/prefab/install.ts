@@ -65,8 +65,6 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
     const install = await cellar.resolve(pkg)
 
-    await unquarantine(install)
-
     const str = [
       gray(usePrefix().prettyString()),
       install.pkg.project,
@@ -101,25 +99,6 @@ async function sumcheck(local_SHA: string, url: URL) {
   if (remote_SHA != local_SHA) {
     throw {expected: remote_SHA, got: local_SHA}
   }
-}
-
-async function unquarantine(install: Installation) {
-  if (host().platform != 'darwin') return
-
-  /// for now, prevent gatekeeper prompts FIXME sign everything!
-
-  // using find because it doesn’t error if it fails
-  // and it does fail if the file isn’t writable, but we don’t want to make everything writable
-  // unless we are forced into that in the future
-
-  const cmd = [
-    'find', install.path,
-      '-xattrname', 'com.apple.quarantine',
-      '-perm', '-0200',  // only if we can write (prevents error messages)
-      '-exec', 'xattr', '-d', 'com.apple.quarantine', '{}', ';'
-  ]
-
-  await run({ cmd })
 }
 
 function get_compression() {
