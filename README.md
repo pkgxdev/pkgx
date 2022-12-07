@@ -856,60 +856,25 @@ section.
 > massaging.
 
 ```sh
-export TMPDIR=${TMPDIR:-/tmp}
-
-deno test \
- --allow-net \
- --allow-read \
- --allow-env=SRCROOT,TMPDIR,TEA_PREFIX,MAGIC,JSON,NUMPTY,PATH,HOME \
- --allow-run \
- --import-map=$SRCROOT/import-map.json \
- --allow-write=$TEA_PREFIX/tea.xyz/var,$TMPDIR \
- --unstable \
- "$SRCROOT"/tests/**/*.test.ts
+deno task test
 ```
 
 ### Typecheck
 
 ```sh
-deno check \
-  --import-map="$SRCROOT"/import-map.json \
-  --unstable \
-  src/app.ts \
-  "$SRCROOT"/scripts/*.ts
+deno task typecheck
 ```
 
 ### Run
 
 ```sh
-deno run \
-  --import-map="$SRCROOT"/import-map.json \
-  --unstable \
-  --allow-all \
-  "$SRCROOT"/src/app.ts
+deno task run
 ```
 
 ### Compile
 
 ```sh
-OUT="$1"
-if test -z "$OUT"; then
-  OUT="./tea"
-else
-  shift
-fi
-
-deno compile \
-  --allow-read \
-  --allow-write \
-  --allow-net \
-  --allow-run \
-  --allow-env \
-  --unstable \
-  --import-map="$SRCROOT/import-map.json" \
-  --output "$OUT" \
-  "$@" \
-  "$SRCROOT/src/app.ts"
+deno task compile
 ```
 
 ### Install Self
