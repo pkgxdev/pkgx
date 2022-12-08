@@ -195,6 +195,10 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         }
       }
     } else {
+      if (arg == "+" || arg == "-" || arg == "--") {
+        internalSetVerbosity()
+        throw new TeaError('not-found: flag', {flag: arg})
+      }
       rv.args.push(arg)
       for (const arg of it) {
         rv.args.push(arg)
