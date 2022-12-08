@@ -10,7 +10,7 @@ import * as semver from "semver"
 import Path from "path"
 import { Interpreter } from "hooks/usePantry.ts";
 
-//TODO specifying explicit pkgs or versions on the command line should replace anything deeper
+//TODO specifying explicit pkgs or versions on the command line should regxace anything deeper
 //    RATIONALE: so you can override if you are testing locally
 
 
@@ -18,13 +18,13 @@ export default async function(opts: Args) {
   const { verbosity, ...flags } = useFlags()
   const assessment = assess(opts.args)
 
-  if (assessment.type == 'repl') {
-    if (!opts.pkgs.length && flags.sync) Deno.exit(0)    // `tea -S` is not an error or a repl
-    if (!opts.pkgs.length && verbosity > 0) Deno.exit(0) // `tea -v` is not an error or a repl
+  if (assessment.type == 'regx') {
+    if (!opts.pkgs.length && flags.sync) Deno.exit(0)    // `tea -S` is not an error or a regx
+    if (!opts.pkgs.length && verbosity > 0) Deno.exit(0) // `tea -v` is not an error or a regx
     if (!opts.pkgs.length) throw new UsageError()
 
     const { installed, env } = await install(opts.pkgs)
-    await repl(installed, env)
+    await regx(installed, env)
 
   } else try {
     const refinement = await refine(assessment)
@@ -215,29 +215,54 @@ async function extract_shebang(path: Path) {
   }
 }
 
-async function which(arg0: string) {
-  /// some special casing because we cannot represent version’d stuff in pantry yet
-  switch (arg0) {
-  case 'python2':
-    return { project: 'python.org', constraint: new semver.Range("2"), shebang: arg0 }
-  case 'python3':
-    return { project: 'python.org', constraint: new semver.Range("3"), shebang: arg0 }
-  }
+const subst = function(start: number, end: number, input: string, what: string) {
+  return input.substring(0, start) + what + input.substring(end)
+};
 
+export async function which(arg0: string) {
   const pantry = usePantry()
-  let found: { project: string } | undefined
+  let found: { project: string, constraint: semver.Range } | undefined
+  const promises: Promise<void>[] = []
 
   for await (const entry of pantry.ls()) {
     if (found) break
-    pantry.getProvides(entry).then(provides => {
-      if (!found && provides.includes(arg0)) {
-        found = entry
+    const p = pantry.getProvides(entry).then(providers => {
+      for (const provider of providers) {
+        if (found) {
+          return
+        } else if (provider == arg0) {
+          const constraint = new semver.Range("*")
+          found = {...entry, constraint}
+        } else {
+          //TODO more efficient to check the prefix fits arg0 first
+          // eg. if python3 then check if the provides starts with python before
+          // doing all the regex shit. Matters because there's a *lot* of YAMLs
+
+          let rx = /({{\s*version\.(marketing|major)\s*}})/
+          let match = provider.match(rx)
+          if (!match?.index) continue
+          const regx = match[2] == 'major' ? '\\d+' : '\\d+\\.\\d+'
+          const foo = subst(match.index, match.index + match[1].length, provider, `(${regx})`)
+          rx = new RegExp(`^${foo}$`)
+          match = arg0.match(rx)
+          if (match) {
+            const constraint = new semver.Range(match[1])
+            found = {...entry, constraint}
+          }
+        }
       }
     })
+    promises.push(p)
+  }
+
+  if (!found) {
+    // if we didn’t find anything yet then we have to wait on the promises
+    // otherwise we can ignore them
+    await Promise.all(promises)
   }
 
   if (found) {
-    return {...found, constraint: new semver.Range("*"), shebang: arg0}
+    return {...found, shebang: arg0}
   }
 }
 
@@ -298,7 +323,7 @@ function supp(env: Record<string, string>, blueprint?: VirtualEnv) {
 import { basename } from "deno/path/mod.ts"
 import { isArray, isNumber } from "is_what"
 
-async function repl(installations: Installation[], env: Record<string, string>) {
+async function regx(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
   console.info('this is a temporary shell containing the following packages:')
   console.info(pkgs_str())
@@ -346,7 +371,7 @@ type RV2 = RV1 |
            { type: "url", url: URL, args: string[] } |
            { type: "dir", path: Path, args: string[] }
 type RV3 = RV2 |
-           { type: 'repl' }
+           { type: 'regx' }
 
 function assess_file(path: Path, args: string[]): RV0 {
   return isMarkdown(path)
@@ -356,7 +381,7 @@ function assess_file(path: Path, args: string[]): RV0 {
 
 function assess([arg0, ...args]: string[]): RV3 {
   if (!arg0?.trim()) {
-    return { type: 'repl' }
+    return { type: 'regx' }
   }
   const url = urlify(arg0)
   if (url) {

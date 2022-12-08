@@ -32,10 +32,11 @@ export default function useLogger(prefix?: string) {
 }
 
 function colorIfTTY(x: string, colorMethod: (x: string)=>string) {
-  if(Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stderr.rid)) {
+  if (Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stderr.rid)) {
     return colorMethod(x)
+  } else {
+    return x
   }
-  return x
 }
 
 export const teal = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 86))
