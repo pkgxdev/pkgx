@@ -3,6 +3,7 @@ import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
 import { PlainObject } from "is_what"
 import {readLines} from "deno/io/buffer.ts"
+import slash from "https://deno.land/x/slash@v0.3.0/mod.ts";
 import "utils"  //FIXME for console.verbose
 
 // based on https://github.com/mxcl/Path.swift
@@ -38,15 +39,28 @@ export default class Path {
   }
 
   /// normalizes the path
+  /// changes slashes for Windows
   /// throws if not an absolute path
   constructor(input: string | Path) {
     if (input instanceof Path) {
       this.string = input.string
-    } else if (!input || input[0] != '/') {
-      throw new Error(`invalid absolute path: ${input}`)
-    } else {
-      this.string = sys.normalize(input)
+      return
     }
+    switch (Deno.build.os) {
+      case "linux":
+      case "darwin":
+        if (!input || input[0] != '/') {
+          throw new Error(`invalid absolute path: ${input}`)
+        } else {	    
+          this.string = sys.normalize(input)	    
+        }
+      case "windows":
+       if (!input) {
+          throw new Error(`invalid absolute path: ${input}`)
+        } else {	    
+          this.string = slash(sys.normalize(input))	    
+        }
+    }    
   }
 
   /// returns Path | undefined rather than throwing error if Path is not absolute
@@ -69,7 +83,7 @@ export default class Path {
     */
   readlink(): Path {
     try {
-      const output = Deno.readLinkSync(this.string)
+      const output = Deno.build.os == "windows" ? Deno.realPathSync(this.string) : Deno.readLinkSync(this.string)
       return this.parent().join(output)
     } catch (err) {
       const code = err.code
