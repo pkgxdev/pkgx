@@ -11,7 +11,8 @@ import X from "./app.X.ts"
 import Path from "path"
 import { Verbosity } from "./types.ts"
 
-let args, sync, verbosity;
+let args, sync;
+let verbosity: Verbosity;
 
 try {
   [args, {sync, verbosity}] = useArgs(Deno.args, Deno.execPath())
