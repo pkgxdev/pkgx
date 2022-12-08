@@ -4,6 +4,7 @@ import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
 import Path from "path"
+import {TeaError} from "../utils/index.ts";
 
 // doing here as this is the only file all our scripts import
 set_tmp(usePrefix().join('tea.xyz/tmp'))
@@ -150,7 +151,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         break
       default:
         internalSetVerbosity()
-        panic(`unknown flag: --${key}`)
+        throw new TeaError('not-found: flag', {flag: `--${key}`})
       }
     } else if (arg.startsWith('-') && arg.length > 1 && !arg.startsWith('--')) {
       for (const c of arg.slice(1)) {
@@ -190,7 +191,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           break
         default:
           internalSetVerbosity()
-          panic(`unknown flag: -${c}`)
+          throw new TeaError('not-found: flag', {flag: `-${c}`})
         }
       }
     } else {
