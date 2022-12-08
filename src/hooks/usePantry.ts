@@ -208,7 +208,7 @@ function entry({ project }: { project: string }): Entry {
         if (!isPlainObject(yml)) throw null
         return yml
       } catch (underr) {
-        throw new TeaError('parser: pantry: package.yml', {underr, project})
+        throw new TeaError('parser: pantry: package.yml', {underr, project, filename})
       }
     }
     const versions = dir.join("versions.txt")

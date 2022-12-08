@@ -89,13 +89,14 @@ export default class TeaError extends Error {
         `
       break
     case 'parser: pantry: package.yml':
-      //TODO need to figure out which pantry to report against
-      //TODO show the package name obv.
-      //TODO set new issue title
       msg = undent`
         pantry entry invalid. please report this bug!
 
             https://github.com/teaxyz/pantry.core/issues/new
+
+        ----------------------------------------------------->> attachment begin
+        ${ctx.project}: ${ctx.underr.message}
+        <<------------------------------------------------------- attachment end
         `
       break
     case 'not-found: virtual-env':

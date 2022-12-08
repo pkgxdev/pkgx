@@ -383,6 +383,11 @@ export default class Path {
     return this.write({force: true, text: ""})
   }
 
+  in(that: Path) {
+    //FIXME a bit naive
+    return this.string.startsWith(that.string)
+  }
+
   chmod(mode: number): Path {
     Deno.chmodSync(this.string, mode)
     return this
@@ -415,6 +420,12 @@ export default class Path {
 
   prettyString(): string {
     return this.string.replace(new RegExp(`^${Path.home()}`), '~')
+  }
+
+  // if we’re inside the CWD we print that
+  prettyLocalString(): string {
+    const cwd = Path.cwd()
+    return this.in(cwd) ? `./${this.relative({ to: cwd })}` : this.prettyString()
   }
 
   [Symbol.for("Deno.customInspect")]() {
