@@ -145,10 +145,16 @@ jobs:
           git tag ${{ env.TAG }}
           git push origin ${{ env.TAG }}
 
+      - uses: mikepenz/release-changelog-builder-action@v3
+        id: build_changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.TAG }}
           files: artifacts/*
+          body_path: ${{ steps.build_changelog.outputs.changelog }}
           fail_on_unmatched_files: true
 
   upload-binaries:
