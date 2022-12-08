@@ -681,6 +681,18 @@ be a little something extra for those who helped build tea. 😶‍🌫️
 
 # FAQ
 
+## How do I update packages
+
+```sh
+$ tea --sync
+# ^^ updates the pantries, and any packages in the virtual-environment
+
+$ tea --sync +deno.land
+# ^^ updates specific packages
+```
+
+Of course this is limited and more is required here. We’re working on it.
+
 ## Where’s `tea install`?
 
 tea works differently. It’s not “I want to install Freetype” it’s
