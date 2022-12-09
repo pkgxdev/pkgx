@@ -15,6 +15,7 @@
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "rimbu/": "https://deno.land/x/rimbu@0.12.3/",
-    "retried": "https://deno.land/x/retried@1.0.1/mod.ts"
+    "retried": "https://deno.land/x/retried@1.0.1/mod.ts",
+    "slash": "https://deno.land/x/slash@v0.3.0/mod.ts"
   }
 }

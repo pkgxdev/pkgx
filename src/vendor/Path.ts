@@ -3,7 +3,7 @@ import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
 import { PlainObject } from "is_what"
 import {readLines} from "deno/io/buffer.ts"
-import slash from "https://deno.land/x/slash@v0.3.0/mod.ts";
+import slash from "slash"
 import "utils"  //FIXME for console.verbose
 
 // based on https://github.com/mxcl/Path.swift
@@ -54,12 +54,14 @@ export default class Path {
         } else {	    
           this.string = sys.normalize(input)	    
         }
+        break
       case "windows":
        if (!input) {
           throw new Error(`invalid absolute path: ${input}`)
         } else {	    
           this.string = slash(sys.normalize(input))	    
         }
+        break
     }    
   }
 
