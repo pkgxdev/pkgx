@@ -38,11 +38,11 @@ export async function sandbox<T>(body: (tea: Tea) => Promise<T>, { throws }: { t
 
     const PATH = Deno.env.get("PATH")
     const HOME = Deno.env.get("HOME")
+    const CI = Deno.env.get("HOME")
     if (!env) env = {}
     Object.assign(env, {
-      PATH,
-      TEA_PREFIX: TEA_PREFIX.string,
-      HOME
+      PATH, HOME, CI,
+      TEA_PREFIX: TEA_PREFIX.string
     })
 
     cmd.push(
