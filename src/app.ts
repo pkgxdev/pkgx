@@ -51,6 +51,7 @@ try {
     }
 } catch (err) {
   await err_handler(err)
+  Deno.exit(1)
 }
 
 async function announce() {
