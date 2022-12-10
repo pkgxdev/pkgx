@@ -1,2 +1,5 @@
 .DS_Store
-tea
+/tea
+
+# exlcluding this is temporary pre stability (ie. v1)
+/deno.lock

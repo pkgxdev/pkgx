@@ -24,7 +24,7 @@ All you need is `tea`.
 &nbsp;
 
 
-# tea/cli 0.16.1
+# tea/cli 0.16.2
 
 Open source is a treasure trove—yet those chests are sealed with gnarly locks.
 tea is the key:
@@ -680,6 +680,18 @@ be a little something extra for those who helped build tea. 😶‍🌫️
 
 
 # FAQ
+
+## How do I update packages
+
+```sh
+$ tea --sync
+# ^^ updates the pantries, and any packages in the virtual-environment
+
+$ tea --sync +deno.land
+# ^^ updates specific packages
+```
+
+Of course this is limited and more is required here. We’re working on it.
 
 ## Where’s `tea install`?
 
