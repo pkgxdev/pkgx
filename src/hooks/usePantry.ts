@@ -186,9 +186,10 @@ const getInterpreter = async (_extension: string): Promise<Interpreter | undefin
   return undefined
 }
 
-const getRuntimeEnvironment = async (pkg: {project: string}): Promise<Record<string, string>> => {
+const getRuntimeEnvironment = async (pkg: Package): Promise<Record<string, string>> => {
   const yml = await entry(pkg).yml()
-  return yml["runtime"]?.["env"] ?? {}
+  const obj = validate_plain_obj(yml["runtime"]?.["env"] ?? {})
+  return expand_env_obj(obj, pkg, [])
 }
 
 // deno-lint-ignore no-explicit-any
@@ -388,13 +389,14 @@ function platform_reduce(env: PlainObject) {
   }
 }
 
-
-function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): string {
+function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): Record<string, string> {
   const env = {...env_}
 
   platform_reduce(env)
 
-  return Object.entries(env).map(([key,value]) => {
+  const rv: Record<string, string> = {}
+
+  for (let [key, value] of Object.entries(env_)) {
     if (isArray(value)) {
       value = value.map(transform).join(" ")
     } else {
@@ -406,8 +408,10 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
     while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
     while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
 
-    return `export ${key}=${value}`
-  }).join("\n")
+    rv[key] = value
+  }
+
+  return rv
 
   // deno-lint-ignore no-explicit-any
   function transform(value: any): string {
@@ -425,6 +429,10 @@ function expand_env(env_: PlainObject, pkg: Package, deps: Installation[]): stri
     }
     throw new Error("unexpected-error")
   }
+}
+
+function expand_env(env: PlainObject, pkg: Package, deps: Installation[]): string {
+  return Object.entries(expand_env_obj(env, pkg, deps)).map(([key,value]) => `export ${key}=${value}`).join("\n")
 }
 
 
