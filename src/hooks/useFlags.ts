@@ -235,6 +235,7 @@ function getMagic(magic: boolean | undefined): boolean {
 
 function applyVerbosity() {
   function noop() {}
+  if (flags.verbosity > Verbosity.debug) flags.verbosity = Verbosity.debug
   if (flags.verbosity < Verbosity.debug) console.debug = noop
   if (flags.verbosity < Verbosity.loud) console.verbose = noop
   if (flags.verbosity < Verbosity.normal) {
