@@ -55,10 +55,10 @@ export default class Path {
           this.string = sys.normalize(input)	    
         }
         break
-      case "windows":
-       if (!input) {
+      case "windows":               
+       if (!input || !(/^(["[a-zA-Z]:[\\\/].*|[\\\/].*)$/.test(input))) {          
           throw new Error(`invalid absolute path: ${input}`)
-        } else {	    
+        } else {	          
           this.string = slash(sys.normalize(input))	    
         }
         break
