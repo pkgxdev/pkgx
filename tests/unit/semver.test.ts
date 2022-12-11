@@ -64,6 +64,11 @@ Deno.test("semver", async test => {
     assert(f.satisfies(new SemVer("16.0.0")))
     assertFalse(f.satisfies(new SemVer("17.0.0")))
     assert(f.satisfies(new SemVer("18.0.0")))
+
+    const g = new semver.Range("<15")
+    assert(g.satisfies(new SemVer("14.0.0")))
+    assert(g.satisfies(new SemVer("0.0.1")))
+    assertFalse(g.satisfies(new SemVer("15.0.0")))
   })
 
   await test.step("intersection", async test => {
