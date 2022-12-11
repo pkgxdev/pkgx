@@ -23,12 +23,12 @@ export default class TeaError extends Error {
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
       case 'not-found: exe/md: region': return 'spilt-tea-003'
       case 'not-found: srcroot': return 'spilt-tea-004'
-      case 'http': return 'spilt-tea-404'
-      case 'not-found: pantry: package.yml': return 'spilt-tea-101'
+      case 'not-found: pantry: package.yml': return 'spilt-tea-005'
+      case 'not-found: virtual-env': return 'spilt-tea-006'
+      case 'not-found: pantry': return 'spilt-tea-007'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
-      case 'not-found: virtual-env': return 'spilt-tea-004'
-      case 'not-found: pantry': return 'spilt-tea-005'
       case '#helpwanted': return 'spilt-tea-411'
+      case 'http': return 'spilt-tea-500'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)

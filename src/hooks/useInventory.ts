@@ -1,5 +1,5 @@
 import { Package, PackageRequirement } from "types"
-import { host, error } from "utils"
+import { host, error, TeaError } from "utils"
 import SemVer from "semver"
 import Path from "../vendor/Path.ts"
 
@@ -19,7 +19,7 @@ const select = async (rq: PackageRequirement | Package) => {
 
   const rsp = await fetch(url)
 
-  if (!rsp.ok) throw new Error(`404-not-found: ${url}`) //FIXME
+  if (!rsp.ok) throw new TeaError('http', {url}) //FIXME
 
   const releases = await rsp.text()
   const versions = releases.split("\n").map(x => new SemVer(x))
