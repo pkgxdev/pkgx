@@ -88,8 +88,8 @@ export default async function useShellEnv({installations, pending, pristine}: Op
     // pantry configured runtime environment
     const runtime = await getRuntimeEnvironment(installation.pkg)
     for (const key in runtime) {
-        rv[key] ??= []
-        rv[key].push(runtime[key])
+      rv[key] ??= []
+      rv[key].push(runtime[key])
     }
   }
 
