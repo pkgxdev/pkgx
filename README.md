@@ -149,8 +149,9 @@ $ cat favicon-generator.sh
 # dependencies:
 #     imagemagick.org: 4
 #     optipng.sourceforge.net: 1
-# [snip]…
 #---
+
+[snip…]
 ```
 
 tea reads a file’s YAML front-matter, allowing you to roll in the
@@ -275,7 +276,7 @@ directory.
 
 > ### Coming Soon
 >
-> * we’ll automatically load and unload completions
+> * we’ll automatically load and unload completions as you change directory
 > * we’ll allow customizations per package for your project
 
 &nbsp;
@@ -350,7 +351,7 @@ sh <(curl https://tea.xyz)
 
 </details>
 
-<details><summary><code>fish</code></summary>
+<details><summary>If you <code>fish</code>, read this…</summary>
 
 ```fish
 sh <(curl https://tea.xyz | psub)
@@ -363,12 +364,18 @@ In fact, the tea one-liner abstracts away installation:
 ```sh
 $ sh <(curl tea.xyz) https://examples.deno.land/color-logging.ts
 
-# works the same as:
-$ tea https://examples.deno.land/color-logging.ts
-
 # if tea is installed, our one-liner uses the tea installation, if it’s not
 # installed then it **doesn’t install tea** or any dependencies, it creates a
 # sandbox and runs everything in there
+
+# and btw, the above works the same as:
+$ tea https://examples.deno.land/color-logging.ts
+
+# which really is:
+$ tea -X deno run https://examples.deno.land/color-logging.ts
+
+# which *really*, really is:
+$ tea +deno.land deno run https://examples.deno.land/color-logging.ts
 ```
 
 > Now in your blog posts, tweets and tutorials you don’t have to start
@@ -527,15 +534,15 @@ script’s YAML front-matter, eg:
 """
 ---
 dependencies:
-  python.org: ^2.7
+  python.org: ^3.11
 ---
 """
 
 # snip …
 ```
 
-tea will run the script with the latest version of Python that is >=2.7 but
-less than 3.0. If it's not installed we grab it, otherwise we use what is
+tea will run the script with the latest version of Python that is >=3.11 but
+less than 4.0. If it's not installed we grab it, otherwise we use what is
 available.
 
 We also support `args` and `env` parameters which are useful for tools that
@@ -555,6 +562,9 @@ env:
   foo: {{srcroot}}/bar
 ---*/
 ```
+
+> Note strictly you don’t need the above, we automatically do this (if magic
+> is enabled) for `.ts` scripts.
 
 ### Using a `tea` Shebang
 
@@ -645,7 +655,8 @@ For example, if we detect that your project is a GitHub Action we read the
 If you have suggestions or ideas, start a [discussion]. If we agree we’ll
 move it to an issue. Bug fixes straight to pull request or issue please!
 
-Probably the place you’ll want to start is by supplementing the [pantry].
+Probably the place you’ll want to start is by supplementing the
+[pantry][pantry.extra].
 
 ## Hacking on `tea`
 
@@ -796,7 +807,8 @@ the deets.
 ## Packaging up tea packages with your `.app`, etc.
 
 Our packages are relocatable by default. Just keep the directory structure the
-same. And ofc. you are licensed to do so. Honestly we think you should
+same. And ofc. you are licensed to do so (by us! each package has its own
+license!). Honestly we think you should
 absolutely bundle and deploy tea’s prefix with your software. We designed it
 so that it would be easier for you to do this than anything that has come
 before.
@@ -853,7 +865,7 @@ complementary. Still where we have overlapping features:
 * tea aims to be zippy and stay zippy
 * tea doesn’t make global changes to your system
 * tea doesn’t require you install the Xcode Command Line Tools
-* tea aims to enhance the way you work, rather than impose the way you work
+* tea aims to enhance the way you work, rather than dictate the way you work
 * tea installs independently for every user on the machine
 * tea is somewhat decentralized and aims to be completely decentralized
 * tea is a handful of tight, easy-to-understand codebases
@@ -948,14 +960,15 @@ of the entire open source ecosystem, the larger Internet and the whole world
 of software.
 
 
-[pantry]: ../../../pantry.core
+[pantry]: https://github.com/teaxyz/pantry.core
 [Markdown]: https://daringfireball.net/projects/markdown/
 [releases]: ../../releases
-[teaxyz/setup]: ../../../setup
+[teaxyz/setup]: https://github.com/teaxyz/setup
 [deno]: https://deno.land
-[tea/cmd]: ../../../cmd
+[tea/cmd]: https://github.com/teaxyz/cmd
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
-[white-paper]: ../../../white-paper
+[white-paper]: https://github.com/teaxyz/white-paper
 [`brew`]: https://brew.sh
 [charm]: https://charm.sh
+[pantry.extra]: https://github.com/teaxyz/pantry.extra
