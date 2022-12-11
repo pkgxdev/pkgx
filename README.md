@@ -350,6 +350,14 @@ sh <(curl https://tea.xyz)
 
 </details>
 
+<details><summary<code>fish</code></summary>
+
+```fish
+sh <(curl https://tea.xyz | psub)
+```
+
+</details>
+
 In fact, the tea one-liner abstracts away installation:
 
 ```sh
