@@ -11,7 +11,18 @@ import X from "./app.X.ts"
 import Path from "path"
 import { Verbosity } from "./types.ts"
 
-const [args, {sync, verbosity}] = useArgs(Deno.args, Deno.execPath())
+let args, sync;
+let verbosity: Verbosity;
+
+try {
+  [args, {sync, verbosity}] = useArgs(Deno.args, Deno.execPath())
+} catch (err) {
+  await err_handler(err);
+
+  // Code continues otherwise. I think `err_handler()` being async causes the code to continue executing while it handles the error.
+  Deno.exit(1);
+}
+
 const version = `${(await useRequirementsFile(new URL(import.meta.url).path().join("../../README.md")).swallow(/not-found/))?.version}+dev`
 // ^^ this is statically replaced at deployment
 

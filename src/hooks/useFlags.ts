@@ -4,6 +4,7 @@ import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
 import Path from "path"
+import {TeaError} from "../utils/index.ts";
 
 // doing here as this is the only file all our scripts import
 set_tmp(usePrefix().join('tea.xyz/tmp'))
@@ -81,9 +82,9 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   const it = args[Symbol.iterator]()
 
   for (const arg of it) {
-    if (arg.startsWith('+')) {
+    if (arg.startsWith('+') && arg.length > 1) {
       rv.pkgs.push(pkg.parse(arg.slice(1)))
-    } else if (arg.startsWith('--')) {
+    } else if (arg.startsWith('--') && arg.length > 2) {
       const [,key, , value] = arg.match(/^--([\w-]+)(=(.+))?$/)!
 
       switch (key) {
@@ -149,9 +150,10 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         rv.env = false
         break
       default:
-        throw new Error(`unknown flag: --${key}`)
+        internalSetVerbosity()
+        throw new TeaError('not-found: flag', {flag: `--${key}`})
       }
-    } else if (arg.startsWith('-')) {
+    } else if (arg.startsWith('-') && arg.length > 1 && !arg.startsWith('--')) {
       for (const c of arg.slice(1)) {
         switch (c) {
         case 'x':
@@ -188,10 +190,15 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           rv.mode = ['dump', 'help']
           break
         default:
-          throw new Error(`unknown flag: -${c}`)
+          internalSetVerbosity()
+          throw new TeaError('not-found: flag', {flag: `-${c}`})
         }
       }
     } else {
+      if (arg == "+" || arg == "-" || arg == "--") {
+        internalSetVerbosity()
+        throw new TeaError('not-found: flag', {flag: arg})
+      }
       rv.args.push(arg)
       for (const arg of it) {
         rv.args.push(arg)
@@ -199,16 +206,20 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
     }
   }
 
-  flags = {
-    verbosity: getVerbosity(v),
-    magic: getMagic(magic),
-    json: !!Deno.env.get("JSON"),
-    numpty: !!Deno.env.get("NUMPTY"),
-    sync
+  function internalSetVerbosity() {
+
+    flags = {
+      verbosity: getVerbosity(v),
+      magic: getMagic(magic),
+      json: !!Deno.env.get("JSON"),
+      numpty: !!Deno.env.get("NUMPTY"),
+      sync
+    }
+
+    applyVerbosity()
   }
 
-  applyVerbosity()
-
+  internalSetVerbosity();
   const full_flags = useFlags()
   console.debug({ args: rv, flags: full_flags })
 

@@ -11,6 +11,7 @@ type ID =
   'parser: pantry: package.yml' |
   'not-found: virtual-env' |
   'not-found: srcroot' |
+  'not-found: flag' |
   '#helpwanted'
 
 export default class TeaError extends Error {
@@ -27,6 +28,9 @@ export default class TeaError extends Error {
       case 'not-found: virtual-env': return 'spilt-tea-006'
       case 'not-found: pantry': return 'spilt-tea-007'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
+      case 'not-found: virtual-env': return 'spilt-tea-004'
+      case 'not-found: pantry': return 'spilt-tea-005'
+      case 'not-found: flag': return 'spilt-tea-006'
       case '#helpwanted': return 'spilt-tea-411'
       case 'http': return 'spilt-tea-500'
     default: {
@@ -107,6 +111,13 @@ export default class TeaError extends Error {
         existing alongside a source control directory (eg. \`.git\`).
         `
       break
+    case 'not-found: flag':
+      msg = undent`
+       \`${ctx.flag}\` isn't a valid flag.
+       
+       for more information try running \`tea -h\`
+       `
+      break
     case '#helpwanted':
       msg = ctx.details
       break
@@ -125,7 +136,7 @@ export class UsageError extends Error
 {}
 
 export function panic(message?: string): never {
-  throw new Error(message)
+  throw  new Error(message)
 }
 
 export const wrap = <T extends Array<unknown>, U>(fn: (...args: T) => U, id: ID) => {
