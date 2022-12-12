@@ -8,7 +8,9 @@ async function suggestions(err: TeaError) {
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
     const suggestion = await usePantry().getClosestPackageSuggestion(err.ctx.project)
-    return `did you mean \`${suggestion}\`?`
+    return suggestion
+      ? `did you mean \`${logger.teal(suggestion)}\`? otherwise… see you on GitHub?`
+      : undefined
   }}
 }
 
@@ -25,7 +27,7 @@ export default async function(err: Error) {
     console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
     if (suggestion) {
       console.error()
-      console.error(logger.gray(suggestion))
+      console.error(suggestion)
       console.error()
     }
     console.error(msg(err))

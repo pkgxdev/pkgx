@@ -38,7 +38,7 @@ export default class TeaError extends Error {
   title() {
     switch (this.id) {
     case 'not-found: pantry: package.yml':
-      return `not-found in pantry: ${this.ctx.project}/package.yml`
+      return `not found in pantry: ${this.ctx.project}`
     default:
       return this.id
     }
@@ -50,8 +50,6 @@ export default class TeaError extends Error {
     case 'not-found: tea -X: arg0':
       msg = undent`
         couldn’t find a pkg to provide: \`${ctx.arg0}'
-
-        you could be the one to add it to \`tea\`:
 
             https://github.com/teaxyz/pantry.zero#contributing
 
@@ -80,13 +78,7 @@ export default class TeaError extends Error {
       msg = ctx.underr?.message ?? "contract violated"
       break
     case 'not-found: pantry: package.yml':
-      msg = undent`
-        no pantry entry for: ${ctx.project}
-        your time to shine? we’ll see you on GitHub…
-
-            https://github.com/teaxyz/pantry.zero#contributing
-
-        `
+      msg = "    https://github.com/teaxyz/pantry.zero#contributing\n"
       break
     case 'parser: pantry: package.yml':
       msg = undent`

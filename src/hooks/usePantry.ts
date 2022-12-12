@@ -219,22 +219,26 @@ function entry({ project }: { project: string }): Entry {
   throw new TeaError('not-found: pantry: package.yml', {project}, )
 }
 
-async function getClosestPackageSuggestion(orgPkg: string): Promise<string> {
-  let closestPkg = ''
-  let minDistance = Infinity
-  const pkgList = []
+async function getClosestPackageSuggestion(input: string) {
+  let choice: string | undefined
+  let min = Infinity
   for await (const {project} of ls()) {
-    pkgList.push(project)
-  }
-  for (const pkgName of pkgList) {
-    if(pkgName.includes(orgPkg)) return pkgName;
-    const number = levenshteinDistance(pkgName, orgPkg)
-    if (number<minDistance) {
-      minDistance = number
-      closestPkg = pkgName
+    if (min == 0) break
+
+    getProvides({ project }).then(provides => {
+      if (provides.includes(input)) {
+        choice = project
+        min = 0
+      }
+    })
+
+    const dist = levenshteinDistance(project, input)
+    if (dist < min) {
+      min = dist
+      choice = project
     }
   }
-  return closestPkg
+  return choice
 }
 
 function levenshteinDistance (str1: string, str2:string):number{
