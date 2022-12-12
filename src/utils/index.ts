@@ -64,6 +64,10 @@ declare global {
     /// prohibits standard logging unless verbosity is loud or above
     silence<T>(body: () => Promise<T>): Promise<T>
   }
+
+  interface Set<T> {
+    insert(t: T): { inserted: boolean }
+  }
 }
 
 String.prototype.chuzzle = function() {
@@ -72,6 +76,15 @@ String.prototype.chuzzle = function() {
 
 export function chuzzle(input: number) {
   return Number.isNaN(input) ? undefined : input
+}
+
+Set.prototype.insert = function<T>(t: T) {
+  if (this.has(t)) {
+    return {inserted: false}
+  } else {
+    this.add(t)
+    return {inserted: true}
+  }
 }
 
 Array.prototype.uniq = function<T>(): Array<T> {
