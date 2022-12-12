@@ -406,11 +406,6 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
     } else {
       value = transform(value)
     }
-    // weird POSIX string escaping/concat stuff
-    // eg. export FOO="bar ""$baz"" bun"
-    value = `"${value.trim().replace(/"/g, '""')}"`
-    while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
-    while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
 
     rv[key] = value
   }
@@ -436,7 +431,15 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
 }
 
 function expand_env(env: PlainObject, pkg: Package, deps: Installation[]): string {
-  return Object.entries(expand_env_obj(env, pkg, deps)).map(([key,value]) => `export ${key}=${value}`).join("\n")
+  return Object.entries(expand_env_obj(env, pkg, deps)).map(([key,value]) => {
+    // weird POSIX string escaping/concat stuff
+    // eg. export FOO="bar ""$baz"" bun"
+    value = `"${value.trim().replace(/"/g, '""')}"`
+    while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
+    while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
+
+    return `export ${key}=${value}`
+  }).join("\n")
 }
 
 
