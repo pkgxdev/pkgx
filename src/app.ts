@@ -1,7 +1,7 @@
 import { usePrefix, useRequirementsFile } from "hooks"
 import err_handler from "./app.err-handler.ts"
 import * as logger from "hooks/useLogger.ts"
-import { useArgs } from "hooks/useFlags.ts"
+import useFlags, { useArgs } from "hooks/useFlags.ts"
 import syncf from "./app.sync.ts"
 import dump from "./app.dump.ts"
 import exec from "./app.exec.ts"
@@ -11,32 +11,22 @@ import X from "./app.X.ts"
 import Path from "path"
 import { Verbosity } from "./types.ts"
 
-let args, sync;
-let verbosity: Verbosity;
-
-try {
-  [args, {sync, verbosity}] = useArgs(Deno.args, Deno.execPath())
-} catch (err) {
-  await err_handler(err);
-
-  // Code continues otherwise. I think `err_handler()` being async causes the code to continue executing while it handles the error.
-  Deno.exit(1);
-}
-
 const version = `${(await useRequirementsFile(new URL(import.meta.url).path().join("../../README.md")).swallow(/not-found/))?.version}+dev`
 // ^^ this is statically replaced at deployment
 
-if (args.cd) {
-  const chdir = args.cd
-  console.verbose({ chdir })
-  Deno.chdir(chdir.string)
-}
-
-if (args.mode == "exec" || args.mode == undefined ||  args.mode == "eXec" || !Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
-  logger.set_global_prefix('tea:')
-}
-
 try {
+  const [args, {sync}] = useArgs(Deno.args, Deno.execPath())
+
+  if (args.cd) {
+    const chdir = args.cd
+    console.verbose({ chdir })
+    Deno.chdir(chdir.string)
+  }
+
+  if (args.mode == "exec" || args.mode == undefined ||  args.mode == "eXec" || !Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
+    logger.set_global_prefix('tea:')
+  }
+
   if (sync) {
     await syncf(args)
   }
@@ -59,7 +49,7 @@ try {
       break
     case "prefix":
       await print(usePrefix().string)
-    }
+  }
 } catch (err) {
   await err_handler(err)
   Deno.exit(1)
@@ -69,7 +59,7 @@ async function announce() {
   const self = new Path(Deno.execPath())
   const prefix = usePrefix().string
 
-  switch (verbosity) {
+  switch (useFlags().verbosity) {
   case Verbosity.debug:
     if (self.basename() == "deno") {
       console.debug({ deno: self.string, prefix, import: import.meta, tea: version })

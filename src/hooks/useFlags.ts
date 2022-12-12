@@ -82,9 +82,13 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   const it = args[Symbol.iterator]()
 
   for (const arg of it) {
-    if (arg.startsWith('+') && arg.length > 1) {
+    if (arg == '+' || arg == '-' || arg == '--') {
+      throw new TeaError('not-found: arg', {arg})
+    }
+
+    if (arg.startsWith('+')) {
       rv.pkgs.push(pkg.parse(arg.slice(1)))
-    } else if (arg.startsWith('--') && arg.length > 2) {
+    } else if (arg.startsWith('--')) {
       const [,key, , value] = arg.match(/^--([\w-]+)(=(.+))?$/)!
 
       switch (key) {
@@ -150,10 +154,9 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         rv.env = false
         break
       default:
-        internalSetVerbosity()
-        throw new TeaError('not-found: flag', {flag: `--${key}`})
+        throw new TeaError('not-found: arg', {arg})
       }
-    } else if (arg.startsWith('-') && arg.length > 1 && !arg.startsWith('--')) {
+    } else if (arg.startsWith('-')) {
       for (const c of arg.slice(1)) {
         switch (c) {
         case 'x':
@@ -190,36 +193,27 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           rv.mode = ['dump', 'help']
           break
         default:
-          internalSetVerbosity()
-          throw new TeaError('not-found: flag', {flag: `-${c}`})
+          throw new TeaError('not-found: arg', {arg: `-${c}`})
         }
       }
     } else {
-      if (arg == "+" || arg == "-" || arg == "--") {
-        internalSetVerbosity()
-        throw new TeaError('not-found: flag', {flag: arg})
-      }
       rv.args.push(arg)
-      for (const arg of it) {
+      for (const arg of it) {  // empty the main loop iterator
         rv.args.push(arg)
       }
     }
   }
 
-  function internalSetVerbosity() {
-
-    flags = {
-      verbosity: getVerbosity(v),
-      magic: getMagic(magic),
-      json: !!Deno.env.get("JSON"),
-      numpty: !!Deno.env.get("NUMPTY"),
-      sync
-    }
-
-    applyVerbosity()
+  flags = {
+    verbosity: getVerbosity(v),
+    magic: getMagic(magic),
+    json: !!Deno.env.get("JSON"),
+    numpty: !!Deno.env.get("NUMPTY"),
+    sync
   }
 
-  internalSetVerbosity();
+  applyVerbosity()
+
   const full_flags = useFlags()
   console.debug({ args: rv, flags: full_flags })
 
