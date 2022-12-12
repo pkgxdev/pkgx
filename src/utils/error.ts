@@ -24,13 +24,15 @@ export default class TeaError extends Error {
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
       case 'not-found: exe/md: region': return 'spilt-tea-003'
       case 'not-found: srcroot': return 'spilt-tea-004'
-      case 'http': return 'spilt-tea-404'
-      case 'not-found: pantry: package.yml': return 'spilt-tea-101'
+      case 'not-found: pantry: package.yml': return 'spilt-tea-005'
+      case 'not-found: virtual-env': return 'spilt-tea-006'
+      case 'not-found: pantry': return 'spilt-tea-007'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
       case 'not-found: virtual-env': return 'spilt-tea-004'
       case 'not-found: pantry': return 'spilt-tea-005'
       case 'not-found: flag': return 'spilt-tea-006'
       case '#helpwanted': return 'spilt-tea-411'
+      case 'http': return 'spilt-tea-500'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
@@ -40,7 +42,7 @@ export default class TeaError extends Error {
   title() {
     switch (this.id) {
     case 'not-found: pantry: package.yml':
-      return `not-found in pantry: ${this.ctx.project}/package.yml`
+      return `not found in pantry: ${this.ctx.project}`
     default:
       return this.id
     }
@@ -52,8 +54,6 @@ export default class TeaError extends Error {
     case 'not-found: tea -X: arg0':
       msg = undent`
         couldn’t find a pkg to provide: \`${ctx.arg0}'
-
-        you could be the one to add it to \`tea\`:
 
             https://github.com/teaxyz/pantry.zero#contributing
 
@@ -82,22 +82,17 @@ export default class TeaError extends Error {
       msg = ctx.underr?.message ?? "contract violated"
       break
     case 'not-found: pantry: package.yml':
-      msg = undent`
-        no pantry entry for: ${ctx.project}
-        your time to shine? we’ll see you on GitHub…
-
-            https://github.com/teaxyz/pantry.zero#contributing
-
-        `
+      msg = "    https://github.com/teaxyz/pantry.zero#contributing\n"
       break
     case 'parser: pantry: package.yml':
-      //TODO need to figure out which pantry to report against
-      //TODO show the package name obv.
-      //TODO set new issue title
       msg = undent`
         pantry entry invalid. please report this bug!
 
             https://github.com/teaxyz/pantry.core/issues/new
+
+        ----------------------------------------------------->> attachment begin
+        ${ctx.project}: ${ctx.underr.message}
+        <<------------------------------------------------------- attachment end
         `
       break
     case 'not-found: virtual-env':

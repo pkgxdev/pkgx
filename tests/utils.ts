@@ -11,7 +11,7 @@ interface Tea {
   tmpdir: Path
 }
 
-export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
+export async function sandbox<T>(body: (tea: Tea) => Promise<T>, { throws }: { throws: boolean } = {throws: true}) {
   const TEA_PREFIX = new Path(await Deno.makeTempDir({ prefix: "tea" }))
 
   const existing_www_cache = Path.home().join(".tea/tea.xyz/var/www")
@@ -38,11 +38,11 @@ export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
 
     const PATH = Deno.env.get("PATH")
     const HOME = Deno.env.get("HOME")
+    const CI = Deno.env.get("HOME")
     if (!env) env = {}
     Object.assign(env, {
-      PATH,
-      TEA_PREFIX: TEA_PREFIX.string,
-      HOME
+      PATH, HOME, CI,
+      TEA_PREFIX: TEA_PREFIX.string
     })
 
     cmd.push(
@@ -54,25 +54,31 @@ export async function sandbox<T>(body: (tea: Tea) => Promise<T>) {
     )
 
     let stdout: "piped" | undefined
-    let proc: Deno.Process | undefined
 
     // we delay instantiating the proc so we can set `stdout` if the user calls that function
     // so the contract is the user must call `stdout` within this event loop iteration
-    const p = Promise.resolve().then(() => {
-      proc = Deno.run({ cmd, cwd: TEA_PREFIX.string, stdout, env, clearEnv: true})
-      return proc.status()
+    const p = Promise.resolve().then(async () => {
+      const proc = Deno.run({ cmd, cwd: TEA_PREFIX.string, stdout, env, clearEnv: true})
+      try {
+        const status = await proc.status()
+        if (throws && !status.success) {
+          throw status
+        }
+        if (stdout == 'piped') {
+          const out = await proc.output()
+          return new TextDecoder().decode(out)
+        } else {
+          return status
+        }
+      } finally {
+        proc.close()
+      }
     }) as Promise<number> & Enhancements
 
     p.stdout = () => {
       stdout = "piped"
-      return p.then(async () => {
-        const out = await proc!.output()
-        return new TextDecoder().decode(out)
-      })
+      return p as unknown as Promise<string>
     }
-
-    p.then(() => proc!.close())
-    p.catch(() => proc?.close())
 
     return p
   }

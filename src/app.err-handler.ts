@@ -1,13 +1,16 @@
 import * as logger from "./hooks/useLogger.ts"
-import { usePantry, useFlags } from "hooks"
-import { TeaError, UsageError } from "utils"
+import { usePantry, useFlags, usePrefix } from "hooks"
+import { TeaError, undent, UsageError } from "utils"
 import help from "./app.help.ts"
+import Path from "path"
 
 async function suggestions(err: TeaError) {
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
     const suggestion = await usePantry().getClosestPackageSuggestion(err.ctx.project)
-    return `did you mean \`${suggestion}\`?`
+    return suggestion
+      ? `did you mean \`${logger.teal(suggestion)}\`? otherwise… see you on GitHub?`
+      : undefined
   }}
 }
 
@@ -24,10 +27,10 @@ export default async function(err: Error) {
     console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
     if (suggestion) {
       console.error()
-      console.error(logger.gray(suggestion))
+      console.error(suggestion)
       console.error()
     }
-    console.error(err.message)
+    console.error(msg(err))
     if (debug) console.error(err.ctx)
   } else {
     const { stack, message } = err ?? {}
@@ -49,4 +52,32 @@ export default async function(err: Error) {
     // this way: deno will show the backtrace
     if (err instanceof Error == false) throw err
   }
+}
+
+/// this is here because error.ts cannot import higher level modules
+/// like hooks without creating a cyclic dependency
+function msg(err: TeaError): string {
+  let msg = err.message
+  const { ctx } = err
+
+  switch (err.code()) {
+  case 'spilt-tea-102':
+    if (ctx.filename instanceof Path && !ctx.filename.in(usePrefix())) {
+      // this yaml is being worked on by the user
+      msg = `${ctx.filename.prettyLocalString()}: ${ctx.underr.message}`
+    } else {
+      const attachment = `${ctx.project}: ${ctx.underr.message}`
+      msg = undent`
+        pantry entry invalid. please report this bug!
+
+            https://github.com/teaxyz/pantry.core/issues/new
+
+        ----------------------------------------------------->> attachment begin
+        ${logger.gray(attachment)}
+        <<------------------------------------------------------- attachment end
+        `
+    }
+  }
+
+  return msg
 }

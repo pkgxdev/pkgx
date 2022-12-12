@@ -43,8 +43,14 @@ export default async function useShellEnv({installations, pending, pristine}: Op
   const archaic = true
 
   const rv: Record<string, string[]> = {}
+  const seen = new Set<string>()
 
   for (const installation of installations) {
+
+    if (!seen.insert(installation.pkg.project).inserted) {
+      console.warn("warning: env is being duped:", installation.pkg.project)
+    }
+
     for (const key of EnvKeys) {
       for (const suffix of suffixes(key)!) {
         vars[key] = compact_add(vars[key], installation.path.join(suffix).compact()?.string)
@@ -88,8 +94,8 @@ export default async function useShellEnv({installations, pending, pristine}: Op
     // pantry configured runtime environment
     const runtime = await getRuntimeEnvironment(installation.pkg)
     for (const key in runtime) {
-        rv[key] ??= []
-        rv[key].push(runtime[key])
+      rv[key] ??= []
+      rv[key].push(runtime[key])
     }
   }
 
