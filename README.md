@@ -906,7 +906,24 @@ deno task run
 ### Compile
 
 ```sh
-deno task compile
+OUT="$1"
+if test -z "$OUT"; then
+  OUT="./tea"
+else
+  shift
+fi
+
+deno compile \
+  --allow-read \
+  --allow-write \
+  --allow-net \
+  --allow-run \
+  --allow-env \
+  --unstable \
+  --import-map="$SRCROOT/import-map.json" \
+  --output "$OUT" \
+  "$@" \
+  "$SRCROOT/src/app.ts"
 ```
 
 ### Install Self
