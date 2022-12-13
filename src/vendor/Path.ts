@@ -51,14 +51,14 @@ export default class Path {
       case "darwin":
         if (!input || input[0] != '/') {
           throw new Error(`invalid absolute path: ${input}`)
-        } else {	    
+        } else {
           this.string = sys.normalize(input)	    
         }
         break
-      case "windows":               
+      case "windows":                   
        if (!input || !(/^(["[a-zA-Z]:[\\\/].*|[\\\/].*)$/.test(input))) {          
           throw new Error(`invalid absolute path: ${input}`)
-        } else {	          
+        } else {
           this.string = slash(sys.normalize(input))	    
         }
         break
@@ -85,7 +85,8 @@ export default class Path {
     */
   readlink(): Path {
     try {
-      const output = Deno.build.os == "windows" ? Deno.realPathSync(this.string) : Deno.readLinkSync(this.string)
+      // with readLinkSync we get on windows the following error: The file or directory is not a reparsed point      
+      const output = Deno.build.os == "windows" ? Deno.realPathSync(this.string) : Deno.readLinkSync(this.string)      
       return this.parent().join(output)
     } catch (err) {
       const code = err.code
