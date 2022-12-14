@@ -42,6 +42,6 @@ Deno.test("pkg.str", async test => {
       constraint
     })
     assert(constraint.single())
-    assertEquals(out, `test@1.2.3`)
+    assertEquals(out, `test=1.2.3`)
   })
 })

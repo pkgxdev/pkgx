@@ -67,10 +67,12 @@ Deno.test("semver", async test => {
     assertFalse(d.satisfies(new SemVer("0.16.0")))
     assertFalse(d.satisfies(new SemVer("0.14.0")))
 
+    // `~` is weird
     const e = new semver.Range("~1")
     assertEquals(e.toString(), "~1")
     assert(e.satisfies(new SemVer("1.0")))
-    assertFalse(e.satisfies(new SemVer("1.1")))
+    assert(e.satisfies(new SemVer("1.1")))
+    assertFalse(e.satisfies(new SemVer("2")))
 
     const f = new semver.Range("^14||^16||^18")
     assert(f.satisfies(new SemVer("14.0.0")))
