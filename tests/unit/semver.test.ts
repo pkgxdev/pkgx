@@ -69,7 +69,7 @@ Deno.test("semver", async test => {
 
     // `~` is weird
     const e = new semver.Range("~1")
-    assertEquals(e.toString(), "~1")
+    assertEquals(e.toString(), "^1")
     assert(e.satisfies(new SemVer("1.0")))
     assert(e.satisfies(new SemVer("1.1")))
     assertFalse(e.satisfies(new SemVer("2")))
