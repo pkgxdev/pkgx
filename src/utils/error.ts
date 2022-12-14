@@ -133,9 +133,7 @@ export default class TeaError extends Error {
 export class UsageError extends Error
 {}
 
-export function panic(message?: string): never {
-  throw new Error(message)
-}
+export { panic } from "./safe-utils.ts"
 
 export const wrap = <T extends Array<unknown>, U>(fn: (...args: T) => U, id: ID) => {
   return (...args: T): U => {

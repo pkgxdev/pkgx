@@ -35,13 +35,13 @@ Deno.test("pkg.str", async test => {
   }
 
   await test.step("range of one version", () => {
-    const constraint = new Range("1.2.3")
+    const constraint = new Range("=1.2.3")
 
     out = pkg.str({
       project: "test",
       constraint
     })
     assert(constraint.single())
-    assertEquals(out, `test@1.2.3`)
+    assertEquals(out, `test=1.2.3`)
   })
 })

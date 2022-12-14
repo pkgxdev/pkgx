@@ -4,6 +4,7 @@ import SemVer from "semver"
 import Path from "path"
 //ALERT!! do not usePantry() or you can softlock in usePantry.git.ts
 import { usePrefix } from "hooks"
+import useFlags from "./useFlags.ts"
 
 
 export default function useCellar() {
@@ -28,6 +29,7 @@ const keg = (pkg: Package) => shelf(pkg.project).join(`v${pkg.version}`)
 /// returns a project’s installations (sorted by version)
 async function ls(project: string) {
   const d = shelf(project)
+  const { verbose } = useFlags()
 
   if (!d.isDirectory()) return []
 
@@ -35,15 +37,18 @@ async function ls(project: string) {
   for await (const [path, {name, isDirectory}] of d.ls()) {
     try {
       if (!isDirectory) continue
-      if (!name.startsWith("v")) continue
-      const version = new SemVer(name.slice(1))
+      if (!name.startsWith("v") || name == 'var') continue
+      const version = new SemVer(name)
       if (await vacant(path)) continue
       rv.push({path, pkg: {project, version}})
     } catch {
       // not console.warn as we allow other dirs as a design choice
-      console.verbose(`warn: invalid version: ${name}`)
+      if (verbose) {
+        console.warn(`warn: invalid version: ${name}`)
+      }
     }
   }
+
   return rv.sort((a, b) => pkgutils.compare(a.pkg, b.pkg))
 }
 
@@ -56,7 +61,7 @@ async function resolve(pkg: Package | PackageRequirement | Path | Installation) 
     const prefix = usePrefix()
     if (pkg instanceof Path) {
       const path = pkg
-      const version = new SemVer(path.basename().slice(1))
+      const version = new SemVer(path.basename())
       const project = path.parent().relative({ to: prefix })
       return {
         path, pkg: { project, version }

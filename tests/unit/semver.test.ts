@@ -4,25 +4,37 @@ import SemVer, * as semver from "utils/semver.ts"
 
 Deno.test("semver", async test => {
   await test.step("sort", () => {
-    const input = [new SemVer([1,2,3]), new SemVer("2.3.4"), new SemVer("1.2.4")]
+    const input = [new SemVer([1,2,3]), new SemVer("2.3.4"), new SemVer("1.2.4"), semver.parse("1.2.3.1")!]
     const sorted1 = input.sort(semver.compare)
     const sorted2 = input.sort()
 
-    assertEquals(sorted1.join(","), "1.2.3,1.2.4,2.3.4")
-    assertEquals(sorted2.join(","), "1.2.3,1.2.4,2.3.4")
+    assertEquals(sorted1.join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
+    assertEquals(sorted2.join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
   })
 
   await test.step("parse", () => {
+    assertEquals(semver.parse("1.2.3.4.5")?.toString(), "1.2.3.4.5")
+    assertEquals(semver.parse("1.2.3.4")?.toString(), "1.2.3.4")
     assertEquals(semver.parse("1.2.3")?.toString(), "1.2.3")
     assertEquals(semver.parse("1.2")?.toString(), "1.2.0")
     assertEquals(semver.parse("1")?.toString(), "1.0.0")
   })
 
   await test.step("constructor", () => {
+    assertEquals(new SemVer("1.2.3.4.5.6").toString(), "1.2.3.4.5.6")
+    assertEquals(new SemVer("1.2.3.4.5").toString(), "1.2.3.4.5")
+    assertEquals(new SemVer("1.2.3.4").toString(), "1.2.3.4")
     assertEquals(new SemVer("1.2.3").toString(), "1.2.3")
     assertEquals(new SemVer("v1.2.3").toString(), "1.2.3")
-    assertThrows(() => new SemVer("1.2"))
-    assertThrows(() => new SemVer("v1.2"))
+    assertEquals(new SemVer("1.2").toString(), "1.2.0")
+    assertEquals(new SemVer("v1.2").toString(), "1.2.0")
+
+    assertEquals(new SemVer("1.1.1q").toString(), "1.1.1q")
+    assertEquals(new SemVer("1.1.1q").components, [1,1,1,17])
+
+    // we refuse these as it is just too lenient in our opinion
+    assertEquals(new SemVer("1").toString(), "1.0.0")
+    assertEquals(new SemVer("v1").toString(), "1.0.0")
   })
 
   await test.step("ranges", () => {
@@ -55,8 +67,12 @@ Deno.test("semver", async test => {
     assertFalse(d.satisfies(new SemVer("0.16.0")))
     assertFalse(d.satisfies(new SemVer("0.14.0")))
 
+    // `~` is weird
     const e = new semver.Range("~1")
-    assertEquals(e.toString(), "^1")  // indeed: we change the ~ to ^
+    assertEquals(e.toString(), "^1")
+    assert(e.satisfies(new SemVer("1.0")))
+    assert(e.satisfies(new SemVer("1.1")))
+    assertFalse(e.satisfies(new SemVer("2")))
 
     const f = new semver.Range("^14||^16||^18")
     assert(f.satisfies(new SemVer("14.0.0")))
@@ -69,17 +85,29 @@ Deno.test("semver", async test => {
     assert(g.satisfies(new SemVer("14.0.0")))
     assert(g.satisfies(new SemVer("0.0.1")))
     assertFalse(g.satisfies(new SemVer("15.0.0")))
+
+    const i = new semver.Range("^1.2.3.4")
+    assert(i.satisfies(new SemVer("1.2.3.4")))
+    assert(i.satisfies(new SemVer("1.2.3.5")))
+    assert(i.satisfies(new SemVer("1.2.4.2")))
+    assert(i.satisfies(new SemVer("1.3.4.2")))
+    assertFalse(i.satisfies(new SemVer("2.0.0")))
+
+    assertThrows(() => new semver.Range("1"))
+    assertThrows(() => new semver.Range("1.2"))
+    assertThrows(() => new semver.Range("1.2.3"))
+    assertThrows(() => new semver.Range("1.2.3.4"))
   })
 
   await test.step("intersection", async test => {
-    await test.step("^3.7…@3.11", () => {
+    await test.step("^3.7…=3.11", () => {
       const a = new semver.Range("^3.7")
-      const b = new semver.Range("3.11.0")
+      const b = new semver.Range("=3.11")
 
-      assertEquals(b.toString(), "@3.11.0")
+      assertEquals(b.toString(), "=3.11.0")
 
       const c = semver.intersect(a, b)
-      assertEquals(c.toString(), "@3.11.0")
+      assertEquals(c.toString(), "=3.11.0")
     })
 
     await test.step("^3.7…^3.9", () => {
@@ -108,5 +136,27 @@ Deno.test("semver", async test => {
 
       assertThrows(() => semver.intersect(a, b))
     })
+
+    await test.step("^3.7…=3.8", () => {
+      const a = new semver.Range("^3.7")
+      const b = new semver.Range("=3.8")
+      const c = semver.intersect(a, b)
+      assertEquals(c.toString(), "=3.8.0")
+    })
+
+    await test.step("^11,^12…^11.3", () => {
+      const a = new semver.Range("^11,^12")
+      const b = new semver.Range("^11.3")
+      const c = semver.intersect(a, b)
+      assertEquals(c.toString(), "^11.3")
+    })
+
+    //FIXME this *should* work
+    // await test.step("^11,^12…^11.3,^12.2", () => {
+    //   const a = new semver.Range("^11,^12")
+    //   const b = new semver.Range("^11.3")
+    //   const c = semver.intersect(a, b)
+    //   assertEquals(c.toString(), "^11.3,^12.2")
+    // })
   })
 })

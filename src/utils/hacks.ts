@@ -28,7 +28,7 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
   if (constraint === undefined) {
     constraint = '*'
   } else if (isNumber(constraint)) {
-    constraint = `${constraint}`
+    constraint = `^${constraint}`
   }
   if (!isString(constraint)) {
     throw new Error(`invalid constraint: ${constraint}`)

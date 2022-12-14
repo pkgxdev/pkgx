@@ -246,7 +246,7 @@ export async function which(arg0: string) {
           rx = new RegExp(`^${foo}$`)
           match = arg0.match(rx)
           if (match) {
-            const constraint = new semver.Range(match[1])
+            const constraint = new semver.Range(`~${match[1]}`)
             found = {...entry, constraint}
           }
         }
