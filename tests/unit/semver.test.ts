@@ -8,8 +8,8 @@ Deno.test("semver", async test => {
     const sorted1 = input.sort(semver.compare)
     const sorted2 = input.sort()
 
-    assertEquals(sorted1.map(x=>x.raw).join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
-    assertEquals(sorted2.map(x=>x.raw).join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
+    assertEquals(sorted1.join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
+    assertEquals(sorted2.join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
   })
 
   await test.step("parse", () => {
