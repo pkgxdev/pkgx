@@ -133,8 +133,12 @@ export class Range {
             return [v1, v2]
           case "~": {
             v1 = new SemVer(match[2])
-            // for official semver ~1 is in fact equivalent to ^1 but this is dumb so we ignore it
-            v2 = new SemVer([v1.major, v1.minor + 1])
+            if (v1.components.length == 1) {
+              // yep this is the official policy
+              v2 = new SemVer([v1.major + 1])
+            } else {
+              v2 = new SemVer([v1.major, v1.minor + 1])
+            }
           } return [v1, v2]
           case "<":
             v1 = new SemVer([0])
