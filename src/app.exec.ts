@@ -75,7 +75,7 @@ async function refine(ass: RV2): Promise<RV1> {
     const filename = blueprint.file
     const sh = await useExecutableMarkdown({ filename }).findScript(ass.args[0]).swallow(/^not-found/)
     if (!sh) break // no exe/md target called this so just passthru
-    ass = { type: 'md', path: filename, sh, blueprint, name: ass.args[0], args: ass.args.slice(1) }
+    ass = { type: 'md', path: filename, sh: sh.code, blueprint, name: ass.args[0], args: ass.args.slice(1) }
   }}
 
   return ass
@@ -96,7 +96,7 @@ async function exec(ass: RV1, pkgs: PackageSpecification[], opts: {env: boolean}
     // ^^ jeez we’ve overcomplicated this shit
 
     const name = ass.name ?? 'getting-started'
-    const sh = ass.sh ?? await useExecutableMarkdown({ filename: ass.path }).findScript(name)
+    const sh = ass.sh ?? (await useExecutableMarkdown({ filename: ass.path }).findScript(name)).code
     const { pkgs } = await useRequirementsFile(ass.path) ?? panic()
     const { env } = await install(pkgs)
     const basename = ass.path.string.replaceAll("/", "_") //FIXME this is not sufficient escaping

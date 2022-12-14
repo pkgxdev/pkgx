@@ -479,6 +479,7 @@ For an example see our “[dependencies](#dependencies)” section
 You can check what environment this generates with `tea`:
 
 ```sh
+# tea
 tea --env --dump
 ```
 

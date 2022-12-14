@@ -1,5 +1,6 @@
 import Path from "path"
 import { TeaError } from "../utils/index.ts";
+import {Lexer, marked} from "marked";
 
 interface Return {
   /// throws if not found
@@ -7,6 +8,7 @@ interface Return {
 }
 
 type Parameters = { filename: Path } | { text: string }
+type Script = { language: string; code: string; description: string }
 
 export default function useExecutableMarkdown(parameters: Parameters) {
   const getLines = (() => (async () => {
@@ -15,7 +17,33 @@ export default function useExecutableMarkdown(parameters: Parameters) {
     } else {
       return parameters.text
     }
-  })().then(x => x.split("\n")[Symbol.iterator]()))
+  })())
+
+  const getScripts = async () => {
+    const lines = await getLines()
+    const result: Map<string, Script> = new Map()
+    const tokens = Lexer.lex(lines, marked.defaults)
+    let header: marked.Tokens.Heading | null = null
+    let description: marked.Tokens.Paragraph | null = null;
+    
+    for (const token of tokens) {
+      if (token.type === 'heading') {
+        header = token
+        description = null
+      } else if (token.type === 'code' && token.lang === 'sh' && header !== null) {
+        if (token.text.match(/^(#|\/\/)\s*tea\n/))
+          result.set(header.text.toLowerCase().replace(/\s+/g, '-'), {
+            language: token.lang,
+            code: token.text,
+            description: description ? description.text : ''
+          })
+        description = null
+      } else if (token.type === 'paragraph') {
+        description = token
+      }
+    }
+    return result
+  }
 
   const findScript = async (name: string) => {
     // firstly check if there is a target named args[0]
@@ -24,32 +52,10 @@ export default function useExecutableMarkdown(parameters: Parameters) {
     // NOTE user can still specify eg. `tea ./foo` if they really want the file
     name = name == '.' || !name?.trim() ? 'getting-started' : name
 
-    const lines = await getLines()
-
-    const header_rx = new RegExp(`^#+\\s+(.*)\\s*$`)
-    for (const line of lines) {
-      const match = line.match(header_rx)
-      if (!match) continue
-      if (match[1].toLowerCase().replace(/\s+/, '-') == name) {
-        break
-      }
-    }
-
-    do {
-      const {value: line, done} = lines.next()
-      if (done) throw new TeaError('not-found: exe/md: region', {script: name, ...parameters})
-      if (!line.trim()) continue
-      if (line.match(/^```sh\s*$/)) break
-    } while (true)
-
-    const sh: string[] = []
-    for (const line of lines) {
-      if (line.match(/^```\s*$/)) return sh.join("\n")
-      sh.push(line.replace(/^\$\s*/, ''))
-    }
-
-    throw { error: true, script: name, ...parameters, code: "exe/md:cannot-parse" }
+    const scripts = await getScripts()
+    if (scripts.has(name)) return scripts.get(name) as Script
+    throw new TeaError('not-found: exe/md: region', {script: name, ...parameters})
   }
 
-  return { findScript }
+  return { getScripts, findScript }
 }

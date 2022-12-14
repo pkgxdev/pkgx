@@ -1,8 +1,16 @@
-import { useFlags } from "hooks"
+import { useExecutableMarkdown, useFlags, useVirtualEnv } from "hooks"
 import { print, undent } from "utils"
+import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 
 export default async function help() {
   const { verbose } = useFlags()
+  let env: VirtualEnv | undefined = undefined
+  try {
+    env = await useVirtualEnv()
+  } catch {
+    // ignore not-found: srcroot
+  }
+  
 
   // tea -mx +deno.land^1.18 foo.ts -- bar
   // tea -mx +deno.land^1.18 deno -- ./script-file foo bar baz
@@ -76,5 +84,14 @@ export default async function help() {
         > by its author
           —𝑠ℎ𝑎𝑑𝑜𝑤𝑦 𝑠𝑢𝑝𝑒𝑟 𝑐𝑜𝑑𝑒𝑟
     `)
+  }
+
+  if (env === undefined) return
+  const scripts = await useExecutableMarkdown({ filename: env.file }).getScripts()
+  if (scripts.size === 0) return
+
+  await print(`\ntargets:`)
+  for(const [target, {description}] of scripts) {
+    await print(`  ${target}\n    ${description.trim().replaceAll('\n', '\n    ')}`)
   }
 }

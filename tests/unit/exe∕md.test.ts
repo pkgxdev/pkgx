@@ -15,7 +15,7 @@ Deno.test("find-script-simple", async () => {
   const output = await useExecutableMarkdown({ text })
     .findScript("build")
 
-  assert(output === script)
+  assert(output.code === script)
 })
 
 Deno.test("find-script-complex", async () => {
@@ -50,7 +50,7 @@ Deno.test("find-script-complex", async () => {
   const output = await useExecutableMarkdown({ text })
     .findScript("deploy")
 
-  assert(output === script)
+  assert(output.code === script)
 })
 
 ////////////////////////////////////////////////////////////////////////// impl
@@ -76,7 +76,7 @@ Deno.test("tea build", async () => {
 
 ////////////////////////////////////////////////////////////////////////// util
 function fixture() {
-  const script = 'echo foo bar'
+  const script = '# tea\necho foo bar'
   const markdown = undent`
     \`\`\`sh
     ${script}
