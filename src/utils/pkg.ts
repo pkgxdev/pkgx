@@ -1,28 +1,21 @@
 import { Package, PackageRequirement } from "types"
-import SemVer, * as semver from "semver"
+import * as semver from "semver"
 
 /// allows inputs `nodejs.org@16` when `semver.parse` would reject
 export function parse(input: string): PackageRequirement | Package {
-  const match = input.match(/^(.*?)([\^=~<>@].+)?$/)
+  const match = input.match(/^(.+?)([\^=~<>@].+)?$/)
   if (!match) throw new Error(`invalid pkgspec: ${input}`)
   if (!match[2]) match[2] = "*"
 
   const project = match[1]
 
-  if (match[2].startsWith("@") || match[2].startsWith("=")) {
-    const match2 = match[2].slice(1)
-    if (match2 == 'latest') {
-      console.warn(`@latest is deprecated, instead specify \`${project}*' or just \`${project}'`)
-      return { project, constraint: new semver.Range('*') }
-    }
-    let version = semver.parse(match2)
-    if (!version) {
-      const coercion = parseInt(match[2].slice(1))
-      if (Number.isNaN(coercion)) throw new Error()
-      version = new SemVer([coercion, 0, 0])
-    }
-    return { project, version }
+  if (match[2] =="@latest") {
+    console.warn(`@latest is deprecated, instead specify \`${project}*' or just \`${project}'`)
+    return { project, constraint: new semver.Range('*') }
   } else {
+    // everyone expects `@` and for it to work this way
+    if (match[2].startsWith("@")) match[2] = `^${match[2].slice(1)}`
+
     const constraint = new semver.Range(match[2])
     const version = constraint.single()
 
