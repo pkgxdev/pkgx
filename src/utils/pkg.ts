@@ -34,13 +34,11 @@ export function compare(a: Package, b: Package): number {
 }
 
 export function str(pkg: Package | PackageRequirement): string {
-  if ("constraint" in pkg) {
-    if (pkg.constraint.set === "*") {
-      return pkg.project
-    } else {
-      return `${pkg.project}${pkg.constraint.toString()}`
-    }
+  if (!("constraint" in pkg)) {
+    return `${pkg.project}=${pkg.version}`
+  } else if (pkg.constraint.set === "*") {
+    return pkg.project
   } else {
-    return `${pkg.project}=${pkg.version.toString()}`
+    return `${pkg.project}${pkg.constraint}`
   }
 }
