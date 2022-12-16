@@ -8,7 +8,6 @@ import { ls, pantry_paths, prefix } from "./usePantry.ls.ts"
 import SemVer, * as semver from "semver"
 import Path from "path"
 
-
 interface Entry {
   dir: Path
   yml: () => Promise<PlainObject>
@@ -400,7 +399,7 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
 
   const rv: Record<string, string> = {}
 
-  for (let [key, value] of Object.entries(env_)) {
+  for (let [key, value] of Object.entries(env)) {
     if (isArray(value)) {
       value = value.map(transform).join(" ")
     } else {
