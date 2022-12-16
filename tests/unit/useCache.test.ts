@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertFalse, assertThrows } from "deno/testing/asserts.ts"
+import { assertEquals } from "deno/testing/asserts.ts"
 import useCache from "hooks/useCache.ts"
 import Path from "../../src/vendor/Path.ts"
 

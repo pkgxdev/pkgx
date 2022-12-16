@@ -22,9 +22,15 @@ const select = async (rq: PackageRequirement | Package) => {
   if (!rsp.ok) throw new TeaError('http', {url}) //FIXME
 
   const releases = await rsp.text()
-  const versions = releases.split("\n").map(x => new SemVer(x))
+  let versions = releases.split("\n").map(x => new SemVer(x))
 
   if (versions.length < 1) throw new Error()
+
+  if (rq.project == 'openssl.org') {
+    // workaround our previous sins
+    const v = new SemVer("1.1.118")
+    versions = versions.filter(x => x.neq(v))
+  }
 
   console.debug({ project: rq.project, versions })
 

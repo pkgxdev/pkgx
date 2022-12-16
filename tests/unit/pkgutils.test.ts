@@ -11,7 +11,7 @@ Deno.test("pkg.str", async test => {
       project: "test",
       version: new SemVer("1.2.3")
     })
-    assertEquals(out, "test@1.2.3")
+    assertEquals(out, "test=1.2.3")
   })
 
   for (const range of ["^1", "^1.2", "^1.2.3"]) {
