@@ -124,7 +124,7 @@ export class Range {
           const v1 = new SemVer(match[1])
           const v2 = match[3] ? new SemVer(match[4])! : new SemVer([Infinity, Infinity, Infinity])
           return [v1, v2]
-        } else if ((match = input.match(/^([~=<^])((\d+)(\.\d+)*)$/))) {
+        } else if ((match = input.match(/^([~=<^])(.+)$/))) {
           let v1: SemVer | undefined, v2: SemVer | undefined
           switch (match[1]) {
           case "^":
