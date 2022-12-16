@@ -41,6 +41,6 @@ export function str(pkg: Package | PackageRequirement): string {
       return `${pkg.project}${pkg.constraint.toString()}`
     }
   } else {
-    return `${pkg.project}@${pkg.version.toString()}`
+    return `${pkg.project}=${pkg.version.toString()}`
   }
 }
