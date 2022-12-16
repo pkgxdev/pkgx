@@ -60,7 +60,7 @@ async function refine(ass: RV2): Promise<RV1> {
   switch (ass.type) {
   case 'url': {
     const path = await useDownload().download({ src: ass.url })
-    ass = assess_file(path.chmod(0o500), ass.args)
+    ass = assess_file(path.chmod(0o700), ass.args)
   } break
 
   case 'dir':
