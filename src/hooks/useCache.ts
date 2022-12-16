@@ -33,7 +33,7 @@ const path = (stowage: Stowage) => {
 }
 
 function decode(path: Path): Stowed | undefined {
-  const match = path.basename().match(`^(.*)-([0-9]+\\.[0-9]+\\.[0-9]+)(\\+(.+?)\\+(.+?))?\\.tar\\.[gx]z$`)
+  const match = path.basename().match(`^(.*)-(\\d+\\.\\d+\\.\\d+.*?)(\\+(.+?)\\+(.+?))?\\.tar\\.[gx]z$`)
   if (!match) return
     const [_, p, v, host, platform, arch] = match
     // Gotta undo the package name manipulation to get the package from the bottle
