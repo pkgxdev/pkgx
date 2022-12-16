@@ -38,7 +38,7 @@ export default function usePantry() {
 }
 
 async function resolve(spec: Package | PackageRequirement): Promise<Package> {
-  const constraint = "constraint" in spec ? spec.constraint : new semver.Range(spec.version.toString())
+  const constraint = "constraint" in spec ? spec.constraint : new semver.Range(`=${spec.version}`)
   const versions = await getVersions(spec)
   const version = constraint.max(versions)
   if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)

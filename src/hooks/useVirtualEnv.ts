@@ -98,16 +98,16 @@ async function domagic(srcroot: Path): Promise<PackageRequirement[]> {
       switch (using) {
         case "node16": return [{
           project: "nodejs.org",
-          constraint: new semver.Range("16")
+          constraint: new semver.Range("^16")
         }]
         case "node12": return [{
           project: "nodejs.org",
-          constraint: new semver.Range("12")
+          constraint: new semver.Range("^12")
         }]
       }
     }
     if (path = srcroot.join(".node-version").isReadableFile()) {
-      const constraint = new semver.Range(await path.read())
+      const constraint = parse(await path.read())
       return [{ project: "nodejs.org", constraint }]
     }
     if (path = srcroot.join("package.json").isReadableFile()) {
@@ -120,4 +120,11 @@ async function domagic(srcroot: Path): Promise<PackageRequirement[]> {
   })()
 
   return requirements
+}
+
+function parse(input: string): semver.Range {
+  if (/^\d/.test(input)) {
+    input = `^${input}`
+  }
+  return new semver.Range(input)
 }

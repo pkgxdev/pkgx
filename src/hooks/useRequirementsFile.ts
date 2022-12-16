@@ -39,7 +39,7 @@ function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
   const rv: PackageRequirement[] = []
   for (const [project, v] of Object.entries(input)) {
     if (included.has(project)) throw new Error(`duplicate-constraint:${project}`)
-    const rq: PackageRequirement = { project, constraint: new semver.Range(v.toString()) }
+    const rq: PackageRequirement = { project, constraint: new semver.Range(`=${v}`) }
     rv.push(rq)
     console.verbose({ found: rq })
   }

@@ -28,6 +28,7 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
   if (constraint === undefined) {
     constraint = '*'
   } else if (isNumber(constraint)) {
+    //FIXME change all pantry entries to use proper syntax
     constraint = `^${constraint}`
   }
   if (!isString(constraint)) {
