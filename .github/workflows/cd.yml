@@ -154,7 +154,7 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           files: artifacts/*
-          body_path: ${{ steps.build_changelog.outputs.changelog }}
+          body: ${{ steps.build_changelog.outputs.changelog }}
           fail_on_unmatched_files: true
 
   upload-binaries:

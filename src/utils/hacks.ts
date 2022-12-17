@@ -33,6 +33,9 @@ export function validatePackageRequirement(input: PlainObject): PackageRequireme
   }
   if (!isString(constraint)) {
     throw new Error(`invalid constraint: ${constraint}`)
+  } else if (/^\d/.test(constraint)) {
+    //FIXME change all pantry entries to use proper syntax
+    constraint = `^${constraint}`
   }
 
   constraint = new semver.Range(constraint)
