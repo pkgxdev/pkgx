@@ -38,11 +38,14 @@ export default function useSourceUnarchiver(): Response {
           }
         }
       }
-    } else {
+    } else if (TarballUnarchiver.supports(opts.zipfile) || opts.stripComponents !== undefined) {
       //FIXME we need to determine file type from the magic bytes
       // rather than assume tarball if not zip
       opts.dstdir.mkpath()
       unarchiver = new TarballUnarchiver({ verbosity, ...opts })
+    } else {
+      // the “tarball” is actually just a single file like beyondgrep.com
+      return opts.zipfile.cp({ into: opts.dstdir.mkpath() })
     }
 
     const cmd = unarchiver.args()
