@@ -14,7 +14,7 @@ export default class SemVer {
   minor: number
   patch: number
 
-  //FIXME
+  //FIXME parse these
   readonly prerelease: string[] = []
   readonly build: string[] = []
 
@@ -34,10 +34,12 @@ export default class SemVer {
           if (isNaN(n)) throw new Error(`invalid version: ${input}`)
           pretty_is_raw = true
           return [n, char_to_num(match[2])]
-        } else {
-          const n = parseInt(x)
+        } else if (/^\d+$/.test(x)) {
+          const n = parseInt(x)  // parseInt will parse eg. `5-start` to `5`
           if (isNaN(n)) throw new Error(`invalid version: ${input}`)
           return [n]
+        } else {
+          throw new Error(`invalid version: ${input}`)
         }
       })
       this.raw = input
