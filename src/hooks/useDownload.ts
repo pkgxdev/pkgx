@@ -11,7 +11,6 @@ interface DownloadOptions {
   src: URL
   dst?: Path  /// default is our own unique cache path
   headers?: Record<string, string>
-  ephemeral?: boolean  /// always download, do not rely on cache
   logger?: Logger | string
 }
 
@@ -23,7 +22,7 @@ interface RV {
   sha: string | undefined
 }
 
-async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOptions,
+async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
   body: (src: ReadableStream<Uint8Array>, dst: Deno.Writer, sz?: number) => Promise<T>): Promise<Path>
 {
   if (isString(logger)) {
@@ -45,15 +44,13 @@ async function internal<T>({ src, dst, headers, ephemeral, logger }: DownloadOpt
   dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
-  if (!ephemeral && dst.isReadableFile()) {
-
+  if (dst.isReadableFile()) {
     headers ??= {}
     if (etag_entry().isFile()) {
       headers["If-None-Match"] = await etag_entry().read()
     } else if (mtime_entry().isFile()) {
       headers["If-Modified-Since"] = await mtime_entry().read()
     }
-
     logger.replace(teal('querying'))
   } else {
     logger.replace(teal('downloading'))
