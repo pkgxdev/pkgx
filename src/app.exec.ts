@@ -10,7 +10,7 @@ import * as semver from "semver"
 import Path from "path"
 import { Interpreter } from "hooks/usePantry.ts";
 
-//TODO specifying explicit pkgs or versions on the command line should regxace anything deeper
+//TODO specifying explicit pkgs or versions on the command line should replace anything deeper
 //    RATIONALE: so you can override if you are testing locally
 
 
@@ -18,13 +18,13 @@ export default async function(opts: Args) {
   const { verbosity, ...flags } = useFlags()
   const assessment = assess(opts.args)
 
-  if (assessment.type == 'regx') {
-    if (!opts.pkgs.length && flags.sync) Deno.exit(0)    // `tea -S` is not an error or a regx
-    if (!opts.pkgs.length && verbosity > 0) Deno.exit(0) // `tea -v` is not an error or a regx
+  if (assessment.type == 'repl') {
+    if (!opts.pkgs.length && flags.sync) Deno.exit(0)    // `tea -S` is not an error or a repl
+    if (!opts.pkgs.length && verbosity > 0) Deno.exit(0) // `tea -v` is not an error or a repl
     if (!opts.pkgs.length) throw new UsageError()
 
     const { installed, env } = await install(opts.pkgs)
-    await regx(installed, env)
+    await repl(installed, env)
 
   } else try {
     const refinement = await refine(assessment)
@@ -323,7 +323,7 @@ function supp(env: Record<string, string>, blueprint?: VirtualEnv) {
 import { basename } from "deno/path/mod.ts"
 import { isArray, isNumber } from "is_what"
 
-async function regx(installations: Installation[], env: Record<string, string>) {
+async function repl(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
   console.info('this is a temporary shell containing the following packages:')
   console.info(pkgs_str())
@@ -371,7 +371,7 @@ type RV2 = RV1 |
            { type: "url", url: URL, args: string[] } |
            { type: "dir", path: Path, args: string[] }
 type RV3 = RV2 |
-           { type: 'regx' }
+           { type: 'repl' }
 
 function assess_file(path: Path, args: string[]): RV0 {
   return isMarkdown(path)
@@ -381,7 +381,7 @@ function assess_file(path: Path, args: string[]): RV0 {
 
 function assess([arg0, ...args]: string[]): RV3 {
   if (!arg0?.trim()) {
-    return { type: 'regx' }
+    return { type: 'repl' }
   }
   const url = urlify(arg0)
   if (url) {

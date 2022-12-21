@@ -77,7 +77,7 @@ export default class TeaError extends Error {
       }
       break
     case 'http':
-      msg = ctx.underr?.message ?? "contract violated"
+      msg = ctx.underr?.message ?? "unknown error"
       break
     case 'not-found: pantry: package.yml':
       msg = "    https://github.com/teaxyz/pantry.zero#contributing\n"
