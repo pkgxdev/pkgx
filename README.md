@@ -260,7 +260,7 @@ nothing to think about:
 ```sh
 $ git clone https://github.com/teaxyz/white-paper
 $ cd white-paper
-$ make  #†
+$ tea make  #†
 tea: installing pandoc.org and 33 other dependencies…
 …
 $ open tea.white-paper.pdf
@@ -270,9 +270,9 @@ Our white-paper’s dependencies are written in plain markdown in our `README`.
 tea sets up a virtual environment for them simply by stepping into the
 directory.
 
-> † on macOS you may need to do `tea -S` first since we re-use the system
-> make (we try to detect system installed deps) and thus we cannot intercept
-> the call
+> † prefixing with tea ensures all the deps get installed before `make` is run
+> in general tea is a *shell* that injects a packaging environment before
+> executing other commands.
 
 > ### Coming Soon
 >
@@ -291,10 +291,6 @@ documentation that can be *run*.
 ```sh
 $ tea .  # interprets `# Getting Started`, could also be `tea ./README.md`
 tea: npm install
-tea: npm start
-
-$ sh <(curl tea.xyz) https://github.com/my/project
-tea: cloning…
 tea: npm start
 
 $ git clone https://github.com/my/project
