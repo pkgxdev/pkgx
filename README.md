@@ -2,16 +2,15 @@
 
 <p align="center">
   <a href="https://twitter.com/teaxyz">
-    <img src="https://img.shields.io/twitter/follow/teaxyz?style=flat&label=%40teaxyz&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
+    <img src="https://img.shields.io/twitter/follow/teaxyz?style=flat&label=%40teaxyz&logo=twitter&color=2675f5&logoColor=fff" alt="Twitter" />
   </a>
   <a href="https://discord.gg/JKzuqrW9">
-    <img src="https://img.shields.io/discord/906608167901876256?label=discord" alt="Discord" />
+    <img src="https://img.shields.io/discord/906608167901876256?label=discord&color=29f746" alt="Discord" />
   </a>
   <a href="#">
-    <img src="https://img.shields.io/github/v/release/teaxyz/cli?label=tea/cli" alt="Version" />
+    <img src="https://img.shields.io/github/v/release/teaxyz/cli?label=tea/cli&color=ff00ff" alt="Version" />
   </a>
 </p>
-&nbsp;
 
 tea is not a package manager.
 
