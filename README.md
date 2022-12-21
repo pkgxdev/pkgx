@@ -1,5 +1,18 @@
 ![tea](https://tea.xyz/banner.png)
 
+<p align="center">
+  <a href="https://twitter.com/teaxyz">
+    <img src="https://img.shields.io/twitter/follow/teaxyz?style=flat&label=%40teaxyz&logo=twitter&color=0bf&logoColor=fff" alt="Twitter" />
+  </a>
+  <a href="https://discord.gg/JKzuqrW9">
+    <img src="https://img.shields.io/discord/906608167901876256?label=discord" alt="Discord" />
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/github/v/release/teaxyz/cli?label=tea/cli" alt="Version" />
+  </a>
+</p>
+&nbsp;
+
 tea is not a package manager.
 
 *tea is unified packaging infrastructure*.
