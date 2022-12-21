@@ -22,8 +22,10 @@ export const EnvKeys = [
   'LDFLAGS',
   'TEA_PREFIX',
   'PYTHONPATH',
-  'npm_config_prefix'
-]
+  'npm_config_prefix',
+  'ACLOCAL_PATH'
+] as const
+export type EnvKey = typeof EnvKeys[number]
 
 interface Options {
   installations: Installation[]
@@ -34,7 +36,7 @@ interface Options {
 export default async function useShellEnv({installations, pending, pristine}: Options): Promise<Record<string, string[]>> {
   const {getRuntimeEnvironment} = usePantry()
 
-  const vars: Record<string, OrderedHashSet<string>> = {}
+  const vars: Partial<Record<EnvKey, OrderedHashSet<string>>> = {}
   const isMac = host().platform == 'darwin'
   pending ??= []
 
@@ -114,8 +116,8 @@ export default async function useShellEnv({installations, pending, pristine}: Op
   //FIXME refactor lol
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
-    if (!vars[key] || vars[key].isEmpty) continue
-    rv[key] = vars[key].toArray()
+    if (vars[key] === undefined || vars[key]!.isEmpty) continue
+    rv[key] = vars[key]!.toArray()
 
     if (!pristine && key == 'PATH') {
       rv[key] ??= []
@@ -155,7 +157,7 @@ export default async function useShellEnv({installations, pending, pristine}: Op
   return rv
 }
 
-function suffixes(key: string) {
+function suffixes(key: EnvKey) {
   switch (key) {
     case 'PATH':
       return ["bin", "sbin"]
@@ -175,10 +177,12 @@ function suffixes(key: string) {
     case 'TEA_PREFIX':
     case 'PYTHONPATH':
     case 'npm_config_prefix':
+    case 'ACLOCAL_PATH':
       return []  // we handle these specially
-    default:
-      throw new Error("unhandled")
-  }
+    default: {
+      const exhaustiveness_check: never = key
+      throw new Error(`unhandled id: ${exhaustiveness_check}`)
+  }}
 }
 
 export function expand(env: Record<string, string[]>) {
