@@ -32,7 +32,10 @@ export default function useLogger(prefix?: string) {
 }
 
 function colorIfTTY(x: string, colorMethod: (x: string)=>string) {
-  if (Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stderr.rid)) {
+  if (Deno.env.get("CI")) {
+    // this is what charm’s lipgloss does, we copy their lead
+    return colorMethod(x)
+  } else if (Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stderr.rid)) {
     return colorMethod(x)
   } else {
     return x
