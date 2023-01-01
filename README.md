@@ -195,10 +195,20 @@ goodness, we will follow a symlink one deep to see if a base link goes to a vers
 link. Example:
 
 ```sh
-$ ln -s tea node^16
-$ ln -s node node^16
+$ ln -s tea /usr/local/bin/node^16
+$ ln -s node^16 /usr/local/bin/node
 $ node --version
 v16.19.0
+```
+
+Some tools, like `python` expect versioned binary names as well. `python.org` provides
+`python`, `python{{version.major}}` and `python{{version.major}}.{{version.minor}}`,
+so `ln -s tea /usr/local/bin/python3` works as expected, but this provides an equivalent
+method for achieving this if not provided by the package, via:
+
+```sh
+$ ln -s tea /usr/local/bin/python^3
+$ ln -s python^3 /usr/local/bin/python3
 ```
 
 > ### Coming Soon
