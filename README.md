@@ -189,6 +189,18 @@ Notably if you create a symlink of `foo` to `tea` (or `tea_foo`) we will
 interpret that as `tea -X foo [args…]`, yet another way using `tea` can be
 completely transparent to your everyday workflows.
 
+Even better, you can include semver ranges in your link name, so `ln -s tea node^16`
+will let you run `node^16` via the symlink of the same name. For even, even more
+goodness, we will follow a symlink one deep to see if a base link goes to a versioned
+link. Example:
+
+```sh
+$ ln -s tea node^16
+$ ln -s node node^16
+$ node --version
+v16.19.0
+```
+
 > ### Coming Soon
 >
 > ```yaml
