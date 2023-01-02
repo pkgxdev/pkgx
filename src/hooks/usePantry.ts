@@ -333,10 +333,8 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
     throw new Error()
   }
 
-  const rsp = await useGitHubAPI().getVersions({ user, repo, type })
-
   const rv: SemVer[] = []
-  for (const pre_strip_name of rsp) {
+  for await (const pre_strip_name of useGitHubAPI().getVersions({ user, repo, type })) {
     const name = strip(pre_strip_name)
 
     if (ignore.some(x => x.test(name))) {

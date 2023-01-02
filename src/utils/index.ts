@@ -25,6 +25,10 @@ export function validate_arr<T>(input: any): Array<T> {
 
 ///////////////////////////////////////////////////////////////////////// HTTP
 export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
+  return (await GET2(url, headers))[0] as T
+}
+
+export async function GET2<T>(url: URL | string, headers?: Headers): Promise<[T, Response]> {
   if (isString(url)) url = new URL(url)
   if (url.host == "api.github.com") {
     const token = Deno.env.get("GITHUB_TOKEN")
@@ -36,9 +40,8 @@ export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
   const rsp = await fetch(url, { headers })
   if (!rsp.ok) throw new TeaError('http', { url, headers })
   const json = await rsp.json()
-  return json as T
+  return [json as T, rsp]
 }
-
 
 ////////////////////////////////////////////////////////////// base extensions
 import outdent from "outdent"
