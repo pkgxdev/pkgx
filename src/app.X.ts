@@ -20,7 +20,7 @@ export default async function X(opts: Args) {
   const pkg = pkgs.find(x => x.project == found!.project) ?? panic()
   const install = await useCellar().resolve(pkg)
   const cmd = opts.args
-  cmd[0] = install.path.join('bin', arg0).string  // force full path to avoid infinite recursion
+  cmd[0] = install.path.join('bin', found!.shebang).string  // force full path to avoid infinite recursion
   try {
     await run({ cmd, env })
   } catch (err) {

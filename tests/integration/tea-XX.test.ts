@@ -1,4 +1,4 @@
-import { assertEquals } from "deno/testing/asserts.ts"
+import { assertEquals, assertMatch } from "deno/testing/asserts.ts"
 import { sandbox } from '../utils.ts'
 
 //TODO verify that python version is actually what we request
@@ -21,5 +21,12 @@ Deno.test("tea -SX python3.11", async () => {
   await sandbox(async ({ run }) => {
     const out = await run({args: ["-SX", "python3.11", "-c", "print(3)"], net: true }).stdout()
     assertEquals(out, "3\n")
+  })
+})
+
+Deno.test("tea -SX node^16", async () => {
+  await sandbox(async ({ run }) => {
+    const out = await run({args: ["-SX", "node^16", "--version"], net: true }).stdout()
+    assertMatch(out, /^v16\./)
   })
 })

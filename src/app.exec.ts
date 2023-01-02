@@ -221,7 +221,7 @@ const subst = function(start: number, end: number, input: string, what: string) 
 
 export async function which(arg0: string) {
   const pantry = usePantry()
-  let found: { project: string, constraint: semver.Range } | undefined
+  let found: { project: string, constraint: semver.Range, shebang: string } | undefined
   const promises: Promise<void>[] = []
 
   for await (const entry of pantry.ls()) {
@@ -232,7 +232,18 @@ export async function which(arg0: string) {
           return
         } else if (provider == arg0) {
           const constraint = new semver.Range("*")
-          found = {...entry, constraint}
+          found = {...entry, constraint, shebang: provider }
+        } else if (arg0.startsWith(provider)) {
+          // eg. `node^16` symlink
+          try {
+            const constraint = new semver.Range(arg0.substring(provider.length))
+            if (constraint) {
+              found = {...entry, constraint, shebang: provider }
+              return
+            }
+          } catch {
+            // not a valid semver range; fallthrough
+          }
         } else {
           //TODO more efficient to check the prefix fits arg0 first
           // eg. if python3 then check if the provides starts with python before
@@ -247,7 +258,7 @@ export async function which(arg0: string) {
           match = arg0.match(rx)
           if (match) {
             const constraint = new semver.Range(`~${match[1]}`)
-            found = {...entry, constraint}
+            found = {...entry, constraint, shebang: arg0 }
           }
         }
       }
@@ -262,7 +273,7 @@ export async function which(arg0: string) {
   }
 
   if (found) {
-    return {...found, shebang: arg0}
+    return found
   }
 }
 

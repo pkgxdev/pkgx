@@ -65,8 +65,13 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   if (flags) throw new Error("contract-violated");
 
   (() => {
-    const base = new Path(arg0).isSymlink()?.basename()
-    if (base === undefined || base === "tea") return
+    const link = new Path(arg0).isSymlink()
+    if (link === undefined || link.basename() === "tea") return
+    const target = link.readlink().isSymlink()
+    // if node is a symlink to node^16 to tea, then we should use node^16
+    const base = target?.basename().startsWith(link.basename())
+      ? target.basename()
+      : link.basename()
     const match = base.match(/^tea_([^\/]+)$/)
     args = ["-X", match?.[1] ?? base, ...args]
   })()

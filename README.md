@@ -189,6 +189,28 @@ Notably if you create a symlink of `foo` to `tea` (or `tea_foo`) we will
 interpret that as `tea -X foo [args…]`, yet another way using `tea` can be
 completely transparent to your everyday workflows.
 
+Even better, you can include semver ranges in your link name, so `ln -s tea node^16`
+will let you run `node^16` via the symlink of the same name. For even, even more
+goodness, we will follow a symlink one deep to see if a base link goes to a versioned
+link. Example:
+
+```sh
+$ ln -s tea /usr/local/bin/node^16
+$ ln -s node^16 /usr/local/bin/node
+$ node --version
+v16.19.0
+```
+
+Some tools, like `python` expect versioned binary names as well. `python.org` provides
+`python`, `python{{version.major}}` and `python{{version.major}}.{{version.minor}}`,
+so `ln -s tea /usr/local/bin/python3` works as expected, but this provides an equivalent
+method for achieving this if not provided by the package, via:
+
+```sh
+$ ln -s tea /usr/local/bin/python^3
+$ ln -s python^3 /usr/local/bin/python3
+```
+
 > ### Coming Soon
 >
 > ```yaml
