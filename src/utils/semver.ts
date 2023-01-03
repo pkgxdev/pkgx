@@ -24,7 +24,8 @@ export default class SemVer {
   constructor(input: string | number[] | Range | SemVer, tolerant = false) {
     if (typeof input == 'string') {
       const vprefix = input.startsWith('v')
-      const parts = (vprefix ? input.slice(1) : input).split('.')
+      const raw = vprefix ? input.slice(1) : input
+      const parts = raw.split('.')
       if (!tolerant && parts.length < 3 && !vprefix) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
       let pretty_is_raw = false
       this.components = parts.flatMap((x, index) => {
@@ -43,7 +44,7 @@ export default class SemVer {
           throw new Error(`invalid version: ${input}`)
         }
       })
-      this.raw = input
+      this.raw = raw
       if (pretty_is_raw) this.pretty = input
     } else if (input instanceof Range || input instanceof SemVer) {
       const v = input instanceof Range ? input.single() : input
