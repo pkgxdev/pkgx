@@ -158,6 +158,8 @@ jobs:
           fail_on_unmatched_files: true
 
       - uses: fischerscode/tagger@v0
+        with:
+          tag: ${{ env.TAG }}
 
   upload-binaries:
     needs: [release]
