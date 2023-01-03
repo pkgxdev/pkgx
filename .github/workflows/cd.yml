@@ -157,6 +157,8 @@ jobs:
           body: ${{ steps.build_changelog.outputs.changelog }}
           fail_on_unmatched_files: true
 
+      - uses: fischerscode/tagger@v0
+
   upload-binaries:
     needs: [release]
     runs-on: ubuntu-latest
