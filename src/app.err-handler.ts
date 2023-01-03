@@ -39,7 +39,7 @@ export default async function(err: Error) {
     const url = `https://github.com/teaxyz/cli/issues/new?title=${title}`
 
     console.error()
-    console.error(`${logger.red("panic")}:`, "split tea. we’re sorry and we’ll fix it… but you have to report the bug!")
+    console.error(`${logger.red("panic")}:`, "spilt tea. we’re sorry and we’ll fix it… but you have to report the bug!")
     console.error()
     console.error("   ", logger.gray(url))
     console.error()

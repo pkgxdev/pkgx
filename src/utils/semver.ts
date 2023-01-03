@@ -45,7 +45,7 @@ export default class SemVer {
         }
       })
       this.raw = raw
-      if (pretty_is_raw) this.pretty = input
+      if (pretty_is_raw) this.pretty = raw
     } else if (input instanceof Range || input instanceof SemVer) {
       const v = input instanceof Range ? input.single() : input
       if (!v) throw new Error(`range represents more than a single version: ${input}`)
