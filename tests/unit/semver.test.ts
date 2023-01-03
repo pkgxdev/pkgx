@@ -32,7 +32,7 @@ Deno.test("semver", async test => {
     assertEquals(new SemVer("1.1.1q").toString(), "1.1.1q")
     assertEquals(new SemVer("1.1.1q").components, [1,1,1,17])
 
-    // we refuse these as it is just too lenient in our opinion
+    //FIXME refuse these as they are just too lenient in our opinion
     assertEquals(new SemVer("1").toString(), "1.0.0")
     assertEquals(new SemVer("v1").toString(), "1.0.0")
   })

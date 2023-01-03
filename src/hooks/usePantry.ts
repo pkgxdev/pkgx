@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
-import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, panic, pkg, TeaError } from "utils"
+import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
@@ -268,9 +268,7 @@ async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
-    return versions.map(raw =>
-      semver.parse(validate_str(raw)) ?? panic(`couldn’t parse \`${raw}' into a semantic version`)
-    )
+    return versions.map(raw => new SemVer(validate_str(raw)))
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
@@ -335,11 +333,15 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
 
   const rv: SemVer[] = []
   for await (const pre_strip_name of useGitHubAPI().getVersions({ user, repo, type })) {
-    const name = strip(pre_strip_name)
+    let name = strip(pre_strip_name)
 
     if (ignore.some(x => x.test(name))) {
       console.debug({ignoring: pre_strip_name, reason: 'explicit'})
     } else {
+      // it's common enough to use _ instead of . in github tags, but we require a `v` prefix
+      if (/^v\d+_\d+_\d+$/.test(name)) {
+        name = name.replace(/_/g, '.')
+      }
       const v = semver.parse(name)
       if (!v) {
         console.warn({ignoring: pre_strip_name, reason: 'unparsable'})

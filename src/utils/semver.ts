@@ -23,8 +23,9 @@ export default class SemVer {
 
   constructor(input: string | number[] | Range | SemVer) {
     if (typeof input == 'string') {
-      if (input.startsWith('v')) input = input.slice(1)
-      const parts = input.split('.')
+      const vprefix = input.startsWith('v')
+      const parts = (vprefix ? input.slice(1) : input).split('.')
+      if (parts.length < 3 && !vprefix) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
       let pretty_is_raw = false
       this.components = parts.flatMap((x, index) => {
         const match = x.match(/^(\d+)([a-z])$/)
