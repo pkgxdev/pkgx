@@ -20,21 +20,23 @@ Deno.test("semver", async test => {
     assertEquals(semver.parse("1")?.toString(), "1.0.0")
   })
 
+  await test.step("satisfies", () => {
+    assertEquals(new semver.Range("=3.1.0").max([new SemVer("3.1.0")]), new SemVer("3.1.0"))
+  })
+
   await test.step("constructor", () => {
     assertEquals(new SemVer("1.2.3.4.5.6").toString(), "1.2.3.4.5.6")
     assertEquals(new SemVer("1.2.3.4.5").toString(), "1.2.3.4.5")
     assertEquals(new SemVer("1.2.3.4").toString(), "1.2.3.4")
     assertEquals(new SemVer("1.2.3").toString(), "1.2.3")
     assertEquals(new SemVer("v1.2.3").toString(), "1.2.3")
-    assertEquals(new SemVer("1.2").toString(), "1.2.0")
+    assertThrows(() => new SemVer("1.2"))
     assertEquals(new SemVer("v1.2").toString(), "1.2.0")
+    assertThrows(() => new SemVer("1"))
+    assertEquals(new SemVer("v1").toString(), "1.0.0")
 
     assertEquals(new SemVer("1.1.1q").toString(), "1.1.1q")
     assertEquals(new SemVer("1.1.1q").components, [1,1,1,17])
-
-    //FIXME refuse these as they are just too lenient in our opinion
-    assertEquals(new SemVer("1").toString(), "1.0.0")
-    assertEquals(new SemVer("v1").toString(), "1.0.0")
   })
 
   await test.step("ranges", () => {
@@ -70,9 +72,9 @@ Deno.test("semver", async test => {
     // `~` is weird
     const e = new semver.Range("~1")
     assertEquals(e.toString(), "^1")
-    assert(e.satisfies(new SemVer("1.0")))
-    assert(e.satisfies(new SemVer("1.1")))
-    assertFalse(e.satisfies(new SemVer("2")))
+    assert(e.satisfies(new SemVer("v1.0")))
+    assert(e.satisfies(new SemVer("v1.1")))
+    assertFalse(e.satisfies(new SemVer("v2")))
 
     const f = new semver.Range("^14||^16||^18")
     assert(f.satisfies(new SemVer("14.0.0")))

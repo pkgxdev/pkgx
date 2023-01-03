@@ -263,7 +263,7 @@ function levenshteinDistance (str1: string, str2:string):number{
 }
 
 /// returns sorted versions
-async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]> {
+async function getVersions(spec: { project: string }): Promise<SemVer[]> {
   const files = entry(spec)
   const versions = await files.yml().then(x => x.versions)
 
@@ -272,7 +272,7 @@ async function getVersions(spec: Package | PackageRequirement): Promise<SemVer[]
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
-    throw new Error(`couldn’t parse versions: ${pkg.str(spec)}`)
+    throw new Error(`couldn’t parse versions for ${spec.project}`)
   }
 }
 
@@ -339,7 +339,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
       console.debug({ignoring: pre_strip_name, reason: 'explicit'})
     } else {
       // it's common enough to use _ instead of . in github tags, but we require a `v` prefix
-      if (/^v\d+_\d+_\d+$/.test(name)) {
+      if (/^v\d+_\d+(_\d+)+$/.test(name)) {
         name = name.replace(/_/g, '.')
       }
       const v = semver.parse(name)

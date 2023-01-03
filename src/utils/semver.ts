@@ -21,11 +21,11 @@ export default class SemVer {
   readonly raw: string
   readonly pretty?: string
 
-  constructor(input: string | number[] | Range | SemVer) {
+  constructor(input: string | number[] | Range | SemVer, tolerant = false) {
     if (typeof input == 'string') {
       const vprefix = input.startsWith('v')
       const parts = (vprefix ? input.slice(1) : input).split('.')
-      if (parts.length < 3 && !vprefix) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
+      if (!tolerant && parts.length < 3 && !vprefix) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
       let pretty_is_raw = false
       this.components = parts.flatMap((x, index) => {
         const match = x.match(/^(\d+)([a-z])$/)
@@ -100,7 +100,7 @@ export default class SemVer {
 /// the same as the constructor but swallows the error returning undefined instead
 export function parse(input: string) {
   try {
-    return new SemVer(input)
+    return new SemVer(input, true)
   } catch {
     return undefined
   }
@@ -124,31 +124,31 @@ export class Range {
       this.set = input.split(/(?:,|\s*\|\|\s*)/).map(input => {
         let match = input.match(/^>=((\d+\.)*\d+)\s*(<((\d+\.)*\d+))?$/)
         if (match) {
-          const v1 = new SemVer(match[1])
-          const v2 = match[3] ? new SemVer(match[4])! : new SemVer([Infinity, Infinity, Infinity])
+          const v1 = new SemVer(match[1], true)
+          const v2 = match[3] ? new SemVer(match[4], true)! : new SemVer([Infinity, Infinity, Infinity])
           return [v1, v2]
         } else if ((match = input.match(/^([~=<^])(.+)$/))) {
           let v1: SemVer | undefined, v2: SemVer | undefined
           switch (match[1]) {
           case "^":
-            v1 = new SemVer(match[2])
-            v2 = new SemVer([v1.major + 1])
+            v1 = new SemVer(match[2], true)
+            v2 = new SemVer([v1.major + 1], true)
             return [v1, v2]
           case "~": {
-            v1 = new SemVer(match[2])
+            v1 = new SemVer(match[2], true)
             if (v1.components.length == 1) {
               // yep this is the official policy
-              v2 = new SemVer([v1.major + 1])
+              v2 = new SemVer([v1.major + 1], true)
             } else {
-              v2 = new SemVer([v1.major, v1.minor + 1])
+              v2 = new SemVer([v1.major, v1.minor + 1], true)
             }
           } return [v1, v2]
           case "<":
-            v1 = new SemVer([0])
-            v2 = new SemVer(match[2])
+            v1 = new SemVer([0], true)
+            v2 = new SemVer(match[2], true)
             return [v1, v2]
           case "=":
-            return new SemVer(match[2])
+            return new SemVer(match[2], true)
           }
         }
         throw err()
