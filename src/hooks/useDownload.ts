@@ -107,8 +107,8 @@ async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
 async function download(opts: DownloadOptions): Promise<Path> {
   try {
     return await internal(opts, (src, dst) => copy(readerFromStreamReader(src.getReader()), dst))
-  } catch (underr) {
-    throw new TeaError('http', {underr, ...opts})
+  } catch (cause) {
+    throw new TeaError('http', {cause, ...opts})
   }
 }
 

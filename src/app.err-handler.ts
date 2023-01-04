@@ -64,9 +64,9 @@ function msg(err: TeaError): string {
   case 'spilt-tea-102':
     if (ctx.filename instanceof Path && !ctx.filename.in(usePrefix())) {
       // this yaml is being worked on by the user
-      msg = `${ctx.filename.prettyLocalString()}: ${ctx.underr.message}`
+      msg = `${ctx.filename.prettyLocalString()}: ${ctx.cause.message}`
     } else {
-      const attachment = `${ctx.project}: ${ctx.underr.message}`
+      const attachment = `${ctx.project}: ${ctx.cause.message}`
       msg = undent`
         pantry entry invalid. please report this bug!
 

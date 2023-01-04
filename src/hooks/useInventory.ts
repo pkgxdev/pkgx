@@ -19,7 +19,10 @@ const select = async (rq: PackageRequirement | Package) => {
 
   const rsp = await fetch(url)
 
-  if (!rsp.ok) throw new TeaError('http', {url}) //FIXME
+  if (!rsp.ok) {
+    const cause = new Error(`${rsp.status}: ${url}`)
+    throw new TeaError('http', {cause})
+  }
 
   const releases = await rsp.text()
   let versions = releases.split("\n").map(x => new SemVer(x))

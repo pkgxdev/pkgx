@@ -77,7 +77,7 @@ export default class TeaError extends Error {
       }
       break
     case 'http':
-      msg = ctx.underr?.message ?? "unknown error"
+      msg = ctx.cause?.message ?? "unknown HTTP error"
       break
     case 'not-found: pantry: package.yml':
       msg = "    https://github.com/teaxyz/pantry.zero#contributing\n"
@@ -89,7 +89,7 @@ export default class TeaError extends Error {
             https://github.com/teaxyz/pantry.core/issues/new
 
         ----------------------------------------------------->> attachment begin
-        ${ctx.project}: ${ctx.underr.message}
+        ${ctx.project}: ${ctx.cause.message}
         <<------------------------------------------------------- attachment end
         `
       break
@@ -124,7 +124,9 @@ export default class TeaError extends Error {
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
     }}
 
-    super(msg)
+    const opts: ErrorOptions = {cause: ctx.cause}
+
+    super(msg, opts)
     this.id = id ?? msg
     this.ctx = ctx
   }
@@ -143,15 +145,15 @@ export const wrap = <T extends Array<unknown>, U>(fn: (...args: T) => U, id: ID)
         foo = foo.catch(converter) as U
       }
       return foo
-    } catch (underr) {
-      converter(underr)
+    } catch (cause) {
+      converter(cause)
     }
 
-    function converter(underr: unknown): never {
-      if (underr instanceof TeaError) {
-        throw underr
+    function converter(cause: unknown): never {
+      if (cause instanceof TeaError) {
+        throw cause
       } else {
-        throw new TeaError(id, {...args, underr})
+        throw new TeaError(id, {...args, cause})
       }
     }
   }
