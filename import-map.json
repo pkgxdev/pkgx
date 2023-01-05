@@ -11,6 +11,7 @@
     "utils": "./src/utils/index.ts",
     "utils/": "./src/utils/",
     "is_what": "https://deno.land/x/is_what@v4.1.7/src/index.ts",
+    "shell_escape": "https://deno.land/x/shell_escape@1.0.0/index.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.2/",
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",

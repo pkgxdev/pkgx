@@ -2,6 +2,7 @@
 import { Package, PackageRequirement, Installation } from "types"
 import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
+import { multipleArguments } from 'shell_escape'
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, useGitHubAPI, usePrefix } from "hooks"
 import { ls, pantry_paths, prefix } from "./usePantry.ls.ts"
@@ -401,9 +402,9 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
 
   for (let [key, value] of Object.entries(env)) {
     if (isArray(value)) {
-      value = value.map(transform).join(" ")
+      value = `(${multipleArguments(value.map(transform))})`
     } else {
-      value = transform(value)
+      value = `"${transform(value)}"`
     }
 
     rv[key] = value
@@ -430,15 +431,9 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
 }
 
 function expand_env(env: PlainObject, pkg: Package, deps: Installation[]): string {
-  return Object.entries(expand_env_obj(env, pkg, deps)).map(([key,value]) => {
-    // weird POSIX string escaping/concat stuff
-    // eg. export FOO="bar ""$baz"" bun"
-    value = `"${value.trim().replace(/"/g, '""')}"`
-    while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
-    while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
-
-    return `export ${key}=${value}`
-  }).join("\n")
+  return Object.entries(expand_env_obj(env, pkg, deps))
+    .map(([key,value]) => `export ${key}=${value.trim()}`)
+    .join("\n")
 }
 
 
