@@ -104,7 +104,7 @@ export default class Path {
   /// rationale: usually if you are trying to join an absolute path it is a bug in your code
   /// TODO should warn tho
   join(...components: string[]): Path {
-    const joined = components.join("/")
+    const joined = components.filter(x => x).join("/")
     if (joined[0] == '/') {
       return new Path(joined)
     } else if (joined) {

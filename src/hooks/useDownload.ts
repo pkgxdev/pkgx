@@ -2,7 +2,7 @@ import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { Sha256 } from "deno/hash/sha256.ts"
-import { useFlags, usePrefix } from "hooks"
+import { usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
 
@@ -40,7 +40,6 @@ async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
   const mtime_entry = () => hash().join("mtime")
   const etag_entry = () => hash().join("etag")
 
-  const { numpty } = useFlags()
   dst ??= hash().join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
@@ -96,9 +95,7 @@ async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
     logger.replace(`cache: ${teal('hit')}`)
     break
   default:
-    if (!numpty || !dst.isFile()) {
-      throw new Error(`${rsp.status}: ${src}`)
-    }
+    throw new Error(`${rsp.status}: ${src}`)
   }
 
   return dst

@@ -7,7 +7,9 @@
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --unstable",
     "typecheck": "deno check --unstable ./src/app.ts",
-    "run": "deno run --unstable --allow-all ./src/app.ts"
+    "run": "deno run --unstable --allow-all ./src/app.ts",
+    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output tea src/app.ts",
+    "install": "deno compile --allow-all --unstable --output $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
   },
   // ignore all files since the current style deviates from deno's default style.
   "fmt": {

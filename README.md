@@ -12,260 +12,145 @@
   </a>
 </p>
 
-tea is not a package manager.
+Package managers suck. Why do you have to even have to think about
+`brew install foo`? Isn’t managing packages mindless, tedious, busywork?
 
-*tea is unified packaging infrastructure*.
-
-From the creator of [`brew`], tea is a standalone, binary download for all
-platforms that puts the entire open
-source ecosystem at your fingertips. Casually and effortlessly use the latest
-and greatest or the oldest and most mature from any layer of any stack. Break
-down the silos between programming communities, throw together scripts that
-use entirely separate tools and languages and share them with the world with
-a simple one-liner.
-
-All you need is `tea`.
-
-&nbsp;
-
-> tea is pre v1. This means there may still be some rough edges in day to day use.
-> It also means that you should absolutely get involved. This is the key and
-> golden time when getting involved is both easy and hugely fun. We look
-> forward to meeting you 👊
-
-&nbsp;
-
-
-# tea/cli 0.18.1
-
-Open source is a treasure trove—yet those chests are sealed with gnarly locks.
-tea is the key:
+`tea`’s the last thing you’ll ever install:
 
 ```sh
-$ tea +rust-lang.org
+sh <(curl tea.xyz)
+```
 
-tea: installing rust-lang.org and 13 other packages into a temporary sandbox
-when done type: exit
+&nbsp;
 
-tea $ cat <<EOF >hello.rs
-fn main() {
-  println!("Hello World!");
-}
-EOF
-$ rustc hello.rs -o hello
-$ ./hello
+
+# tea/cli 0.19.0
+
+```sh
+$ node --eval 'console.log("Hello World!")'
+command not found: node
+
+$ sh <(curl tea.xyz) --yes
+installing ~/.tea…
+
+$ node --eval 'console.log("Hello World!")'
+tea: installing nodejs.org^19
 Hello World!
-
-tea $ exit
-
-$ rustc
-command not found: rustc
 ```
 
-tea doesn’t *install* packages—at least not in a conventional sense—we *stow*
-them in `~/.tea`†. Your system remains pristine and isolated from tea’s
-activity. But everything is right there when you need it.
+With tea there’s no *install packages step*. Just type the commands for what
+you need and tea takes care of the rest.
 
-> † *finally* a package manager where all the packages are *relocatable* (like
-> they should be).
-
-### tea Pipelines
-
-tea’s `+pkg` syntax puts the whole open source ecosystem at your fingertips,
-if you stop at the `+pkg` then the above happens—we open a new shell with those
-packages in the environment—but if you keep typing you can construct direct
-usage:
+We don’t even install the packages; we stow them in `~/.tea` so your system
+remains untouched. The packages don’t even end up in your `PATH`:
 
 ```sh
-$ tea +nodejs.org npx --yes browser-sync start --server
-# ^^ one-liner to start a local web server with live reload
+$ which bun
+bun not found
 
-$ sh <(curl tea.xyz) +nodejs.org npx --yes browser-sync start --server
-# ^^ same one-liner but works for anyone on the Internet
-# (if tea is already installed, it uses it, if not it *doesn’t* install tea,
-#  a temporary sandbox is created)
+$ tea --dry-run bun --version
+~/.tea/bun.sh/v0.4.0/bin/bun --version
+
+$ bun --version
+0.4.0
 ```
 
-Compose everything, combine everything—just like the UNIX philosophy
-envisaged. Which leads us to `tea`-pipelines:
+> Check out [# Magic](#Magic) to learn how this works.
+
+It’s somewhat tedious also to have to manage your packages when running
+scripts too. And let’s face it, this has held people back from writing scripts
+in more useful languages than Bash. You just can’t rely on your team mates or
+Internet randoms to have the dependencies you need installed.
 
 ```sh
-$ tea +gnu.org/wget wget -qO- tea.xyz/white-paper | tea +charm.sh/glow glow -
-```
+$ tea ./hello.ts
+installing deno…
+deno: running hello.ts
 
-This example downloads our white paper and renders it with [charm]’s excellent
-`glow` terminal markdown renderer. This is a basic example, but UNIX has been
-limited by the package manager for **too long**. It’s a fundamental limitation
-that tea is designed to overcome.
-
-> Notably, with `-X` syntax this can be expressed more concisely:
->
-> ```sh
-> $ tea -X wget -qO- tea.xyz/white-paper | tea -X glow -
-> ```
-
-> <details><summary><h3>Further Examples</h3></summary>
->
-> It’s 202x so obviously we also can download scripts from the Internet:
->
-> ```sh
-> $ sh <(curl tea.xyz) +charm.sh/gum https://github.com/charmbracelet/gum/blob/main/examples/demo.sh
-> ```
->
-> Want to try out the latest version of node, but not sure if it will work
-> with your project? *tea makes it easy.*
->
-> ```sh
-> $ tea +nodejs.org^19 npm start
-> ```
->
-> One liner to create a react app:
->
-> ```sh
-> $ sh <(curl tea.xyz) -X npx create-react-app my-app
-> ```
->
-> </details>
-
-> ### Coming Soon
->
-> tea pipelines are so interesting we intend to have a dedicated showcase for
-> them.
-
-&nbsp;
-
-
-## tea: the Universal Interpreter
-
-```sh
 $ tea https://gist.githubusercontent.com/i0bj/2b3afbe07a44179250474b5f36e7bd9b/raw/colors.go --yellow
 tea: installing go 1.18.3
 go: installing deps
 go: running colors.go
-…
-```
 
-In this basic example we know to install `go` first based on the file
-extension. Obvious right? Which is why we didn’t stop there:
-
-```sh
-$ tea favicon-generator.sh input.png
+# need more dependencies than the interpreter? tea reads YAML front matter!
+$ tea ./favicon-generator input.png
 tea: installing image-magick, optipng, guetzli and 3 other packages…
-…
+# …
 output: favicon-128.png…
 
-$ cat favicon-generator.sh
-#!/usr/bin/env tea
+$ cat favicon-generator
+#!/usr/bin/env ruby
+# ^^ we read the shebang and automatically install ruby
 #---
-# args: [/bin/sh, -e]
 # dependencies:
-#     imagemagick.org: 4
-#     optipng.sourceforge.net: 1
+#   imagemagick.org: 4
+#   optipng.sourceforge.net: 1
 #---
-
-[snip…]
 ```
 
-tea reads a file’s YAML front-matter, allowing you to roll in the
-entire open source ecosystem for your scripts, gists and one-liners. While it
-runs, the script has these dependencies in its environment, but the rest of
-your system will never know about them.
-
-We also know a little more magic:
+You’re a developer, you need specific versions of tools, not just whatever
+the package manager happens to have today.
 
 ```sh
-$ tea -X node
-tea: installing node@18.9.1
-Welcome to Node.js v18.9.1.
-Type ".help" for more information.
->
-```
+$ node^16 --version
+tea: installing node^16
+v16.19.0
 
-Typically `tea` uses fully-qualified-names for packages, but we know what
-tools they provide, so as long as you know what tool you’re looking for we can
-figure out the rest.
+$ node~16.18 --version
+tea: installing node~16.18
+v16.18.1
 
-Notably if you create a symlink of `foo` to `tea` (or `tea_foo`) we will
-interpret that as `tea -X foo [args…]`, yet another way using `tea` can be
-completely transparent to your everyday workflows.
-
-Even better, you can include semver ranges in your link name, so `ln -s tea node^16`
-will let you run `node^16` via the symlink of the same name. For even, even more
-goodness, we will follow a symlink one deep to see if a base link goes to a versioned
-link. Example:
-
-```sh
-$ ln -s tea /usr/local/bin/node^16
-$ ln -s node^16 /usr/local/bin/node
-$ node --version
+# when you need even more control we support the full semver.org spec
+# though you will need to invoke tea directly
+$ tea +nodejs.org>=15,<17 node --version
 v16.19.0
 ```
 
-Some tools, like `python` expect versioned binary names as well. `python.org` provides
-`python`, `python{{version.major}}` and `python{{version.major}}.{{version.minor}}`,
-so `ln -s tea /usr/local/bin/python3` works as expected, but this provides an equivalent
-method for achieving this if not provided by the package, via:
+In fact you can construct *virtual environments* of specific tools and
+versions encapsulated and separate from the rest of your system.
 
 ```sh
-$ ln -s tea /usr/local/bin/python^3
-$ ln -s python^3 /usr/local/bin/python3
+$ tea +rust-lang.org^1.63 +python.org~3.11
+tea: this is a temporary shell containing rust-lang.org, python.org and 13 other packages
+tea: type `exit` when done
+
+tea $ rustc --version
+rustc 1.65.0
+
+tea $ python --version
+Python 3.11.1
+
+tea $ exit
+$
 ```
 
-> ### Coming Soon
->
-> ```yaml
-> ---
-> dependencies:
->  nodejs.org: 19
->  npmjs.com:
->    package.json:
->      dependencies:
->        react: ^18
-> ---
-> ```
-
-&nbsp;
-
-
-## tea: the universal virtual‑environment manager
+And since typically different projects will need different versions, we
+support that too.
 
 ```sh
-$ deno
-zsh: command not found: deno
+$ node --version
+v19.3.0
 
-$ echo $PATH
-/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+$ cat <<EOF >>my-project/README.md
+# Dependencies
+| Project    | Version |
+| ---------- | ------- |
+| nodejs.org | ^18     |
+EOF
 
 $ cd my-project
-$ deno
-tea: installing deno.land^1.22
-deno 1.27.0
-> ^D
+$ node --version
+v18.13.0
 
-$ env
-PATH=~/.tea/deno.land/v1.27.0/bin:/usr/bin:/bin
-SRCROOT=/src/my-project
-VERSION=…
-…
+$ cd ..
+$ node --version
+v19.3.0
 ```
 
-> <details><summary><i>What is this sourcery?</i></summary><br>
->
-> tea uses a shell hook to insert the precise tooling your project needs into
-> your shell environment. Development is now containerized at the
-> *package manager* level. No longer do you need to worry about your team
-> being on different versions of foundational tooling nor do you need to worry
-> about system level updates breaking different projects you’re working on.
->
-> There are thousands of version managers for the thousands of tools they
-> support. Probably it’s time we stopped that duplicated effort.
->
-> Projects can specify precisely what they need and you can install those
-> requirements precisely be it today, tomorrow or in ten years.
->
-> In the above example if `deno` is not yet installed we insert a hook so
-> trying to execute it will install it first.
-> </details>
+Encoding this data into the README makes use of tea completely optional:
+tea can read it and *humans can too*. If the developer uses tea we make
+working on the project effortless. If they don’t then they can source the
+packages themselves.
 
 > <details><summary><i>PSA:</i> Stop using Docker</summary><br>
 >
@@ -288,124 +173,60 @@ VERSION=…
 > deployments actually remain *more* stable.
 > </details>
 
-You need 34 dependencies to compile our white-paper but with tea there’s
-nothing to think about:
-
-```sh
-$ git clone https://github.com/teaxyz/white-paper
-$ cd white-paper
-$ tea make  #†
-tea: installing pandoc.org and 33 other dependencies…
-…
-$ open tea.white-paper.pdf
-```
-
-Our white-paper’s dependencies are written in plain markdown in our `README`.
-tea sets up a virtual environment for them simply by stepping into the
-directory.
-
-> † prefixing with tea ensures all the deps get installed before `make` is run
-> in general tea is a *shell* that injects a packaging environment before
-> executing other commands.
-
-> ### Coming Soon
->
-> * we’ll automatically load and unload completions as you change directory
-> * we’ll allow customizations per package for your project
-
 &nbsp;
 
 
-## Executable Markdown
+# Installing tea
 
-[Markdown] has (justifiably) become the standard documentation format of
-development. How about instead of writing scripts with comments, we write
-documentation that can be *run*.
-
-```sh
-$ tea .  # interprets `# Getting Started`, could also be `tea ./README.md`
-tea: npm install
-tea: npm start
-
-$ git clone https://github.com/my/project
-$ cd project
-$ tea build
-tea: executing `# Build`
-```
-
-Using these scripts in CI is easy:
-
-```yaml
-steps:
-  - uses: teaxyz/setup@v0
-    with:
-      target: build
-```
-
-Check out [teaxyz/setup] for all that you can do with our GitHub Action.
-
-> ### Coming Soon
->
-> This is a limited set of first steps exploring the idea of executable
-> markdown. We intend to sensibly build out concepts for making entire
-> documents executable, and we’d like your help with that.
-> Start a [discussion] about it.
-
-&nbsp;
-
-
-
-# Getting Started
-
-tea is a standalone binary. Grab it from [releases] or `curl` it:
+tea is a standalone, cross-platform† binary. Grab it from [releases] or `curl`
+it:
 
 ```sh
 $ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
 $ chmod u+x ./tea
 
-$ echo '# tea *really is* a standalone binary' | ./tea -X glow -
+$ echo '# tea *really is* a standalone binary' | ./tea --sync glow -
+tea: installing charm.sh/glow
+# …
 ```
 
-However, we recommend our installer:
+However, if you want tea’s shell [magic](#Magic), you’ll need our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
 # • asks you to confirm before it sets up `~/.tea`
 # • asks you to confirm before adding one line to your `~/.shellrc`
-# • asks you to confirm before making a `/usr/local/bin/tea` symlink
 ```
+
+> † we support macOS >= 11 and Linux (glibc >= 23) and WSL, Windows native is
+> being built *as we speak*.
 
 <details><summary><code>`preview.gif`</code></summary>
 
 ![charm.sh/vhs recording](https://teaxyz.github.io/setup/sample.gif)
 
-</details>
-
-<details><summary>If you <code>fish</code>, read this…</summary>
-
-```fish
-sh <(curl https://tea.xyz | psub)
-```
-
-</details>
-
-In fact, the tea one-liner abstracts away installation:
+In fact, our one-liner *abstracts away installing tea itself*:
 
 ```sh
-$ sh <(curl tea.xyz) https://examples.deno.land/color-logging.ts
+# will bun work with your node project? find out without having to install it!
+$ sh <(curl tea.xyz) bun run start
 
 # if tea is installed, our one-liner uses the tea installation, if it’s not
 # installed then it **doesn’t install tea** or any dependencies, it creates a
 # sandbox and runs everything in there
 
-# and btw, the above works the same as:
+# ofc if tea is already installed you can just do:
 $ tea https://examples.deno.land/color-logging.ts
 
-# which really is:
-$ tea -X deno run https://examples.deno.land/color-logging.ts
+# which really is expanded to this:
+$ tea deno run https://examples.deno.land/color-logging.ts
 
-# which *really*, really is:
+# which *really*, really is expanded to this:
 $ tea +deno.land deno run https://examples.deno.land/color-logging.ts
+
+# if you want to know what tea will do then use `--dry-run` (or `-n`):
+$ tea --dry-run https://examples.deno.land/color-logging.ts
+~/.tea/deno.land/v1.29.1/bin/deno run https://examples.deno.land/color-logging.ts
 ```
 
 > Now in your blog posts, tweets and tutorials you don’t have to start
@@ -418,7 +239,7 @@ As a bonus the installer also updates tea.
 
 ## *Now see here fella’, I \*hate\* installers…*
 
-Us too! *That’s why we wrote a package manager!*
+We feel you—there’s a reason *we wrote a package manager*.
 
 > <details><summary><i>Installing without the installer</i></summary><br>
 >
@@ -437,217 +258,34 @@ Us too! *That’s why we wrote a package manager!*
 >   $ curl dist.tea.xyz   # pick your platform and `curl` it
 >   ```
 >
-> * Or if you want to get fancy there’s this:
+> * Or here’s a fancy one-liner:
 >
 >   ```sh
 >   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
 >
-> Our (optional) virtual environment manager functionality needs a shell hook
-> in the relevant `.rc` file:
->
-> ```sh
-> add-zsh-hook -Uz chpwd(){ source <(tea -Eds) }
-> ```
->
 > </details>
 
 > <details><summary><i>Uninstalling tea</i></summary><br>
 >
-> * You can delete everything under `~/.tea`
-> * There’s also a one-liner added to your `~/.zshrc` you should remove.
-> * Finally delete `/usr/local/bin/tea`
+> Delete everything under `~/.tea`. Job done.
+>
+> > Well. Strictly there’s a (now harmless) one-liner in your shell’s
+> > configuration file you may want to remove (eg `~/.zshrc`).
 >
 > </details>
 
 &nbsp;
 
-
-## Usage as an Environment Manager
-
-You’re a developer, installing tools globally makes no sense. With tea the
-tools you need per project or script are available to that workspace as
-*virtual environments*. Our magic works from depths of libc to the heights of
-the latests fads in CSS precompilers. All versions†. All platforms‡.
-
-> † We’re new software, give us time to achieve this promise.\
-> ‡ Windows (native, we support WSL), Raspberry Pi, BeOS, etc. coming soon!
-
-When you `cd` into a project in your terminal, tea sets up the environment so
-your tools “just work”. To do this it looks for a dependencies table in
-your `README`.
-
-> Using the `README` may seem weird, but really it's the right place to
-> document your dependencies. Typically in open source this information is
-> barely documented, incorrectly documented or duplicated (incorrectly) in
-> various hard to find places. No longer.
->
-> Additionally this makes use of tea *optional*. Your team or your users can
-> source your dependencies themselves if they want. It says right there in a
-> human readable form in the `README` what they need to get.
->
-> <details><summary><i>Umm, I hate this, can I use a different file?</i></summary>
->
-> You can use `package.json` instead:
->
-> ```json
-> {
->   "tea": {
->     "dependencies": [{ "nodejs.org": 18 }]
->   }
-> }
-> ```
->
-> We check `README.md` before `package.json`. You can force use of
-> `package.json` by disabling magic with `--disable-magic`.
->
-> </details>
-
-For an example see our “[dependencies](#dependencies)” section
-(teaception: we use tea to build tea).
-
-You can check what environment this generates with `tea`:
-
-```sh
-tea --env --dump
-```
-
-`--env` specifies that tea will generate an environment based on the source
-control checkout. So if you’re using git we’ll look around for a `.git`
-directory and consider that the `SRCROOT` for your project. Then we check the
-`README.md` there to gather the environment information.
-
-tea attempts to further enhance your environment based on your workspace
-context:
-
-| Variable  | Description                                                               |
-| --------- | ------------------------------------------------------------------------- |
-| `VERSION` | Extracted from the `README.md`, `VERSION` or `package.json`               |
-| `SRCROOT` | We descend towards root until we find a source control marker, eg. `.git` |
-| `MANPATH` | So `man …` works for your deps                                            |
-
-We also provide eg. `PKG_CONFIG_PATH`, `LD_LIBRARY_PATH`, `DEVELOPER_DIR`,
-etc. so other tools can find your dependencies. We provide other variables for
-convenience too, like `GITHUB_SLUG` (extracted from your `git remote`) which
-can be surprisingly useful to automation scripts.
-
-These variables are also available to “tea Scripts”.
-
-> Our shell magic controls this feature, if you don’t want to add our
-> one-liner to your shell rc then you can just `tea sh` in your project
-> directory to get the same effect—albeit more laboriously.
->
-> Or you can run tools directly with eg. `tea foo`
-
-&nbsp;
-
-
-## Usage as an Interpreter
-
-You can use tea to execute pretty much any script from any location. We’ll
-auto-magically install the right interpreter (as an isolated virtual
-environment—there are no global consequences to your system).
-
-```sh
-$ tea my-script.py
-```
-
-tea sees the `.py` file extension, so it installs the latest version of Python
-and then executes the script.
-
-If you want more control over the python version then we need to edit the
-script’s YAML front-matter, eg:
-
-```python
-#!/usr/bin/env python
-
-"""
----
-dependencies:
-  python.org: ^3.11
----
-"""
-
-# snip …
-```
-
-tea will run the script with the latest version of Python that is >=3.11 but
-less than 4.0. If it's not installed we grab it, otherwise we use what is
-available.
-
-We also support `args` and `env` parameters which are useful for tools that
-require a `run` command like deno or go.
-
-```ts
-#!/usr/bin/env deno
-
-/*---
-dependencies:
-  deno.land: ^1.27
-args:
-  - deno
-  - run
-  # we put the script filename on the end for you here
-env:
-  foo: {{srcroot}}/bar
----*/
-```
-
-> Note strictly you don’t need the above, we automatically do this (if magic
-> is enabled) for `.ts` scripts.
-
-### Using a `tea` Shebang
-
-You can `#!/usr/bin/env tea`, and you’d possibly choose this because tea can
-do more than install dependencies. You may recall our earlier diatribe about
-tools sticking to what they’re good at—*we really believe this*. Thus
-having tools evolve to be configurable for project environments is something
-we think should be left to *us*.
-
-For example, `deno` is a wonderful interpreter for JavaScript and TypeScript,
-but it has no project configuration capabilities which means if you want to
-use it for scripts you may have to mess around a little. We think deno should
-stay this way, and instead we can use tea:
-
-```ts
-#!/usr/bin/env -S tea -E
-
-/* ---
-dependencies:
-  deno.land: ^1.18
-args:
-  - deno
-  - run
-  - --allow-net
-  - --import-map={{ srcroot }}/import-map.json
-  # ^^ we provide {{srcroot}} which can be enormously useful for scripting
-  # note that you must use a `tea -E` shebang for this to work
---- */
-
-// snip …
-```
-
-Which would go like this:
-
-```sh
-$ pwd
-/src
-$ ./script.ts my-arg
-tea: ~/.tea/deno.land/v1.18/bin/deno run \
-  --allow-net \
-  --import-map=/src/import-map.json \
-  /src/script.ts \
-  my-arg
-```
-
-> When called with `-E` tea reads the virtual environment and injects any
-> dependencies from there. Probably your project already specifies your `deno`
-> dependency, so the above YAML is possibly being redundant.
-
-&nbsp;
 
 
 # Magic
+
+Our magic puts the entire open source ecosystem at your fingertips.
+Our installer enables it by adding some hooks to your shell:
+
+* a hook when changing directory that sets up project environments
+* a hook for the “command not found” scenario that installs that command
 
 `tea` formalizes (in a CLI/TUI sense) the concept of magic.
 
@@ -848,6 +486,14 @@ before.
 We want to support *all* platforms.
 Start a [discussion] and let’s talk about how to move forward with that.
 
+## What happened to executable markdown?
+
+We may revisit executable markdown, but we realized that since tea makes it
+so trivial to use anything from the open source ecosystem, it makes it trivial
+for you as a developer to use `make` or [`just`](just.systems) or any of the
+myriad of other tools that are tightly scoped to the initial goals of
+executable markdown.
+
 ## I have another question
 
 Start a [discussion] and we’ll get back to you.
@@ -906,64 +552,6 @@ complementary. Still where we have overlapping features:
 
 &nbsp;
 
-## Tea Scripts
-
-You can execute each of these with `tea foo` where `foo` is the name of the
-section.
-
-### Test
-
-> `FIXME` would be nice to be able to specify tests here
-> deno supports `--filter` but that would require a little
-> massaging.
-
-```sh
-deno task test
-```
-
-### Typecheck
-
-```sh
-deno task typecheck
-```
-
-### Run
-
-```sh
-deno task run
-```
-
-### Compile
-
-```sh
-OUT="$1"
-if test -z "$OUT"; then
-  OUT="./tea"
-else
-  shift
-fi
-
-deno compile \
-  --allow-read \
-  --allow-write \
-  --allow-net \
-  --allow-run \
-  --allow-env \
-  --unstable \
-  --import-map="$SRCROOT/import-map.json" \
-  --output "$OUT" \
-  "$@" \
-  "$SRCROOT/src/app.ts"
-```
-
-### Install Self
-
-Installs this working copy into `~/.tea/tea.xyz/vx.y.z`.
-
-```sh
-tea compile "$TEA_PREFIX/tea.xyz/v$VERSION/bin/tea"
-"$SRCROOT"/scripts/repair.ts tea.xyz
-```
 
 ## Dependencies
 

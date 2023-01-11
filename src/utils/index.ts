@@ -215,7 +215,7 @@ export { Unarchiver, TarballUnarchiver, ZipUnarchiver }
 ////////////////////////////////////////////////////////////////////////// run
 import Path from "path"
 
-export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'stderr'> {
+export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'stderr'|'stdin'> {
   cmd: (string | Path)[] | Path
   cwd?: (string | Path)
   clearEnv?: boolean  //NOTE might not be cross platform!
@@ -235,7 +235,7 @@ export async function run({ spin, ...opts }: RunOptions) {
   const cwd = opts.cwd?.toString()
   console.verbose({ cwd, ...opts, cmd })
 
-  const stdio = { stdout: 'inherit', stderr: 'inherit' } as Pick<Deno.RunOptions, 'stdout'|'stderr'>
+  const stdio = { stdout: 'inherit', stderr: 'inherit', stdin: 'inherit' } as Pick<Deno.RunOptions, 'stdout'|'stderr'|'stdin'>
   if (spin) {
     stdio.stderr = stdio.stdout = 'piped'
   }

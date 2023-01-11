@@ -4,76 +4,67 @@ import { print, undent } from "utils"
 export default async function help() {
   const { verbose } = useFlags()
 
-  // tea -mx +deno.land^1.18 foo.ts -- bar
-  // tea -mx +deno.land^1.18 deno -- ./script-file foo bar baz
-  // tea build
-  // tea -mx ./README.md -- build
-
-  //TODO make the stuff in brackets grayed out a bit
-
   if (!verbose) {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
-        tea [-xdX] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
+        tea [-SEn] [+package~x.y…] [cmd|file|URL] [--] [arg…]
 
-      modes:                                            magical?
-  05    --exec,-x         execute
-        --dump,-d         dump
-        -X                magic execute
-        𝑜𝑚𝑖𝑡𝑡𝑒𝑑           infer operation                  ✨
+      examples:
+  05    $ tea node^19 --eval 'console.log("tea.xyz")'
+        $ tea +nodejs.org man node
 
       flags:
-  10    --env,-E          inject virtual environment       ✨
-        --sync,-S         sync pantries, etc. first        ✨
-        --magic=no,-m     disable magic
-        --verbose,-v      eg. tea -vv
-        --silent,-s       no chat, no errors
-        --cd,-C           change directory first
-  15
+        --sync,-S       sync and update environment packages
+  10    --env,-E        inject local environment
+        --dry-run,-n    don’t execute, just print
+
       more:
-        tea -vh
-  18    open github.com/teaxyz/cli
+        $ tea --verbose --help
+  15    $ open github.com/teaxyz/cli
       `)
-    //HEYU! did you exceed 22 lines? Don’t! That’s the limit!
   } else {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
-        tea [-xdX] [flags] [+package~x.y] [file|URL|target|cmd|interpreter] -- [arg…]
+        tea [-SEnkhvs] [+package~x.y…] [cmd|file|URL] [--] [arg…]
 
-      modes:                                                    magical?  env-aware
-        --exec,-x                   execute (omittable if ✨)      ✨         𐄂
-        --dump,-d                   dump                           ✨         𐄂
-        -X                          infer pkg requirements                    𐄂
-
-      aliases:
-        --help,-h                   --dump=usage
-        --version,-v                --dump=version                            𐄂
-        --prefix                    --dump=prefix
+        • constructs the requested environment, installing packages as necessary
+        • magically determines additional packages based on the args
+        • executes args in that environment
 
       flags:
-        --env,-E                    inject virtual environment     ✨
-        --sync,-S                   sync pantries, etc. first      ✨
-        --json,-j                   output json
-        --disable-magic,-m          disable magic
-        --verbose,-v                short form accumulates, shows version first
-        --silent,-s                 no chat, no errors
-        --cd,-C,--chdir             change directory first
+        --sync,-S                synchronize and update the environment packages
+        --env,-E                 inject the local environment
+        --dry-run,-n             don’t execute, just print
+        --keep-going,-k          keep going as much as possible after errors
+        --verbose,-v             print version and then increase verbosity ‡
+        --silent,-s              no chat, no error messages (aka --verbose=-1)
+        --cd,-C,--chdir <dir>    change directory first
+
+        • repetitions override previous values
+        • long form boolean flags can be assigned, eg. --env=no
+
+        ‡ the short form accumulates, so \`-vv\` is more verbose
+
+      alt. modes:
+        --help,-h
+        --version,-v      prints tea’s version
+        --prefix          prints the tea prefix †
+
+        † all packages are “stowed” in the tea prefix, eg. ~/.tea/rust-lang.org/v1.65.0
 
       environment variables:
-        VERBOSE           {-1: silent, 0: default, 1: verbose, 2: debug}
-        MAGIC             [0,1]
-        DEBUG             [0,1]: alias for \`VERBOSE=2\`
-        TEA_DIR           \`--chdir \${directory}\`
+        TEA_PREFIX    stow packages here
+        TEA_MAGIC     [0,1] if shell magic is active, \`TEA_MAGIC=0\` disables it
+        VERBOSE       {-1: silent, 0: default, 1: verbose, 2: debug}
+        DEBUG         [0,1]: alias for \`VERBOSE=2\`
 
-      notes:
-        - explicit flags override any environment variables
-        - the results of magic can be observed if verbosity is > 0
+        • explicit flags override any environment variables
 
       ideology:
-        > A successful tool is one that was used to do something undreamed of
-        > by its author
+        │ A successful tool is one that was used to do something undreamed of
+        │ by its author
           —𝑠ℎ𝑎𝑑𝑜𝑤𝑦 𝑠𝑢𝑝𝑒𝑟 𝑐𝑜𝑑𝑒𝑟
     `)
   }

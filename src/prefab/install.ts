@@ -18,12 +18,27 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   const { download_with_sha: download } = useDownload()
   const cellar = useCellar()
-  const { verbosity } = useFlags()
+  const { verbosity, dryrun } = useFlags()
   const dstdir = usePrefix()
   const compression = get_compression()
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const dst = useCache().path(stowage)
+
+  const log_install_msg = (install: Installation, title = 'installed') => {
+    const str = [
+      gray(usePrefix().prettyString()),
+      install.pkg.project,
+      `${gray('v')}${install.pkg.version}`
+    ].join(gray('/'))
+    logger!.replace(`${title}: ${str}`, { prefix: false })
+  }
+
+  if (dryrun) {
+    const install = { pkg, path: dstdir.join(pkg.project, `v${pkg.version}`) }
+    log_install_msg(install, 'imagined')
+    return install
+  }
 
   logger.replace(teal("locking"))
 
@@ -63,14 +78,10 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
     await run({ cmd, clearEnv: true })
 
+    //FIXME unecessary compute
     const install = await cellar.resolve(pkg)
 
-    const str = [
-      gray(usePrefix().prettyString()),
-      install.pkg.project,
-      `${gray('v')}${install.pkg.version}`
-    ].join(gray('/'))
-    logger.replace(`installed: ${str}`, { prefix: false })
+    log_install_msg(install)
 
     return install
 
