@@ -47,7 +47,7 @@ export default async function(err: Error) {
     console.error(logger.gray(stack ?? "null"))
     console.debug("------------------------------------------------------------------------")
     console.debug({ err })
-    console.error("<<------------------------------------------------------- attachment end")
+    console.error("<<----------------------------------------------------- attachment end")
 
     // this way: deno will show the backtrace
     if (err instanceof Error == false) throw err

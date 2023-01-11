@@ -1,25 +1,16 @@
-import useFlags, { Args } from "hooks/useFlags.ts"
 import { install, link, resolve } from "prefab"
-import { useSync, useVirtualEnv } from "hooks"
+import { useSync } from "hooks"
+import { VirtualEnv } from "hooks/useVirtualEnv.ts"
+import { PackageSpecification } from "./types.ts"
 
 //TODO app.exec.ts and app.dump.ts should handle updating packages as part of their install logics
 
-export default async function sync(opts: Args) {
-  const { magic } = useFlags()
-
+export default async function sync(pkgs: PackageSpecification[], syringe?: VirtualEnv) {
   // always sync pantry
   await useSync()
 
-  const pkgs = [...opts.pkgs]
-
-  if (opts.env) {
-    pkgs.push(...(await useVirtualEnv()).pkgs)
-  } else if (magic) {
-    // TODO shouldn’t use magic if user has explicitly passed eg. a script path
-    const blueprint = await useVirtualEnv().swallow(/^not-found/)
-    if (blueprint) {
-      pkgs.push(...blueprint.pkgs)
-    }
+  if (syringe) {
+    pkgs.push(...syringe.pkgs)
   }
 
   if (pkgs.length) {

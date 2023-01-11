@@ -3,7 +3,6 @@ import useRequirementsFile, { RequirementsFile } from "./useRequirementsFile.ts"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
 import { flatmap, TeaError } from "utils"
-import { useFlags } from "hooks"
 import Path from "path"
 
 //CONSIDER
@@ -71,10 +70,8 @@ export default async function useVirtualEnv(opts?: { cwd: Path }): Promise<Virtu
 
   const pkgs = files.flatMap(x => x.pkgs)
 
-  //TODO magic deps should not conflict with requirements files deps
-  if (useFlags().magic) {
-    pkgs.push(...await domagic(srcroot))
-  }
+  //TODO anything from here should not conflict with more explicit deps
+  pkgs.push(...await implicit_env(srcroot))
 
   return {
     pkgs,
@@ -85,7 +82,7 @@ export default async function useVirtualEnv(opts?: { cwd: Path }): Promise<Virtu
 }
 
 //TODO get version too
-async function domagic(srcroot: Path): Promise<PackageRequirement[]> {
+async function implicit_env(srcroot: Path): Promise<PackageRequirement[]> {
   let path: Path | undefined
 
   //TODO don’t stop if we find something, keep adding all deps

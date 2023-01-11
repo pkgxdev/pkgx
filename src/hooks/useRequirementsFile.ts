@@ -53,6 +53,7 @@ async function markdown(path: Path): Promise<RequirementsFile | undefined> {
   const lines = text.split("\n")
 
   const findTable = (header: string) => {
+    let prevline = ''
     let rows: [string, string][] | undefined = undefined
     let found: 'nope' | 'header' | 'table' = 'nope'
     done: for (const line of lines) {
@@ -69,9 +70,14 @@ async function markdown(path: Path): Promise<RequirementsFile | undefined> {
       } break
       case 'nope':
         if (line.match(new RegExp(`^#+\\s*${header}\\s*$`))) {
-          found = 'header'
+          //HACK so tea/clit itself doesn’t pick up the example table lol
+          //FIXME use a real parser!
+          if (prevline != '$ cat <<EOF >>my-project/README.md') {
+            found = 'header'
+          }
         }
       }
+      prevline = line
     }
     return rows
   }

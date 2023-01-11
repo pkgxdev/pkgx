@@ -1,23 +1,18 @@
-import { flatmap, chuzzle, pkg, validate_str, panic } from "utils"
+import { flatmap, chuzzle, pkg, validate_str } from "utils"
 import { Verbosity, PackageSpecification } from "types"
 import { isNumber } from "is_what"
 import { set_tmp } from "path"
 import { usePrefix } from "hooks"
 import Path from "path"
-import {TeaError} from "../utils/index.ts";
+import {TeaError} from "utils"
 
 // doing here as this is the only file all our scripts import
 set_tmp(usePrefix().join('tea.xyz/tmp'))
 
-
-export type Mode = 'exec' | 'eXec' | ['dump', 'env' | 'help' | 'version' | 'prefix']
-
 interface Flags {
   verbosity: Verbosity
-  magic: boolean
-  json: boolean
-  numpty: boolean
-  sync: boolean
+  dryrun: boolean | 'w/trace'
+  keep_going: boolean
 }
 
 interface ConvenienceFlags {
@@ -32,11 +27,9 @@ export default function useFlags(): Flags & ConvenienceFlags {
   if (!flags) {
     //FIXME scripts/* need this to happen but its yucky
     flags = {
-      sync: false,
       verbosity: getVerbosity(0),
-      magic: getMagic(undefined),
-      json: !!Deno.env.get("JSON"),
-      numpty: !!Deno.env.get("NUMPTY")
+      keep_going: false,
+      dryrun: false  //FIXME should be true
     }
     applyVerbosity()
   }
@@ -49,20 +42,23 @@ export default function useFlags(): Flags & ConvenienceFlags {
   }
 }
 
-interface Adjustments {
-  cd?: Path
-}
-
 export type Args = {
-  mode?: Mode
   cd?: Path
+  mode: 'exec' | 'help' | 'version' | 'prefix' | 'magic'
+  sync: boolean
   args: string[]
   pkgs: PackageSpecification[]
-  env?: boolean
+  cmds: string[]
+  inject: boolean
 }
 
 export function useArgs(args: string[], arg0: string): [Args, Flags & ConvenienceFlags] {
   if (flags) throw new Error("contract-violated");
+
+  // pre 0.19.0 this was how we sourced our (more limited) shell magic
+  if (args.length == 1 && args[0] == "-Eds") {
+    args = ["--magic", "--silent"]
+  }
 
   (() => {
     const link = new Path(arg0).isSymlink()
@@ -72,133 +68,152 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
     const base = target?.basename().startsWith(link.basename())
       ? target.basename()
       : link.basename()
-    const match = base.match(/^tea_([^\/]+)$/)
-    args = ["-X", match?.[1] ?? base, ...args]
+    const match = base.match(/^tea[_+]([^\/]+)$/)
+    args = [match?.[1] ?? base, ...args]
   })()
 
   const rv: Args = {
+    mode: 'exec',
     args: [],
-    pkgs: []
+    pkgs: [],
+    inject: false,
+    sync: false,
+    cmds: []
   }
 
-  let magic: boolean | undefined
+  let keep_going = false
   let v: number | undefined
-  let sync = false
+  let dryrun: boolean | 'w/trace' = false
   const it = args[Symbol.iterator]()
 
   for (const arg of it) {
-    if (arg == '+' || arg == '-' || arg == '--') {
+    const barf = (arg_?: string) => { throw new TeaError('not-found: arg', {arg: arg_ ?? arg}) }
+
+    if (arg == '+' || arg == '-') {
       throw new TeaError('not-found: arg', {arg})
     }
 
     if (arg.startsWith('+')) {
       rv.pkgs.push(pkg.parse(arg.slice(1)))
+    } else if (arg == '--') {
+      for (const arg of it) {  // empty the main loop iterator
+        rv.args.push(arg)
+      }
     } else if (arg.startsWith('--')) {
       const [,key, , value] = arg.match(/^--([\w-]+)(=(.+))?$/)!
 
+      const hasvalue = !!value
+      const nonovalue = () => { if (hasvalue) barf() }
+
       switch (key) {
-      case 'dump':
-        switch (value) {
-        case 'help':
-          rv.mode = ['dump', 'help']
-          break
-        case 'version':
-          rv.mode = ['dump', 'version']
-          break
-        case 'prefix':
-          rv.mode = ['dump', 'prefix']
-          break
-        case 'env':
-        case undefined:
-          rv.mode = ['dump', 'env']
-          break
-        default:
-          throw new Error("usage")
-        }
-        break
-      case 'verbose':
-        if (value) {
-          v = chuzzle(parseInt(value) + 1) ?? panic()
-        } else {
+      case 'verbose': {
+        if (!hasvalue) {
           v = 1
+          break
         }
-        break
+        const bi = chuzzle(parseInt(value) + 1)
+        if (bi !== undefined) {
+          v = bi
+          break
+        }
+        const bv = parseBool(value)
+        if (bv === undefined) throw new TeaError('not-found: arg', {arg})
+        v = bv ? 1 : 0
+      } break
       case 'debug':
-        v = 2
+        v = parseBool(hasvalue ? value : "yes") ? 2 : 0
         break
       case 'cd':
       case 'chdir':
+      case 'cwd':   // ala bun
         rv.cd = Path.cwd().join(validate_str(value ?? it.next().value))
         break
       case 'help':
-        rv.mode = ['dump', 'help']
+        nonovalue()
+        rv.mode = 'help'
         break
       case 'prefix':
-        rv.mode = ['dump', 'prefix']
-        break
-      case 'version':
-        rv.mode = ['dump', 'version']
-        break
-      case 'muggle':
-      case 'disable-magic':
-        magic = false
+        nonovalue()
+        rv.mode = 'prefix'
         break
       case 'magic':
-        magic = !!parseBool(value)
+        rv.mode = 'magic'
         break
+      case 'version':
+        nonovalue()
+        rv.mode = 'version'
+        break
+      case 'keep-going':
+        keep_going = parseBool(value ?? "yes") ?? barf()
+        break
+      case 'quiet':
       case 'silent':
+        nonovalue()
         v = -1
         break
+      case 'dump':
+        console.warn("tea --dump is deprecated, use --dry-run=w/trace instead")
+        dryrun = 'w/trace'
+        break
       case 'sync':
-        sync = true
+        nonovalue()
+        rv.sync = true
+        break
+      case 'dry-run':
+        if (value == 'w/trace') {
+          dryrun = 'w/trace'
+          break
+        }
+        // else fallthrough
+      case 'just-print': //ala make
+      case 'recon':      //ala make
+        dryrun = parseBool(value ?? "yes") ?? barf()
         break
       case 'env':
-        rv.env = parseBool(value) ?? true
-        break
-      case 'disable-env':
-        rv.env = false
+        rv.inject = parseBool(value ?? "yes") ?? barf()
         break
       default:
-        throw new TeaError('not-found: arg', {arg})
+        barf()
       }
     } else if (arg.startsWith('-')) {
       for (const c of arg.slice(1)) {
         switch (c) {
-        case 'x':
-          rv.mode = 'exec'
-          break
-        case 'X':
-          rv.mode = 'eXec'
-          break
-        case 'E':
-          rv.env = true
-          break
-        case 'd':
-          rv.mode = ['dump', 'env']
-          break
         case 'v':
           v = (v ?? 0) + 1
           break
         case 'C':
           rv.cd = Path.cwd().join(validate_str(it.next().value))
           break
-        case 'm':
-          magic = false
-          break
-        case 'M':
-          magic = true
-          break
         case 's':
           v = -1;
           break
+        case 'X':
+          console.warn("tea -X is now implicit and thus specifying `-X` now both unrequired and deprecated")
+          break
+        case 'k':
+          keep_going = true
+          break
+        case 'd':
+          console.warn("tea -d is deprecated, use --dry-run=w/trace instead")
+          dryrun = 'w/trace'
+          break
         case 'S':
-          sync = true
+          rv.sync = true
+          break
+        case 'n':
+          dryrun = true
+          break
+        case "X":
+          rv.cmds.push("!fwd")
+          break
+        case 'E':
+          rv.inject = true
           break
         case 'h':
-          rv.mode = ['dump', 'help']
+          rv.mode = 'help'
           break
         default:
-          throw new TeaError('not-found: arg', {arg: `-${c}`})
+          barf(`-${c}`)
         }
       }
     } else {
@@ -211,10 +226,8 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
 
   flags = {
     verbosity: getVerbosity(v),
-    magic: getMagic(magic),
-    json: !!Deno.env.get("JSON"),
-    numpty: !!Deno.env.get("NUMPTY"),
-    sync
+    keep_going,
+    dryrun
   }
 
   applyVerbosity()
@@ -231,16 +244,6 @@ function getVerbosity(v: number | undefined): Verbosity {
   if (Deno.env.get("GITHUB_ACTIONS") == 'true' && Deno.env.get("RUNNER_DEBUG") == '1') return Verbosity.debug
   const env = flatmap(Deno.env.get("VERBOSE"), parseInt)
   return isNumber(env) ? env : Verbosity.normal
-}
-
-function getMagic(magic: boolean | undefined): boolean {
-  if (magic !== undefined) return magic
-  const env = Deno.env.get("MAGIC")
-  //NOTE darwinsys.com/file uses `MAGIC` and has since 1995 so they have dibs
-  // however it’s basically ok since we provide the above hatch to disable
-  // magic and our default is on so if it is set to a Path then nothing is actually
-  // different from if it wasn't set at all.
-  return env !== "0"
 }
 
 function applyVerbosity() {

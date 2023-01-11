@@ -24,48 +24,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: tea test
+      - run: tea -XE deno task test
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: tea deno lint
+      - run: tea -XE deno lint
 
   typecheck:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - uses: actions/checkout@v3
-        with:
-          path: cli
-      - uses: actions/checkout@v3
-        with:
-          repository: teaxyz/pantry.core
-          path: pantry
-      - run: tea --cd cli typecheck
-      - run: tea --cd pantry typecheck  # check we didn’t break the pantry
+      - run: tea -XE deno task typecheck
 
-  # disabled until exe/md supports stripping `$`
-  # test-exe-md:
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os:
-  #         - macos-latest
-  #         - ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         repo: teaxyz/www
-  #     - uses: teaxyz/setup@v0
-  #     # execute run target from https://github.com/teaxyz/cli/blob/main/README.md#run
-  #     # using "external `tea`", which will execute "`tea` from source", passing '.' to it
-  #     # passing '.' to "`tea` from source" makes it build default README.md target
-  #     - run: tea run .
-
-  # in stuations without `git` we had a softlock problem that we're testing for here
+  # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
     runs-on: ${{ matrix.os }}
     strategy:

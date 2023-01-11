@@ -41,7 +41,8 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
   const constraint = "constraint" in spec ? spec.constraint : new semver.Range(`=${spec.version}`)
   const versions = await getVersions(spec)
   const version = constraint.max(versions)
-  if (!version) throw new Error(`no-version-found: ${pkg.str(spec)}`)
+  if (!version) throw new Error(`not-found: version: ${pkg.str(spec)}`)
+  console.debug({selected: version})
   return { project: spec.project, version };
 }
 
@@ -88,6 +89,7 @@ const getRawDistributableURL = (yml: PlainObject) => {
     throw new Error(`invalid distributable node: ${yml.distributable}`)
   }
 }
+
 const getDistributable = async (pkg: Package) => {
   const moustaches = useMoustaches()
 
@@ -166,8 +168,9 @@ const getCompanions = async (pkg: {project: string}) => {
   return parse_pkgs_node(node)
 }
 
-const getInterpreter = async (_extension: string): Promise<Interpreter | undefined> => {
-  const extension = _extension.slice(1)
+const getInterpreter = async (extension: string): Promise<Interpreter | undefined> => {
+  extension = extension.slice(1)
+  if (!extension) return
   for await (const pkg of ls()) {
     const yml = await entry(pkg).yml()
     const node = yml["interprets"]
@@ -346,7 +349,7 @@ async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
       if (!v) {
         console.warn({ignoring: pre_strip_name, reason: 'unparsable'})
       } else if (v.prerelease.length <= 0) {
-        console.verbose({ found: v.toString(), from: name });
+        console.debug({ found: v.toString(), from: pre_strip_name });
         // used by some packages
         (v as unknown as {tag: string}).tag = pre_strip_name
         rv.push(v)

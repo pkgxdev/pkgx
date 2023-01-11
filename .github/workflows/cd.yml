@@ -23,21 +23,13 @@ jobs:
       actions: write  # for cancel-action
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.extract.outputs.version }}
+      version: ${{ steps.tea.outputs.version }}
       commence: ${{ steps.rev-parse.outputs.result == 'commence' }}
     steps:
       - uses: actions/checkout@v3
 
       - uses: teaxyz/setup@v0
-
-      - id: extract
-        name: determine current version
-        run: |
-          source <(tea -Eds)
-          echo "::set-output name=version::$VERSION"
-          if test x$VERSION = x; then exit 1; fi
-        env:
-          VERBOSE: 0
+        id: tea
 
       - id: rev-parse
         name: did we already publish this version?
@@ -45,7 +37,7 @@ jobs:
           # fetch tags since actions/checkout is a shallow checkout
           git fetch --prune --unshallow --tags
 
-          if git show-ref --tags v${{ steps.extract.outputs.version }} --quiet; then
+          if git show-ref --tags v${{ steps.tea.outputs.version }} --quiet; then
             echo "::set-output name=result::cancel"
           else
             echo "::set-output name=result::commence"
@@ -91,7 +83,7 @@ jobs:
           srcroot: ${{ github.workspace }}
 
       - run: sed -i.bak "s/^const version = .*$/const version = \"${{ steps.tea.outputs.version }}\"/" src/app.ts
-      - run: tea compile ./tea
+      - run: tea -XE deno task compile ./tea
       - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
       - uses: actions/upload-artifact@v3
         with:
@@ -156,10 +148,6 @@ jobs:
           files: artifacts/*
           body: ${{ steps.build_changelog.outputs.changelog }}
           fail_on_unmatched_files: true
-
-      - uses: fischerscode/tagger@v0
-        with:
-          tag: ${{ env.TAG }}
 
   upload-binaries:
     needs: [release]

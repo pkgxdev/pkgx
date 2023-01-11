@@ -1,12 +1,8 @@
-import { Installation, PackageSpecification } from "types"
+import { Installation } from "types"
 import { OrderedHashSet } from "rimbu/ordered/set/index.ts"
-import { host } from "utils"
+import { flatmap, host, pkg as pkgutils } from "utils"
 import { usePrefix, usePantry } from "hooks"
-import Path from "path"
-
-// returns an environment that supports the provided packages
-//TODO possibly should add the env for pending and not delegate via tea
-//TODO like ideally we would provide shims for POSIX and not include the system PATHs at all
+import { isArray } from "is_what"
 
 export const EnvKeys = [
   'PATH',
@@ -29,18 +25,16 @@ export type EnvKey = typeof EnvKeys[number]
 
 interface Options {
   installations: Installation[]
-  pending?: PackageSpecification[],
-  pristine?: boolean
 }
 
-export default async function useShellEnv({installations, pending, pristine}: Options): Promise<Record<string, string[]>> {
+/// returns an environment that supports the provided packages
+export default async function useShellEnv({installations}: Options): Promise<Record<string, string[]>> {
   const {getRuntimeEnvironment} = usePantry()
 
   const vars: Partial<Record<EnvKey, OrderedHashSet<string>>> = {}
   const isMac = host().platform == 'darwin'
-  pending ??= []
 
-  const projects = new Set([...installations.map(x => x.pkg.project), ...pending.map(x=>x.project)])
+  const projects = new Set(installations.map(x => x.pkg.project))
   const has_cmake = projects.has('cmake.org')
   const archaic = true
 
@@ -113,32 +107,20 @@ export default async function useShellEnv({installations, pending, pristine}: Op
     }
   }
 
-  //FIXME refactor lol
+  const rewind = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(x)?.["PATH"])
+
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
     if (vars[key] === undefined || vars[key]!.isEmpty) continue
     rv[key] = vars[key]!.toArray()
 
-    if (!pristine && key == 'PATH') {
-      rv[key] ??= []
-
-      if (!projects.has('tea.xyz')) {
-        const tea = find_tea()
-        if (tea) {
-          const tea = find_tea()?.parent().string
-          if (tea && !rv["PATH"].includes(tea)) {
-            rv["PATH"].push(tea)
-          }
-        }
-      }
-
-      // for std POSIX tools FIXME: we provide shims or pkgs for (at least some of) these
-      //NOTE we deliberately do not include /usr/local/bin
-      //NOTE though we add that back for `tea --dump` since users will want their tools ofc
-      for (const path of ["/usr/bin", "/bin", "/usr/sbin", "/sbin"]) {
-        if (!rv["PATH"].includes(path)) {
-          rv["PATH"].push(path)
-        }
+    if (key == 'PATH') {
+      if (isArray(rewind)) {
+        rv[key] ??= []
+        rv[key].push(...rewind)
+      } else {
+        // first time we've stepped into a devenv
+        rv[key].push(...(Deno.env.get("PATH")?.split(":") ?? []))
       }
     }
   }
@@ -153,6 +135,8 @@ export default async function useShellEnv({installations, pending, pristine}: Op
 
   // don’t break `man` lol
   rv["MANPATH"]?.push("/usr/share/man")
+
+  rv["TEA_PKGS"] = installations.map(x => pkgutils.str(x.pkg))
 
   return rv
 }
@@ -200,13 +184,6 @@ export function flatten(env: Record<string, string[]>) {
     rv[key] = value.join(":")
   }
   return rv
-}
-
-function find_tea() {
-  for (const bindir of Deno.env.get("PATH")?.split(":") ?? []) {
-    const file = Path.abs(bindir)?.join("tea").isExecutableFile()
-    if (file) return file
-  }
 }
 
 function compact_add<T>(set: OrderedHashSet<T> | undefined, item: T | null | undefined): OrderedHashSet<T> {
