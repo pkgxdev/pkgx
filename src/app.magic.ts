@@ -43,7 +43,7 @@ export default function(self: Path) {
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
       if ! tea true 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
-      fi
+      end
       `
   case "bash":
     return undent`
