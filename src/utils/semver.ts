@@ -26,7 +26,8 @@ export default class SemVer {
       const vprefix = input.startsWith('v')
       const raw = vprefix ? input.slice(1) : input
       const parts = raw.split('.')
-      if (!tolerant && parts.length < 3 && !vprefix) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
+      if (parts.length == 1 && !vprefix) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
+      if (parts.length == 2 && !vprefix && !tolerant) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
       let pretty_is_raw = false
       this.components = parts.flatMap((x, index) => {
         const match = x.match(/^(\d+)([a-z])$/)
@@ -99,6 +100,7 @@ export default class SemVer {
 }
 
 /// the same as the constructor but swallows the error returning undefined instead
+/// also slightly more tolerant parsing
 export function parse(input: string) {
   try {
     return new SemVer(input, true)

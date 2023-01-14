@@ -268,7 +268,7 @@ async function getVersions(spec: { project: string }): Promise<SemVer[]> {
   const versions = await files.yml().then(x => x.versions)
 
   if (isArray(versions)) {
-    return versions.map(raw => new SemVer(validate_str(raw)))
+    return versions.map(raw => new SemVer(validate_str(raw), true))
   } else if (isPlainObject(versions)) {
     return handleComplexVersions(versions)
   } else {
