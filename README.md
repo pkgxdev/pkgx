@@ -194,8 +194,8 @@ packages themselves.
 
 # Getting Started
 
-tea is a standalone, cross-platform† binary. Grab it from the project
-[releases] or `curl` it:
+tea is a standalone, cross-platform† binary. So if you wanted you could just
+cURL it:
 
 ```sh
 $ curl -Lo tea https://tea.xyz/$(uname)/$(uname -m)
@@ -284,20 +284,20 @@ workflow.
 &nbsp;
 
 
-# Virtual Environments
+# Developer Environments
 
 Every project you work on needs different tools with different versions.
 Installing those tools globally *makes no sense* and could even cause subtle
 bugs during dev.
 
 tea can determine the tools a project directory needs and provide that
-environment. With our shell magic just step into the project directory and
-type commands; tea automatically fetches the specific versions those projects
-need and runs them.
+virtual environment. With our shell magic just step into the project directory
+and type commands; tea automatically fetches the specific versions those
+projects need and runs them.
 
 If you need other tools or you want to be more specific about the version of
 a tool then add your dependencies to your `README.md`. For an example see
-the [dependencies] section for tea itself.
+the [# Dependencies] section for tea itself.
 
 > * `package.json` means node, `cargo.toml` means rust, etc.
 > * we can be a little cleverer: eg. if we detect that your project is a
@@ -332,7 +332,7 @@ Our installer enables it by adding some hooks to your shell:
 * A hook when changing directory that sets up project environments
 * A hook for the “command not found” scenario that installs that command †
 
-**Magic is entirely optional, tea is still entirely usable without it.** \\
+**Magic is entirely optional, tea is still entirely usable without it.** \
 **Generally we’d say our magic is *for devs* and *not* for ops.**
 
 > † Our “command not found” magic only works at a terminal prompt. Thus eg.
@@ -381,11 +381,6 @@ deno task install   # deploys the local checkout into your `~/.tea`
 
 There’s hundreds of thousands of open source projects and we need your help
 supporting them! Check out the docs for the [pantry] to learn more.
-
-## Token Rewards
-
-There isn’t a token *yet* but when it’s brewed it’s quite possible there will
-be a little something extra for those who helped build tea. 😶‍🌫️
 
 &nbsp;
 
@@ -525,5 +520,5 @@ If you got this error message, you need to install tea:
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [pantry.extra]: https://github.com/teaxyz/pantry.extra
-[dependencies]: #dependencies
+[# Dependencies]: #dependencies
 [`brew`]: https://brew.sh

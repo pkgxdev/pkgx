@@ -149,6 +149,11 @@ jobs:
           body: ${{ steps.build_changelog.outputs.changelog }}
           fail_on_unmatched_files: true
 
+      - uses: fischerscode/tagger@v0
+        with:
+          tag: ${{ env.TAG }}
+          prefix: v
+
   upload-binaries:
     needs: [release]
     runs-on: ubuntu-latest
