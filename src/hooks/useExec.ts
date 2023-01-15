@@ -30,7 +30,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     pkgs.push(...vrtenv.pkgs)
   }
 
-  if (arg0 instanceof Path) {
+  if (arg0 instanceof Path && arg0.isFile()) {
     //TODO should check we're a text file first
     const yaml = await usePackageYAMLFrontMatter(arg0, inject?.srcroot)
     if (yaml) {
@@ -56,7 +56,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         }
       }
     }
-  } else if (!clutch) {
+  } else if (!clutch && !(arg0 instanceof Path)) {
     const found = await which(arg0)
     if (found) {
       pkgs.push(found)
