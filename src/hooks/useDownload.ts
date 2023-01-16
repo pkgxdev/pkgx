@@ -3,7 +3,7 @@ import { copy } from "deno/streams/copy.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { crypto, toHashString } from "deno/crypto/mod.ts";
-import { Sha256 } from "https://deno.land/std@0.160.0/hash/sha256.ts"
+import { Sha256 } from "sha256"
 import { usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
