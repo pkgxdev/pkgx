@@ -3,6 +3,7 @@ import { copy } from "deno/streams/copy.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { crypto, toHashString } from "deno/crypto/mod.ts";
+import { Sha256 } from "https://deno.land/std@0.160.0/hash/sha256.ts"
 import { usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
@@ -154,7 +155,7 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     }})
   }
 
-  return { path, sha: toHashString(digest) }
+  return { path, sha: digest.hex() }
 }
 
 function hash_key(url: URL): Path {
