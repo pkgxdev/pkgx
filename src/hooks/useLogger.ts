@@ -92,7 +92,9 @@ export class Logger {
   }
 
   clear() {
-    this.tty.cursorLeft.cursorUp(this.lines).eraseDown(this.lines)
-    this.lines = 0
+    if (this.lines && this.verbosity >= 0) {
+      this.tty.cursorLeft.cursorUp(this.lines).eraseDown(this.lines)
+      this.lines = 0
+    }
   }
 }
