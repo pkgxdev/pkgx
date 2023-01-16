@@ -117,12 +117,13 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     logger = new Logger()
   }
 
-  const digest = new Sha256()
+  let buffer = new Uint8Array(0)
   let run = false
 
   // don’t fill CI logs with dozens of download percentage lines
   const ci = Deno.env.get("CI")
 
+  // TODO find a better way to find the hash of a file using web crypto
   const path = await internal({...opts, logger}, (src, dst, sz) => {
     let n = 0
 
@@ -130,8 +131,10 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     const tee = src.tee()
     const p1 = copy(readerFromStreamReader(tee[0].getReader()), dst)
     const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
-      //TODO in separate thread would be likely be faster
-      digest.update(buf)
+      const appendedBuffer = new Uint8Array(buffer.length + buf.length)
+      appendedBuffer.set(buffer, 0)
+      appendedBuffer.set(buf, buffer.length)
+      buffer = appendedBuffer
       if (sz && !ci) {
         n += buf.length
         const pc = Math.round(n / sz * 100);
@@ -148,13 +151,15 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     logger.replace(teal('verifying'))
     const f = await Deno.open(path.string, { read: true })
     await copy(f, { write: buf => {
-      //TODO in separate thread would likely be faster
-      digest.update(buf)
+      const appendedBuffer = new Uint8Array(buffer.length + buf.length)
+      appendedBuffer.set(buffer, 0)
+      appendedBuffer.set(buf, buffer.length)
+      buffer = appendedBuffer
       return Promise.resolve(buf.length)
     }})
   }
 
-  return { path, sha: toHashString(digest) }
+  return { path, sha: toHashString(await crypto.subtle.digest("SHA-256", buffer)) }
 }
 
 function hash_key(url: URL): Path {
