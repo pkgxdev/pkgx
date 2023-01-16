@@ -93,7 +93,7 @@ async function install(pkgs: PackageSpecification[], update: boolean): Promise<I
   return installed
 }
 
-import { readLines } from "deno/io/buffer.ts"
+import { readLines } from "deno/io/read_lines.ts"
 
 async function read_shebang(path: Path) {
   const f = await Deno.open(path.string, { read: true })

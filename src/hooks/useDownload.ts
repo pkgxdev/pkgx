@@ -1,7 +1,8 @@
-import { readerFromStreamReader, copy } from "deno/streams/conversion.ts"
+import { readerFromStreamReader } from "deno/streams/reader_from_stream_reader.ts"
+import { copy } from "deno/streams/copy.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
-import { Sha256 } from "deno/hash/sha256.ts"
+import { crypto, toHashString } from "deno/crypto/mod.ts";
 import { usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
@@ -153,13 +154,14 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     }})
   }
 
-  return { path, sha: digest.hex() }
+  return { path, sha: toHashString(digest) }
 }
 
 function hash_key(url: URL): Path {
   function hash(url: URL) {
     const formatted = `${url.pathname}${url.search ? "?" + url.search : ""}`
-    return new Sha256().update(formatted).toString()
+    const contents = new TextEncoder().encode(formatted)
+    return toHashString(crypto.subtle.digestSync("SHA-256", contents))
   }
 
   const prefix = usePrefix().www
