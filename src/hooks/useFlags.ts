@@ -53,7 +53,7 @@ export type Args = {
 }
 
 export function useArgs(args: string[], arg0: string): [Args, Flags & ConvenienceFlags] {
-  if (flags) throw new Error("contract-violated");
+  if (flags) throw new Error("contract-violated")
 
   // pre 0.19.0 this was how we sourced our (more limited) shell magic
   if (args.length == 1 && args[0] == "-Eds") {

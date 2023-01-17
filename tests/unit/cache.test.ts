@@ -1,9 +1,10 @@
 import { assert } from "deno/testing/asserts.ts"
 import { useDownload } from "hooks"
-import { sandbox } from "../utils.ts"
+import Path from "path"
 
 Deno.test("etag-mtime-check",async () => {
-  await sandbox(async ({ tmpdir }) => {
+  const tmpdir = new Path(await Deno.makeTempDir({ prefix: "tea" }))
+  try {
     const src = new URL("https://dist.tea.xyz/ijg.org/versions.txt")
     await useDownload().download({src, dst: tmpdir.join("versions.txt")})
 
@@ -20,5 +21,7 @@ Deno.test("etag-mtime-check",async () => {
     assert(mtimeA === mtime)
     assert(etagA === etag)
     await rsp.body?.cancel()
-  })
+  } catch {
+    tmpdir.rm({ recursive: true })
+  }
 })

@@ -22,9 +22,10 @@ jobs:
           - macos-latest
           - ubuntu-latest
     steps:
+      #TODO get desired deno version as an output from a pre-step
       - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-      - run: tea -XE deno task test
+      - uses: denoland/setup-deno@v1  # using ourself to install deno could compromise the tests
+      - run: deno task test
 
   lint:
     runs-on: ubuntu-latest
