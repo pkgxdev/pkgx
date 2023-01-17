@@ -83,7 +83,7 @@ jobs:
           srcroot: ${{ github.workspace }}
 
       - run: sed -i.bak "s/^const version = .*$/const version = \"${{ steps.tea.outputs.version }}\"/" src/app.ts
-      - run: tea -XE deno task compile ./tea
+      - run: tea -XE deno task compile
       - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
       - uses: actions/upload-artifact@v3
         with:
