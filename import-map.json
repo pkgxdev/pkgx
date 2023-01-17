@@ -6,7 +6,7 @@
     "hooks/": "./src/hooks/",
     "prefab": "./src/prefab/index.ts",
     "prefab/": "./src/prefab/",
-    "deno/": "https://deno.land/std@0.172.0/",
+    "deno/": "https://deno.land/std@0.173.0/",
     "semver": "./src/utils/semver.ts",
     "utils": "./src/utils/index.ts",
     "utils/": "./src/utils/",
