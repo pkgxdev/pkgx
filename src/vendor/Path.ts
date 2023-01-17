@@ -2,7 +2,7 @@ import { parse as parseYaml } from "deno/encoding/yaml.ts"
 import * as sys from "deno/path/mod.ts"
 import * as fs from "deno/fs/mod.ts"
 import { PlainObject } from "is_what"
-import {readLines} from "deno/io/buffer.ts"
+import { readLines } from "deno/io/read_lines.ts"
 import "utils"  //FIXME for console.verbose
 
 // based on https://github.com/mxcl/Path.swift
