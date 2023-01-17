@@ -12,13 +12,13 @@ export default function(self: Path) {
       # this file is generated and should not be edited
 
       function command_not_found_handler {
-        if [ "$TEA_MAGIC" != 0 -a -x "${d}"/tea ]; then
+        if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
           "${d}"/tea -- $*
         fi
       }
 
       add-zsh-hook -Uz chpwd() {
-        if [ "$TEA_MAGIC" != 0 -a -x "${d}"/tea ]; then
+        if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
           source <("${d}"/tea --env --keep-going --silent --dry-run=w/trace)
         fi
       }
