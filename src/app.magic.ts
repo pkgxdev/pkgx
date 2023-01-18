@@ -24,7 +24,7 @@ export default function(self: Path) {
       }
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      if ! tea true 2>&1 >/dev/null; then
+      if ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi
       `
@@ -41,7 +41,7 @@ export default function(self: Path) {
       end
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      if ! tea true 2>&1 >/dev/null; then
+      if ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       end
       `
@@ -61,7 +61,7 @@ export default function(self: Path) {
       }
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      if ! tea true 2>&1 >/dev/null; then
+      if ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi
       `
