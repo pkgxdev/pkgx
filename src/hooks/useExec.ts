@@ -4,7 +4,7 @@ import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
 import { Logger } from "./useLogger.ts"
-import { pkg as pkgutils } from "utils"
+import { panic, pkg as pkgutils } from "utils"
 import * as semver from "semver"
 import Path from "path"
 
@@ -21,6 +21,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   if (arg0) cmd[0] = arg0?.toString()  // if we downloaded it then we need to replace args[0]
   const clutch = pkgs.length > 0
   const env: Record<string, string> = {}
+  let post_install = (_installs: Installation[]) => {}
 
   if (inject) {
     const {version, srcroot, file, ...vrtenv} = inject
@@ -60,11 +61,20 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     const found = await which(arg0)
     if (found) {
       pkgs.push(found)
-      cmd[0] = found.shebang
+      post_install = (installs: Installation[]) => {
+        // attempt to become full path to avoid a potential fork bomb scenario
+        // though if that happened it would be a bug in us ofc.
+        const install = installs.find(x => x.pkg.project == found.project) ?? panic()
+        cmd[0] = ["bin", "sbin"].compact(x =>
+          install.path.join(x, found.shebang).isExecutableFile()
+        )[0]?.string ?? found.shebang
+      }
     }
   }
 
   const installations = await install(pkgs, sync)
+
+  post_install(installations)
 
   Object.assign(env, flatten(await useShellEnv({ installations })))
 

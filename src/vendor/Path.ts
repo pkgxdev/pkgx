@@ -331,7 +331,7 @@ export default class Path {
     return to
   }
 
-  /// creates a symlink from `this` to `to`
+  /// creates symlink `to` pointing at `this`
   ln(_: 's', {to}: { to: Path }): Path {
     Deno.symlinkSync(this.string, to.string)
     return to

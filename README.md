@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.19.4
+# tea/cli 0.19.5
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -392,7 +392,7 @@ supporting them! Check out the docs for the [pantry] to learn more.
 
 ## FAQ
 
-### How do I update packages?
+### How do I update?
 
 ```sh
 $ tea --sync
@@ -400,6 +400,9 @@ $ tea --sync
 
 $ tea --sync +deno.land
 # ^^ updates specific packages
+
+$ sh <(curl tea.xyz) --sync
+# ^^ updates `tea` as well
 ```
 
 ### How do I view what is stowed?

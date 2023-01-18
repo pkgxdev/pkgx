@@ -1,6 +1,6 @@
 import { assertEquals } from "deno/testing/asserts.ts"
 import useCache from "hooks/useCache.ts"
-import Path from "../../src/vendor/Path.ts"
+import Path from "path"
 
 Deno.test("decode", async test => {
   await test.step("std", () => {

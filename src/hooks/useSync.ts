@@ -4,12 +4,16 @@ import useLogger, { Logger } from "./useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
 
-async function find_git(): Promise<Path | undefined> {
+async function find_git({tea_ok}: {tea_ok: boolean} = {tea_ok: false}): Promise<Path | undefined> {
   for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
     if (path.string == '/usr/bin/git' && host().platform == 'darwin' && !await clt_installed()) {
       // if the CLT or Xcode is installed then we can use the system git
       // if neither is installed then git will actually immediately exit with an error
+      continue
+    }
+    if (!tea_ok && path.isSymlink() && path.readlink().basename() == "tea") {
+      // we cannot install git via ourselves before we have fetched the pantries
       continue
     }
     if (path.isExecutableFile()) {
@@ -142,7 +146,7 @@ export const update = async () => {
   case 'noop': {
     logger.replace("syncing pantries…")
 
-    const git = await find_git()
+    const git = await find_git({tea_ok: true})
     if (!git) return console.warn("cannot update pantry without git")
     const pp: Promise<void>[] = []
     for await (const cwd of ls()) {

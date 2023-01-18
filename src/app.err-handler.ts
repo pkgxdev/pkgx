@@ -7,7 +7,7 @@ import Path from "path"
 async function suggestions(err: TeaError) {
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
-    const suggestion = await usePantry().getClosestPackageSuggestion(err.ctx.project)
+    const suggestion = await usePantry().getClosestPackageSuggestion(err.ctx.project).swallow()
     return suggestion
       ? `did you mean \`${logger.teal(suggestion)}\`? otherwise… see you on GitHub?`
       : undefined
