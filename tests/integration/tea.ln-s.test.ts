@@ -19,20 +19,19 @@ const mk = (v = '') => {
       cmd: [`node${v}`, "--eval", "console.log('hello')"],
       stdout: "piped",
       env: {
-        VERBOSE: "2",
-        DEBUG: "1",
         PATH: node.parent().string
       }
     })
 
+    let out: string | undefined
     try {
       const { success } = await proc.status()
       assert(success)
 
-      const out = new TextDecoder().decode(await proc.output())
+      out = new TextDecoder().decode(await proc.output())
       assertEquals(out, "hello\n")
     } finally {
-      proc.stdout!.close()
+      if (out === undefined) proc.stdout!.close()
       proc.close()
     }
   })
