@@ -179,4 +179,4 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }} \
-            --paths "$(find binaries | sed 's/^binaries//')"
+            --paths "$(find binaries -type f | sed 's/^binaries//')"
