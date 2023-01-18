@@ -1,18 +1,4 @@
-#!/usr/bin/env -S tea -E
-
-/*
----
-args:
-  - deno
-  - run
-  - --allow-net
-  - --allow-env
-  - --allow-read={{ tea.prefix }}
-  - --allow-write={{ tea.prefix }}
-  - --allow-run  # uses `/bin/ln`
-  - --import-map={{ srcroot }}/import-map.json
----
-*/
+#!/usr/bin/env -S deno run -A
 
 import { useCellar, useFlags } from "hooks"
 import { Installation } from "types"
