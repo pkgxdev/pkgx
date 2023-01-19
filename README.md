@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.19.5
+# tea/cli 0.19.6
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -41,10 +41,12 @@ tea: installing nodejs.org^19
 Hello World!
 ```
 
-With tea there’s no *install packages step*. Just type the commands you need
+With tea there is no *install packages step*. Just type the commands you need
 and tea takes care of the rest—fetching packages, constructing a virtual
 environment isolated from the rest of your system and then running your
 commands.
+
+Change your thinking from “I want to *install* foo” to “I want to *use* foo”.
 
 ```sh
 $ which bun
@@ -167,27 +169,6 @@ for your project.
 tea can read it and *humans can too*. If the developer uses tea we make
 working on the project effortless. If they don’t then they can source the
 packages themselves.
-
-> <details><summary><i>PSA:</i> Stop using Docker</summary><br>
->
-> Docker is great for deployment and cross compilation, but… let’s face it: it
-> sucks for dev.
->
-> *Docker stifles builders*.
-> It constricts you; you’re immalleable; tech marches onwards but your docker
-> container remains immobile. *Nobody knows how to use `docker`*. Once that
-> `Dockerfile` is set up, nobody dares touch it.
->
-> And let’s face it, getting your personal dev and debug tools working inside
-> that image is incredibly frustrating. Why limit your potential?
->
-> Keep deploying with Docker, but use tea to develop.
->
-> Then when you do deploy you may as well install those deps with tea.
->
-> Frankly, tea is properly versioned unlike system packagers, so with tea your
-> deployments actually remain *more* stable.
-> </details>
 
 &nbsp;
 
@@ -319,6 +300,27 @@ function. To see the full environment for your project run `tea -En` or simply
 > Currently we support a `tea` node in `package.json`. Please submit the PR
 > for your language!
 >
+> </details>
+
+> <details><summary><i>PSA:</i> Stop using Docker</summary><br>
+>
+> Docker is great for deployment and cross compilation, but… let’s face it: it
+> sucks for dev.
+>
+> *Docker stifles builders*.
+> It constricts you; you’re immalleable; tech marches onwards but your docker
+> container remains immobile. *Nobody knows how to use `docker`*. Once that
+> `Dockerfile` is set up, nobody dares touch it.
+>
+> And let’s face it, getting your personal dev and debug tools working inside
+> that image is incredibly frustrating. Why limit your potential?
+>
+> Keep deploying with Docker, but use tea to develop.
+>
+> Then when you do deploy you may as well install those deps with tea.
+>
+> Frankly, tea is properly versioned unlike system packagers, so with tea your
+> deployments actually remain *more* stable.
 > </details>
 
 &nbsp;
