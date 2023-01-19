@@ -17,6 +17,7 @@ jobs:
   tests:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - macos-latest
@@ -25,21 +26,23 @@ jobs:
       #TODO get desired deno version as an output from a pre-step
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1  # using ourself to install deno could compromise the tests
-      - run: deno task test
+      # prevent downloading the same files more than once during the integration tests
+      - run: mkdir -p ~/.tea/tea.xyz/var/www
+      - run: deno task test --quiet
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: tea -XE deno lint src/*/**.ts
+      - run: deno lint src/*/**.ts
 
   typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: tea -XE deno task typecheck
+      - run: deno task typecheck
 
   # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:

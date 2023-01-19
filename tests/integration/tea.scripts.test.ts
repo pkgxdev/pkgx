@@ -5,7 +5,7 @@ import { it } from "deno/testing/bdd.ts"
 
 it(suite, "tea fixture.py", async function() {
   this.sandbox.join("fixture.py").write({ text: "print('hello')" })
-  const out = await this.run({args: ["--sync", "fixture.py"]}).stdout()
+  const out = await this.run({args: ["-Ss", "fixture.py"]}).stdout()
   assertEquals(out, "hello\n")
 })
 
@@ -16,7 +16,7 @@ it(suite, "shebang without args", async function() {
     print(platform.python_version())
     `
   }).chmod(0o500)
-  const out = await this.run({args: ["--sync", fixture.string]}).stdout()
+  const out = await this.run({args: ["-Ss", fixture.string]}).stdout()
   assertEquals(out[0], "3")  //TODO better
 })
 
@@ -32,6 +32,6 @@ it(suite, "shebang with args", async function() {
     echo "${fuzz}"
     `
   }).chmod(0o500)
-  const out = await this.run({args: ["--sync", fixture.string]}).stdout()
+  const out = await this.run({args: ["-Ss", fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })

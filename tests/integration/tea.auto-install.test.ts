@@ -3,21 +3,21 @@ import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
 
 it(suite, "tea node", async function() {
-  const out = await this.run({ args: ["--sync", "node", "--eval", "console.log(1)"]}).stdout()
+  const out = await this.run({ args: ["-Ss", "node", "--eval", "console.log(1)"]}).stdout()
   assertEquals(out, "1\n")
 })
 
 it(suite, "tea python3.10", async function() {
-  const out = await this.run({args: ["--sync", "python3.10", "--version"]}).stdout()
+  const out = await this.run({args: ["-Ss", "python3.10", "--version"]}).stdout()
   assertMatch(out, /Python 3\.10\.\d+/)
 })
 
 it(suite, "tea python3.11", async function() {
-  const out = await this.run({args: ["--sync", "python3.11", "--version"]}).stdout()
+  const out = await this.run({args: ["-Ss", "python3.11", "--version"]}).stdout()
   assertMatch(out, /Python 3\.11\.\d+/)
 })
 
 it(suite, "tea node^16", async function() {
-  const out = await this.run({args: ["--sync", "node^16", "--version"]}).stdout()
+  const out = await this.run({args: ["-Ss", "node^16", "--version"]}).stdout()
   assertMatch(out, /^v16\./)
 })
