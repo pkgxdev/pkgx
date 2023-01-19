@@ -14,7 +14,6 @@ export const EnvKeys = [
   'XDG_DATA_DIRS',
   'CMAKE_PREFIX_PATH',
   'DYLD_FALLBACK_LIBRARY_PATH',
-  'SSL_CERT_FILE',
   'LDFLAGS',
   'TEA_PREFIX',
   'PYTHONPATH',
@@ -64,13 +63,6 @@ export default async function useShellEnv({installations}: Options): Promise<Rec
 
     if (projects.has('gnu.org/autoconf')) {
       vars.ACLOCAL_PATH = compact_add(vars.ACLOCAL_PATH, installation.path.join("share/aclocal").compact()?.string)
-    }
-
-    if (installation.pkg.project === 'openssl.org') {
-      const certPath = installation.path.join("ssl/cert.pem").compact()?.string
-      // this is a single file, so we assume a
-      // valid entry is correct
-      if (certPath) vars.SSL_CERT_FILE = OrderedHashSet.of(certPath)
     }
 
     // pip requires knowing where its root is
@@ -156,7 +148,6 @@ function suffixes(key: EnvKey) {
     case 'DYLD_FALLBACK_LIBRARY_PATH':
     case 'CPATH':
     case 'CMAKE_PREFIX_PATH':
-    case 'SSL_CERT_FILE':
     case 'LDFLAGS':
     case 'TEA_PREFIX':
     case 'PYTHONPATH':
