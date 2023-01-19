@@ -56,9 +56,10 @@ export default async function help() {
 
       environment variables:
         TEA_PREFIX    stow packages here
-        TEA_MAGIC     [0,1] if shell magic is active, \`TEA_MAGIC=0\` disables it
+        TEA_MAGIC     if shell magic is active, \`TEA_MAGIC=0\` disables it
+        NO_COLOR      suppresses outputting color codes
         VERBOSE       {-1: silent, 0: default, 1: verbose, 2: debug}
-        DEBUG         [0,1]: alias for \`VERBOSE=2\`
+        DEBUG         alias for \`VERBOSE=2\`
 
         • explicit flags override any environment variables
 
