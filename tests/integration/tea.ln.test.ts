@@ -49,7 +49,7 @@ if (Deno.build.os != 'linux') {
       .ln("s", {to: this.sandbox.join('node')})
 
     const out = await run([`node`, "--version"], node.parent())
-    assertMatch(out, /v18\.\d+\.\d+/)
+    assertMatch(out, /v18\.\d+\.\d+/, out)
   })
 }
 
@@ -66,5 +66,5 @@ it(suite, "hardlinks work", async function() {
   await this.run({args: ["--sync", "--silent"]})
 
   const out = await run(['node', "--eval", "console.log('hello')"], node.parent())
-  assertEquals(out, "hello\n")
+  assertEquals(out, "hello\n", out)
 })
