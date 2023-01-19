@@ -175,8 +175,12 @@ jobs:
           aws s3 sync binaries s3://www.tea.xyz/ \
             --metadata-directive REPLACE \
             --cache-control no-cache,must-revalidate
+      - run: find binaries -type f | sed 's/^binaries//'
       - name: Invalidate cache
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }} \
-            --paths "$(find binaries -type f | sed 's/^binaries//')"
+        run:
+          find binaries -type f |
+          sed 's/^binaries//' |
+          xargs
+          aws cloudfront create-invalidation
+            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
+            --paths
