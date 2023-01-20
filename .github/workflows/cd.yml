@@ -83,7 +83,7 @@ jobs:
           srcroot: ${{ github.workspace }}
 
       - run: sed -i.bak "s/^const version = .*$/const version = \"${{ steps.tea.outputs.version }}\"/" src/app.ts
-      - run: tea -XE deno task compile
+      - run: deno task compile
       - run: ./tea --version  # verify compilation works
       - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
       - uses: actions/upload-artifact@v3
@@ -175,8 +175,12 @@ jobs:
           aws s3 sync binaries s3://www.tea.xyz/ \
             --metadata-directive REPLACE \
             --cache-control no-cache,must-revalidate
+      - run: find binaries -type f | sed 's/^binaries//'
       - name: Invalidate cache
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }} \
-            --paths "$(find binaries -type f | sed 's/^binaries//')"
+        run:
+          find binaries -type f |
+          sed 's/^binaries//' |
+          xargs
+          aws cloudfront create-invalidation
+            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
+            --paths

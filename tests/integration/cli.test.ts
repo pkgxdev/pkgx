@@ -8,11 +8,17 @@ it(suite, "tea --help", async function() {
 })
 
 it(suite, "tea +zlib.net", async function() {
-  const code = await this.run({ args: ["--sync", "+zlib.net", "true"] })
+  const code = await this.run({ args: ["-Ss", "+zlib.net", "true"] })
   assertEquals(code, 0)
 })
 
 it(suite, "tea --version", async function() {
   const out = await this.run({ args: ["--version"] }).stdout()
   assertMatch(out, /tea \d+\.\d+\.\d+/)
+})
+
+it(suite, "tea /bin/ls", async function() {
+  this.sandbox.join("foo").mkdir().join("bar").touch()
+  const out = await this.run({ args: ["/bin/ls", "foo"] }).stdout()
+  assertEquals(out, "bar\n")
 })

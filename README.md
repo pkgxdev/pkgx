@@ -21,13 +21,13 @@ in decades—*they still work the same way they always have*.
 * Why is it that you can have any version (*as long as its the latest*) but you
     have to to wait weeks for it?
 
-Introducing `tea`, the next generation, cross-platform package manager from
+Introducing `tea`, the next-generation, cross-platform package manager from
 the creator of [`brew`].
 
 &nbsp;
 
 
-# tea/cli 0.19.6
+# tea/cli 0.19.7
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -359,6 +359,17 @@ shell’s configuration file.
 &nbsp;
 
 
+# Packagers Who Care
+
+You trust us to just work and make your workflows happen.
+We take this job seriously and we go the extra mile on a per package basis
+eg. our git ignores `.DS_Store` files by default and we insist our packages
+are relocatable, which is why we can install in your home directory, but this
+also means you could pick up the whole ~/.tea directory and bundle it with
+your app. We also begin packaging new releases almost immediately as soon as
+they go live using various automations.
+
+
 # Contributing
 
 If you have suggestions or ideas, start a [discussion]. If we agree we’ll
@@ -417,7 +428,7 @@ We agree this is not great UX.
 
 ### I need a tool in `PATH` (aka `brew install`)
 
-Symlinks to `tea` automatically invoke their namesake:
+Symlinks† to `tea` automatically invoke their namesake:
 
 ```sh
 $ ln -s $(which tea) /usr/local/bin/bun
@@ -436,6 +447,9 @@ $ ln -s $(which tea) /usr/local/bin/tea+node
 $ tea+node --version
 v19.3.0
 ```
+
+> † this doesn’t work on Linux, you’ll need to use hard-links.
+> this is a platform limitation we cannot work around 😞
 
 ### How do I use tea with editors like VSCode?
 

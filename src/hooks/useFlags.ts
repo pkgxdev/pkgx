@@ -61,8 +61,8 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   }
 
   (() => {
-    const link = new Path(arg0).isSymlink()
-    if (link === undefined || link.basename() === "tea") return
+    const link = new Path(arg0)
+    if (link.basename() === "tea") return
     const target = link.readlink().isSymlink()
     // if node is a symlink to node^16 to tea, then we should use node^16
     const base = target?.basename().startsWith(link.basename())
