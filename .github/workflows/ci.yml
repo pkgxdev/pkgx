@@ -28,7 +28,7 @@ jobs:
       - uses: denoland/setup-deno@v1  # using ourself to install deno could compromise the tests
       # prevent downloading the same files more than once during the integration tests
       - run: mkdir -p ~/.tea/tea.xyz/var/www
-      - run: deno task test --quiet
+      - run: deno task test
 
   lint:
     runs-on: ubuntu-latest
