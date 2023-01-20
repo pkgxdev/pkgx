@@ -3,18 +3,18 @@ import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
 import Path from "path"
 
-async function run(cmd: string[], PATH: Path) {
+async function run(cmd: string[], PATH: Path, TEA_PREFIX: Path) {
   const proc = Deno.run({
     cmd,
     stdout: "piped",
     env: {
-      PATH: PATH.string
+      PATH: PATH.string,
+      TEA_PREFIX: TEA_PREFIX.string
     }
   })
 
   let out: string | undefined
   try {
-    console.error("HI", {proc, cmd})
     const { success } = await proc.status()
     out = new TextDecoder().decode(await proc.output())
     if (!success) console.error("error:", `stdout: out`)
@@ -33,7 +33,7 @@ if (Deno.build.os != 'linux') {
       await this.run({args: ["--sync", "--silent"]})
 
       const node = this.tea.ln("s", {to: this.sandbox.join(`node${v}`)})
-      const out = await run([`node${v}`, "--eval", "console.log('hello')"], node.parent())
+      const out = await run([`node${v}`, "--eval", "console.log('hello')"], node.parent(), this.TEA_PREFIX)
       assertEquals(out, "hello\n")
     })
   }
@@ -49,14 +49,14 @@ if (Deno.build.os != 'linux') {
       .ln('s', {to: this.sandbox.join('node^18')})
       .ln('s', {to: this.sandbox.join('node')})
 
-    const out = await run(['node', '--version'], node.parent())
+    const out = await run(['node', '--version'], node.parent(), this.TEA_PREFIX)
     assertMatch(out, /v18\.\d+\.\d+/, out)
   })
 }
 
 it(suite, "symlinks to `tea` called `tea` act like tea", async function() {
   const tea = this.tea.ln("s", {to: this.sandbox.join('tea')})
-  const out = await run(['tea', '--version'], tea.parent())
+  const out = await run(['tea', '--version'], tea.parent(), Path.root)
   assertMatch(out, /tea \d+\.\d+\.\d+/)
 })
 
@@ -66,6 +66,6 @@ it(suite, "hardlinks work", async function() {
 
   await this.run({args: ["--sync", "--silent"]})
 
-  const out = await run(['node', "--eval", "console.log('hello')"], node.parent())
+  const out = await run(['node', "--eval", "console.log('hello')"], node.parent(), this.TEA_PREFIX)
   assertEquals(out, "hello\n", out)
 })
