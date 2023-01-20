@@ -17,7 +17,7 @@ async function run(cmd: string[], PATH: Path) {
     const { success } = await proc.status()
     out = new TextDecoder().decode(await proc.output())
     if (!success) console.error("error:", out)
-    assert(success)
+    assert(success, out)
   } finally {
     if (out === undefined) proc.stdout!.close()
     proc.close()
