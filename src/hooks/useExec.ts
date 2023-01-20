@@ -118,6 +118,8 @@ async function read_shebang(path: Path) {
   }
 }
 
+import { basename } from "deno/path/mod.ts"
+
 async function fetch_it(arg0: string | undefined) {
   if (!arg0) return
   const url = urlify(arg0)
@@ -126,7 +128,9 @@ async function fetch_it(arg0: string | undefined) {
     return path.chmod(0o700)  //FIXME like… I don’t feel we should necessarily do this…
   }
   const path = Path.cwd().join(arg0)
-  if (path.exists()) {
+  if (path.exists() && basename(Deno.execPath()) == "tea") {
+    // ^^ in the situation where we are shadowing other tool names
+    // we don’t want to fork bomb if the tool in question is in CWD
     return path
   } else {
     return arg0
