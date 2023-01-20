@@ -359,6 +359,16 @@ shell’s configuration file.
 &nbsp;
 
 
+# Packagers Who Care
+
+You trust us to just work and make your workflows happen.
+We take this job seriously and we go the extra mile on a per package basis
+eg. our git ignores `.DS_Store` files by default and we insist our packages
+are relocatable, which is why we can install in your home directory, but this
+also means you could pick up the whole ~/.tea directory and bundle it with
+your app.
+
+
 # Contributing
 
 If you have suggestions or ideas, start a [discussion]. If we agree we’ll
