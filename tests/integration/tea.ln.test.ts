@@ -14,9 +14,10 @@ async function run(cmd: string[], PATH: Path) {
 
   let out: string | undefined
   try {
+    console.error("HI", {proc, cmd})
     const { success } = await proc.status()
     out = new TextDecoder().decode(await proc.output())
-    if (!success) console.error("error:", out)
+    if (!success) console.error("error:", `stdout: out`)
     assert(success, out)
   } finally {
     if (out === undefined) proc.stdout!.close()
@@ -45,10 +46,10 @@ if (Deno.build.os != 'linux') {
     await this.run({args: ["--sync", "--silent"]})
 
     const node = this.tea
-      .ln("s", {to: this.sandbox.join('node^18')})
-      .ln("s", {to: this.sandbox.join('node')})
+      .ln('s', {to: this.sandbox.join('node^18')})
+      .ln('s', {to: this.sandbox.join('node')})
 
-    const out = await run([`node`, "--version"], node.parent())
+    const out = await run(['node', '--version'], node.parent())
     assertMatch(out, /v18\.\d+\.\d+/, out)
   })
 }
