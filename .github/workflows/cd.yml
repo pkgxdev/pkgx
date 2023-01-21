@@ -156,6 +156,18 @@ jobs:
           tag: ${{ env.TAG }}
           prefix: v
 
+  bump-tap:
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
+          org: teaxyz
+          tap: teaxyz/homebrew-pkgs
+          formula: tea-cli
+          livecheck: true
+
   upload-binaries:
     needs: [release]
     runs-on: ubuntu-latest
