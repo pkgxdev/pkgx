@@ -42,9 +42,14 @@ export default async function(cmd: string[], env: Record<string, string>) {
 
 export async function repl(installations: Installation[], env: Record<string, string>) {
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
-  console.info('this is a temporary shell containing the following packages:')
-  console.info(pkgs_str())
-  console.info("when done type: `exit'")
+
+  // going to stderr so that we don’t potentially break (nonsensical) pipe scenarios, eg.
+  //     tea -E | env
+  // python etc. have the same behavior
+  console.error('this is a temporary shell containing the following packages:')
+  console.error(pkgs_str())
+  console.error("when done type: `exit'")
+
   const shell = Deno.env.get("SHELL")?.trim() || "/bin/sh"
   const cmd = [shell, '-i'] // interactive
 
