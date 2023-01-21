@@ -44,7 +44,7 @@ export default function useFlags(): Flags & ConvenienceFlags {
 
 export type Args = {
   cd?: Path
-  mode: 'exec' | 'help' | 'version' | 'prefix' | 'magic'
+  mode: 'exec' | 'help' | 'version' | 'prefix' | 'magic' | 'provides'
   sync: boolean
   args: string[]
   pkgs: PackageSpecification[]
@@ -142,6 +142,10 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
       case 'version':
         nonovalue()
         rv.mode = 'version'
+        break
+      case 'provides':
+        nonovalue()
+        rv.mode = 'provides'
         break
       case 'keep-going':
         keep_going = parseBool(value ?? "yes") ?? barf()

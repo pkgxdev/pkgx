@@ -51,6 +51,7 @@ export default async function help() {
         --help,-h
         --version,-v      prints tea’s version
         --prefix          prints the tea prefix †
+        --provides        exits successfully if package/s are provided
 
         † all packages are “stowed” in the tea prefix, eg. ~/.tea/rust-lang.org/v1.65.0
 
