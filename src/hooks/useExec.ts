@@ -164,7 +164,7 @@ type WhichResult = PackageRequirement & {
   shebang?: string
 }
 
-async function which(arg0: string | undefined) {
+export async function which(arg0: string | undefined) {
   if (!arg0?.chuzzle() || arg0.includes("/")) {
     // no shell we know allows searching for subdirectories off PATH
     return false

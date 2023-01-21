@@ -5,6 +5,7 @@ import useFlags, { Args, useArgs } from "hooks/useFlags.ts"
 import syncf from "./app.sync.ts"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
+import provides from "./app.provides.ts";
 import magic from "./app.magic.ts"
 import exec, { repl } from "./app.exec.ts"
 import { print, UsageError } from "utils"
@@ -57,6 +58,9 @@ try {
     break
   case "prefix":
     await print(usePrefix().string)
+    break
+  case "provides":
+    await provides(args.args)
     break
   case "magic":
     await print(magic(new Path(Deno.execPath())))
