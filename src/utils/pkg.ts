@@ -2,7 +2,7 @@ import { Package, PackageRequirement } from "types"
 import * as semver from "semver"
 
 /// allows inputs `nodejs.org@16` when `semver.parse` would reject
-export function parse(input: string): PackageRequirement | Package {
+export function parse(input: string): PackageRequirement {
   const match = input.match(/^(.+?)([\^=~<>@].+)?$/)
   if (!match) throw new Error(`invalid pkgspec: ${input}`)
   if (!match[2]) match[2] = "*"
@@ -17,13 +17,7 @@ export function parse(input: string): PackageRequirement | Package {
     if (match[2].startsWith("@")) match[2] = `^${match[2].slice(1)}`
 
     const constraint = new semver.Range(match[2])
-    const version = constraint.single()
-
-    if (version) {
-      return { project, version }
-    } else {
-      return { project, constraint }
-    }
+    return { project, constraint }
   }
 }
 

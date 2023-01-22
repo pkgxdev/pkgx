@@ -1,4 +1,4 @@
-import { usePrefix, useRequirementsFile, useExec, useVirtualEnv } from "hooks"
+import { usePrefix, useExec, useVirtualEnv, useVersion } from "hooks"
 import err_handler from "./app.err-handler.ts"
 import * as logger from "hooks/useLogger.ts"
 import useFlags, { Args, useArgs } from "hooks/useFlags.ts"
@@ -8,15 +8,13 @@ import help from "./app.help.ts"
 import provides from "./app.provides.ts";
 import magic from "./app.magic.ts"
 import exec, { repl } from "./app.exec.ts"
-import { print, UsageError } from "utils"
+import { print, pkg as pkgutils, flatmap } from "utils"
 import Path from "path"
 import { Verbosity } from "./types.ts"
-
-const version = `${(await useRequirementsFile(new URL(import.meta.url).path().join("../../README.md")).swallow(/not-found/))?.version}+dev`
-// ^^ this is statically replaced at deployment
+import * as semver from "semver"
 
 try {
-  const [args, {dryrun, verbosity}] = useArgs(Deno.args, Deno.execPath())
+  const [args] = useArgs(Deno.args, Deno.execPath())
 
   if (args.cd) {
     const chdir = args.cd
@@ -24,37 +22,75 @@ try {
     Deno.chdir(chdir.string)
   }
 
-  const syringe = args.mode == 'exec' || args.sync ? await injection(args) : undefined
+  const syringe = await injection(args)
 
   if (args.sync) {
     await syncf(args.pkgs, syringe)
   }
 
+  if (!Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
+    logger.set_global_prefix('tea:')
+  }
+
   switch (args.mode) {
-  case "exec": {
-    if (!Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
-      logger.set_global_prefix('tea:')
-    }
-    await announce()
-    const {cmd, env, pkgs} = await useExec({...args, inject: syringe})
-    if (dryrun) {
-      await dump({args: cmd, env, pkgs, stack_mode: dryrun == 'w/trace'})
-    } else if (cmd.length === 0) {
-      if (!args.pkgs.length && args.sync) Deno.exit(0)    // `tea -S` is not an error or a repl
-      if (!args.pkgs.length && verbosity > 0) Deno.exit(0) // `tea -v` is not an error or a repl
-      if (!args.pkgs.length) throw new UsageError()
+  case "std": {
+    announce()
 
-      await repl(pkgs, env)
+    const wut_ = wut(args)
 
-    } else {
+    const venv = await injection(args)
+    const {cmd, env, pkgs, installations} = await useExec({...args, inject: venv})
+
+    const full_path = () => [...env["PATH"]?.split(':') ?? [], ...Deno.env.get('PATH')?.split(':') ?? []].uniq()
+
+    switch (wut_) {
+    case 'exec':
+      env['PATH'] = full_path().join(':')
       await exec(cmd, env)
+      break
+    case 'dryrun': {
+      if (cmd.length) {
+        //TODO really we should use the same function that deno does or this is not guaranteed the same result
+        cmd[0] = full_path().map(x => Path.cwd().join(x, cmd[0])).find(x => x.isExecutableFile())?.string ?? cmd[0]
+      }
+      //TODO proper shell escaping
+      const output = cmd.join(" ").trim()
+      if (output) {
+        await print(output)
+      }
+    } break
+    case 'repl':
+      await repl(installations, env)
+      break
+    case 'env':
+      if (pkgs.length == 0) {
+        if (Deno.args.length == 0) {
+          console.error("tea: empty pkg env (see: `tea --help`)")
+        } else {
+          console.error("tea: empty pkg env")
+        }
+      } else for (const key in env) {
+        const inferred = env[key].split(":")
+        const inherited = Deno.env.get(key)?.split(":") ?? []
+        const value = [...inferred, ...inherited].uniq()
+        await print(`${key}=${value.join(":")}`)
+      }
+      break
+    case "dump":
+      env['PATH'] = full_path().join(':')
+      env["TEA_PKGS"] = pkgs.map(pkgutils.str).join(":")
+      env["TEA_PREFIX"] = usePrefix().string
+      env["TEA_VERSION"] = useVersion()
+
+      await dump({env, pkgs: installations})
+      break
     }
   } break
   case "help":
     await help()
     break
   case "version":
-    await print_version()
+    await print(`tea ${useVersion()}`)
     break
   case "prefix":
     await print(usePrefix().string)
@@ -70,9 +106,10 @@ try {
   Deno.exit(1)
 }
 
-async function announce() {
+function announce() {
   const self = new Path(Deno.execPath())
   const prefix = usePrefix().string
+  const version = useVersion()
 
   switch (useFlags().verbosity) {
   case Verbosity.debug:
@@ -83,30 +120,83 @@ async function announce() {
     }
     break
   case Verbosity.loud:
-    await print_version()
+    console.error(`tea ${useVersion()}`)
   }
-}
-
-async function print_version() {
-  await print(`tea ${version}`)
 }
 
 function injection({ args, inject }: Args) {
+  const TEA_PKGS = Deno.env.get("TEA_PKGS")
 
-  // the environment location is calculated based on arg0 if it is a file
-  // this so scripts can find their env if they have one, precedent: deno finding its deno.json
-  //NOTE: this is possibly not a good idea
-  let cwd = Path.cwd()
-  const file = cwd.join(args[0])
-  if (file.isReadableFile()) {
-    cwd = file.parent()
+  //TODO if TEA_PKGS then extract virtual-env from that, don’t reinterpret it
+
+  if (inject) {
+    // the environment location is calculated based on arg0 if it is a file
+    // this so scripts can find their env if they have one, precedent: deno finding its deno.json
+    //NOTE: this is possibly not a good idea
+
+    let cwd = Path.cwd()
+    const file = cwd.join(args[0])
+    if (file.isReadableFile()) {
+      //TODO ONLY FOR SCRIPTS LOL so `tea /bin/ls` shouldn’t env to /bin
+      cwd = file.parent()
+    }
+
+    if (useFlags().keep_going) {
+      return useVirtualEnv({ cwd }).swallow(/^not-found/)
+    } else if (TEA_PKGS) {
+      /// if an env is defined then we still are going to try to read it
+      /// because `-E` was explicitly stated, however if we fail then
+      /// we’ll delegate to the env we previously defined
+      return useVirtualEnv({ cwd }).catch(err => {
+        try {
+          return from_env()
+        } catch {
+          throw err
+        }
+      })
+    } else {
+      return useVirtualEnv({ cwd })
+    }
+  } else if (TEA_PKGS && inject !== false) {
+    return from_env()
   }
 
-  if (!inject) {
-    return
-  } else if (useFlags().keep_going) {
-    return useVirtualEnv({ cwd }).swallow(/^not-found/)
+  function from_env() {
+    const { TEA_FILE, SRCROOT, VERSION } = Deno.env.toObject()
+    if (!TEA_FILE || !TEA_PKGS || !SRCROOT) return
+    //TODO not absolute paths will crash
+    return {
+      pkgs: TEA_PKGS!.split(":").map(pkgutils.parse),
+      file: new Path(TEA_FILE),
+      srcroot: new Path(SRCROOT),
+      version: flatmap(VERSION, semver.parse)
+    }
+  }
+}
+
+
+function wut(args: Args): 'dump' | 'exec' | 'repl' | 'env' | 'dryrun' {
+
+  // HACK until we split this out into its own pkg/cmd
+  const stack_mode = (() => {
+    if (args.pkgs.length != 1) return false
+    if (args.pkgs[0].project != "tea.xyz/magic") return false
+    if (args.args.length != 1) return false
+    if (args.args[0] != "env") return false
+    args.pkgs = []
+    args.args = []
+    return true
+  })()
+
+  if (useFlags().dryrun) {
+    return 'dryrun'
+  } else if (stack_mode) {
+    return 'dump'
+  } else if (args.args.length == 1 && args.args[0] == 'sh') {
+    return 'repl'
+  } else if (args.args.length == 0) {
+    return 'env'
   } else {
-    return useVirtualEnv({ cwd })
+    return 'exec'
   }
 }

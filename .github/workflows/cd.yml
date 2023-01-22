@@ -109,7 +109,7 @@ jobs:
         id: tea
         with:
           srcroot: tea
-      - run: sed -i.bak "s/^const version = .*$/const version = \"${{ steps.tea.outputs.version }}\"/" src/app.ts
+      - run: echo "export default function() { return '${{ steps.tea.outputs.version }}' }" >> src/hooks/useVersion.ts
         working-directory: tea
       - run: mv tea tea-${{ steps.tea.outputs.version }}
       - run: tar cJf tea-${{ steps.tea.outputs.version }}.tar.xz ./tea-${{ steps.tea.outputs.version }}

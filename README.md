@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.20.0
+# tea/cli 0.21.0
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -65,6 +65,10 @@ bun not found
 # `bun` is not in your `PATH`
 # ∵ tea doesn’t install packages
 # ∴ using tea doesn’t compromise your system’s integrity
+
+$ tea bun --version
+0.4.0
+# ^^ the same as `bun --version` but without magic
 ```
 
 > Check out [# Magic](#magic) to learn how this works.
@@ -120,7 +124,7 @@ In fact you can construct *virtual environments* of specific tools and
 versions encapsulated and separate from the rest of your system.
 
 ```sh
-$ tea +rust-lang.org^1.63 +python.org~3.11
+$ tea +rust-lang.org^1.63 +python.org~3.11 sh
 tea: this is a temporary shell containing rust-lang.org, python.org and 13 other packages
 tea: type `exit` when done
 
@@ -225,9 +229,14 @@ As a bonus the installer also updates tea.
 
 ## “Now see here fella’, I \*hate\* installers…”
 
-We feel you—*there’s a reason we wrote a package manager*.
+It’s sad indeed that package managers can’t install themselves. Oh well.
+How about installing with `brew` instead?
 
-> <details><summary><i>Installing without the installer</i></summary><br>
+```sh
+$ brew install teaxyz/pkgs/tea-cli
+```
+
+> <details><summary><i>Other ways to install tea</i></summary><br>
 >
 > Take your pick:
 >

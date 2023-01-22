@@ -16,6 +16,7 @@ import useVirtualEnv from "./useVirtualEnv.ts"
 import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
 import useSync from "./useSync.ts"
 import useRequirementsFile from "./useRequirementsFile.ts"
+import useVersion from "./useVersion.ts"
 
 // but we can sort these alphabetically
 export {
@@ -31,9 +32,10 @@ export {
   usePackageYAMLFrontMatter,
   usePantry,
   usePrefix,
+  useRequirementsFile,
   useShellEnv,
   useSourceUnarchiver,
   useSync,
+  useVersion,
   useVirtualEnv,
-  useRequirementsFile
 }

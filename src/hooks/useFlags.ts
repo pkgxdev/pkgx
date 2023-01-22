@@ -11,7 +11,7 @@ set_tmp(usePrefix().join('tea.xyz/tmp'))
 
 interface Flags {
   verbosity: Verbosity
-  dryrun: boolean | 'w/trace'
+  dryrun: boolean
   keep_going: boolean
 }
 
@@ -44,12 +44,12 @@ export default function useFlags(): Flags & ConvenienceFlags {
 
 export type Args = {
   cd?: Path
-  mode: 'exec' | 'help' | 'version' | 'prefix' | 'magic' | 'provides'
+  mode: 'std' | 'help' | 'version' | 'prefix' | 'magic' | 'provides'
   sync: boolean
   args: string[]
   pkgs: PackageSpecification[]
-  cmds: string[]
-  inject: boolean
+  inject?: boolean
+  chaste: boolean
 }
 
 export function useArgs(args: string[], arg0: string): [Args, Flags & ConvenienceFlags] {
@@ -73,17 +73,16 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   })()
 
   const rv: Args = {
-    mode: 'exec',
+    mode: 'std',
     args: [],
     pkgs: [],
-    inject: false,
     sync: false,
-    cmds: []
+    chaste: false
   }
 
   let keep_going = false
   let v: number | undefined
-  let dryrun: boolean | 'w/trace' = false
+  let dryrun = false
   const it = args[Symbol.iterator]()
 
   for (const arg of it) {
@@ -132,16 +131,13 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         nonovalue()
         rv.mode = 'help'
         break
-      case 'prefix':
-        nonovalue()
-        rv.mode = 'prefix'
-        break
       case 'magic':
         rv.mode = 'magic'
         break
+      case 'prefix':
       case 'version':
         nonovalue()
-        rv.mode = 'version'
+        rv.mode = key
         break
       case 'provides':
         nonovalue()
@@ -156,25 +152,22 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         v = -1
         break
       case 'dump':
-        console.warn("tea --dump is deprecated, use --dry-run=w/trace instead")
-        dryrun = 'w/trace'
+        console.warn("tea --dump is deprecated, instead only provide pkg specifiers")
         break
       case 'sync':
         nonovalue()
         rv.sync = true
         break
       case 'dry-run':
-        if (value == 'w/trace') {
-          dryrun = 'w/trace'
-          break
-        }
-        // else fallthrough
       case 'just-print': //ala make
       case 'recon':      //ala make
         dryrun = parseBool(value ?? "yes") ?? barf()
         break
       case 'env':
         rv.inject = parseBool(value ?? "yes") ?? barf()
+        break
+      case 'chaste':
+        rv.chaste = parseBool(value ?? "yes") ?? barf()
         break
       default:
         barf()
@@ -198,8 +191,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
           keep_going = true
           break
         case 'd':
-          console.warn("tea -d is deprecated, use --dry-run=w/trace instead")
-          dryrun = 'w/trace'
+          console.warn("tea -d is deprecated, instead only provide pkg specifiers")
           break
         case 'S':
           rv.sync = true
@@ -207,13 +199,11 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         case 'n':
           dryrun = true
           break
-        case "X":
-          rv.cmds.push("!fwd")
-          break
         case 'E':
           rv.inject = true
           break
         case 'h':
+        case '?':
           rv.mode = 'help'
           break
         default:

@@ -11,7 +11,7 @@ export default function(self: Path) {
     return undent`
       add-zsh-hook -Uz chpwd() {
         if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
-          source <("${d}"/tea --env --keep-going --silent --dry-run=w/trace)
+          source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
         fi
       }
 
@@ -46,7 +46,7 @@ export default function(self: Path) {
       cd() {
         builtin cd "$@" || return
         if [ "$OLDPWD" != "$PWD" ]; then
-          source <("${d}"/tea --env --keep-going --silent --dry-run=w/trace)
+          source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
         fi
       }
 
