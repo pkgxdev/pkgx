@@ -70,9 +70,9 @@ jobs:
 
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: 1.27
+          deno-version: 1.29
           #FIXME get it out the README
-          #NOTE we are avoiding using tea here for revlock issues
+          #NOTE we are avoiding using tea here for revlock reasons
 
       - run: |
           deno compile \
