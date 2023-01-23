@@ -32,16 +32,34 @@ export default function useLogger(prefix?: string) {
 }
 
 function colorIfTTY(x: string, colorMethod: (x: string)=>string) {
-  if (Deno.env.get("NO_COLOR")) {
-    return x
-  } else if (Deno.env.get("CI")) {
-    // this is what charm’s lipgloss does, we copy their lead
-    return colorMethod(x)
-  } else if (Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stderr.rid)) {
-    return colorMethod(x)
-  } else {
-    return x
+  //TODO this function needs to take a out/err parameter since that's what
+  // needs to be tested rather than testing for both (this is safe for now)
+  const isTTY = () => Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stdout.rid)
+
+  const color_on = () => {
+    if ((Deno.env.get("CLICOLOR") ?? '1') != '0' && isTTY()){
+      //https://bixense.com/clicolors/
+      return true
+    }
+    if ((Deno.env.get("CLICOLOR_FORCE") ?? '0') != '0') {
+      //https://bixense.com/clicolors/
+      return true
+    }
+    if ((Deno.env.get("NO_COLOR") ?? '0') != '0') {
+      return false
+    }
+    if (Deno.env.get("CLICOLOR") == '0' || Deno.env.get("CLICOLOR_FORCE") == '0') {
+      return false
+    }
+    if (Deno.env.get("CI")) {
+      // this is what charm’s lipgloss does, we copy their lead
+      // however surely nobody wants `tea foo > bar` to contain color codes?
+      // the thing is otherwise we have no color in CI since it is not a TTY
+      return true
+    }
   }
+
+  return color_on() ? colorMethod(x) : x
 }
 
 export const teal = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 86))
