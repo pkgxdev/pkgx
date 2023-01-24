@@ -48,29 +48,6 @@ commands.
 
 Change your thinking from “I want to *install* foo” to “I want to *use* foo”.
 
-```sh
-$ which bun
-bun not found
-
-$ tea --dry-run bun --version
-imagined: bun.sh^0.4
-~/.tea/bun.sh/v0.4.0/bin/bun --version
-
-$ bun --version
-tea: installing bun.sh^0.4
-0.4.0
-
-$ which bun
-bun not found
-# `bun` is not in your `PATH`
-# ∵ tea doesn’t install packages
-# ∴ using tea doesn’t compromise your system’s integrity
-
-$ tea bun --version
-0.4.0
-# ^^ the same as `bun --version` but without magic
-```
-
 > Check out [# Magic](#magic) to learn how this works.
 
 Scripting’s been stuck in a dark age of Bash because it’s the only thing you
@@ -350,6 +327,29 @@ Our installer enables it by adding some hooks to your shell:
 > VSCode won’t magically find `deno`. Shell scripts won’t automatically
 > install tools they try to run. This is intentional. *Magic should not lead
 > to anarchy*. See our [FAQ](#faq) for more information.
+
+```sh
+$ which bun
+bun not found
+
+$ tea --dry-run bun --version
+imagined: bun.sh^0.4
+~/.tea/bun.sh/v0.4.0/bin/bun --version
+
+$ bun --version
+tea: installing bun.sh^0.4
+0.4.0
+
+$ which bun
+bun not found
+# `bun` is not in your `PATH`
+# ∵ tea doesn’t install packages
+# ∴ using tea doesn’t compromise your system’s integrity
+
+$ tea bun --version
+0.4.0
+# ^^ the same as `bun --version` but without magic
+```
 
 ## Using `tea` Without Magic
 
