@@ -157,7 +157,7 @@ export function expand(env: Record<string, string[]>) {
   let rv = ''
   for (const [key, value] of Object.entries(env)) {
     if (value.length == 0) continue
-    rv += `export ${key}='${value.join(":")}'\n`
+    rv += `export ${key}="${value.join(":")}"\n`
   }
   return rv
 }
