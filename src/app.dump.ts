@@ -2,20 +2,17 @@ import { EnvKeys } from "hooks/useShellEnv.ts"
 import { flatmap, print } from "utils"
 import { isPlainObject, isFullArray, isEmptyObject } from "is_what"
 import { basename } from "deno/path/mod.ts"
-import Path from "./vendor/Path.ts"
 import { Installation } from "types"
 
 //TODO should read from the shell configuration files to get originals properly
 //TODO don’t wait on each print, instead chain the promises to be more time-efficient
 
 interface Parameters {
-  args: string[]
   env: Record<string, string>
   pkgs: Installation[]
-  stack_mode: boolean
 }
 
-export default async function dump({ args, env, pkgs, stack_mode}: Parameters) {
+export default async function dump({ env, pkgs }: Parameters) {
   const shell = flatmap(Deno.env.get("SHELL"), basename)
 
   const [setEnv, unsetEnv]= (() => {
@@ -30,13 +27,14 @@ export default async function dump({ args, env, pkgs, stack_mode}: Parameters) {
         (name: string, val: string) => `export ${name}='${val}'`,
         (name: string) => `unset ${name}`
       ]
-  }})()
+    }
+  })()
 
   // represents the dehydrated initial env
   const defaults = get_defaults()
   const keys = new Set([...EnvKeys, 'SRCROOT', 'VERSION', 'TEA_FILE', ...Object.keys(env)])
 
-  if (pkgs.length == 0 && stack_mode) {
+  if (!env["TEA_FILE"]) {
     // this is shell magic mode and we need to reset the shell env to pristine defaults
 
     if (Deno.env.get("TEA_REWIND")?.includes("TEA_PREFIX")) {
@@ -78,31 +76,12 @@ export default async function dump({ args, env, pkgs, stack_mode}: Parameters) {
       }
     }
 
-    if (stack_mode && !isEmptyObject(defaults)) {
+    if (!isEmptyObject(defaults)) {
       await print(setEnv("TEA_REWIND", JSON.stringify(defaults)))
     } else if (Deno.env.get("TEA_REWIND") !== undefined) {
       await print(unsetEnv("TEA_REWIND"))
     }
   }
-
-  if (args.length) {
-    /// misleading but otherwise our dry-run info is not as useful
-    const fullpath = which(args[0], env["PATH"])
-    if (fullpath) args[0] = fullpath
-
-    await print("")
-    await print(args.join(" "))
-  }
-}
-
-function which(arg0: string, PATH: string | undefined) {
-  for (const piece of PATH?.split(":") ?? []) {
-    const exefile = Path.cwd().join(piece, arg0)
-    if (exefile.isExecutableFile()) {
-      return exefile.string
-    }
-  }
-  return arg0
 }
 
 function neq(a: string[] | undefined, b: string[] | undefined) {

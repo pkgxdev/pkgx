@@ -120,7 +120,8 @@ Array.prototype.chuzzle = function<T>() {
   }
 }
 
-console.verbose = console.log
+console.verbose = console.error
+console.debug = console.error
 
 console.silence = async function<T>(body: () => Promise<T>) {
   const originals = [console.log, console.info]

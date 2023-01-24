@@ -1,8 +1,7 @@
 import { Installation } from "types"
 import { OrderedHashSet } from "rimbu/ordered/set/index.ts"
-import { flatmap, host, pkg as pkgutils } from "utils"
+import { host } from "utils"
 import { usePrefix, usePantry } from "hooks"
-import { isArray } from "is_what"
 
 export const EnvKeys = [
   'PATH',
@@ -77,6 +76,7 @@ export default async function useShellEnv({installations}: Options): Promise<Rec
     // otherwise it bases it off the location
     // of python, which won't work for us
     if (installation.pkg.project === 'pip.pypa.io') {
+      //TODO add to pip’s runtime env keys
       vars.PYTHONPATH = compact_add(vars.PYTHONPATH, installation.path.string)
     }
 
@@ -107,22 +107,10 @@ export default async function useShellEnv({installations}: Options): Promise<Rec
     }
   }
 
-  const rewind = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(x)?.["PATH"])
-
   for (const key of EnvKeys) {
     //FIXME where is this `undefined` __happening__?
     if (vars[key] === undefined || vars[key]!.isEmpty) continue
     rv[key] = vars[key]!.toArray()
-
-    if (key == 'PATH') {
-      if (isArray(rewind)) {
-        rv[key] ??= []
-        rv[key].push(...rewind)
-      } else {
-        // first time we've stepped into a devenv
-        rv[key].push(...(Deno.env.get("PATH")?.split(":") ?? []))
-      }
-    }
   }
 
   if (isMac) {
@@ -131,12 +119,8 @@ export default async function useShellEnv({installations}: Options): Promise<Rec
     rv["LDFLAGS"] = [`-Wl,-rpath,${usePrefix()}`]
   }
 
-  rv["TEA_PREFIX"] = [usePrefix().string]
-
   // don’t break `man` lol
   rv["MANPATH"]?.push("/usr/share/man")
-
-  rv["TEA_PKGS"] = installations.map(x => pkgutils.str(x.pkg))
 
   return rv
 }
@@ -173,7 +157,7 @@ export function expand(env: Record<string, string[]>) {
   let rv = ''
   for (const [key, value] of Object.entries(env)) {
     if (value.length == 0) continue
-    rv += `export ${key}='${value.join(":")}'\n`
+    rv += `export ${key}="${value.join(":")}"\n`
   }
   return rv
 }

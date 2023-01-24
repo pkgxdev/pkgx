@@ -7,9 +7,12 @@
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --unstable",
     "typecheck": "deno check --unstable ./src/app.ts",
-    "run": "deno run --unstable --allow-all ./src/app.ts",
+    // runs this source checkout for testing
+    "run": "deno run --unstable --allow-all src/app.ts",
+    // compiles to ./tea
     "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output $INIT_CWD/tea src/app.ts",
-    "install": "deno compile --allow-all --unstable --output $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
+    // installs this source checkout as a tea stowed package
+    "install": "deno compile --unstable -Ao $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
   },
   // ignore all files since the current style deviates from deno's default style.
   "fmt": {
@@ -17,6 +20,11 @@
       "exclude": [
         "./"
       ]
+    }
+  },
+  "tea": {
+    "dependencies": {
+      "deno.land": "^1.29.2"
     }
   }
 }
