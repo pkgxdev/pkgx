@@ -164,7 +164,7 @@ jobs:
         with:
           token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
           org: teaxyz
-          tap: teaxyz/homebrew-pkgs
+          tap: teaxyz/pkgs
           formula: tea-cli
           livecheck: true
 
