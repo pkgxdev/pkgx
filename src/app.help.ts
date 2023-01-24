@@ -18,12 +18,12 @@ export default async function help() {
 
   10  flags:
         --sync,-S       sync and update environment packages
-  10    --env,-E        inject local environment
+        --env,-E        inject local environment
         --dry-run,-n    don’t do anything, just print
 
   15  more:
         $ tea --verbose --help
-  15    $ open https://github.com/teaxyz/cli
+        $ open https://github.com/teaxyz/cli
       `)
   } else {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
@@ -43,7 +43,7 @@ export default async function help() {
         --verbose,-v             print version and then increase verbosity †
         --silent,-s              no chat, no errors: only output the requested data
         --cd,-C,--chdir <dir>    change directory first
-        --chaste,-x              abstain from networking, installing packages, etc.
+        --chaste                 abstain from networking, installing packages, etc.
         --dry-run,-n             don’t execute, just print
 
         • repetitions override previous values
@@ -57,7 +57,6 @@ export default async function help() {
         --prefix          prints the tea prefix ‡
         --provides        exits successfully if package/s are provided
 
-        ‡ all packages are “stowed” in the tea prefix, eg. ~/.tea/rust-lang.org/v1.65.0
         ‡ all packages are “stowed” in the tea prefix, eg. ~/.tea/rust-lang.org/v1.65.0
 
       environment variables:
