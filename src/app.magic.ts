@@ -48,7 +48,8 @@ export default function(self: Path) {
         var src = $m[src]
 
         if (not-eq $error $nil) {
-          "${d}"/tea (put $src[code])
+          use str
+          "${d}"/tea (str:split &max=-1 ' ' $src[code])
         }
       }]
       `
