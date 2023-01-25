@@ -160,13 +160,12 @@ jobs:
     needs: [release]
     runs-on: ubuntu-latest
     steps:
-      - uses: dawidd6/action-homebrew-bump-formula@v3
-        with:
-          token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
-          org: teaxyz
-          tap: teaxyz/pkgs
-          formula: tea-cli
-          livecheck: true
+    - uses: aurelien-baudet/workflow-dispatch@v2
+      with:
+        workflow: .github/workflows/bump.yml
+        repo: teaxyz/hombrew-pkgs
+        ref: main
+        token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
 
   upload-binaries:
     needs: [release]
