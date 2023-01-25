@@ -34,6 +34,9 @@ export default function(self: Path) {
         eval ("${d}"/tea +tea.xyz/magic -Esk --chaste env | slurp)
       }]
 
+      # insert env for current dir too
+      eval ("${d}"/tea +tea.xyz/magic -Esk --chaste env | slurp)
+
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
       if (not (has-external tea)) {
         set paths = [
