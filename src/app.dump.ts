@@ -12,7 +12,7 @@ interface Parameters {
   pkgs: Installation[]
 }
 
-export default async function dump({ env, pkgs }: Parameters) {
+export default async function dump({ env }: Parameters) {
   const shell = flatmap(Deno.env.get("SHELL"), basename)
 
   const [setEnv, unsetEnv]= (() => {
