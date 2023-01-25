@@ -48,8 +48,18 @@ export default function(self: Path) {
         var src = $m[src]
 
         if (not-eq $error $nil) {
+          var reason
+          
+          try {
+            set reason = $error[reason]
+          } catch {
+            set reason = ""
+          }
+          
           use str
-          "${d}"/tea (str:split &max=-1 ' ' $src[code])
+          if (str:has-prefix (repr $reason) "<unknown exec:") {
+            "${d}"/tea (str:split &max=-1 ' ' $src[code])
+          }
         }
       }]
       `
