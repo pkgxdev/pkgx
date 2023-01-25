@@ -16,7 +16,8 @@ export default function(self: Path) {
       }
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      if ! tea --prefix 2>&1 >/dev/null; then
+      # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
+      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi
 
@@ -33,9 +34,10 @@ export default function(self: Path) {
       end
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      if ! tea --prefix 2>&1 >/dev/null; then
+      # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
+      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
-      end
+      fi
 
       function fish_command_not_found
         "${d}"/tea -- $argv
@@ -51,7 +53,8 @@ export default function(self: Path) {
       }
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      if ! tea --prefix 2>&1 >/dev/null; then
+      # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
+      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi
 
