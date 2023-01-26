@@ -37,7 +37,7 @@ export default function(self: Path) {
       # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
       if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
-      fi
+      end
 
       function fish_command_not_found
         "${d}"/tea -- $argv
