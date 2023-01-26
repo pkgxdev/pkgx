@@ -199,3 +199,16 @@ jobs:
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
             --paths
+
+  smoke-setup:
+    needs: [upload-binaries]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: aurelien-baudet/workflow-dispatch@v2
+      with:
+        workflow: ci.yml
+        inputs: "{\"cli-release\": \"true\"}"
+        repo: teaxyz/setup
+        ref: main
+        token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
+        wait-for-completion: false
