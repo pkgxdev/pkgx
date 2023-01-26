@@ -44,7 +44,7 @@ export default function useFlags(): Flags & ConvenienceFlags {
 
 export type Args = {
   cd?: Path
-  mode: 'std' | 'help' | 'version' | 'prefix' | 'magic' | 'provides'
+  mode: 'std' | 'help' | 'version' | 'prefix' | ['magic', string | undefined] | 'provides'
   sync: boolean
   args: string[]
   pkgs: PackageSpecification[]
@@ -134,7 +134,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
         rv.mode = 'help'
         break
       case 'magic':
-        rv.mode = 'magic'
+        rv.mode = ['magic', value]
         break
       case 'prefix':
       case 'version':

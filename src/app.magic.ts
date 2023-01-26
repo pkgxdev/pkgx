@@ -2,8 +2,8 @@ import { basename } from "deno/path/mod.ts"
 import { undent } from "utils"
 import Path from "path"
 
-export default function(self: Path) {
-  const shell = basename(Deno.env.get("SHELL") ?? "")
+export default function(self: Path, shell?: string) {
+  shell ??= basename(Deno.env.get("SHELL") ?? "unknown")
   const d = self.parent()
 
   switch (shell) {

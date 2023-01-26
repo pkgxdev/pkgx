@@ -44,7 +44,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
       const found = await which(shebang)
       if (found) {
         pkgs.push(found)
-        // we don’t alter `cmd` since the shebang literally specifies how to run this script
+        cmd.unshift(shebang)
       }
     } else {
       const found = await usePantry().getInterpreter(arg0.extname())
