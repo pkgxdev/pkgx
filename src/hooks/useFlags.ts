@@ -249,6 +249,7 @@ function applyVerbosity() {
   if (flags.verbosity < Verbosity.loud) console.verbose = noop
   if (flags.verbosity < Verbosity.normal) {
     console.info = noop
+    console.warn = noop
     console.log = noop
     console.error = noop
   }

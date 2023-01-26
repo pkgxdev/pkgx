@@ -24,10 +24,10 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   const env: Record<string, string> = {}
 
   if (inject) {
-    const {version, srcroot, file, ...vrtenv} = inject
+    const {version, srcroot, teafiles, ...vrtenv} = inject
     if (version) env["VERSION"] = version.toString()
     env["SRCROOT"] = srcroot.toString()
-    env["TEA_FILE"] = file.toString()
+    env["TEA_FILES"] = teafiles.join(":")
     pkgs.push(...vrtenv.pkgs)
   }
 
@@ -131,6 +131,13 @@ async function fetch_it(arg0: string | undefined) {
   if (path.exists() && basename(Deno.execPath()) == "tea") {
     // ^^ in the situation where we are shadowing other tool names
     // we don’t want to fork bomb if the tool in question is in CWD
+
+    if (path.extname() == '' && !arg0.includes("/")) {
+      // for this case we require ./
+      // see: https://github.com/teaxyz/cli/issues/335#issuecomment-1402293358
+      return arg0
+    }
+
     return path
   } else {
     return arg0

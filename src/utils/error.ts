@@ -9,8 +9,8 @@ type ID =
   'not-found: pantry' |
   'not-found: pantry: package.yml' |
   'parser: pantry: package.yml' |
-  'not-found: virtual-env' |
-  'not-found: srcroot' |
+  'not-found: dev-env' |
+  // 'not-found: srcroot' |
   'not-found: arg' |
   '#helpwanted'
 
@@ -23,9 +23,9 @@ export default class TeaError extends Error {
       case 'not-found: tea -X: arg0': return 'spilt-tea-001'
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
       case 'not-found: exe/md: region': return 'spilt-tea-003'
-      case 'not-found: srcroot': return 'spilt-tea-004'
+      // case 'not-found: srcroot': return 'spilt-tea-004'
       case 'not-found: pantry: package.yml': return 'spilt-tea-005'
-      case 'not-found: virtual-env': return 'spilt-tea-006'
+      case 'not-found: dev-env': return 'spilt-tea-006'
       case 'not-found: pantry': return 'spilt-tea-007'
       case 'not-found: arg': return 'spilt-tea-008'
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
@@ -93,7 +93,7 @@ export default class TeaError extends Error {
         <<------------------------------------------------------- attachment end
         `
       break
-    case 'not-found: virtual-env':
+    case 'not-found: dev-env':
       msg = undent`
         \`${ctx.cwd}\` is not a tea virtual environment.
 
@@ -101,14 +101,6 @@ export default class TeaError extends Error {
         existing alongside a source control directory (eg. \`.git\`).
         `
     break
-    case 'not-found: srcroot':
-      msg = undent`
-        we couldn’t determine \`$SRCROOT\` when descending from \`${ctx.cwd}\`.
-
-        currently, a virtual environment is defined by a \`README.md\` or \`package.json\`
-        existing alongside a source control directory (eg. \`.git\`).
-        `
-      break
     case 'not-found: arg':
       msg = undent`
        \`${ctx.arg}\` isn't a valid flag.

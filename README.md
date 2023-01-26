@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.21.4
+# tea/cli 0.22.0
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -37,12 +37,12 @@ $ sh <(curl tea.xyz) --yes
 installing ~/.tea…
 
 $ node --eval 'console.log("Hello World!")'
-tea: installing nodejs.org^19
+tea: installing ~/.tea/nodejs.org/v19.5.0
 Hello World!
 ```
 
 With tea there is no *install packages step*. Just type the commands you need
-and tea takes care of the rest—fetching packages, constructing a virtual
+and tea takes care of the rest: fetching packages, constructing a virtual
 environment isolated from the rest of your system and then running your
 commands.
 
@@ -54,16 +54,16 @@ Scripting’s been stuck in a dark age of Bash because it’s the only thing you
 can be sure is installed. Lame af right?
 
 ```sh
-$ tea ./hello.ts
-installing deno…
-deno: running hello.ts
+$ tea ./hello.go
+installing go…
+go: running hello.go
+#…
 
-$ tea https://gist.githubusercontent.com/i0bj/2b3afbe07a44179250474b5f36e7bd9b/raw/colors.go --yellow
-tea: installing go 1.18.3
-go: installing deps
-go: running colors.go
+$ tea https://examples.deno.land/color-logging.ts
+tea: installing deno…
+#…
 
-# need more dependencies than the interpreter? tea reads YAML front matter!
+# need more dependencies than the interpreter? tea reads YAML front matter
 $ tea ./favicon-generator input.png
 tea: installing image-magick, optipng, guetzli and 3 other packages…
 # …
@@ -71,7 +71,7 @@ output: favicon-128.png…
 
 $ cat favicon-generator
 #!/usr/bin/env ruby
-# ^^ we read the shebang and automatically install ruby
+# ^^ tea reads the shebang and automatically installs ruby
 #---
 # dependencies:
 #   imagemagick.org: 4
@@ -98,7 +98,7 @@ v16.19.0
 ```
 
 In fact you can construct *virtual environments* of specific tools and
-versions encapsulated and separate from the rest of your system.
+versions encapsulated separately from the rest of your system.
 
 ```sh
 $ tea +rust-lang.org^1.63 +python.org~3.11 sh
@@ -165,7 +165,8 @@ $ chmod u+x ./tea
 
 $ echo '# tea *really is* a standalone binary' | ./tea --sync glow -
 tea: installing charm.sh/glow
-# …
+# `tea --sync` updates pkgs, but you have to call it *at least once*
+# our installer does this for you normally
 ```
 
 However, if you want tea’s shell [magic](#magic), you’ll need our installer:
@@ -206,7 +207,8 @@ As a bonus the installer also updates tea.
 
 ## “Now see here fella’, I \*hate\* installers…”
 
-It’s sad indeed that package managers can’t install themselves. Oh well.
+Package managers can’t install themselves.
+This sucks but it’s firmly stamped `#cantfix`.
 How about installing with `brew` instead?
 
 ```sh
@@ -245,8 +247,8 @@ $ brew install teaxyz/pkgs/tea-cli
 # ^^ https://github.com/teaxyz/setup
 ```
 
-Our action installs your deps and make tea accessible to the rest of the
-workflow.
+Our action installs your deps and makes them (and tea) accessible to the rest
+of the workflow.
 
 &nbsp;
 
@@ -261,6 +263,12 @@ tea can determine the tools a project directory needs and provide that
 virtual environment. With our shell magic just step into the project directory
 and type commands; tea automatically fetches the specific versions those
 projects need and runs them.
+
+We try to be as clever as possible, eg. we parse `action.yml`, it specifies
+a node version, so we use it. If we see a `NODE_VERSION` file, we add that
+version of node to the environment.
+
+Adding more to your dev-env is as
 
 If you need other tools or you want to be more specific about the version of
 a tool then add your dependencies to your `README.md`. For an example see
@@ -318,7 +326,9 @@ Our magic puts the entire open source ecosystem at your fingertips.
 Our installer enables it by adding some hooks to your shell:
 
 * A hook when changing directory that sets up project environments
-* A hook for the “command not found” scenario that installs that command †
+    * Environments are just shell environment variables
+* A hook for the “command not found” scenario that installs that command
+    before running it †
 
 **Magic is entirely optional, tea is still entirely usable without it.** \
 **Generally we’d say our magic is *for devs* and *not* for ops.**
@@ -365,7 +375,52 @@ Our installer asked if you wanted magic when you ran it. If you elected to
 install magic and no longer want it simply remove the one-liner from your
 shell’s configuration file.
 
-&nbsp;
+## Using Magic in Shell Scripts
+
+Our magic is not automatically added to scripts, but you can manually add it:
+
+```sh
+source <(tea --magic=bash)
+                   # ^^ you have to specify which shell tho
+```
+
+And of course you can also use our one-liner:
+
+```sh
+source <(curl tea.xyz | sh -s -- --magic=bash)
+```
+
+Thus you can make a script that can effortlessly use any tool from the open
+source ecosystem. If they have tea installed it uses their installation, if
+not it installs everything (including tea itself) to a temporary sandbox
+that’s gone when the script completes.
+
+### Injecting Packages without Magic
+
+Our `+pkg` syntax *injects* packages into an environment, the commands are
+then run in that environment.
+
+```sh
+# a script that needs `convert`
+$ tea +imagemagick.org my-script.sh
+
+# a VHS script that needs `wget`
+$ tea +gnu.org/wget vhs demo.tape
+
+# if tea doesn’t provide the package it passes the args through to your system
+$ tea +neovim.io which nvim
+~/.tea/neovim.io/v0.8.2/bin/nvim
+
+# in fact, `tea` is like an “env++”: just like `env` our purpose is to
+# construct environments. Our `++` is: we also fetch packages. Thus, if you
+# don’t specify what we should do with the environment, we dump it:
+$ tea +zlib.net
+MANPATH=/Users/mxl/.tea/zlib.net/v1.2.13/share/man:/usr/share/man
+PKG_CONFIG_PATH=/Users/mxl/.tea/zlib.net/v1.2.13/lib/pkgconfig
+LIBRARY_PATH=/Users/mxl/.tea/zlib.net/v1.2.13/lib
+CPATH=/Users/mxl/.tea/zlib.net/v1.2.13/include
+XDG_DATA_DIRS=/Users/mxl/.tea/zlib.net/v1.2.13/share
+```
 
 
 # Packagers Who Care
@@ -532,15 +587,6 @@ Failing that Start a [discussion] and we’ll get back to you.
 
 If you got this error message, you need to install tea:
 `sh <(curl -Ssf https://tea.xyz)`.
-
-## Dependencies
-
-| Project   | Version |
-| --------- | ------- |
-| deno.land | ^1.27   |
-
-> macOS >= 11 || linux:glibc >= 23 || WSL
-
 
 [pantry]: https://github.com/teaxyz/pantry.core
 [releases]: ../../releases

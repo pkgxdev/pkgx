@@ -12,6 +12,7 @@ import { print, pkg as pkgutils, flatmap } from "utils"
 import Path from "path"
 import { Verbosity } from "./types.ts"
 import * as semver from "semver"
+import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 
 try {
   const [args] = useArgs(Deno.args, Deno.execPath())
@@ -142,12 +143,12 @@ function injection({ args, inject }: Args) {
     }
 
     if (useFlags().keep_going) {
-      return useVirtualEnv({ cwd }).swallow(/^not-found/)
+      return useVirtualEnv(cwd).swallow(/^not-found/)
     } else if (TEA_PKGS) {
       /// if an env is defined then we still are going to try to read it
       /// because `-E` was explicitly stated, however if we fail then
       /// we’ll delegate to the env we previously defined
-      return useVirtualEnv({ cwd }).catch(err => {
+      return useVirtualEnv(cwd).catch(err => {
         try {
           return from_env()
         } catch {
@@ -155,19 +156,19 @@ function injection({ args, inject }: Args) {
         }
       })
     } else {
-      return useVirtualEnv({ cwd })
+      return useVirtualEnv(cwd)
     }
   } else if (TEA_PKGS && inject !== false) {
     return from_env()
   }
 
-  function from_env() {
-    const { TEA_FILE, SRCROOT, VERSION } = Deno.env.toObject()
-    if (!TEA_FILE || !TEA_PKGS || !SRCROOT) return
+  function from_env(): VirtualEnv | undefined {
+    const { TEA_FILES, SRCROOT, VERSION } = Deno.env.toObject()
+    if (!TEA_FILES || !TEA_PKGS || !SRCROOT) return
     //TODO not absolute paths will crash
     return {
       pkgs: TEA_PKGS!.split(":").map(pkgutils.parse),
-      file: new Path(TEA_FILE),
+      teafiles: TEA_FILES.split(":").map(x => new Path(x)),
       srcroot: new Path(SRCROOT),
       version: flatmap(VERSION, semver.parse)
     }

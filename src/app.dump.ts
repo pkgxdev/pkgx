@@ -37,9 +37,9 @@ export default async function dump({ env }: Parameters) {
 
   // represents the dehydrated initial env
   const defaults = get_defaults()
-  const keys = new Set([...EnvKeys, 'SRCROOT', 'VERSION', 'TEA_FILE', ...Object.keys(env)])
+  const keys = new Set([...EnvKeys, 'SRCROOT', 'VERSION', 'TEA_FILES', ...Object.keys(env)])
 
-  if (!env["TEA_FILE"]) {
+  if (!env["TEA_FILES"]) {
     // this is shell magic mode and we need to reset the shell env to pristine defaults
 
     if (Deno.env.get("TEA_REWIND")?.includes("TEA_PREFIX")) {

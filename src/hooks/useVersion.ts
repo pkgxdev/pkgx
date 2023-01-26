@@ -1,7 +1,7 @@
-import useRequirementsFile from "./useRequirementsFile.ts"
+import { README } from "./useVirtualEnv.ts"
 
 const version = `${(
-  await useRequirementsFile(
+  await README(
     new URL(import.meta.url).path()
       .parent().parent().parent()
       .join("README.md")
