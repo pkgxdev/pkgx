@@ -24,7 +24,7 @@ interface Enhancements {
   stderr(): Promise<string>
 }
 
-const existing_tea_prefix = Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
+const existing_tea_prefix = undefined//Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
 
 const suite = describe({
   name: "integration tests",
@@ -32,7 +32,7 @@ const suite = describe({
     const v = new SemVer(Deno.env.get("VERSION") ?? "1.2.3")
     const tmp = new Path(await Deno.makeTempDir({ prefix: "tea" }))
     const cwd = new URL(import.meta.url).path().parent().parent().string
-    const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt')
+    const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt').mkdir()
     const bin = tmp.join('bin').mkpath()
 
     const proc = Deno.run({
@@ -87,11 +87,13 @@ const suite = describe({
 
         // be faster when testing locally
         if ("args" in opts) {
-          cmd.unshift(teafile.string)
           if (!existing_tea_prefix) {
-            cmd.unshift(teafile.string, "--sync", "--silent")
+            cmd.unshift("--sync", "--silent")
           }
+          cmd.unshift(teafile.string)
         }
+
+        console.log({cmd})
 
         const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
         try {
