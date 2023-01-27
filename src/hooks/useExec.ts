@@ -44,7 +44,9 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
       const found = await which(shebang)
       if (found) {
         pkgs.push(found)
-        cmd.unshift(shebang)
+        if (!yaml?.args) {
+          cmd.unshift(shebang)
+        }
       }
     } else {
       const found = await usePantry().getInterpreter(arg0.extname())

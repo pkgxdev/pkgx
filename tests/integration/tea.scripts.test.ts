@@ -26,7 +26,7 @@ it(suite, "shebang with args", async function() {
     #!/bin/bash
 
     #---
-    # args: [sh]
+    # args: [bash, -e]
     #---
 
     echo "${fuzz}"
@@ -39,7 +39,7 @@ it(suite, "shebang with args", async function() {
 it(suite, "tea shebang", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env fish
+    #!/usr/bin/env -S tea fish
 
     echo "${fuzz}"
     `
