@@ -2,7 +2,6 @@ import { describe } from "deno/testing/bdd.ts"
 import { assert } from "deno/testing/asserts.ts"
 import SemVer from "semver"
 import Path from "path"
-import { panic } from "../src/utils/safe-utils.ts";
 
 interface This {
   tea: Path
@@ -22,6 +21,7 @@ type RunOptions = ({
 
 interface Enhancements {
   stdout(): Promise<string>
+  stderr(): Promise<string>
 }
 
 const existing_tea_prefix = Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
@@ -76,6 +76,7 @@ const suite = describe({
       env['CLICOLOR_FORCE'] = '1'
 
       let stdout: "piped" | undefined
+      let stderr: "piped" | undefined
 
       // we delay instantiating the proc so we can set `stdout` if the user calls that function
       // so the contract is the user must call `stdout` within this event loop iteration
@@ -88,11 +89,11 @@ const suite = describe({
         if ("args" in opts) {
           cmd.unshift(teafile.string)
           if (!existing_tea_prefix) {
-            cmd.unshift(teafile.string, "--sync")
+            cmd.unshift(teafile.string, "--sync", "--silent")
           }
         }
 
-        const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, env, clearEnv: true})
+        const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
         try {
           const status = await proc.status()
           if ((throws === undefined || throws) && !status.success) {
@@ -101,6 +102,9 @@ const suite = describe({
           }
           if (stdout == 'piped') {
             const out = await proc.output()
+            return new TextDecoder().decode(out)
+          } else if (stderr == 'piped') {
+            const out = await proc.stderrOutput()
             return new TextDecoder().decode(out)
           } else {
             return status.code
@@ -112,6 +116,10 @@ const suite = describe({
 
       p.stdout = () => {
         stdout = "piped"
+        return p as unknown as Promise<string>
+      }
+      p.stderr = () => {
+        stderr = "piped"
         return p as unknown as Promise<string>
       }
 

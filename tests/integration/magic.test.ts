@@ -1,4 +1,4 @@
-import { assertEquals } from "deno/testing/asserts.ts"
+import { assert, assertEquals } from "deno/testing/asserts.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
 import { undent } from "utils"
@@ -16,9 +16,9 @@ it(suite, "tea --magic in a script. zsh", async function() {
     node --eval 'console.log(1)'
     `}).chmod(0o700)
 
-  const code = await this.run({ cmd: [script.string] })
+  const out = await this.run({ cmd: [script.string] }).stdout()
 
-  assertEquals(code, 0)
+  assertEquals(out, "1\n")
 })
 
 it(suite, "tea --magic in a script. bash", async function() {
@@ -34,9 +34,9 @@ it(suite, "tea --magic in a script. bash", async function() {
     node --eval 'console.log(1)'
     `})
 
-  const code = await this.run({ args: [script.string] })
+  const out = await this.run({ args: [script.string] }).stdout()
 
-  assertEquals(code, 0)
+  assertEquals(out, "1\n")
 })
 
 it(suite, "tea --magic in a script. fish", async function() {
@@ -47,10 +47,17 @@ it(suite, "tea --magic in a script. fish", async function() {
 
     tea --magic=fish | source
 
-    node --eval 'console.log(1)'
+    export NODE_DISABLE_COLORS=1
+    node --eval "console.log('xyz')"
+
+    #FIXME with fish the command not found handler always returns 127 and we don’t know how to work around it
+    exit 0
     `})
 
-  const code = await this.run({ args: [script.string] })
+  // fish forces all output to stderr when running in the command not found handler
+  const out = await this.run({ args: [script.string], env: {NODE_DISABLE_COLORS: '1'} }).stderr()
 
-  assertEquals(code, 0)
+  // splitting it as stderr includes our output
+  //FIXME I can't stop it doing color codes whatever I try
+  assert(out.split("\n")[2].endsWith("xyz"))
 })

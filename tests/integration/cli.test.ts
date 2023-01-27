@@ -8,7 +8,7 @@ it(suite, "tea --help", async function() {
 })
 
 it(suite, "tea +zlib.net", async function() {
-  const code = await this.run({ args: ["-Ss", "+zlib.net", "true"] })
+  const code = await this.run({ args: ["+zlib.net", "true"] })
   assertEquals(code, 0)
 })
 
