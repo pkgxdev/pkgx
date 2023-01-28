@@ -103,6 +103,7 @@ const suite = describe({
           const status = await proc.status()
           if ((throws === undefined || throws) && !status.success) {
             if (stdout == 'piped') proc.stdout?.close()
+            if (stderr == 'piped') proc.stderr?.close()
             throw status
           }
           if (stdout == 'piped') {

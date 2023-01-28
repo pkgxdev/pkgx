@@ -10,14 +10,21 @@ it(suite, "tea --magic in a script. zsh", async function() {
 
     set -e
 
-    test $(basename $(ps -hp $$ | awk '{print $4}' | tail -n1)) = zsh
+    #TODO pkg \`ps\` so this is consistent
+    if test $(uname) = Linux; then
+      N=5
+    else
+      N=4
+    fi
+
+    test $(basename $(ps -hp $$ | awk "{print \\$$N}" | tail -n1)) = zsh
 
     source <(tea --magic=zsh)
 
     node --eval 'console.log(1)'
     `}).chmod(0o700)
 
-  const out = await this.run({ cmd: [script.string] }).stdout()
+  const out = await this.run({ args: [script.string] }).stdout()
 
   assertEquals(out, "1\n", out)
 })
@@ -28,7 +35,13 @@ it(suite, "tea --magic in a script. bash", async function() {
 
     set -e
 
-    test $(basename $(ps -hp $$ | awk '{print $4}' | tail -n1)) = bash
+    if test $(uname) = Linux; then
+      N=5
+    else
+      N=4
+    fi
+
+    test $(basename $(ps -hp $$ | awk "{print \\$$N}" | tail -n1)) = bash
 
     source <(tea --magic=bash)
 
@@ -44,7 +57,13 @@ it(suite, "tea --magic in a script. fish", async function() {
   const script = this.sandbox.join("magic-fish").write({ text: undent`
     #!/usr/bin/fish
 
-    test $(basename $(ps -hp $fish_pid | awk '{print $4}' | tail -n1)) = fish
+    if test $(uname) = Linux; then
+      N=5
+    else
+      N=4
+    end
+
+    test $(basename $(ps -hp $$ | awk "{print \\$$N}" | tail -n1)) = fish
 
     tea --magic=fish | source
 
