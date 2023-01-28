@@ -1,0 +1,17 @@
+name: test
+
+on:
+  push:
+    branches:
+      - fix-workflow-dispatch
+
+jobs:
+  bump-tap:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: bump.yml
+        repo: teaxyz/homebrew-pkgs
+        ref: main
+        token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
