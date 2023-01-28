@@ -1,9 +1,0 @@
-#!/bin/fish
-
-test $(basename $(ps -hp $fish_pid | awk '{print $4}' | tail -n1)) = fish
-
-tea --magic=fish | source
-
-node --eval 'console.log(1)'
-
-echo $status

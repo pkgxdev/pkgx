@@ -58,18 +58,18 @@ it(suite, "tea --magic in a script. fish", async function() {
     #!/usr/bin/fish
 
     if test $(uname) = Linux; then
-      N=5
+      set N 5
     else
-      N=4
+      set N 4
     end
 
-    test $(basename $(ps -hp $$ | awk "{print \\$$N}" | tail -n1)) = fish
+    test $(basename $(ps -hp $fish_pid | awk "{print \\$$N}" | tail -n1)) = fish
 
     tea --magic=fish | source
 
     export NODE_DISABLE_COLORS=1
     export CLICOLOR_FORCE=0
-    export VERBOSITY=-1  # no tea output FIXME doesn’t seem to work…?
+    export VERBOSE=-1  # no tea output FIXME doesn’t seem to work…?
     node --eval "console.log('xyz')"
 
     #FIXME with fish the command not found handler always returns 127 and we don’t know how to work around it
