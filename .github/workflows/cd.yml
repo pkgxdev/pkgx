@@ -163,7 +163,7 @@ jobs:
     - uses: aurelien-baudet/workflow-dispatch@v2
       with:
         workflow: bump.yml
-        repo: teaxyz/hombrew-pkgs
+        repo: teaxyz/homebrew-pkgs
         ref: main
         token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
 
