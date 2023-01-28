@@ -14,10 +14,14 @@ const ansi_escapes_rx = new RegExp([
   '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-nq-uy=><~]))'
 ].join('|'), 'g')
 
+export function strip_ansi_escapes(input: string) {
+  return input.replace(ansi_escapes_rx, '')
+}
+
 function ln(s: string, prefix_length: number) {
   try {
     // remove ansi escapes to get actual length
-    const n = s.replace(ansi_escapes_rx, '').length + prefix_length
+    const n = strip_ansi_escapes(s).length + prefix_length
     const { columns } = Deno.consoleSize()
     return Math.ceil(n / columns)
   } catch {

@@ -1,5 +1,5 @@
 import { describe } from "deno/testing/bdd.ts"
-import { assert } from "deno/testing/asserts.ts"
+import { assert, assertEquals } from "deno/testing/asserts.ts"
 import SemVer from "semver"
 import Path from "path"
 
@@ -91,6 +91,11 @@ const suite = describe({
             cmd.unshift("--sync", "--silent")
           }
           cmd.unshift(teafile.string)
+        } else if (cmd[0] != 'tea') {
+          // we need to do an initial --sync
+          const proc = Deno.run({ cmd: [teafile.string, '-Ss'], cwd: sandbox.string, env, clearEnv: true })
+          assertEquals((await proc.status()).code, 0)
+          proc.close()
         }
 
         const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
