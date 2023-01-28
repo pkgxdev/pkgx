@@ -98,8 +98,8 @@ try {
   case "provides":
     await provides(args.args)
     break
-  case "magic":
-    await print(magic(new Path(Deno.execPath())))
+  default:
+    await print(magic(new Path(Deno.execPath()), args.mode[1]))
   }
 } catch (err) {
   await err_handler(err)

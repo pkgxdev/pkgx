@@ -1,5 +1,5 @@
 import { describe } from "deno/testing/bdd.ts"
-import { assert } from "deno/testing/asserts.ts"
+import { assert, assertEquals } from "deno/testing/asserts.ts"
 import SemVer from "semver"
 import Path from "path"
 
@@ -10,17 +10,21 @@ interface This {
   run: (opts: RunOptions) => Promise<number> & Enhancements
 }
 
-interface RunOptions {
+type RunOptions = ({
   args: string[]
+} | {
+  cmd: string[]
+}) & {
   env?: Record<string, string>
   throws?: boolean
 }
 
 interface Enhancements {
   stdout(): Promise<string>
+  stderr(): Promise<string>
 }
 
-const existing_www_cache = Path.home().join(".tea/tea.xyz/var/www")
+const existing_tea_prefix = Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
 
 const suite = describe({
   name: "integration tests",
@@ -28,7 +32,8 @@ const suite = describe({
     const v = new SemVer(Deno.env.get("VERSION") ?? "1.2.3")
     const tmp = new Path(await Deno.makeTempDir({ prefix: "tea" }))
     const cwd = new URL(import.meta.url).path().parent().parent().string
-    const bin = tmp.join(`opt/tea.xyz/v${v}/bin`).mkpath()
+    const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt').mkdir()
+    const bin = tmp.join('bin').mkpath()
 
     const proc = Deno.run({
       cmd: [
@@ -52,45 +57,66 @@ const suite = describe({
     this.tea = bin.join("tea")
     assert(this.tea.isExecutableFile())
 
-    this.TEA_PREFIX = tmp.join("opt")
+    this.TEA_PREFIX = TEA_PREFIX
     assert(this.TEA_PREFIX.isDirectory())
 
     this.sandbox = tmp.join("box").mkdir()
 
     const teafile = bin.join('tea')
-    const { sandbox, TEA_PREFIX } = this
+    const { sandbox } = this
 
-    if (existing_www_cache.isDirectory()) {
-      // we're not testing our ISP
-      const to = this.TEA_PREFIX.join("tea.xyz/var").mkpath().join("www")
-      existing_www_cache.ln('s', {to})
-    }
-
-    this.run = ({args, env, throws}: RunOptions) => {
-      const cmd = [teafile.string, ...args]
-
+    this.run = ({env, throws, ...opts}: RunOptions) => {
       env ??= {}
       for (const key of ['HOME', 'CI', 'RUNNER_DEBUG', 'GITHUB_ACTIONS']) {
         const value = Deno.env.get(key)
         if (value) env[key] = value
       }
-      env['PATH'] = "/usr/bin:/bin"  // these systems are full of junk
+      env['PATH'] = `${bin}:/usr/bin:/bin`  // these systems are full of junk so we prune PATH
       env['TEA_PREFIX'] = TEA_PREFIX.string
+      env['CLICOLOR_FORCE'] = '1'
 
       let stdout: "piped" | undefined
+      let stderr: "piped" | undefined
 
       // we delay instantiating the proc so we can set `stdout` if the user calls that function
       // so the contract is the user must call `stdout` within this event loop iteration
       const p = Promise.resolve().then(async () => {
-        const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, env, clearEnv: true})
+        const cmd = "args" in opts
+          ? [...opts.args]
+          : [...opts.cmd]
+
+        // be faster when testing locally
+        if ("args" in opts) {
+          if (!existing_tea_prefix) {
+            cmd.unshift("--sync", "--silent")
+          }
+          cmd.unshift(teafile.string)
+        } else if (cmd[0] != 'tea') {
+          // we need to do an initial --sync
+          const proc = Deno.run({ cmd: [teafile.string, '-Ss'], cwd: sandbox.string, env, clearEnv: true })
+          assertEquals((await proc.status()).code, 0)
+          proc.close()
+        }
+
+        const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
         try {
           const status = await proc.status()
           if ((throws === undefined || throws) && !status.success) {
-            if (stdout == 'piped') proc.stdout?.close()
+            if (stdout == 'piped') {
+              console.error(new TextDecoder().decode(await proc.output()))
+              proc.stdout?.close()
+            }
+            if (stderr == 'piped') {
+              console.error(new TextDecoder().decode(await proc.stderrOutput()))
+              proc.stderr?.close()
+            }
             throw status
           }
           if (stdout == 'piped') {
             const out = await proc.output()
+            return new TextDecoder().decode(out)
+          } else if (stderr == 'piped') {
+            const out = await proc.stderrOutput()
             return new TextDecoder().decode(out)
           } else {
             return status.code
@@ -102,6 +128,10 @@ const suite = describe({
 
       p.stdout = () => {
         stdout = "piped"
+        return p as unknown as Promise<string>
+      }
+      p.stderr = () => {
+        stderr = "piped"
         return p as unknown as Promise<string>
       }
 
