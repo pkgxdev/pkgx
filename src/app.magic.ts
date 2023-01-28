@@ -35,7 +35,7 @@ export default function(self: Path, shell?: string) {
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
       # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
-      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
+      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null
         export PATH="${d}:$PATH"
       end
 

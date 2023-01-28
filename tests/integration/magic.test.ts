@@ -57,7 +57,7 @@ it(suite, "tea --magic in a script. fish", async function() {
   const script = this.sandbox.join("magic-fish").write({ text: undent`
     #!/usr/bin/fish
 
-    if test $(uname) = Linux; then
+    if test $(uname) = Linux
       set N 5
     else
       set N 4
