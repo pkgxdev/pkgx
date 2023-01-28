@@ -50,7 +50,7 @@ it(suite, "tea --magic in a script. fish", async function() {
 
     export NODE_DISABLE_COLORS=1
     export CLICOLOR_FORCE=0
-    export VERBOSITY=-1  # no tea output
+    export VERBOSE=-1  # tea install output gets in the way of us reading node output
     node --eval "console.log('xyz')"
 
     #FIXME with fish the command not found handler always returns 127 and we don’t know how to work around it

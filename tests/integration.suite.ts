@@ -24,7 +24,7 @@ interface Enhancements {
   stderr(): Promise<string>
 }
 
-const existing_tea_prefix = undefined//Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
+const existing_tea_prefix = Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
 
 const suite = describe({
   name: "integration tests",
