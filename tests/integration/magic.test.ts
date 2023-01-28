@@ -5,7 +5,7 @@ import { it } from "deno/testing/bdd.ts"
 import { undent } from "utils"
 
 it(suite, "tea --magic in a script. zsh", async function() {
-  const script = this.sandbox.join("magic.zsh").write({ text: undent`
+  const script = this.sandbox.join("magic-zsh").write({ text: undent`
     #!/bin/zsh
 
     set -e
@@ -23,7 +23,7 @@ it(suite, "tea --magic in a script. zsh", async function() {
 })
 
 it(suite, "tea --magic in a script. bash", async function() {
-  const script = this.sandbox.join("magic.bash").write({ text: undent`
+  const script = this.sandbox.join("magic-bash").write({ text: undent`
     #!/bin/bash
 
     set -e
@@ -41,8 +41,8 @@ it(suite, "tea --magic in a script. bash", async function() {
 })
 
 it(suite, "tea --magic in a script. fish", async function() {
-  const script = this.sandbox.join("magic.fish").write({ text: undent`
-    #!/bin/fish
+  const script = this.sandbox.join("magic-fish").write({ text: undent`
+    #!/usr/bin/fish
 
     test $(basename $(ps -hp $fish_pid | awk '{print $4}' | tail -n1)) = fish
 
