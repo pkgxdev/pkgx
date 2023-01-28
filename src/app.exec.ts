@@ -66,6 +66,11 @@ export async function repl(installations: Installation[], env: Record<string, st
     env['PS1'] = "%F{086}tea%F{reset} %~ "
     cmd.push('--no-rcs', '--no-globalrcs')
     break
+  case 'elvish':
+    cmd.push(
+      '-norc'
+    )
+    break
   case 'fish':
     cmd.push(
       '--no-config',

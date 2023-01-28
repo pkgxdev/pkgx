@@ -27,6 +27,45 @@ export default function(self: Path, shell?: string) {
         fi
       }
       `
+  case "elvish":
+    // eval ($MAGIC | slurp)
+    return undent`
+      set after-chdir = [ $@after-chdir { |dir|
+        eval ("${d}"/tea +tea.xyz/magic -Esk --chaste env | slurp)
+      }]
+
+      # insert env for current dir too
+      eval ("${d}"/tea +tea.xyz/magic -Esk --chaste env | slurp)
+
+      # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
+      if (not (has-external tea)) {
+        set paths = [
+          ${d}
+          $@paths
+        ]
+      }
+
+      # command-not-found
+      set edit:after-command = [ $@edit:after-command { |m|
+        var error = $m[error]
+        var src = $m[src]
+
+        if (not-eq $error $nil) {
+          var reason
+          
+          try {
+            set reason = $error[reason]
+          } catch {
+            set reason = ""
+          }
+          
+          use str
+          if (str:has-prefix (repr $reason) "<unknown exec:") {
+            "${d}"/tea (str:split &max=-1 ' ' $src[code])
+          }
+        }
+      }]
+      `
   case "fish":
     return undent`
       function add_tea_environment --on-variable PWD

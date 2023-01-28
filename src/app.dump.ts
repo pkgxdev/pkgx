@@ -17,6 +17,11 @@ export default async function dump({ env }: Parameters) {
 
   const [setEnv, unsetEnv]= (() => {
     switch (shell) {
+    case "elvish":
+      return [
+        (name: string, val: string) => `set-env ${name} '${val}'`,
+        (name: string) => `unset-env ${name}`
+      ]
     case "fish":
       return [
         (name: string, val: string) => `set -gx ${name} '${val}';`,
