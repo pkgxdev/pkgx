@@ -50,7 +50,7 @@ it(suite, "tea --magic in a script. fish", async function() {
 
     export NODE_DISABLE_COLORS=1
     export CLICOLOR_FORCE=0
-    export VERBOSE=-1  # tea install output gets in the way of us reading node output
+    export VERBOSITY=-1  # no tea output FIXME doesn’t seem to work…?
     node --eval "console.log('xyz')"
 
     #FIXME with fish the command not found handler always returns 127 and we don’t know how to work around it
@@ -59,6 +59,15 @@ it(suite, "tea --magic in a script. fish", async function() {
 
   // fish forces all output to stderr when running in the command not found handler
   const out = await this.run({ args: [script.string] }).stderr()
-  const line = strip_ansi_escapes(out.split("\n")[0] ?? "")
-  assertEquals(line, "xyz", `wut: ${line}`)
+
+  // splitting it as stderr includes our output
+  //FIXME I can't stop it doing color codes whatever I try
+  let asserted = false
+  for (const line of out.split("\n").compact(x => strip_ansi_escapes(x).trim())) {
+    if (line.startsWith("tea:")) continue
+    assertEquals(line, "xyz", `hi: ${line}`)
+    asserted = true
+    break
+  }
+  assert(asserted)
 })
