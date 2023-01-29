@@ -395,7 +395,7 @@ source ecosystem. If they have tea installed it uses their installation, if
 not it installs everything (including tea itself) to a temporary sandbox
 that’s gone when the script completes.
 
-### Injecting Packages without Magic
+### Injecting Packages without Using Magic
 
 Our `+pkg` syntax *injects* packages into an environment, the commands are
 then run in that environment.
@@ -421,6 +421,11 @@ LIBRARY_PATH=/Users/mxl/.tea/zlib.net/v1.2.13/lib
 CPATH=/Users/mxl/.tea/zlib.net/v1.2.13/include
 XDG_DATA_DIRS=/Users/mxl/.tea/zlib.net/v1.2.13/share
 ```
+
+## Contributing New Magic
+
+Is there a file that we should know about? Is there some other magic we should
+inject in certain circumstances? [Open a ticket](../../issues).
 
 
 # Packagers Who Care
