@@ -72,7 +72,8 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     installations = await install(pkgs, sync)
   } else {
     const cellar = useCellar()
-    installations = (await Promise.all(pkgs.map(cellar.has))).compact()
+    const { pkgs: wet } = await hydrate(pkgs)
+    installations = (await Promise.all(wet.map(cellar.has))).compact()
   }
 
   Object.assign(env, flatten(await useShellEnv({ installations })))

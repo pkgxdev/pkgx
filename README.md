@@ -129,12 +129,20 @@ support that too:
 $ node --version
 v19.3.0
 
+$ jq '.tea += {
+  "dependencies": {"nodejs.org": "^18.4"}
+}' package.json | sponge package.json
+# ^^ specify the version of the tool you need in *that tool’s config*.
+# we strongly prefer YAML front matter in a comment
+# but here we add an isolated `tea` namespace since JSON can’t have comments
+
 $ cat <<EOF >>my-project/README.md
 # Dependencies
 | Project    | Version |
 | ---------- | ------- |
-| nodejs.org | ^18     |
+| nodejs.org | ^18.4   |
 EOF
+# ^^ optionally, tea can also parse your README
 
 $ cd my-project
 $ node --version
@@ -145,11 +153,17 @@ $ node --version
 v19.3.0
 ```
 
-Encoding this data into the README makes use of tea *completely optional*
-for your project.
-tea can read it and *humans can too*. If the developer uses tea we make
-working on the project effortless. If they don’t then they can source the
-packages themselves.
+Using existing files further cements the notion that using tea is
+*completely optional* for both you *and your users*.
+
+They either use tea or they source the dependencies themselves.
+
+Some files are indicators of what tools they need so if you choose to not
+use the README you’re saying you expect your users to know `package.json`
+means `node`, `cargo.toml` means `rust` and so on.
+
+Which is why you may prefer to encode the data in the `README` since then
+it’s readable by *both humans **and** tea*.
 
 &nbsp;
 
@@ -175,6 +189,7 @@ However, if you want tea’s shell [magic](#magic), you’ll need our installer:
 sh <(curl https://tea.xyz)
 # • asks you to confirm before it sets up `~/.tea`
 # • asks you to confirm before adding one line to your `~/.shellrc`
+# • DOESN’T need `sudo` or the Xcode Command Line Tools
 ```
 
 > † we support macOS >= 11 and Linux (glibc >= 23) and WSL, Windows native is

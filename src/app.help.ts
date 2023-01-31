@@ -71,7 +71,7 @@ export default async function help() {
       ideology:
         │ a successful tool is one that was used to do something undreamed of
         │ by its author
-          —𝑠ℎ𝑎𝑑𝑜𝑤𝑦 𝑠𝑢𝑝𝑒𝑟 𝑐𝑜𝑑𝑒𝑟
+          —𝘚𝘵𝘦𝘱𝘩𝘦𝘯 𝘊. 𝘑𝘰𝘩𝘯𝘴𝘰𝘯
     `)
   }
 }

@@ -95,10 +95,10 @@ export default class TeaError extends Error {
       break
     case 'not-found: dev-env':
       msg = undent`
-        \`${ctx.cwd}\` is not a tea virtual environment.
+        \`${ctx.cwd}\` is not a developer environment.
 
-        currently, a virtual environment is defined by a \`README.md\` or \`package.json\`
-        existing alongside a source control directory (eg. \`.git\`).
+        a developer environment requires the presence of a file or directory
+        that uniquely identifies package requirements, eg. \`package.json\`.
         `
     break
     case 'not-found: arg':

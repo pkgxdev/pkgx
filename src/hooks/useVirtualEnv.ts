@@ -28,7 +28,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     try {
       await supp(dir)
     } catch (err) {
-      console.error(f)
+      err.cause = f
       throw err
     }
     dir = dir.parent()
@@ -73,7 +73,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     if (_if(".node-version")) {
       const constraint = semver.Range.parse((await f!.read()).trim())
       if (!constraint) throw new Error('couldn’t parse: .node-version')
-      return [{ project: "nodejs.org", constraint }]
+      pkgs.push({ project: "nodejs.org", constraint })
     }
     if (_if("package.json")) {
       const json = JSON.parse(await f!.read())
@@ -86,16 +86,12 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     }
     if (_if("action.yml")) {
       const yaml = validate_plain_obj(await f!.readYAML())
-      switch (yaml.runs?.using) {
-        case "node16": return [{
-          project: "nodejs.org",
-          constraint: new semver.Range("^16")
-        }]
-        case "node12": return [{
-          project: "nodejs.org",
-          constraint: new semver.Range("^12")
-        }]
-      }}
+      const [,v] = yaml.runs?.using.match(/node(\d+)/) ?? []
+      pkgs.push({
+        project: "nodejs.org",
+        constraint: new semver.Range(`^${v}`)
+      })
+    }
     if (_if("cargo.toml")) {
       pkgs.push({project: "rust-lang.org", constraint})
       const foo = await usePackageYAMLFrontMatter(f!)
