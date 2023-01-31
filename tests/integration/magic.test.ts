@@ -71,13 +71,10 @@ it(suite, "tea --magic in a script. fish", async function() {
     export CLICOLOR_FORCE=0
     export VERBOSE=-1  # no tea output FIXME doesn’t seem to work…?
     node --eval "console.log('xyz')"
-
-    #FIXME with fish the command not found handler always returns 127 and we don’t know how to work around it
-    exit 0
     `})
 
   // fish forces all output to stderr when running in the command not found handler
-  const out = await this.run({ args: [script.string] }).stderr()
+  const out = await this.run({ args: [script.string] }).stdout()
 
   // splitting it as stderr includes our output
   //FIXME I can't stop it doing color codes whatever I try
