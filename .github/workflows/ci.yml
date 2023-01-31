@@ -56,8 +56,6 @@ jobs:
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: cli
 
       # denoland/setup requires `unzip` to be installed
       - run: apt-get update && apt-get install unzip
@@ -68,14 +66,7 @@ jobs:
       - uses: denoland/setup-deno@v1
 
       - run: |
-          deno compile \
-            --allow-read \
-            --allow-write \
-            --allow-net \
-            --allow-run \
-            --allow-env \
-            --unstable \
-            --output /usr/local/bin/tea \
-            ./cli/src/app.ts
+          deno task compile
+          mv tea /usr/local/bin
 
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
