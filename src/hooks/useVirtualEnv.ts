@@ -146,8 +146,8 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     if (_if("VERSION")) {
       flatmap(semver.parse(await f!.read()), v => version = v)
     }
-    if (_if_d(".git")) {
-      pkgs.push({project: "git-scm.org", constraint})
+    if (_if_d(".git") && Deno.build.os != "darwin") {
+      // pkgs.push({project: "git-scm.org", constraint})
       srcroot ??= f
     }
     if (_if_d(".hg", ".svn")) {

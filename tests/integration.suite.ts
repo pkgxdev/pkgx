@@ -30,7 +30,7 @@ const suite = describe({
   name: "integration tests",
   async beforeEach(this: This) {
     const v = new SemVer(Deno.env.get("VERSION") ?? "1.2.3")
-    const tmp = new Path(await Deno.makeTempDir({ prefix: "tea" }))
+    const tmp = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
     const cwd = new URL(import.meta.url).path().parent().parent().string
     const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt').mkdir()
     const bin = tmp.join('bin').mkpath()

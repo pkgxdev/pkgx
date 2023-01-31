@@ -15,23 +15,34 @@ it(suite, "shebang without args", async function() {
     import platform
     print(platform.python_version())
     `
-  }).chmod(0o500)
+  })
   const out = await this.run({args: [fixture.string]}).stdout()
   assertEquals(out[0], "3")  //TODO better
+})
+
+it(suite, "no shebang", async function() {
+  const fixture = this.sandbox.join("fixture.ts").write({ text: undent`
+    console.log("hi")
+    `
+  })
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out, "hi\n")  //TODO better
 })
 
 it(suite, "shebang with args", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/bin/bash
+    #!/usr/bin/env deno
 
-    #---
-    # args: [bash, -e]
-    #---
+    /*---
+     args: [deno, run, --allow-read]
+    ---*/
 
-    echo "${fuzz}"
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
     `
-  }).chmod(0o500)
+  })
   const out = await this.run({args: [fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })
@@ -44,6 +55,41 @@ it(suite, "tea shebang", async function() {
     echo "${fuzz}"
     `
   }).chmod(0o500)
+  const out = await this.run({cmd: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+})
+
+it(suite, "tea shebang with args", async function() {
+  const fuzz = "hi"
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env -S tea
+
+    /*---
+     args: [deno, run, --allow-read]
+    ---*/
+
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  })
   const out = await this.run({args: [fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })
+
+//TODO
+// it(suite, "tea shebang with args in both places", async function() {
+//   const fuzz = "hi"
+//   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+//     #!/usr/bin/env -S tea deno run
+
+//     /*---
+//      args: [deno, run, --allow-read]
+//     ---*/
+
+//     Deno.readTextFileSync("fixture.sh")
+//     `
+//   })
+//   const out = await this.run({args: [fixture.string]}).stdout()
+//   assertEquals(out.trim(), fuzz)
+// })

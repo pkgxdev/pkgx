@@ -38,6 +38,13 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
       pkgs.push(...yaml.pkgs)
       Object.assign(env, yaml.env)  //FIXME should override env from pkgs
       cmd.unshift(...yaml.args)
+
+      if (pkgs.length == 0) {
+        const found = await which(cmd[0])
+        if (found) {
+          pkgs.push(found)
+        }
+      }
     }
     const shebang = await read_shebang(arg0)
     if (shebang) {

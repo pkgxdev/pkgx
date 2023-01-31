@@ -350,7 +350,6 @@ export default class Path {
   //TODO would be nice to validate the output against a type
   //TODO shouldn't be part of this module since we want to publish it
   async readYAML(): Promise<unknown> {
-    console.verbose({ readYAML: this.string })
     try {
       const txt = await this.read()
       return parseYaml(txt)
