@@ -135,6 +135,7 @@ $ jq '.tea += {
 # ^^ specify the version of the tool you need in *that tool’s config*.
 # we strongly prefer YAML front matter in a comment
 # but here we add an isolated `tea` namespace since JSON can’t have comments
+# NOTE tea will automatically fetch both jq and sponge when you run the above
 
 $ cat <<EOF >>my-project/README.md
 # Dependencies
