@@ -24,10 +24,10 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   const env: Record<string, string> = {}
 
   if (inject) {
-    const {version, srcroot, file, ...vrtenv} = inject
+    const {version, srcroot, teafiles, ...vrtenv} = inject
     if (version) env["VERSION"] = version.toString()
     env["SRCROOT"] = srcroot.toString()
-    env["TEA_FILE"] = file.toString()
+    env["TEA_FILES"] = teafiles.join(":")
     pkgs.push(...vrtenv.pkgs)
   }
 
@@ -38,6 +38,13 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
       pkgs.push(...yaml.pkgs)
       Object.assign(env, yaml.env)  //FIXME should override env from pkgs
       cmd.unshift(...yaml.args)
+
+      if (pkgs.length == 0) {
+        const found = await which(cmd[0])
+        if (found) {
+          pkgs.push(found)
+        }
+      }
     }
     const shebang = await read_shebang(arg0)
     if (shebang) {
@@ -72,7 +79,8 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     installations = await install(pkgs, sync)
   } else {
     const cellar = useCellar()
-    installations = (await Promise.all(pkgs.map(cellar.has))).compact()
+    const { pkgs: wet } = await hydrate(pkgs)
+    installations = (await Promise.all(wet.map(cellar.has))).compact()
   }
 
   Object.assign(env, flatten(await useShellEnv({ installations })))
@@ -111,9 +119,9 @@ async function read_shebang(path: Path) {
   if (shebang) {
     return Path.abs(shebang)?.basename()
   }
-  shebang = line.match(/^\s*#!\/usr\/bin\/env (\S+)$/)?.[1]
+  shebang = line.match(/^\s*#!\/usr\/bin\/env (-\S+ )?(\S+)$/)?.[1]
   if (shebang && shebang != 'tea') {
-    return shebang[1]
+    return shebang[2]
   }
 }
 
@@ -131,6 +139,13 @@ async function fetch_it(arg0: string | undefined) {
   if (path.exists() && basename(Deno.execPath()) == "tea") {
     // ^^ in the situation where we are shadowing other tool names
     // we don’t want to fork bomb if the tool in question is in CWD
+
+    if (path.extname() == '' && !arg0.includes("/")) {
+      // for this case we require ./
+      // see: https://github.com/teaxyz/cli/issues/335#issuecomment-1402293358
+      return arg0
+    }
+
     return path
   } else {
     return arg0

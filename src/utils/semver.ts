@@ -203,6 +203,25 @@ export class Range {
   //   return true
   // }
 
+  /// tolerant to stuff in the wild that hasn’t semver specifiers
+  static parse(input: string): Range | undefined {
+    try {
+      return new Range(input)
+    } catch {
+      if (!/^(\d+\.)*\d+$/.test(input)) return
+
+      // AFAICT this is what people expect
+      // verified via https://jubianchi.github.io/semver-check/
+
+      const parts = input.split('.')
+      if (parts.length < 3) {
+        return new Range(`^${input}`)
+      } else {
+        return new Range(`~${input}`)
+      }
+    }
+  }
+
   satisfies(version: SemVer): boolean {
     if (this.set === '*') {
       return true

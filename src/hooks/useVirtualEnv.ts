@@ -1,18 +1,170 @@
-// deno-lint-ignore-file no-cond-assign
-import useRequirementsFile, { RequirementsFile } from "./useRequirementsFile.ts"
+import { flatmap, TeaError, validate_plain_obj } from "utils"
+import { usePackageYAMLFrontMatter } from "hooks"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
-import { flatmap, TeaError } from "utils"
+import { PlainObject } from "is_what"
+import { JSONC } from "jsonc"
 import Path from "path"
-
-//CONSIDER
-// add requirementsFiles from CWD down to srcroot
 
 export interface VirtualEnv {
   pkgs: PackageRequirement[]
-  file: Path
+  teafiles: Path[]
   srcroot: Path
   version?: SemVer
+}
+
+export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
+  let dir = cwd ?? Path.cwd()
+  const home = Path.home()
+  const pkgs: PackageRequirement[] = []
+  const constraint = new semver.Range('*')
+  const teafiles: Path[] = []
+  const TEA_DIR = Deno.env.get("TEA_DIR")
+  let version: SemVer | undefined
+  let srcroot: Path | undefined
+  let f: Path | undefined
+
+  while (dir.neq(Path.root) && dir.neq(home)) {
+    try {
+      await supp(dir)
+    } catch (err) {
+      err.cause = f
+      throw err
+    }
+    dir = dir.parent()
+  }
+
+  const lastd = teafiles.slice(-1)[0]?.parent()
+  if (TEA_DIR) {
+    srcroot = Path.cwd().join(TEA_DIR)
+  } else if (!srcroot || lastd?.components().length < srcroot.components().length) {
+    srcroot = lastd
+  }
+
+  if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, TEA_DIR})
+
+  return { pkgs, srcroot, teafiles, version }
+
+  async function supp(dir: Path) {
+    if (!dir.isDirectory()) throw new Error()
+
+    const _if = (...names: string[]) => {
+      for (const name of names) {
+        if ((f = dir.join(name).isFile())) {
+          teafiles.push(f)
+          console.debug(f)
+          return f
+        }}}
+    const _if_d = (...names: string[]) => {
+      for (const name of names) {
+        if ((f = dir.join(name).isDirectory())) {
+          return f
+        }}}
+    const _if_md = (name: string) =>
+      markdown_extensions.find(ext =>
+        f = dir.join(`${name}.${ext}`).isFile())
+
+
+    if (_if("deno.json", "deno.jsonc")) {
+      pkgs.push({project: "deno.land", constraint})
+      const json = validate_plain_obj(JSONC.parse(await f!.read()))
+      pkgs.push(...parsePackageRequirements(json?.tea?.dependencies))
+    }
+    if (_if(".node-version")) {
+      const constraint = semver.Range.parse((await f!.read()).trim())
+      if (!constraint) throw new Error('couldn’t parse: .node-version')
+      pkgs.push({ project: "nodejs.org", constraint })
+    }
+    if (_if("package.json")) {
+      const json = JSON.parse(await f!.read())
+      const pkgs = parsePackageRequirements(json?.tea?.dependencies)
+      const projects = new Set(pkgs.map(x => x.project))
+      if (!projects.has("bun.sh")) {
+        pkgs.push({project: "nodejs.org", constraint})
+      }
+      flatmap(semver.parse(json?.version), v => version = v)
+    }
+    if (_if("action.yml")) {
+      const yaml = validate_plain_obj(await f!.readYAML())
+      const [,v] = yaml.runs?.using.match(/node(\d+)/) ?? []
+      pkgs.push({
+        project: "nodejs.org",
+        constraint: new semver.Range(`^${v}`)
+      })
+    }
+    if (_if("cargo.toml")) {
+      pkgs.push({project: "rust-lang.org", constraint})
+      const foo = await usePackageYAMLFrontMatter(f!)
+      if (foo) {
+        pkgs.push(...foo.pkgs)
+      }
+      //TODO read the TOML too
+    }
+    if (_if("go.mod", "go.sum")) {
+      pkgs.push({project: "go.dev", constraint})
+      const foo = await usePackageYAMLFrontMatter(f!)
+      if (foo) {
+        pkgs.push(...foo.pkgs)
+      }
+    }
+    if (_if("requirements.txt", "pipfile", "pipfile.lock", "setup.py")) {
+      pkgs.push({project: "python.org", constraint})
+      const foo = await usePackageYAMLFrontMatter(f!)
+      if (foo) {
+        pkgs.push(...foo.pkgs)
+      }
+    }
+    if (_if("pyproject.toml")) {
+      pkgs.push({project: "python-poetry.org", constraint})
+      const foo = await usePackageYAMLFrontMatter(f!)
+      if (foo) {
+        pkgs.push(...foo.pkgs)
+      }
+    }
+    if (_if("Gemfile")) {
+      pkgs.push({project: "ruby-lang.org", constraint})
+      const foo = await usePackageYAMLFrontMatter(f!)
+      if (foo) {
+        pkgs.push(...foo.pkgs)
+      }
+    }
+    if (_if_md("README")) {
+      const rv = await README(f!)
+      pkgs.push(...rv.pkgs)
+      if (rv.version) version = rv.version
+      if (rv.version || rv.pkgs.length) {
+        teafiles.push(f!)
+      } else {
+        // we still consider this a potential SRCROOT indicator
+        srcroot = f!.parent()
+      }
+    }
+    if (_if("package.yaml")) {
+      //TODO check if package.yaml has been taken or not
+      //TODO should be pacakge.yml like in pantry or what?
+    }
+    if (_if("VERSION")) {
+      flatmap(semver.parse(await f!.read()), v => version = v)
+    }
+    if (_if_d(".git") && Deno.build.os != "darwin") {
+      // pkgs.push({project: "git-scm.org", constraint})
+      srcroot ??= f
+    }
+    if (_if_d(".hg", ".svn")) {
+      srcroot ??= f
+    }
+  }
+
+  function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
+    if (!input) return []
+    const rv: PackageRequirement[] = []
+    for (const [project, v] of Object.entries(input)) {
+      const constraint = semver.Range.parse(v)
+      if (!constraint) throw new Error(`could not parse: ${project}: ${v}`)
+      rv.push({ project, constraint })
+    }
+    return rv
+  }
 }
 
 const markdown_extensions = [
@@ -27,101 +179,70 @@ const markdown_extensions = [
   'md.txt'
 ]
 
-function find({cwd}: {cwd?: Path} = {cwd: undefined}) {
-  const TEA_DIR = Deno.env.get("TEA_DIR")
-  if (TEA_DIR) return Path.cwd().join(TEA_DIR)
+export async function README(path: Path): Promise<{version?: SemVer, pkgs: PackageRequirement[]}> {
+  const text = await path.read()
+  const lines = text.split("\n")
 
-  let dir = cwd ?? Path.cwd()
-  const home = Path.home()
-  while (dir.neq(Path.root) && dir.neq(home)) {
-    for (const vcs of [".git", ".svn", ".hg"]) {
-      if (dir.join(vcs).isDirectory()) return dir
+  const findTable = (header: string) => {
+    let prevline = ''
+    let rows: [string, string][] | undefined = undefined
+    let found: 'nope' | 'header' | 'table' = 'nope'
+    done: for (const line of lines) {
+      switch (found) {
+      case 'header': {
+        if (!line.trim()) continue
+        if (line.match(/^\|\s*-+\s*\|\s*-+\s*\|(\s*-+\s*\|)?\s*$/)) found = 'table'
+      } break
+      case 'table': {
+        const match = line.match(/^\|([^|]+)\|([^|]+)\|/)
+        if (!match) break done
+        if (!rows) rows = []
+        rows.push([match[1].trim(), match[2].trim()])
+      } break
+      case 'nope':
+        if (line.match(new RegExp(`^#+\\s*${header}\\s*$`))) {
+          //HACK so tea/clit itself doesn’t pick up the example table lol
+          //FIXME use a real parser!
+          if (prevline != '$ cat <<EOF >>my-project/README.md') {
+            found = 'header'
+          }
+        }
+      }
+      prevline = line
     }
-    dir = dir.parent()
-  }
-}
-
-export default async function useVirtualEnv(opts?: { cwd: Path }): Promise<VirtualEnv> {
-  const ctx = {
-    cwd: opts?.cwd ?? Path.cwd(),
-    TEA_DIR: Deno.env.get("TEA_DIR")
+    return rows
   }
 
-  const srcroot = find(opts)
-  if (!srcroot) throw new TeaError("not-found: srcroot", ctx)
+  const pkgs = (() => {
+    return findTable("Dependencies")?.compact(([project, constraint]) => {
+      if (project.startsWith("tea.xyz")) return //FIXME
+      return {
+        project,
+        constraint: new semver.Range(constraint)
+      }
+    })
+  })() ?? []
 
-  const files: RequirementsFile[] = await (async () => {
-    const rv: RequirementsFile[] = []
-    const basenames = ["package.json", ...markdown_extensions.map(x => `README.${x}`)]
-    for (const basename of basenames) {
-      const path = srcroot.join(basename).isFile()
-      if (!path) continue
-      const rf = await useRequirementsFile(path)
-      if (rf) rv.push(rf)
-    }
-    return rv
-  })()
+  const fromMetadataTable = () => flatmap(
+    findTable("Metadata")?.find(([key, value]) => key.toLowerCase() == "version" && value),
+    ([,x]) => new SemVer(x)
+  )
 
-  if (files.length < 1) throw new TeaError("not-found: virtual-env", ctx)
-
-  const { file, version: version_README } = files.find(x => x.file.basename() == "README.md") ?? files[0]
-
-  const version = flatmap(srcroot.join("VERSION").isFile(), x => semver.parse(x.string)) ?? version_README
-
-  const pkgs = files.flatMap(x => x.pkgs)
-
-  //TODO anything from here should not conflict with more explicit deps
-  pkgs.push(...await implicit_env(srcroot))
-
-  return {
-    pkgs,
-    file,
-    srcroot,
-    version
-  }
-}
-
-//TODO get version too
-async function implicit_env(srcroot: Path): Promise<PackageRequirement[]> {
-  let path: Path | undefined
-
-  //TODO don’t stop if we find something, keep adding all deps
-
-  const requirements = await (async () => {
-    if (path = srcroot.join("action.yml").isReadableFile()) {
-      // deno-lint-ignore no-explicit-any
-      const yaml = await path.readYAML() as any
-      const using = yaml?.runs?.using
-      switch (using) {
-        case "node16": return [{
-          project: "nodejs.org",
-          constraint: new semver.Range("^16")
-        }]
-        case "node12": return [{
-          project: "nodejs.org",
-          constraint: new semver.Range("^12")
-        }]
+  const fromFirstHeader = () => {
+    for (let line of lines) {
+      line = line.trim()
+      if (/^#+/.test(line)) {
+        const match = line.match(new RegExp(`v?(${semver.regex.source})$`))
+        if (match) {
+          return new SemVer(match[1])
+        } else {
+          return  // we only check the first header
+        }
       }
     }
-    if (path = srcroot.join(".node-version").isReadableFile()) {
-      const constraint = parse(await path.read())
-      return [{ project: "nodejs.org", constraint }]
-    }
-    if (path = srcroot.join("package.json").isReadableFile()) {
-      return [{
-        project: "nodejs.org",
-        constraint: new semver.Range("*")
-      }]
-    }
-    return []
-  })()
-
-  return requirements
-}
-
-function parse(input: string): semver.Range {
-  if (/^\d/.test(input)) {
-    input = `^${input}`
   }
-  return new semver.Range(input)
+
+  const version = fromMetadataTable() ?? fromFirstHeader()
+
+  return {version, pkgs}
 }

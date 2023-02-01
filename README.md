@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.21.4
+# tea/cli 0.22.0
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -37,12 +37,12 @@ $ sh <(curl tea.xyz) --yes
 installing ~/.tea…
 
 $ node --eval 'console.log("Hello World!")'
-tea: installing nodejs.org^19
+tea: installing ~/.tea/nodejs.org/v19.5.0
 Hello World!
 ```
 
 With tea there is no *install packages step*. Just type the commands you need
-and tea takes care of the rest—fetching packages, constructing a virtual
+and tea takes care of the rest: fetching packages, constructing a virtual
 environment isolated from the rest of your system and then running your
 commands.
 
@@ -54,16 +54,16 @@ Scripting’s been stuck in a dark age of Bash because it’s the only thing you
 can be sure is installed. Lame af right?
 
 ```sh
-$ tea ./hello.ts
-installing deno…
-deno: running hello.ts
+$ tea ./hello.go
+installing go…
+go: running hello.go
+#…
 
-$ tea https://gist.githubusercontent.com/i0bj/2b3afbe07a44179250474b5f36e7bd9b/raw/colors.go --yellow
-tea: installing go 1.18.3
-go: installing deps
-go: running colors.go
+$ tea https://examples.deno.land/color-logging.ts
+tea: installing deno…
+#…
 
-# need more dependencies than the interpreter? tea reads YAML front matter!
+# need more dependencies than the interpreter? tea reads YAML front matter
 $ tea ./favicon-generator input.png
 tea: installing image-magick, optipng, guetzli and 3 other packages…
 # …
@@ -71,7 +71,7 @@ output: favicon-128.png…
 
 $ cat favicon-generator
 #!/usr/bin/env ruby
-# ^^ we read the shebang and automatically install ruby
+# ^^ tea reads the shebang and automatically installs ruby
 #---
 # dependencies:
 #   imagemagick.org: 4
@@ -98,7 +98,7 @@ v16.19.0
 ```
 
 In fact you can construct *virtual environments* of specific tools and
-versions encapsulated and separate from the rest of your system.
+versions encapsulated separately from the rest of your system.
 
 ```sh
 $ tea +rust-lang.org^1.63 +python.org~3.11 sh
@@ -129,12 +129,21 @@ support that too:
 $ node --version
 v19.3.0
 
+$ jq '.tea += {
+  "dependencies": {"nodejs.org": "^18.4"}
+}' package.json | sponge package.json
+# ^^ specify the version of the tool you need in *that tool’s config*.
+# we strongly prefer YAML front matter in a comment
+# but here we add an isolated `tea` namespace since JSON can’t have comments
+# NOTE tea will automatically fetch both jq and sponge when you run the above
+
 $ cat <<EOF >>my-project/README.md
 # Dependencies
 | Project    | Version |
 | ---------- | ------- |
-| nodejs.org | ^18     |
+| nodejs.org | ^18.4   |
 EOF
+# ^^ optionally, tea can also parse your README
 
 $ cd my-project
 $ node --version
@@ -145,11 +154,17 @@ $ node --version
 v19.3.0
 ```
 
-Encoding this data into the README makes use of tea *completely optional*
-for your project.
-tea can read it and *humans can too*. If the developer uses tea we make
-working on the project effortless. If they don’t then they can source the
-packages themselves.
+Using existing files further cements the notion that using tea is
+*completely optional* for both you *and your users*.
+
+They either use tea or they source the dependencies themselves.
+
+Some files are indicators of what tools they need so if you choose to not
+use the README you’re saying you expect your users to know `package.json`
+means `node`, `cargo.toml` means `rust` and so on.
+
+Which is why you may prefer to encode the data in the `README` since then
+it’s readable by *both humans **and** tea*.
 
 &nbsp;
 
@@ -165,7 +180,8 @@ $ chmod u+x ./tea
 
 $ echo '# tea *really is* a standalone binary' | ./tea --sync glow -
 tea: installing charm.sh/glow
-# …
+# `tea --sync` updates pkgs, but you have to call it *at least once*
+# our installer does this for you normally
 ```
 
 However, if you want tea’s shell [magic](#magic), you’ll need our installer:
@@ -174,6 +190,7 @@ However, if you want tea’s shell [magic](#magic), you’ll need our installer:
 sh <(curl https://tea.xyz)
 # • asks you to confirm before it sets up `~/.tea`
 # • asks you to confirm before adding one line to your `~/.shellrc`
+# • DOESN’T need `sudo` or the Xcode Command Line Tools
 ```
 
 > † we support macOS >= 11 and Linux (glibc >= 23) and WSL, Windows native is
@@ -206,7 +223,8 @@ As a bonus the installer also updates tea.
 
 ## “Now see here fella’, I \*hate\* installers…”
 
-It’s sad indeed that package managers can’t install themselves. Oh well.
+Package managers can’t install themselves.
+This sucks but it’s firmly stamped `#cantfix`.
 How about installing with `brew` instead?
 
 ```sh
@@ -245,8 +263,8 @@ $ brew install teaxyz/pkgs/tea-cli
 # ^^ https://github.com/teaxyz/setup
 ```
 
-Our action installs your deps and make tea accessible to the rest of the
-workflow.
+Our action installs your deps and makes them (and tea) accessible to the rest
+of the workflow.
 
 &nbsp;
 
@@ -257,36 +275,50 @@ Every project you work on needs different tools with different versions.
 Installing those tools globally *makes no sense* and could even cause subtle
 bugs during dev.
 
-tea can determine the tools a project directory needs and provide that
-virtual environment. With our shell magic just step into the project directory
+tea can determine the tools a project directory needs based on the files it
+finds. With our shell magic just step into the project directory
 and type commands; tea automatically fetches the specific versions those
 projects need and runs them.
 
-If you need other tools or you want to be more specific about the version of
-a tool then add your dependencies to your `README.md`. For an example see
-the [# Dependencies] section for tea itself.
+We try to be as clever as possible, eg. we parse the node version out of
+a GitHub Action’s `action.yml`. If we see a `.node-version` file, we add that
+version of node to the environment. We want to support everything that makes
+sense (your PRs are *very* welcome!)
 
-> * `package.json` means node, `cargo.toml` means rust, etc.
-> * we can be a little cleverer: eg. if we detect that your project is a
->    GitHub Action we read the `action.yml` and make the right version of node
->    available.
-> * if we’re missing your language then we’d love your PR!
+Where there isn’t a convention for specifying tool versions you can add
+YAML front matter to that tool’s configuration file. For example, if we’re
+talking a python poetry project then you can specify your python version by
+adding YAML front matter to its `pyproject.toml`:
 
-There are all sorts of variables a developer needs when working on a project
-and tea aims to make them available to you. Thus we provide `SRCROOT` and
-`VERSION`‡ in addition to everything else required to make your devenv
-function. To see the full environment for your project run `tea -En` or simply
-`env`.
+```sh
+$ cat <<EoYAML >> pyproject.toml
+#---
+# dependencies:
+#   python.org: ^3.11.3
+#---
+EoYAML
+```
 
-> ‡ extracted from the `README.md` or `VERSION` files.
+If your poetry project needs other non pypa dependencies, like a c compiler,
+then you can add them there too (eg. `llvm.org`, our deps are always named
+after project homepages because then you just google it and there’s no
+ambiguity).
 
-> <details><summary><i>Umm… I hate this. Can I use a different file?</i></summary><br>
->
-> We intend to support (safe) additions to all “package description” files.
-> Currently we support a `tea` node in `package.json`. Please submit the PR
-> for your language!
->
-> </details>
+If you prefer we also support extracting your deps from a markdown table in
+under a `# Dependencies` section in your `README.md`.
+
+```sh
+$ cat <<EOF >>my-project/README.md
+# Dependencies
+| Project    | Version |
+| ---------- | ------- |
+| go.dev     | ^1      |
+EOF
+```
+
+Using your `README` is *kinda* neat. It makes this data both machine and human
+readable.
+
 
 > <details><summary><i>PSA:</i> Stop using Docker</summary><br>
 >
@@ -309,6 +341,30 @@ function. To see the full environment for your project run `tea -En` or simply
 > deployments actually remain *more* stable.
 > </details>
 
+## Caveats
+
+We still need to do a bit of work here. We don’t install any packages when
+you step into a directory as that would violate the principle of least
+surprise. But this may mean the full environment doesn’t work initially.
+You can fix this with a `tea -SE && cd .`. We’re working on improving this.
+
+## I added YAML front matter and it doesn’t work, what now?
+
+* After changing any files you need to do a `cd .` to reload the environment.
+* While debugging you can do `tea -E` to see if we’re picking up your changes.
+* If it still doesn’t work open a [ticket]. This is either a bug or we don’t
+    support your toolset yet.
+
+## Supplementing the Environment
+
+There are all sorts of variables a developer needs when working on a project
+and tea aims to make them available to you. Thus we provide `SRCROOT` and
+`VERSION`‡ in addition to everything else required to make your devenv
+function. To see the full environment for your project run `tea -En` or simply
+`env`.
+
+> ‡ extracted from the `README.md` or `VERSION` files.
+
 &nbsp;
 
 
@@ -318,7 +374,9 @@ Our magic puts the entire open source ecosystem at your fingertips.
 Our installer enables it by adding some hooks to your shell:
 
 * A hook when changing directory that sets up project environments
-* A hook for the “command not found” scenario that installs that command †
+  * Environments are just shell environment variables
+* A hook for the “command not found” scenario that installs that command
+    before running it †
 
 **Magic is entirely optional, tea is still entirely usable without it.** \
 **Generally we’d say our magic is *for devs* and *not* for ops.**
@@ -365,7 +423,57 @@ Our installer asked if you wanted magic when you ran it. If you elected to
 install magic and no longer want it simply remove the one-liner from your
 shell’s configuration file.
 
-&nbsp;
+## Using Magic in Shell Scripts
+
+Our magic is not automatically added to scripts, but you can manually add it:
+
+```sh
+source <(tea --magic=bash)
+                   # ^^ you have to specify which shell tho
+```
+
+And of course you can also use our one-liner:
+
+```sh
+source <(curl tea.xyz | sh -s -- --magic=bash)
+```
+
+Thus you can make a script that can effortlessly use any tool from the open
+source ecosystem. If they have tea installed it uses their installation, if
+not it installs everything (including tea itself) to a temporary sandbox
+that’s gone when the script completes.
+
+### Injecting Packages without Using Magic
+
+Our `+pkg` syntax *injects* packages into an environment, the commands are
+then run in that environment.
+
+```sh
+# a script that needs `convert`
+$ tea +imagemagick.org my-script.sh
+
+# a VHS script that needs `wget`
+$ tea +gnu.org/wget vhs demo.tape
+
+# if tea doesn’t provide the package it passes the args through to your system
+$ tea +neovim.io which nvim
+~/.tea/neovim.io/v0.8.2/bin/nvim
+
+# in fact, `tea` is like an “env++”: just like `env` our purpose is to
+# construct environments. Our `++` is: we also fetch packages. Thus, if you
+# don’t specify what we should do with the environment, we dump it:
+$ tea +zlib.net
+MANPATH=/Users/mxl/.tea/zlib.net/v1.2.13/share/man:/usr/share/man
+PKG_CONFIG_PATH=/Users/mxl/.tea/zlib.net/v1.2.13/lib/pkgconfig
+LIBRARY_PATH=/Users/mxl/.tea/zlib.net/v1.2.13/lib
+CPATH=/Users/mxl/.tea/zlib.net/v1.2.13/include
+XDG_DATA_DIRS=/Users/mxl/.tea/zlib.net/v1.2.13/share
+```
+
+## Contributing New Magic
+
+Is there a file that we should know about? Is there some other magic we should
+inject in certain circumstances? [Open a ticket](../../issues).
 
 
 # Packagers Who Care
@@ -533,20 +641,10 @@ Failing that Start a [discussion] and we’ll get back to you.
 If you got this error message, you need to install tea:
 `sh <(curl -Ssf https://tea.xyz)`.
 
-## Dependencies
-
-| Project   | Version |
-| --------- | ------- |
-| deno.land | ^1.27   |
-
-> macOS >= 11 || linux:glibc >= 23 || WSL
-
-
 [pantry]: https://github.com/teaxyz/pantry.core
 [releases]: ../../releases
 [deno]: https://deno.land
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [pantry.extra]: https://github.com/teaxyz/pantry.extra
-[# Dependencies]: #dependencies
 [`brew`]: https://brew.sh

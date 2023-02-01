@@ -56,9 +56,7 @@ export function useArgs(args: string[], arg0: string): [Args, Flags & Convenienc
   if (flags) throw new Error("contract-violated")
 
   // pre 0.19.0 this was how we sourced our (more limited) shell magic
-  if (args.length == 1 && args[0] == "-Eds") {
-    args = ["--magic", "--silent"]
-  } else if (args.join(' ') == '--env --keep-going --silent --dry-run=w/trace') {
+  if (new Set(['-Eds', '--env --keep-going --silent --dry-run=w/trace']).has(args.join(' '))) {
     args = ["+tea.xyz/magic", "-Esk", "--chaste", "env"]
   }
 
@@ -249,6 +247,7 @@ function applyVerbosity() {
   if (flags.verbosity < Verbosity.loud) console.verbose = noop
   if (flags.verbosity < Verbosity.normal) {
     console.info = noop
+    console.warn = noop
     console.log = noop
     console.error = noop
   }

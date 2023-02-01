@@ -14,18 +14,6 @@ tasks:
       # runs during startup
       (
         set -e
-
-        # compile ./tea
-        .deno/bin/deno compile \
-          --allow-read \
-          --allow-write \
-          --allow-net \
-          --allow-run \
-          --allow-env \
-          --unstable \
-          --import-map="import-map.json" \
-          --output "./tea" \
-          "src/app.ts"
-
+        .deno/bin/deno task compile
         echo "./tea is hot"
       )
