@@ -275,20 +275,40 @@ Every project you work on needs different tools with different versions.
 Installing those tools globally *makes no sense* and could even cause subtle
 bugs during dev.
 
-tea can determine the tools a project directory needs and provide that
-virtual environment. With our shell magic just step into the project directory
+tea can determine the tools a project directory needs based on the files it
+finds. With our shell magic just step into the project directory
 and type commands; tea automatically fetches the specific versions those
 projects need and runs them.
 
 We try to be as clever as possible, eg. we parse `action.yml`, it specifies
-a node version, so we use it. If we see a `NODE_VERSION` file, we add that
+a node version, so we use it. If we see a `.node-version` file, we add that
 version of node to the environment.
 
-Adding more to your dev-env is as
+If, for example, we’re talking a python poetry project then you can specify
+your python version by adding YAML front matter to its `pyproject.toml`:
 
-If you need other tools or you want to be more specific about the version of
-a tool then add your dependencies to your `README.md`. For an example see
-the [# Dependencies] section for tea itself.
+```sh
+$ cat <<EoYAML >> pyproject.toml
+#---
+# dependencies:
+#   python: 3.11.3
+#---
+EoYAML
+```
+
+If your poetry project needs other non pypa dependencies, like a c compiler,
+then you can add them there too (eg. `llvm.org`, our deps are always named
+after project homepages because then you just google it and there’s no
+ambiguity).
+
+If you don’t know which file to add to then we support plain markdown tables
+from the `README.md`.
+
+## I added YAML front matter and it doesn’t work, what now?
+
+Open a [ticket]. This is a bug.
+
+## How do they know which files we support?
 
 > * `package.json` means node, `cargo.toml` means rust, etc.
 > * we can be a little cleverer: eg. if we detect that your project is a
