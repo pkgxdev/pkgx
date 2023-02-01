@@ -51,12 +51,7 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
       if (isArray(rv.yaml.args)) return rv.yaml.args.map(x => `${x}`)
       throw new Error("bad-yaml")
     }
-    if (srcroot) {
-      //TODO if no srcroot and args contain {{srcroot}} show warning
-      return fn1().map(fix)
-    } else {
-      return fn1()
-    }
+    return fn1().map(fix)
   }
 
   const env: Record<string, string> = {}
@@ -76,12 +71,17 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
   function fix(input: string): string {
     const moustaches = useMoustaches()
 
-    return moustaches.apply(input, [
+    const foo = [
       ...moustaches.tokenize.host(),
       { from: "tea.prefix", to: usePrefix().string },
-      { from: "srcroot", to: srcroot!.string},
       { from: "home", to: Path.home().string }
-    ])
+    ]
+
+    if (srcroot) {
+      foo.push({ from: "srcroot", to: srcroot!.string})
+    }
+
+    return moustaches.apply(input, foo)
   }
 }
 
