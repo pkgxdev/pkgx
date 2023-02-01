@@ -239,6 +239,7 @@ $ brew install teaxyz/pkgs/tea-cli
 >   have to unquarantine the binary:
 >
 >   ```sh
+>   # download from https://github.com/teaxyz/cli/releases first
 >   $ xattr -d com.apple.quarantine ./tea
 >   ```
 >
@@ -292,10 +293,10 @@ adding YAML front matter to its `pyproject.toml`:
 
 ```sh
 $ cat <<EoYAML >> pyproject.toml
-#---
+# ---
 # dependencies:
 #   python.org: ^3.11.3
-#---
+# ---
 EoYAML
 ```
 
@@ -304,8 +305,8 @@ then you can add them there too (eg. `llvm.org`, our deps are always named
 after project homepages because then you just google it and there’s no
 ambiguity).
 
-If you prefer we also support extracting your deps from a markdown table in
-under a `# Dependencies` section in your `README.md`.
+If you prefer we also support extracting your deps from a markdown table
+under a `# Dependencies` section in your `README.md`:
 
 ```sh
 $ cat <<EOF >>my-project/README.md
@@ -316,7 +317,7 @@ $ cat <<EOF >>my-project/README.md
 EOF
 ```
 
-Using your `README` is *kinda* neat. It makes this data both machine and human
+Using your `README` is *kinda* neat; it makes this data both machine and human
 readable.
 
 
@@ -648,3 +649,4 @@ If you got this error message, you need to install tea:
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [pantry.extra]: https://github.com/teaxyz/pantry.extra
 [`brew`]: https://brew.sh
+[ticket]: ../../issues/new

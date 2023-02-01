@@ -31,15 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
-      - run: deno lint src/*/**.ts
+      - uses: teaxyz/setup@v0
+      - run: tea deno lint src/*/**.ts
 
   typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
-      - run: deno task typecheck
+      - uses: teaxyz/setup@v0
+      - run: tea deno task typecheck
 
   # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
@@ -63,10 +63,9 @@ jobs:
       - run: pacman -Sy --noconfirm unzip
         if: ${{ matrix.container == 'archlinux:latest' }}
 
-      - uses: denoland/setup-deno@v1
+      - uses: teaxyz/setup@v0
 
-      - run: |
-          deno task compile
-          mv tea /usr/local/bin
+      - run: tea deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
+        working-directory: /usr/local/bin
 
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
