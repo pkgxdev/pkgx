@@ -341,6 +341,12 @@ readable.
 > deployments actually remain *more* stable.
 > </details>
 
+## Caveats
+
+We still need to do a bit of work here. We don’t install any packages when
+you step into a directory as that would violate the principle of least
+surprise. But this may mean the full environment doesn’t work initially.
+You can fix this with a `tea -SE && cd .`. We’re working on improving this.
 
 ## I added YAML front matter and it doesn’t work, what now?
 
