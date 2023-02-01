@@ -368,7 +368,7 @@ Our magic puts the entire open source ecosystem at your fingertips.
 Our installer enables it by adding some hooks to your shell:
 
 * A hook when changing directory that sets up project environments
-    * Environments are just shell environment variables
+  * Environments are just shell environment variables
 * A hook for the “command not found” scenario that installs that command
     before running it †
 
@@ -641,5 +641,4 @@ If you got this error message, you need to install tea:
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [pantry.extra]: https://github.com/teaxyz/pantry.extra
-[# Dependencies]: #dependencies
 [`brew`]: https://brew.sh
