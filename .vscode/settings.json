@@ -2,7 +2,6 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": true,
-  "deno.importMap": "deno.jsonc",
   "deno.config": "deno.jsonc",
   "markdownlint.config": {
     "extends": "./.github/markdownlint.yml"

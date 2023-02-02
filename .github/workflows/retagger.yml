@@ -2,6 +2,8 @@ on:
   release:
     types:
       - edited
+permissions:
+  actions: write
 jobs:
   retag:
     runs-on: ubuntu-latest

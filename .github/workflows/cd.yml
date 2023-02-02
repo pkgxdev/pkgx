@@ -31,6 +31,10 @@ jobs:
       - uses: teaxyz/setup@v0
         id: tea
 
+      - name: sanity
+        run: test -n "${{ steps.tea.outputs.version }}"
+        # check we’re not broken ^^
+
       - id: rev-parse
         name: did we already publish this version?
         run: |

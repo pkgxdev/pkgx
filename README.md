@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.22.0
+# tea/cli 0.22.1
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -641,6 +641,12 @@ Failing that Start a [discussion] and we’ll get back to you.
 
 If you got this error message, you need to install tea:
 `sh <(curl -Ssf https://tea.xyz)`.
+
+### Changing directory takes a long time sometimes
+
+This is a bug, though it can be insidious to fix. Please report it.
+Changing directories should not slow down significantly due to tea’s magic.
+
 
 [pantry]: https://github.com/teaxyz/pantry.core
 [releases]: ../../releases
