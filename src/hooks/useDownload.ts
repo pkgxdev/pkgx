@@ -3,7 +3,6 @@ import { copy } from "deno/streams/copy.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { crypto, toHashString } from "deno/crypto/mod.ts";
-import { Sha256 } from "sha256"
 import { usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
@@ -118,7 +117,6 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     logger = new Logger()
   }
 
-  const digest = new Sha256()
   let run = false
 
   // don’t fill CI logs with dozens of download percentage lines
@@ -131,8 +129,6 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
     const tee = src.tee()
     const p1 = copy(readerFromStreamReader(tee[0].getReader()), dst)
     const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
-      //TODO in separate thread would be likely be faster
-      digest.update(buf)
       if (sz && !ci) {
         n += buf.length
         const pc = Math.round(n / sz * 100);
@@ -147,15 +143,15 @@ async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{
 
   if (!run) {
     logger.replace(teal('verifying'))
-    const f = await Deno.open(path.string, { read: true })
-    await copy(f, { write: buf => {
-      //TODO in separate thread would likely be faster
-      digest.update(buf)
-      return Promise.resolve(buf.length)
-    }})
   }
 
-  return { path, sha: digest.hex() }
+  // Calculate the hash using an async iterable to avoid loading
+  // the whole file into memory. We don't need to call f.close()
+  // because we are using f.readable.
+  const f = await Deno.open(path.string, { read: true })
+  const digest = await crypto.subtle.digest("SHA-256", f.readable)
+
+  return { path, sha: toHashString(digest) }
 }
 
 function hash_key(url: URL): Path {
