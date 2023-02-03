@@ -13,9 +13,6 @@ concurrency:
   group: distribute
   cancel-in-progress: true
 
-env:
-  VERBOSE: 1
-
 jobs:
   check:
     permissions:
@@ -60,7 +57,7 @@ jobs:
   # and we want people to be able to just grab the single binaries as
   # they wish
   compile:
-    needs: [ci]
+    needs: [ci, check]
     permissions:
       contents: read
       actions: write
@@ -82,13 +79,10 @@ jobs:
 
       - uses: teaxyz/setup@v0
         id: tea
-        with:
-          # because linux self-hosted image doesn’t have git
-          srcroot: ${{ github.workspace }}
 
       - run: sed -i.bak "s/^const version = .*$/const version = \"${{ steps.tea.outputs.version }}\"/" src/app.ts
-      - run: tea deno task compile
-      - run: ./tea --version  # verify compilation works
+      - run: deno task compile
+      - run: test $(./tea --version) = ${{ needs.check.outputs.version }}
       - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
       - uses: actions/upload-artifact@v3
         with:
@@ -104,23 +98,19 @@ jobs:
 
   bundle-src:
     runs-on: ubuntu-latest
-    needs: [ci]
+    needs: [ci, check]
+    env:
+      FILENAME: tea-${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v3
         with:
-          path: tea
-      - uses: teaxyz/setup@v0
-        id: tea
-        with:
-          srcroot: tea
-      - run: echo "export default function() { return '${{ steps.tea.outputs.version }}' }" > src/hooks/useVersion.ts
-        working-directory: tea
-      - run: mv tea tea-${{ steps.tea.outputs.version }}
-      - run: tar cJf tea-${{ steps.tea.outputs.version }}.tar.xz ./tea-${{ steps.tea.outputs.version }}
+          path: ${{ env.D }}
+      - run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > $FILENAME/src/hooks/useVersion.ts
+      - run: tar cJf $FILENAME.tar.xz ./$FILENAME
       - uses: actions/upload-artifact@v3
         with:
           name: tarballs
-          path: tea-${{ steps.tea.outputs.version }}.tar.xz
+          path: ${{ env.D }}.tar.xz
           if-no-files-found: error
 
   release:
