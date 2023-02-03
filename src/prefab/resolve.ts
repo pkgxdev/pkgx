@@ -1,5 +1,6 @@
 import { Package, PackageRequirement, Installation } from "types"
 import { useCellar, useInventory } from "hooks"
+import { TeaError } from "utils"
 
 /// NOTE resolves to bottles
 /// NOTE contract there are no duplicate projects in input
@@ -33,8 +34,7 @@ export default async function resolve(reqs: (Package | PackageRequirement)[], {u
     } else {
       const version = await inventory.select(req)
       if (!version) {
-        console.error({ ...req, version })
-        throw new Error("no bottle available")
+        throw new TeaError("not-found: pkg.version", {pkg: req})
       }
       const pkg = { version, project: req.project }
       rv.pkgs.push(pkg)

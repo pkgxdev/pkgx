@@ -5,6 +5,7 @@ type ID =
   'not-found: tea -X: arg0' |
   'not-found: exe/md: default target' |
   'not-found: exe/md: region' |
+  'not-found: pkg.version' |
   'http' |
   'not-found: pantry' |
   'not-found: pantry: package.yml' |
@@ -23,7 +24,7 @@ export default class TeaError extends Error {
       case 'not-found: tea -X: arg0': return 'spilt-tea-001'
       case 'not-found: exe/md: default target': return 'spilt-tea-002'
       case 'not-found: exe/md: region': return 'spilt-tea-003'
-      // case 'not-found: srcroot': return 'spilt-tea-004'
+      case 'not-found: pkg.version': return 'spilt-tea-004'
       case 'not-found: pantry: package.yml': return 'spilt-tea-005'
       case 'not-found: dev-env': return 'spilt-tea-006'
       case 'not-found: pantry': return 'spilt-tea-007'
@@ -110,6 +111,13 @@ export default class TeaError extends Error {
       break
     case '#helpwanted':
       msg = ctx.details
+      break
+    case 'not-found: pkg.version':
+      msg = undent`
+        we haven’t packaged this version. but we will… *if* you open a ticket:
+
+            https://github.com/teaxyz/pantry.core/issues/new
+        `
       break
     default: {
       const exhaustiveness_check: never = id
