@@ -27,7 +27,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.22.1
+# tea/cli 0.22.2
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -223,12 +223,14 @@ As a bonus the installer also updates tea.
 
 ## “Now see here fella’, I \*hate\* installers…”
 
-Package managers can’t install themselves.
-This sucks but it’s firmly stamped `#cantfix`.
-How about installing with `brew` instead?
+Package managers can’t install themselves (`#cantfix`).
+How via `brew` or Docker instead?
 
 ```sh
 $ brew install teaxyz/pkgs/tea-cli
+
+# or just try it out first
+$ docker run --rm -it ghcr.io/teaxyz/infuser
 ```
 
 > <details><summary><i>Other ways to install tea</i></summary><br>
