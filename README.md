@@ -431,7 +431,7 @@ shell’s configuration file.
 Our magic is not automatically added to scripts, but you can manually add it:
 
 ```sh
-source <(tea --magic=bash)
+source <(tea-magic bash)
                    # ^^ you have to specify which shell tho
 ```
 

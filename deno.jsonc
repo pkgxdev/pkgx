@@ -11,8 +11,10 @@
     "run": "deno run --unstable --allow-all src/app.ts",
     // compiles to ./tea
     "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output $INIT_CWD/tea src/app.ts",
+    // compiles to ./tea-magic
+    "compile-magic": "rustc -C opt_level=3 -o $INIT_CWD/tea-magic src/tea-magic/main.rs",
     // installs this source checkout as a tea stowed package
-    "install": "deno compile --unstable -Ao $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
+    "install": "deno compile --unstable -Ao $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && rustc -C opt_level=3 -o $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea-magic src/tea-magic/main.rs && scripts/repair.ts tea.xyz"
   },
   // ignore all files since the current style deviates from deno's default style.
   "fmt": {
