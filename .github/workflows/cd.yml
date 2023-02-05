@@ -57,7 +57,7 @@ jobs:
   # and we want people to be able to just grab the single binaries as
   # they wish
   compile:
-    needs: [ci, check]
+    needs: [ci, check, bundle-src]
     permissions:
       contents: read
       actions: write
@@ -75,25 +75,26 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
     steps:
-      - uses: actions/checkout@v3
-
+      - uses: actions/download-artifact@v3
+        with:
+          name: tarballs
+          path: artifacts
+      - run: tar xJf artifacts/tea-${{ needs.check.outputs.version }}.tar.xz
       - uses: teaxyz/setup@v0
-        id: tea
-
-      - run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > src/hooks/useVersion.ts
       - run: deno task compile
       - run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
-      - run: tar cJf tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
+      - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
       - uses: actions/upload-artifact@v3
         with:
           name: tarballs
-          path: tea-${{ steps.tea.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+          path: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
           if-no-files-found: error
       - run: mv ./tea tea-${{ matrix.platform.build-id }}
       - uses: actions/upload-artifact@v3
         with:
           name: binaries
           path: tea-${{ matrix.platform.build-id }}
+          path: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
           if-no-files-found: error
 
   bundle-src:
@@ -118,8 +119,6 @@ jobs:
       contents: write
     needs: [check, compile, bundle-src]
     runs-on: ubuntu-latest
-    env:
-      TAG: v${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v3
 
@@ -127,10 +126,6 @@ jobs:
         with:
           name: tarballs
           path: artifacts
-
-      - run: |
-          git tag ${{ env.TAG }}
-          git push origin ${{ env.TAG }}
 
       # says `no changes` every time… 🤦🏼
       # - uses: mikepenz/release-changelog-builder-action@v3
@@ -140,15 +135,10 @@ jobs:
 
       - uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.TAG }}
+          tag_name: v${{ needs.check.outputs.version }}
           files: artifacts/*
-          body: ${{ steps.build_changelog.outputs.changelog }}
+        # body: ${{ steps.build_changelog.outputs.changelog }}
           fail_on_unmatched_files: true
-
-      - uses: fischerscode/tagger@v0
-        with:
-          tag: ${{ env.TAG }}
-          prefix: v
 
   bump-tap:
     needs: [release]
@@ -161,6 +151,7 @@ jobs:
         ref: main
         token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
 
+  # these are the binaries that curl https://tea.xyz/platform/arch/ download
   upload-binaries:
     needs: [release]
     runs-on: ubuntu-latest
@@ -190,7 +181,7 @@ jobs:
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
             --paths
 
-  smoke-setup:
+  smoke-teaxyz-setup-github-action:
     needs: [upload-binaries]
     runs-on: ubuntu-latest
     steps:
@@ -201,3 +192,14 @@ jobs:
         ref: main
         token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
         wait-for-completion: false
+
+  vx-tagger:
+    needs: [upload-binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: fischerscode/tagger@v0
+        with:
+          tag: v${{ needs.check.outputs.version }}
+          prefix: v
