@@ -76,6 +76,7 @@ jobs:
 
   test-sync-lock-2:
     runs-on: macos-latest
+    # ^^ we fixed a race condition ∴ using macOS as it’s the slowest
     name: test sync update-lock
     steps:
       - uses: actions/checkout@v3
