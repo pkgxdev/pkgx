@@ -43,29 +43,36 @@ jobs:
 
   # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
-        include:
-        - os: ubuntu-latest
-        - os: macos-latest
-        - os: ubuntu-latest
-          container: debian:buster-slim
-        - os: ubuntu-latest
-          container: archlinux:latest
-    container: ${{ matrix.container }}
+        platform:
+          - runner: ubuntu-latest
+          - runner: macos-latest
+          - runner: ubuntu-latest
+            container: debian:buster-slim
+          - runner: ubuntu-latest
+            container: archlinux:latest
+    container: ${{ matrix.platform.container }}
+    name: test sync install-lock (${{ matrix.platform.container || matrix.platform.runner }})
     steps:
-      - uses: actions/checkout@v3
-
       # denoland/setup requires `unzip` to be installed
-      - run: apt-get update && apt-get install unzip
-        if: ${{ matrix.container == 'debian:buster-slim' }}
-      - run: pacman -Sy --noconfirm unzip
-        if: ${{ matrix.container == 'archlinux:latest' }}
+      # https://github.com/denoland/setup-deno/issues/41
+      - name: ensure `unzip`
+        run: |
+          case "${{ matrix.platform.container }}" in
+          debian:buster-slim)
+            apt-get update && apt-get install unzip;;
+          archlinux:latest)
+            pacman -Sy --noconfirm unzip;;
+          esac
 
-      - uses: teaxyz/setup@v0
-
-      - run: tea deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+      - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
         working-directory: /usr/local/bin
 
+      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+
+      # run again to test this work in the “update” scenario
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
