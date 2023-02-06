@@ -43,17 +43,21 @@ jobs:
 
   # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
-        include:
-        - os: ubuntu-latest
-        - os: macos-latest
-        - os: ubuntu-latest
-          container: debian:buster-slim
-        - os: ubuntu-latest
-          container: archlinux:latest
+        platform:
+          - runner: ubuntu-latest
+          - runner: macos-latest
+          - runner: ubuntu-latest
+            container: debian:buster-slim
+          - runner: ubuntu-latest
+            container: archlinux:latest
+        setup-tea:
+          - true
+          - false
     container: ${{ matrix.container }}
+    name: ${{ matrix.container || matrix.os }}
     steps:
       - uses: actions/checkout@v3
 
@@ -64,8 +68,12 @@ jobs:
         if: ${{ matrix.container == 'archlinux:latest' }}
 
       - uses: teaxyz/setup@v0
+        if: ${{ matrix.setup-tea }}
 
-      - run: tea deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
+      - uses: denoland/setup-deno@v1
+        if: ${{ matrix.setup-tea == false }}
+
+      - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
         working-directory: /usr/local/bin
 
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
