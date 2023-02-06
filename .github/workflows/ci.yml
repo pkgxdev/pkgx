@@ -60,7 +60,7 @@ jobs:
       # https://github.com/denoland/setup-deno/issues/41
       - name: ensure `unzip`
         run: |
-          case ${{ matrix.platform.container }} in
+          case "${{ matrix.platform.container }}" in
           debian:buster-slim)
             apt-get update && apt-get install unzip;;
           archlinux:latest)
