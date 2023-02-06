@@ -59,11 +59,12 @@ jobs:
       # denoland/setup requires `unzip` to be installed
       - name: ensure `unzip`
         run: |
-          if test ${{ matrix.container }} = debian:buster-slim; then
-            apt-get update && apt-get install unzip
-          elif test ${{ matrix.container }} = archlinux:latest; then
-            pacman -Sy --noconfirm unzip
-          fi
+          case ${{ matrix.platform.container }}; in
+          debian:buster-slim)
+            apt-get update && apt-get install unzip;;
+          archlinux:latest)
+            pacman -Sy --noconfirm unzip;;
+          esac
 
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
