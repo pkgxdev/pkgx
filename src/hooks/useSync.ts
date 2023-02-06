@@ -148,15 +148,20 @@ export const update = async () => {
 
     const git = await find_git({tea_ok: true})
     if (!git) return console.warn("cannot update pantry without git")
-    const pp: Promise<void>[] = []
-    for await (const cwd of ls()) {
-      const p = run({cmd: [git, "fetch", "origin", "main:main"], cwd })
-      pp.push(p)
-    }
-    await Promise.all(pp)
 
-    logger.replace("overlaying pantries…")
-    await co(git)
+    //TODO if we were waiting on someone else then we shouldn’t bother
+    // updating *again* we'll be up-to-date already
+    await lock(async () => {
+      const pp: Promise<void>[] = []
+      for await (const cwd of ls()) {
+        const p = run({cmd: [git, "fetch", "origin", "main:main"], cwd })
+        pp.push(p)
+      }
+      await Promise.all(pp)
+
+      logger.replace("overlaying pantries…")
+      await co(git)
+    })
 
     logger.replace("pantries sync’d ⎷")
   } break
