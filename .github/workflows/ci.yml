@@ -54,8 +54,17 @@ jobs:
           - runner: ubuntu-latest
             container: archlinux:latest
     container: ${{ matrix.platform.container }}
-    name: ${{ matrix.platform.container || matrix.platform.runner }}
+    name: test sync install-lock (${{ matrix.platform.container || matrix.platform.runner }})
     steps:
+      # denoland/setup requires `unzip` to be installed
+      - name: ensure `unzip`
+        run: |
+          if test ${{ matrix.container }} = debian:buster-slim; then
+            apt-get update && apt-get install unzip
+          elif test ${{ matrix.container }} = archlinux:latest; then
+            pacman -Sy --noconfirm unzip
+          fi
+
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
@@ -65,6 +74,7 @@ jobs:
 
   test-sync-lock-2:
     runs-on: macos-latest
+    name: test sync update-lock
     steps:
       - uses: actions/checkout@v3
         with:
