@@ -53,8 +53,8 @@ jobs:
             container: debian:buster-slim
           - runner: ubuntu-latest
             container: archlinux:latest
-    container: ${{ matrix.container }}
-    name: ${{ matrix.container || matrix.os }}
+    container: ${{ matrix.platform.container }}
+    name: ${{ matrix.platform.container || matrix.platform.runner }}
     steps:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
