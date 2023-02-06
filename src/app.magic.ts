@@ -9,11 +9,17 @@ export default function(self: Path, shell?: string) {
   switch (shell) {
   case "zsh":
     return undent`
-      add-zsh-hook -Uz chpwd() {
+      _tea_chpwd_hook() {
         if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
           source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
         fi
       }
+
+      typeset -ag chpwd_functions
+
+      if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
+        chpwd_functions=( _tea_chpwd_hook \${chpwd_functions[@]} )
+      fi
 
       # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
       # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
