@@ -14,7 +14,7 @@ export function parse(input: string): PackageRequirement {
     return { project, constraint: new semver.Range('*') }
   } else {
     // everyone expects `@` and for it to work this way
-    if (match[2].startsWith("@")) match[2] = `^${match[2].slice(1)}`
+    if (match[2].startsWith("@")) match[2] = `~${match[2].slice(1)}`
 
     const constraint = new semver.Range(match[2])
     return { project, constraint }
