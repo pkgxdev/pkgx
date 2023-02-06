@@ -56,15 +56,6 @@ jobs:
     container: ${{ matrix.container }}
     name: ${{ matrix.container || matrix.os }}
     steps:
-      # denoland/setup requires `unzip` to be installed
-      - name: ensure `unzip`
-        run: |
-          if test ${{ matrix.container }} = debian:buster-slim; then
-            apt-get update && apt-get install unzip
-          elif test ${{ matrix.container }} = archlinux:latest; then
-            pacman -Sy --noconfirm unzip
-          fi
-
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
@@ -72,17 +63,17 @@ jobs:
 
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
 
-test-sync-lock-2:
-  runs-on: macos-latest
-  steps:
-    - uses: actions/checkout@v3
-      with:
-        path: src
-    - uses: denoland/setup-deno@v1
-    - run: deno task --config $GITHUB_WORKSPACE/src/deno.jsonc compile
-      working-directory: /usr/local/bin
-    # grab pantries
-    - run: tea -Sn
-    # this exhibited sporadic lock failures
-    - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+  test-sync-lock-2:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: src
+      - uses: denoland/setup-deno@v1
+      - run: deno task --config $GITHUB_WORKSPACE/src/deno.jsonc compile
+        working-directory: /usr/local/bin
+      # grab pantries
+      - run: tea -Sn
+      # this exhibited sporadic lock failures
+      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
 
