@@ -69,24 +69,10 @@ jobs:
 
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
-      - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
-        working-directory: /usr/local/bin
-
-      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
-
-  test-sync-lock-2:
-    runs-on: macos-latest
-    # ^^ we fixed a race condition ∴ using macOS as it’s the slowest
-    name: test sync update-lock
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          path: src
-      - uses: denoland/setup-deno@v1
       - run: deno task --config $GITHUB_WORKSPACE/src/deno.jsonc compile
         working-directory: /usr/local/bin
-      # grab pantries
-      - run: tea -Sn
-      # this exhibited sporadic lock failures
+
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
 
+      # run again to test this work in the “update” scenario
+      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
