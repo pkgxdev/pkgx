@@ -61,6 +61,7 @@ try {
       }
     } break
     case 'repl':
+      env['PATH'] = full_path().join(':')
       await repl(installations, env)
       break
     case 'env':
