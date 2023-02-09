@@ -165,9 +165,8 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
         srcroot = f!.parent()
       }
     }
-    if (_if("package.yaml")) {
-      //TODO check if package.yaml has been taken or not
-      //TODO should be pacakge.yml like in pantry or what?
+    if (_if("tea.yml", "tea.yaml")) {
+      insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("VERSION")) {
       flatmap(semver.parse(await f!.read()), v => version = v)
