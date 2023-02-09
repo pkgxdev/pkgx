@@ -90,7 +90,7 @@ export default class TeaError extends Error {
             https://github.com/teaxyz/pantry.core/issues/new
 
         ----------------------------------------------------->> attachment begin
-        ${ctx.project}: ${ctx.cause.message}
+        ${ctx.project}: ${ctx.cause?.message}
         <<------------------------------------------------------- attachment end
         `
       break
