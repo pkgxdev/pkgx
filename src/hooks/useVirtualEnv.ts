@@ -179,6 +179,20 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     if (_if_d(".hg", ".svn")) {
       srcroot ??= f
     }
+    if (_if(".envrc")) {
+      //TODO really we should pkg `direnv` install it if we find this file and configure it to do the following
+      const subst = Deno.env.toObject()
+      subst.SRCROOT = "{{srcroot}}"
+      subst.TEA_PREFIX = "{{tea.prefix}}"
+      subst.VERSION = "{{version}}"
+      for await (const line of f!.readLines()) {
+        let [,key,value] = line.match(/^export (\S+)=(.*)$/) ?? []
+        for (const [key, value_subst] of Object.entries(subst)) {
+          value = value.replaceAll(`$${key}`, value_subst)
+        }
+        env[key] = value
+      }
+    }
   }
 }
 
