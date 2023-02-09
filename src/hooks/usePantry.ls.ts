@@ -6,11 +6,15 @@ import TeaError from "utils/error.ts"
 export const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
 
 export function pantry_paths(): Path[] {
-  const rv: Path[] = [prefix]
+  const rv: Path[] = []
+  if (prefix.isDirectory()) rv.push(prefix)
   const env = Deno.env.get("TEA_PANTRY_PATH")
   if (env) for (const path of env.split(":").reverse()) {
     rv.unshift(Path.cwd().join(path, "projects"))
   }
+
+  if (rv.length == 0) throw new TeaError("not-found: pantry", {prefix})
+
   return rv
 }
 
