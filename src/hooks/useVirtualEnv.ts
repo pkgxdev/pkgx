@@ -125,7 +125,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
 
       flatmap(semver.parse(json?.version), v => version = v)
     }
-    if (_if("action.yml")) {
+    if (_if("action.yml", "action.yaml")) {
       const yaml = validate_plain_obj(await f!.readYAML())
       const [,v] = yaml.runs?.using.match(/node(\d+)/) ?? []
       pkgs.push({

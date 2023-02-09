@@ -42,7 +42,7 @@ async function* _ls_pantry(dir: Path): AsyncGenerator<Path> {
       for await (const x of _ls_pantry(path)) {
         yield x
       }
-    } else if (name === "package.yml") {
+    } else if (name === "package.yml" || name === "package.yaml") {
       yield path
     }
   }
