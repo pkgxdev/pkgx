@@ -238,7 +238,7 @@ export async function which(arg0: string | undefined) {
           }
         }
       }
-    })
+    }).swallow(/^parser: pantry: package.yml/)
     promises.push(p)
   }
 
