@@ -16,6 +16,7 @@ import useVirtualEnv from "./useVirtualEnv.ts"
 import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
 import useSync from "./useSync.ts"
 import useVersion from "./useVersion.ts"
+import useMoustaches from "./useMoustaches.ts"
 
 // but we can sort these alphabetically
 export {
@@ -26,6 +27,7 @@ export {
   useFlags,
   useGitHubAPI,
   useInventory,
+  useMoustaches,
   useOffLicense,
   usePackageYAML,
   usePackageYAMLFrontMatter,

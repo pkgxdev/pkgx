@@ -1,8 +1,8 @@
+import { usePackageYAMLFrontMatter, refineFrontMatter, FrontMatter } from "./usePackageYAML.ts"
 import { flatmap, TeaError, validate_plain_obj } from "utils"
-import { usePackageYAMLFrontMatter } from "hooks"
+import { useMoustaches, usePrefix } from "hooks"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
-import { PlainObject } from "is_what"
 import { JSONC } from "jsonc"
 import Path from "path"
 
@@ -11,12 +11,20 @@ export interface VirtualEnv {
   teafiles: Path[]
   srcroot: Path
   version?: SemVer
+  env: Record<string, string>
 }
 
+// we call into useVirtualEnv a bunch of times
+const cache: Record<string, VirtualEnv> = {}
+
 export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
+
+  if (cache[cwd.string]) return cache[cwd.string]
+
   let dir = cwd ?? Path.cwd()
   const home = Path.home()
   const pkgs: PackageRequirement[] = []
+  const env: Record<string, string> = {}
   const constraint = new semver.Range('*')
   const teafiles: Path[] = []
   const TEA_DIR = Deno.env.get("TEA_DIR")
@@ -43,7 +51,37 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
 
   if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, TEA_DIR})
 
-  return { pkgs, srcroot, teafiles, version }
+  for (const [key, value] of Object.entries(env)) {
+    env[key] = fix(value)
+  }
+
+  function fix(input: string): string {
+    const moustaches = useMoustaches()
+    const foo = [
+      ...moustaches.tokenize.host(),
+      { from: "tea.prefix", to: usePrefix().string },
+      { from: "home", to: Path.home().string },
+      { from: "srcroot", to: srcroot!.string}
+    ]
+    return moustaches.apply(input, foo)
+  }
+
+
+  const rv = { pkgs, srcroot, teafiles, version, env }
+  cache[cwd.string] = rv
+  return rv
+
+  function insert(fm: FrontMatter | undefined) {
+    if (!fm) return
+    pkgs.push(...fm.pkgs)
+    for (const [key, value] of Object.entries(fm.env)) {
+      if (env[key]) {
+        env[key] = `${value}:${env[key]}` // prepend
+      } else {
+        env[key] = value
+      }
+    }
+  }
 
   async function supp(dir: Path) {
     if (!dir.isDirectory()) throw new Error()
@@ -67,8 +105,8 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
 
     if (_if("deno.json", "deno.jsonc")) {
       pkgs.push({project: "deno.land", constraint})
-      const json = validate_plain_obj(JSONC.parse(await f!.read()))
-      pkgs.push(...parsePackageRequirements(json?.tea?.dependencies))
+      const json = JSONC.parse(await f!.read())
+      insert(refineFrontMatter(json?.tea, srcroot))
     }
     if (_if(".node-version")) {
       const constraint = semver.Range.parse((await f!.read()).trim())
@@ -77,11 +115,14 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     }
     if (_if("package.json")) {
       const json = JSON.parse(await f!.read())
-      const pkgs = parsePackageRequirements(json?.tea?.dependencies)
+      insert(refineFrontMatter(json?.tea, srcroot))
+
+      //TODO should be moved to after all pkgs are inspected probs
       const projects = new Set(pkgs.map(x => x.project))
       if (!projects.has("bun.sh")) {
         pkgs.push({project: "nodejs.org", constraint})
       }
+
       flatmap(semver.parse(json?.version), v => version = v)
     }
     if (_if("action.yml")) {
@@ -94,39 +135,24 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     }
     if (_if("cargo.toml")) {
       pkgs.push({project: "rust-lang.org", constraint})
-      const foo = await usePackageYAMLFrontMatter(f!)
-      if (foo) {
-        pkgs.push(...foo.pkgs)
-      }
+      insert(await usePackageYAMLFrontMatter(f!))
       //TODO read the TOML too
     }
     if (_if("go.mod", "go.sum")) {
       pkgs.push({project: "go.dev", constraint})
-      const foo = await usePackageYAMLFrontMatter(f!)
-      if (foo) {
-        pkgs.push(...foo.pkgs)
-      }
+      insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("requirements.txt", "pipfile", "pipfile.lock", "setup.py")) {
       pkgs.push({project: "python.org", constraint})
-      const foo = await usePackageYAMLFrontMatter(f!)
-      if (foo) {
-        pkgs.push(...foo.pkgs)
-      }
+      insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("pyproject.toml")) {
       pkgs.push({project: "python-poetry.org", constraint})
-      const foo = await usePackageYAMLFrontMatter(f!)
-      if (foo) {
-        pkgs.push(...foo.pkgs)
-      }
+      insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("Gemfile")) {
       pkgs.push({project: "ruby-lang.org", constraint})
-      const foo = await usePackageYAMLFrontMatter(f!)
-      if (foo) {
-        pkgs.push(...foo.pkgs)
-      }
+      insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if_md("README")) {
       const rv = await README(f!)
@@ -153,17 +179,6 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     if (_if_d(".hg", ".svn")) {
       srcroot ??= f
     }
-  }
-
-  function parsePackageRequirements(input: PlainObject): PackageRequirement[] {
-    if (!input) return []
-    const rv: PackageRequirement[] = []
-    for (const [project, v] of Object.entries(input)) {
-      const constraint = semver.Range.parse(v)
-      if (!constraint) throw new Error(`could not parse: ${project}: ${v}`)
-      rv.push({ project, constraint })
-    }
-    return rv
   }
 }
 
