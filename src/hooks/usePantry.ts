@@ -47,10 +47,10 @@ async function resolve(spec: Package | PackageRequirement): Promise<Package> {
 }
 
 //TODO take `T` and then type check it
-const getYAML = (pkg: Package | PackageRequirement): { path: Path, parse: () => PlainObject} => {
+const getYAML = (pkg: Package | PackageRequirement) => {
   const foo = entry(pkg)
   return {
-    path: foo.dir.join("package.yml"),
+    path: foo.dir.join("package.yml").isFile() ?? foo.dir.join("package.yaml"),
     parse: foo.yml
   }
 }
