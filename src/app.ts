@@ -166,8 +166,9 @@ function injection({ args, inject }: Args) {
   function from_env(): VirtualEnv | undefined {
     const { TEA_FILES, SRCROOT, VERSION } = Deno.env.toObject()
     if (!TEA_FILES || !TEA_PKGS || !SRCROOT) return
-    //TODO not absolute paths will crash
+    //TODO anything that isn’t an absolute path will crash
     return {
+      env: {},
       pkgs: TEA_PKGS!.split(":").map(pkgutils.parse),
       teafiles: TEA_FILES.split(":").map(x => new Path(x)),
       srcroot: new Path(SRCROOT),

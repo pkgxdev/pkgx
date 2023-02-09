@@ -4,7 +4,7 @@ import { validatePackageRequirement } from "utils/hacks.ts"
 import { usePrefix } from "hooks"
 import { validate_plain_obj } from "utils"
 import Path from "path"
-import useMoustaches from "./useMoustaches.ts";
+import useMoustaches from "./useMoustaches.ts"
 
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
@@ -29,20 +29,14 @@ export default function usePackageYAML(yaml: unknown): Return1 {
   return { getDeps, yaml }
 }
 
-interface Return2 extends Return1 {
-  getArgs: () => string[]
-}
-
-interface FrontMatter {
+export interface FrontMatter {
   args: string[]
   pkgs: PackageRequirement[]
   env: Record<string, string>
 }
 
-export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<FrontMatter | undefined> {
-  const yaml = await readYAMLFrontMatter(script)
-  if (!yaml) return
-  const rv = usePackageYAML(yaml)
+export function refineFrontMatter(obj: PlainObject, srcroot?: Path): FrontMatter {
+  const rv = usePackageYAML(obj)
 
   const getArgs = () => {
     const fn1 = () => {
@@ -55,8 +49,8 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
   }
 
   const env: Record<string, string> = {}
-  if (isPlainObject(yaml.env)) {
-    for (const [k, v] of Object.entries(yaml.env)) {
+  if (isPlainObject(obj.env)) {
+    for (const [k, v] of Object.entries(obj.env)) {
       if (!isString(v)) throw new Error()
       env[k] = fix(v)
     }
@@ -83,6 +77,12 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
 
     return moustaches.apply(input, foo)
   }
+}
+
+export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<FrontMatter | undefined> {
+  const yaml = await readYAMLFrontMatter(script)
+  if (!yaml) return
+  return refineFrontMatter(yaml, srcroot)
 }
 
 

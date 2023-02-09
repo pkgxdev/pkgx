@@ -21,7 +21,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   const arg0 = await fetch_it(cmd[0])
   if (arg0) cmd[0] = arg0?.toString()  // if we downloaded it then we need to replace args[0]
   const clutch = pkgs.length > 0
-  const env: Record<string, string> = {}
+  const env: Record<string, string> = inject?.env ?? {}
 
   if (inject) {
     const {version, srcroot, teafiles, ...vrtenv} = inject
