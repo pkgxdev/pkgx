@@ -42,7 +42,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   logger.replace(teal("locking"))
 
-  const { rid } = await Deno.open(dstdir.string)
+  const { rid } = await Deno.open(dstdir.mkpath().string)
   await Deno.flock(rid, true)
 
   try {
