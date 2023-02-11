@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.ref }}/sync
   cancel-in-progress: true
 
+env:
+  DENO_DIR: ~/.cache/deno  # the tilde seems to get expanded by all parties
+
 jobs:
   # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
@@ -27,8 +30,6 @@ jobs:
             container: archlinux:latest
     container: ${{ matrix.platform.container }}
     name: test sync-lock (${{ matrix.platform.container || matrix.platform.runner }})
-    env:
-      DENO_DIR: ${{ github.workspace }}/.cache/deno
     steps:
       # denoland/setup requires `unzip` to be installed
       # https://github.com/denoland/setup-deno/issues/41

@@ -72,7 +72,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
     env:
-      DENO_DIR: ${{ github.workspace }}/.cache/deno
+      DENO_DIR: ~/.cache/deno  # the tilde seems to get expanded by all parties
     steps:
       - uses: actions/download-artifact@v3
         with:
