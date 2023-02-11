@@ -5,9 +5,9 @@ runs:
     - run: |
         case ${{ runner.os }} in
         macOS)
-          echo 'path=~/Library/Caches/deno/deps' >> $GITHUB_OUTPUT;;
+          echo "path=$HOME/Library/Caches/deno/deps" >> $GITHUB_OUTPUT;;
         *)
-          echo 'path=~/.cache/deno' >> $GITHUB_OUTPUT;;
+          echo "path=$HOME/.cache/deno" >> $GITHUB_OUTPUT;;
         esac
       id: cache
       shell: bash
