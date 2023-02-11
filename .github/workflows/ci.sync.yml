@@ -12,9 +12,6 @@ concurrency:
   group: ${{ github.ref }}/sync
   cancel-in-progress: true
 
-env:
-  DENO_DIR: ~/.cache/deno  # the tilde seems to get expanded by all parties
-
 jobs:
   # in situations without `git` we had a softlock problem that we're testing for here
   test-sync-lock:
@@ -43,13 +40,7 @@ jobs:
           esac
 
       - uses: actions/checkout@v3
-
-      # avoiding sporadic 500 errors from deno’s CDN
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
-
+      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
       - uses: denoland/setup-deno@v1
 
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
