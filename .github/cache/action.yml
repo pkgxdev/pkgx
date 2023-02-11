@@ -1,0 +1,17 @@
+name: cache
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        case ${{ runner.os }} in
+        macOS)
+          echo 'path=~/Library/Caches/deno/deps' >> $GITHUB_OUTPUT;;
+        *)
+          echo 'path=~/.cache/deno' >> $GITHUB_OUTPUT;;
+        esac
+      id: cache
+    - uses: actions/cache@v3
+      with:
+        path: ${{ steps.cache.outputs.path }}
+        restore-key: ${{ runner.os }}-deno-
+        key: ${{ runner.os }}-deno-${{ hashFiles('deno.jsonc')}}
