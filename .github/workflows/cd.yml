@@ -161,9 +161,9 @@ jobs:
           done
 
       - name: Upload to S3
-        run: |
-          aws s3 sync tea-* s3://www.tea.xyz/ \
-            --metadata-directive REPLACE \
+        run:
+          aws s3 sync tea-* s3://www.tea.xyz/
+            --metadata-directive REPLACE
             --cache-control no-cache,must-revalidate
 
       - name: Invalidate CloudFront
