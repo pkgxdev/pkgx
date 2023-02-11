@@ -39,14 +39,16 @@ jobs:
             pacman -Sy --noconfirm unzip;;
           esac
 
+      - uses: actions/checkout@v3
+
       # avoiding sporadic 500 errors from deno’s CDN
       - uses: actions/cache@v3
         with:
           path: ${{ env.HOME }}/.cache/deno
           key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
-      - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
+
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
         working-directory: /usr/local/bin
 
