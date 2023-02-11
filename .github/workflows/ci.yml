@@ -25,8 +25,6 @@ jobs:
           - macos-latest
           - ubuntu-latest
     steps:
-      - run: echo "$DENO_DIR"
-
       - uses: actions/checkout@v3
 
       # avoiding sporadic 500 errors from deno’s CDN
@@ -53,7 +51,7 @@ jobs:
       # avoiding sporadic 500 errors from deno’s CDN
       - uses: actions/cache@v3
         with:
-          path: ${{ env.HOME }}/.cache/deno
+          path: $HOME/.cache/deno
           key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
       - uses: teaxyz/setup@v0
