@@ -16,5 +16,5 @@ runs:
         path: ${{ steps.cache.outputs.path }}
         restore-keys: ${{ runner.os }}-deno-
         key: ${{ runner.os }}-deno-${{ hashFiles('deno.jsonc')}}
-    - run: find ${{ steps.cache.outputs.path }}
+    - run: find ${{ steps.cache.outputs.path }} || true
       shell: bash
