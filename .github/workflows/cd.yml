@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - README.md
-      - .github/workflows/cd.yml
   workflow_dispatch:
 
 concurrency:
@@ -16,21 +15,19 @@ concurrency:
 jobs:
   check:
     permissions:
-      contents: read
       actions: write  # for cancel-action
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.tea.outputs.version }}
-      commence: ${{ steps.rev-parse.outputs.result == 'commence' }}
     steps:
       - uses: actions/checkout@v3
-
       - uses: teaxyz/setup@v0
-        id: tea
 
-      - name: sanity
-        run: test -n "${{ steps.tea.outputs.version }}"
-        # check we’re not broken ^^
+      - name: sanity check
+        run: |
+        test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)"
+        test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)"
+        test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)"
 
       - id: rev-parse
         name: did we already publish this version?
@@ -77,24 +74,16 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: tarballs
-          path: artifacts
-      - run: tar xJvf artifacts/tea-${{ needs.check.outputs.version }}.tar.xz --strip-components=1
-      - run: ls -la
+          name: src
+      - run: tar xJf tea-${{ needs.check.outputs.version }}.tar.xz --strip-components=1
       - uses: teaxyz/setup@v0
       - run: deno task compile
       - run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
-      - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz ./tea
-      - uses: actions/upload-artifact@v3
-        with:
-          name: tarballs
-          path: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
-          if-no-files-found: error
-      - run: mv ./tea tea-${{ matrix.platform.build-id }}
+      - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
       - uses: actions/upload-artifact@v3
         with:
           name: binaries
-          path: tea-${{ matrix.platform.build-id }}
+          path: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
           if-no-files-found: error
 
   bundle-src:
@@ -106,12 +95,14 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: ${{ env.FILENAME }}
-      - run: rm -rf ${{ env.FILENAME }}/.github .gitpod.yml
-      - run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > $FILENAME/src/hooks/useVersion.ts
+      - name: Clean
+        run: rm -rf ${{ env.FILENAME }}/.github .gitpod.yml
+      - name: Stamp Version
+        run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > $FILENAME/src/hooks/useVersion.ts
       - run: tar cJf $FILENAME.tar.xz $FILENAME
       - uses: actions/upload-artifact@v3
         with:
-          name: tarballs
+          name: srcs
           path: ${{ env.FILENAME }}.tar.xz
           if-no-files-found: error
 
@@ -122,23 +113,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - uses: actions/download-artifact@v3
-        with:
-          name: tarballs
-          path: artifacts
-
-      # says `no changes` every time… 🤦🏼
-      # - uses: mikepenz/release-changelog-builder-action@v3
-      #   id: build_changelog
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ needs.check.outputs.version }}
-          files: artifacts/*
-        # body: ${{ steps.build_changelog.outputs.changelog }}
+          files:
+            binaries/*
+            srcs/*
           fail_on_unmatched_files: true
 
   bump-tap:
@@ -161,22 +142,33 @@ jobs:
         with:
           name: binaries
           path: binaries
-      - name: AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+
+      - uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Unpack Binaries
+        working-directory: binaries
+        run: |
+          for filename in *.tar.xz; do
+            tar xJf $filename
+            result="${filename#*+}"
+            result="${filename%.tar.xz}"
+            mv tea ../tea-$result
+          done
+
       - name: Upload to S3
         run: |
-          aws s3 sync binaries s3://www.tea.xyz/ \
+          aws s3 sync tea-* s3://www.tea.xyz/ \
             --metadata-directive REPLACE \
             --cache-control no-cache,must-revalidate
-      - run: find binaries -type f | sed 's/^binaries//'
-      - name: Invalidate cache
+
+      - name: Invalidate CloudFront
         run:
-          find binaries -type f |
-          sed 's/^binaries//' |
+          find . -name tea-\* |
+          sed 's/^.//' |
           xargs
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
@@ -195,7 +187,7 @@ jobs:
         wait-for-completion: false
 
   vx-tagger:
-    needs: [upload-binaries]
+    needs: [upload-binaries, check]
     runs-on: ubuntu-latest
     permissions:
       contents: write
