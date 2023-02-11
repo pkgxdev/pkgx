@@ -17,7 +17,7 @@ jobs:
   tests:
     runs-on: ${{ matrix.os }}
     env:
-      DENO_DIR: ${{ github.workspace }}/.cache/deno
+      DENO_DIR: ~/.cache/deno
     strategy:
       fail-fast: false
       matrix:
