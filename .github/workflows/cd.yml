@@ -25,9 +25,9 @@ jobs:
 
       - name: sanity check
         run: |
-        test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)"
-        test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)"
-        test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)"
+          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)"
+          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)"
+          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)"
 
       - id: rev-parse
         name: did we already publish this version?
