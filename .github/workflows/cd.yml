@@ -72,7 +72,7 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
     env:
-      DENO_DIR: ${{ env.HOME }}/.cache/deno
+      DENO_DIR: ${{ github.workspace }}/.cache/deno
     steps:
       - uses: actions/download-artifact@v3
         with:
