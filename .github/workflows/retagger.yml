@@ -1,6 +1,7 @@
 on:
   release:
     types:
+      - created
       - edited
 permissions:
   actions: write
