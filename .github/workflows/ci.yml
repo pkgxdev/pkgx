@@ -51,7 +51,7 @@ jobs:
       # avoiding sporadic 500 errors from deno’s CDN
       - uses: actions/cache@v3
         with:
-          path: $HOME/.cache/deno
+          path: ~/.cache/deno
           key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
       - uses: teaxyz/setup@v0
