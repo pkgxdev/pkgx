@@ -12,9 +12,6 @@ concurrency:
   group: distribute
   cancel-in-progress: true
 
-env:
-  DENO_DIR: ${{ env.HOME }}/.cache/deno
-
 jobs:
   check:
     permissions:
@@ -74,17 +71,18 @@ jobs:
           build-id: linux+aarch64
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
+    env:
+      DENO_DIR: ${{ env.HOME }}/.cache/deno
     steps:
-      # avoiding sporadic 500 errors from deno’s CDN
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.HOME }}/.cache/deno
-          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
-
       - uses: actions/download-artifact@v3
         with:
           name: src
       - run: tar xJf tea-${{ needs.check.outputs.version }}.tar.xz --strip-components=1
+      # avoiding sporadic 500 errors from deno’s CDN
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
       - uses: teaxyz/setup@v0
       - run: deno task compile
       - run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"

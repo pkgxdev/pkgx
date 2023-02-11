@@ -27,6 +27,8 @@ jobs:
             container: archlinux:latest
     container: ${{ matrix.platform.container }}
     name: test sync-lock (${{ matrix.platform.container || matrix.platform.runner }})
+    env:
+      DENO_DIR: ${{ env.HOME }}/.cache/deno
     steps:
       # denoland/setup requires `unzip` to be installed
       # https://github.com/denoland/setup-deno/issues/41
@@ -44,7 +46,7 @@ jobs:
       # avoiding sporadic 500 errors from deno’s CDN
       - uses: actions/cache@v3
         with:
-          path: ${{ env.HOME }}/.cache/deno
+          path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
       - uses: denoland/setup-deno@v1

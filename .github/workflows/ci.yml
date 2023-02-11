@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DENO_DIR: $HOME/.cache/deno
+  DENO_DIR: /opt/deno/cache
 
 jobs:
   tests:
@@ -33,7 +33,7 @@ jobs:
       # avoiding sporadic 500 errors from deno’s CDN
       - uses: actions/cache@v3
         with:
-          path: ${{ env.HOME }}/.cache/deno
+          path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
       - uses: denoland/setup-deno@v1  # using ourself to install deno could compromise the tests
@@ -54,7 +54,7 @@ jobs:
       # avoiding sporadic 500 errors from deno’s CDN
       - uses: actions/cache@v3
         with:
-          path: ${{ env.HOME }}/.cache/deno
+          path: ${{ env.DENO_DIR }}
           key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
 
 
