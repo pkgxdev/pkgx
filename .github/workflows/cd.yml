@@ -12,6 +12,9 @@ concurrency:
   group: distribute
   cancel-in-progress: true
 
+env:
+  DENO_DIR: ${{ env.HOME }}/.cache/deno
+
 jobs:
   check:
     permissions:
@@ -72,6 +75,12 @@ jobs:
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
     steps:
+      # avoiding sporadic 500 errors from deno’s CDN
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.HOME }}/.cache/deno
+          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
+
       - uses: actions/download-artifact@v3
         with:
           name: src

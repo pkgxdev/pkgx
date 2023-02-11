@@ -13,6 +13,9 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DENO_DIR: ${{ env.HOME }}/.cache/deno
+
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
@@ -23,6 +26,12 @@ jobs:
           - macos-latest
           - ubuntu-latest
     steps:
+      # avoiding sporadic 500 errors from deno’s CDN
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.HOME }}/.cache/deno
+          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
+
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1  # using ourself to install deno could compromise the tests
       - run: deno task test
@@ -37,6 +46,12 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
+      # avoiding sporadic 500 errors from deno’s CDN
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.HOME }}/.cache/deno
+          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
+
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
       - run: deno task typecheck
