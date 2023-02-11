@@ -27,8 +27,9 @@ jobs:
           - ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/cache  # avoids sporadic 500s from deno’s CDN
+      - uses: .github/actions/cache    # avoids sporadic 500s from deno’s CDN
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
+      - run: deno info
       - run: deno task test
 
   lint:
@@ -42,12 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      # avoiding sporadic 500 errors from deno’s CDN
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: ${{ runner.os }}-deno-get-platform-${{ hashFiles('deno.jsonc')}}
-
+      - uses: .github/actions/cache    # avoids sporadic 500s from deno’s CDN
       - uses: teaxyz/setup@v0
+      - run: deno info
       - run: deno task typecheck

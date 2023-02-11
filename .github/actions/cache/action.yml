@@ -14,5 +14,5 @@ runs:
     - uses: actions/cache@v3
       with:
         path: ${{ steps.cache.outputs.path }}
-        restore-key: ${{ runner.os }}-deno-
+        restore-keys: ${{ runner.os }}-deno-
         key: ${{ runner.os }}-deno-${{ hashFiles('deno.jsonc')}}
