@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DENO_DIR: /opt/deno/cache
+  DENO_DIR: /Users/Shared/.cache/deno
 
 jobs:
   tests:
