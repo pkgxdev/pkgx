@@ -157,7 +157,8 @@ const getProvides = async (pkg: { project: string }) => {
       x = x["executable"]
     }
     if (isString(x)) {
-      return x.startsWith("bin/") && x.slice(4)
+      if (x.startsWith("bin/")) return x.slice(4)
+      if (x.startsWith("sbin/")) return x.slice(5)
     }
   })
 }
