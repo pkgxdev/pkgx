@@ -1,4 +1,4 @@
-import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter } from "hooks"
+import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix } from "hooks"
 import { PackageSpecification, Installation, PackageRequirement } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
@@ -84,6 +84,8 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   }
 
   Object.assign(env, flatten(await useShellEnv({ installations })))
+
+  env["TEA_PREFIX"] ??= usePrefix().string
 
   return { env, cmd, installations, pkgs }
 }
