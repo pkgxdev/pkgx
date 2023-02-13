@@ -3,6 +3,7 @@ import { flatmap, TeaError, validate_plain_obj } from "utils"
 import { useMoustaches, usePrefix } from "hooks"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
+import { isPlainObject } from "is_what"
 import { JSONC } from "jsonc"
 import Path from "path"
 
@@ -115,7 +116,9 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     }
     if (_if("package.json")) {
       const json = JSON.parse(await f!.read())
-      insert(refineFrontMatter(json?.tea, srcroot))
+      if (isPlainObject(json?.tea)) {
+        insert(refineFrontMatter(json?.tea, srcroot))
+      }
 
       //TODO should be moved to after all pkgs are inspected probs
       const projects = new Set(pkgs.map(x => x.project))
