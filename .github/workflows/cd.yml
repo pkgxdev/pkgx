@@ -124,6 +124,7 @@ jobs:
             binaries/*
             srcs/*
           fail_on_unmatched_files: true
+          generate_release_notes: true
 
   bump-tap:
     needs: [release]
