@@ -197,6 +197,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
+      - name: fetch all tags
+        run: git fetch --prune --unshallow --tags
       - uses: fischerscode/tagger@v0
         with:
           tag: v${{ needs.check.outputs.version }}
