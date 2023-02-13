@@ -77,10 +77,11 @@ jobs:
         with:
           name: srcs
       - run: tar xJf tea-${{ needs.check.outputs.version }}.tar.xz --strip-components=1
-      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
+      - uses: teaxyz/cli/.github/actions/cache@v0  # avoids sporadic 500s from deno’s CDN
       - uses: teaxyz/setup@v0
       - run: deno task compile
-      - run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
+      - name: sanity check
+        run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
       - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
       - uses: actions/upload-artifact@v3
         with:
@@ -97,9 +98,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: ${{ env.FILENAME }}
-      #TODO restore this, but you’ll need to fix the use of action/cache above
-      # - name: Clean
-      #   run: rm -rf ${{ env.FILENAME }}/.github .gitpod.yml
+      - name: Clean
+        run: rm -rf ${{ env.FILENAME }}/.github .gitpod.yml
       - name: Stamp Version
         run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > $FILENAME/src/hooks/useVersion.ts
       - run: tar cJf $FILENAME.tar.xz $FILENAME
