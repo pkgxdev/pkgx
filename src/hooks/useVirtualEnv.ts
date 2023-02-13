@@ -246,7 +246,6 @@ export async function README(path: Path): Promise<{version?: SemVer, pkgs: Packa
 
   const pkgs = (() => {
     return findTable("Dependencies")?.compact(([project, constraint]) => {
-      if (project.startsWith("tea.xyz")) return //FIXME
       return {
         project,
         constraint: new semver.Range(constraint)
