@@ -158,13 +158,14 @@ jobs:
           for filename in *.tar.xz; do
             tar xJf $filename
             result="${filename#*+}"
-            result="${filename%.tar.xz}"
-            mv tea ../tea-$result
+            result="${result%.tar.xz}"
+            mv tea tea-$result
+            rm $filename
           done
 
       - name: Upload to S3
         run:
-          aws s3 sync tea-* s3://www.tea.xyz/
+          aws s3 sync binaries s3://www.tea.xyz/
             --metadata-directive REPLACE
             --cache-control no-cache,must-revalidate
 
