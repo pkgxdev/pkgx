@@ -189,7 +189,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       subst.VERSION = "{{version}}"
       for await (const line of f!.readLines()) {
         let [,key,value] = line.match(/^export (\S+)=(.*)$/) ?? []
-        for (const [key, value_subst] of Object.entries(subst)) {
+        if (key && value) for (const [key, value_subst] of Object.entries(subst)) {
           value = value.replaceAll(`$${key}`, value_subst)
         }
         env[key] = value
