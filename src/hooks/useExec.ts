@@ -54,6 +54,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         if (!yaml?.args) {
           cmd.unshift(shebang)
         }
+        await add_companions(found)
       }
     } else {
       const found = await usePantry().getInterpreter(arg0.extname())
@@ -64,6 +65,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
           // if YAML specified args then we use them
           cmd.unshift(...found.args)
         }
+        await add_companions(found)
       }
     }
   } else if (!clutch && !(arg0 instanceof Path)) {
@@ -71,6 +73,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     if (found) {
       pkgs.push(found)
       cmd[0] = found.shebang
+      await add_companions(found)
     }
   }
 
@@ -88,6 +91,10 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   env["TEA_PREFIX"] ??= usePrefix().string
 
   return { env, cmd, installations, pkgs }
+
+  async function add_companions(pkg: {project: string}) {
+    pkgs.push(...await usePantry().getCompanions(pkg))
+  }
 }
 
 
