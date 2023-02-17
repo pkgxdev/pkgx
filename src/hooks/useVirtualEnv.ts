@@ -107,7 +107,9 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     if (_if("deno.json", "deno.jsonc")) {
       pkgs.push({project: "deno.land", constraint})
       const json = JSONC.parse(await f!.read())
-      insert(refineFrontMatter(json?.tea, srcroot))
+      if (isPlainObject(json?.tea)) {
+        insert(refineFrontMatter(json?.tea, srcroot))
+      }
     }
     if (_if(".node-version")) {
       const constraint = semver.Range.parse((await f!.read()).trim())
