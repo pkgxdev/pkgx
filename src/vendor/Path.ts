@@ -354,7 +354,7 @@ export default class Path {
       const txt = await this.read()
       return parseYaml(txt)
     } catch (err) {
-      console.error(this) //because deno errors are shit
+      console.debug("error:", this) //because deno errors are shit
       throw err
     }
   }
