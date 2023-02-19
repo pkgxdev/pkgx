@@ -42,13 +42,13 @@ export default async function hydrate(
 {
   if (!isArray(input)) input = [input]
 
-  const dry = input.map(spec => {
+  const dry = condense(input.map(spec => {
     if ("version" in spec) {
       return {project: spec.project, constraint: new semver.Range(`=${spec.version}`)}
     } else {
       return spec
     }
-  })
+  }))
 
   const graph: Record<string, Node> = {}
   const bootstrap = new Set<string>()
@@ -112,6 +112,19 @@ export default async function hydrate(
     wet: pkgs.filter(({project}) => !initial_set.has(project) || bootstrap_required.has(project)),
     bootstrap_required
   }
+}
+
+function condense(pkgs: PackageRequirement[]) {
+  const out: PackageRequirement[] = []
+  for (const pkg of pkgs) {
+    const found = out.find(x => x.project === pkg.project)
+    if (found) {
+      found.constraint = semver.intersect(found.constraint, pkg.constraint)
+    } else {
+      out.push(pkg)
+    }
+  }
+  return out
 }
 
 
