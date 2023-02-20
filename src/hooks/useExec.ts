@@ -4,7 +4,7 @@ import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
 import { Logger } from "./useLogger.ts"
-import { pkg as pkgutils } from "utils"
+import { pkg as pkgutils, TeaError } from "utils"
 import * as semver from "semver"
 import Path from "path"
 
@@ -67,6 +67,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         }
         await add_companions(found)
       }
+      // else just try to run it
     }
   } else if (!clutch && !(arg0 instanceof Path)) {
     const found = await which(arg0)

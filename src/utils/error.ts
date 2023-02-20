@@ -13,7 +13,8 @@ type ID =
   'not-found: dev-env' |
   // 'not-found: srcroot' |
   'not-found: arg' |
-  '#helpwanted'
+  '#helpwanted' |
+  'confused: interpreter'
 
 export default class TeaError extends Error {
   id: ID
@@ -32,6 +33,7 @@ export default class TeaError extends Error {
       case 'parser: pantry: package.yml': return 'spilt-tea-102'
       case '#helpwanted': return 'spilt-tea-411'
       case 'http': return 'spilt-tea-500'
+      case 'confused: interpreter': return 'spilt-tea-103'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)
@@ -117,6 +119,11 @@ export default class TeaError extends Error {
         we haven’t packaged this version. but we will… *if* you open a ticket:
 
             https://github.com/teaxyz/pantry.core/issues/new
+        `
+      break
+    case 'confused: interpreter':
+      msg = undent`
+        we’re not sure what to do with this file ¯\\_(ツ)_/¯
         `
       break
     default: {

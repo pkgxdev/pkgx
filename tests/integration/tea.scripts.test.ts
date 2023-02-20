@@ -77,19 +77,31 @@ it(suite, "tea shebang with args", async function() {
   assertEquals(out.trim(), fuzz)
 })
 
-//TODO
-// it(suite, "tea shebang with args in both places", async function() {
-//   const fuzz = "hi"
-//   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-//     #!/usr/bin/env -S tea deno run
+it(suite, "tea shebang with args in both places", async function() {
+  const fuzz = "hi"
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env -S tea deno run
 
-//     /*---
-//      args: [deno, run, --allow-read]
-//     ---*/
+    /*---
+     args: [deno, run, --allow-read]
+    ---*/
 
-//     Deno.readTextFileSync("fixture.sh")
-//     `
-//   })
-//   const out = await this.run({args: [fixture.string]}).stdout()
-//   assertEquals(out.trim(), fuzz)
-// })
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  })
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+})
+
+it(suite, "tea script that tea doesn’t know what to do with errors cleanly", async function() {
+  const fixture = this.sandbox.join("fixture.txt").write({ text: undent`
+    #!/usr/bin/env tea
+
+    exit 12  # won’t run
+    `
+  }).chmod(0o500)
+  const out = await this.run({args: [fixture.string], throws: false})
+  assertEquals(out, 103)
+})
