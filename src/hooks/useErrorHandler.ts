@@ -1,7 +1,6 @@
-import * as logger from "./hooks/useLogger.ts"
+import * as logger from "./useLogger.ts"
 import { usePantry, useFlags, usePrefix } from "hooks"
-import { chuzzle, TeaError, undent, UsageError } from "utils"
-import help from "./app.help.ts"
+import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
 
 async function suggestions(err: TeaError) {
@@ -17,8 +16,7 @@ async function suggestions(err: TeaError) {
 export default async function(err: Error) {
   const { silent, debug } = useFlags()
 
-  if (err instanceof UsageError) {
-    if (!silent) await help()
+  if (silent) {
     return 1
   } else if (err instanceof TeaError) {
     if (!silent) {
