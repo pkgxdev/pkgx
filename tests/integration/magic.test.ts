@@ -21,7 +21,7 @@ it(suite, "tea --magic in a script. zsh", async function() {
 
     source <(tea --magic=zsh)
 
-    node --eval 'console.log(1)'
+    node^18 --eval 'console.log(1)'
     `}).chmod(0o700)
 
   const out = await this.run({ args: [script.string] }).stdout()
@@ -45,7 +45,7 @@ it(suite, "tea --magic in a script. bash", async function() {
 
     source <(tea --magic=bash)
 
-    node --eval 'console.log(1)'
+    node^18 --eval 'console.log(1)'
     `})
 
   const out = await this.run({ args: [script.string] }).stdout()
@@ -70,7 +70,7 @@ it(suite, "tea --magic in a script. fish", async function() {
     export NODE_DISABLE_COLORS=1
     export CLICOLOR_FORCE=0
     export VERBOSE=-1  # no tea output FIXME doesn’t seem to work…?
-    node --eval "console.log('xyz')"
+    node^18 --eval "console.log('xyz')"
     `})
 
   // fish forces all output to stderr when running in the command not found handler

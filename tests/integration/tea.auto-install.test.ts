@@ -2,8 +2,8 @@ import { assertEquals, assertMatch } from "deno/testing/asserts.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
 
-it(suite, "tea node", async function() {
-  const out = await this.run({ args: ["node", "--eval", "console.log(1)"]}).stdout()
+it(suite, "tea fish", async function() {
+  const out = await this.run({ args: ["fish", "-c", "echo 1"]}).stdout()
   assertEquals(out, "1\n")
 })
 

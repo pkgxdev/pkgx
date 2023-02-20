@@ -3,15 +3,18 @@ import { undent } from "../../src/utils/index.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
 
-it(suite, "tea fixture.py", async function() {
+//TODO pick things macOS doesn’t have, eg. php
+//TODO don’t use deno *we use deno lol* so it will be available perhaps accidentally
+
+it(suite, "`tea foo.py`", async function() {
   this.sandbox.join("fixture.py").write({ text: "print('hello')" })
   const out = await this.run({args: ["fixture.py"]}).stdout()
   assertEquals(out, "hello\n")
 })
 
-it(suite, "shebang without args", async function() {
+it(suite, "`tea foo` with env shebang", async function() {
   const fixture = this.sandbox.join("fixture.py").write({ text: undent`
-    #!/usr/bin/env python3
+    #!/usr/bin/env python3.10
     import platform
     print(platform.python_version())
     `
@@ -20,19 +23,21 @@ it(suite, "shebang without args", async function() {
   assertEquals(out[0], "3")  //TODO better
 })
 
-it(suite, "no shebang", async function() {
-  const fixture = this.sandbox.join("fixture.ts").write({ text: undent`
-    console.log("hi")
+it(suite, "`tea foo` with shebang", async function() {
+  const fixture = this.sandbox.join("fixture.py").write({ text: undent`
+    #!/usr/bin/python3.10
+    import platform
+    print(platform.python_version())
     `
   })
   const out = await this.run({args: [fixture.string]}).stdout()
-  assertEquals(out, "hi\n")  //TODO better
+  assertEquals(out[0], "3")  //TODO better
 })
 
-it(suite, "shebang with args", async function() {
+it(suite, "tea env shebang with args", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env deno
+    #!/usr/bin/env tea
 
     /*---
      args: [deno, run, --allow-read]
@@ -47,7 +52,7 @@ it(suite, "shebang with args", async function() {
   assertEquals(out.trim(), fuzz)
 })
 
-it(suite, "tea shebang", async function() {
+it(suite, "tea env shebang with args in the shebang", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
     #!/usr/bin/env -S tea fish
@@ -59,13 +64,88 @@ it(suite, "tea shebang", async function() {
   assertEquals(out.trim(), fuzz)
 })
 
-it(suite, "tea shebang with args", async function() {
+if (Deno.build.os == "darwin") {
+  // darwin env doesn’t need `-S` so we support it only there
+  it(suite, "tea env shebang with args in the shebang without the -S", async function() {
+    const fuzz = "hi"
+    const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+      #!/usr/bin/env tea fish
+
+      echo "${fuzz}"
+      `
+    }).chmod(0o500)
+    const out = await this.run({cmd: [fixture.string]}).stdout()
+    assertEquals(out.trim(), fuzz)
+  })
+}
+
+it(suite, "shebang with args in the shebang line", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env -S tea
+    #!/usr/bin/deno run --allow-read
+
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  })
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+})
+
+it(suite, "env shebang with args in the shebang line", async function() {
+  const fuzz = "hi"
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env -S deno run --allow-read
+
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  })
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+})
+
+it(suite, "env shebang with args in the shebang line without the -S executing via `tea` rather than the shell", async function() {
+  const fuzz = "hi"
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env deno run --allow-read
+
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  })
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+})
+
+it(suite, "env shebang with args in both places", async function() {
+  const fuzz = "hi"
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env -S deno run --allow-read
 
     /*---
-     args: [deno, run, --allow-read]
+     args: [deno, __WOULD_FAIL]
+    ---*/
+
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  })
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+})
+
+it(suite, "shebang with args in both places", async function() {
+  const fuzz = "hi"
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/deno run --allow-read
+
+    /*---
+     args: [deno, __WOULD_FAIL]
     ---*/
 
     Deno.readTextFileSync("fixture.sh")
@@ -79,19 +159,20 @@ it(suite, "tea shebang with args", async function() {
 
 it(suite, "tea shebang with args in both places", async function() {
   const fuzz = "hi"
+
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env -S tea deno run
+    #!/usr/bin/env -S tea deno run --allow-read
 
     /*---
-     args: [deno, run, --allow-read]
+     args: [deno, __WOULD_FAIL]
     ---*/
 
     Deno.readTextFileSync("fixture.sh")
 
     console.log('${fuzz}')
     `
-  })
-  const out = await this.run({args: [fixture.string]}).stdout()
+  }).chmod(0o500)
+  const out = await this.run({cmd: [fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })
 
@@ -104,4 +185,19 @@ it(suite, "tea script that tea doesn’t know what to do with errors cleanly", a
   }).chmod(0o500)
   const out = await this.run({args: [fixture.string], throws: false})
   assertEquals(out, 103)
+})
+
+it(suite, "tea shebang but executed via tea still works", async function() {
+  const fuzz = "hi"
+
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env -S tea deno run --allow-read
+
+    Deno.readTextFileSync("fixture.sh")
+
+    console.log('${fuzz}')
+    `
+  }).chmod(0o500)
+  const out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
 })
