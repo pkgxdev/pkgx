@@ -104,8 +104,8 @@ try {
     await print(magic(new Path(Deno.execPath()), args.mode[1]))
   }
 } catch (err) {
-  await err_handler(err)
-  Deno.exit(1)
+  const code = await err_handler(err)
+  Deno.exit(code)
 }
 
 function announce() {
