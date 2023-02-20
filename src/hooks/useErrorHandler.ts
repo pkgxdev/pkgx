@@ -1,9 +1,7 @@
-import * as logger from "./hooks/useLogger.ts"
-import { usePantry, useFlags, usePrefix } from "hooks"
-import { chuzzle, TeaError, undent, UsageError } from "utils"
-import help from "./app.help.ts"
+import * as logger from "./useLogger.ts"
+import { usePantry, useFlags, usePrefix, useInventory } from "hooks"
+import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
-import useInventory from "./hooks/useInventory.ts"
 
 async function suggestions(err: TeaError) {
   switch (err.id) {
@@ -25,10 +23,7 @@ async function suggestions(err: TeaError) {
 export default async function(err: Error) {
   const { silent, debug } = useFlags()
 
-  if (err instanceof UsageError) {
-    if (!silent) await help()
-    return 1
-  } else if (err instanceof TeaError) {
+  if (err instanceof TeaError) {
     if (!silent) {
       const suggestion = await suggestions(err).swallow()
       console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
@@ -42,7 +37,7 @@ export default async function(err: Error) {
     }
     const code = chuzzle(parseInt(err.code().match(/\d+$/)?.[0] ?? '1')) ?? 1
     return code
-  } else {
+  } else if (!silent) {
     const { stack, message } = err ?? {}
 
     const title = encodeURIComponent(`panic:${message ?? "null"}`).replaceAll('%20', '+')
@@ -61,6 +56,8 @@ export default async function(err: Error) {
 
     // this way: deno will show the backtrace
     if (err instanceof Error == false) throw err
+    return 128
+  } else {
     return 1
   }
 }
@@ -72,7 +69,7 @@ function msg(err: TeaError): string {
   const { ctx } = err
 
   switch (err.code()) {
-  case 'spilt-tea-102':
+  case 'spilt-tea-009':
     if (ctx.filename instanceof Path && !ctx.filename.in(usePrefix())) {
       // this yaml is being worked on by the user
       msg = `${ctx.filename.prettyLocalString()}: ${ctx.cause.message}`
