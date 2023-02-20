@@ -17,12 +17,14 @@ import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
 import useSync from "./useSync.ts"
 import useVersion from "./useVersion.ts"
 import useMoustaches from "./useMoustaches.ts"
+import useErrorHandler from "./useErrorHandler.ts"
 
 // but we can sort these alphabetically
 export {
   useCache,
   useCellar,
   useDownload,
+  useErrorHandler,
   useExec,
   useFlags,
   useGitHubAPI,
