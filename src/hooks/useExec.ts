@@ -37,7 +37,6 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     if (yaml) {
       pkgs.push(...yaml.pkgs)
       Object.assign(env, yaml.env)  //FIXME should override env from pkgs
-      cmd.unshift(...yaml.args)
 
       if (pkgs.length == 0) {
         const found = await which(cmd[0])
@@ -46,14 +45,37 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         }
       }
     }
-    const shebang = await read_shebang(arg0)
-    if (shebang) {
-      const found = await which(shebang)
+    const shebang_args = await read_shebang(arg0)
+    if (shebang_args == 'tea') {
+      if (yaml) {
+        cmd.unshift(...yaml.args)
+        if (pkgs.length == 0) {
+          const found = await which(cmd[0])
+          if (found) {
+            pkgs.push(found)
+          }
+        }
+      } else {
+        const found = await usePantry().getInterpreter(arg0.extname())
+        if (found) {
+          const constraint = new semver.Range('*')
+          pkgs.push({ ...found, constraint })
+          if (cmd.length == opts.args.length) {
+            // if YAML specified args then we use them
+            cmd.unshift(...found.args)
+          }
+          await add_companions(found)
+        } else {
+          throw new TeaError("confused: interpreter", {arg0})
+        }
+      }
+    } else if (shebang_args.length) {
+      if (yaml?.args) console.warn("warning: YAML Front Matter `args` are being ignored")
+
+      const found = await which(shebang_args[0])
       if (found) {
         pkgs.push(found)
-        if (!yaml?.args) {
-          cmd.unshift(shebang)
-        }
+        cmd.unshift(...shebang_args)
         await add_companions(found)
       }
     } else {
@@ -122,17 +144,30 @@ async function install(pkgs: PackageSpecification[], update: boolean): Promise<I
 
 import { readLines } from "deno/io/read_lines.ts"
 
-async function read_shebang(path: Path) {
+async function read_shebang(path: Path): Promise<'tea' | string[]> {
   const f = await Deno.open(path.string, { read: true })
   const line = (await readLines(f).next()).value as string
-  let shebang = line.match(/^\s*#!(\S+)(\s*)$/)?.[1]
+  let shebang = line.match(/^#!\/usr\/bin\/env (-\S+ )?(.*)$/)?.[2]
   if (shebang) {
-    return Path.abs(shebang)?.basename()
+    const args = shebang.split(/\s+/).filter(x => x)
+    if (args[0] == 'tea') {
+      args.shift()  // only drop tea; return rest
+      if (args.length == 0) return 'tea'
+    }
+    return args
   }
-  shebang = line.match(/^\s*#!\/usr\/bin\/env (-\S+ )?(\S+)$/)?.[2]
-  if (shebang && shebang != 'tea') {
-    return shebang
+
+  // allowing leading whitespace since it seems pretty common in the wild
+  shebang = line.match(/^\s*#!(.*)$/)?.[1]
+  if (shebang) {
+    const args = shebang.split(/\s+/).filter(x => x)
+    const arg0 = Path.abs(args.shift() ?? '')?.basename()
+    if (!arg0) throw new Error(`couldn’t figure out shebang: ${line} for ${path}`)
+    if (arg0 == 'tea') return 'tea'
+    return [arg0, ...args]
   }
+
+  return []
 }
 
 import { basename } from "deno/path/mod.ts"
