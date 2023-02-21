@@ -20,6 +20,9 @@ const cache: Record<string, VirtualEnv> = {}
 
 export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
 
+  const TEA_DIR = flatmap(Deno.env.get("TEA_DIR"), Path.cwd().join)
+  if (TEA_DIR) cwd = TEA_DIR
+
   if (cache[cwd.string]) return cache[cwd.string]
 
   let dir = cwd ?? Path.cwd()
@@ -28,7 +31,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
   const env: Record<string, string> = {}
   const constraint = new semver.Range('*')
   const teafiles: Path[] = []
-  const TEA_DIR = Deno.env.get("TEA_DIR")
+
   let version: SemVer | undefined
   let srcroot: Path | undefined
   let f: Path | undefined
@@ -45,7 +48,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
 
   const lastd = teafiles.slice(-1)[0]?.parent()
   if (TEA_DIR) {
-    srcroot = Path.cwd().join(TEA_DIR)
+    srcroot = TEA_DIR
   } else if (!srcroot || lastd?.components().length < srcroot.components().length) {
     srcroot = lastd
   }
