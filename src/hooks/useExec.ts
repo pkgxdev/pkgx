@@ -129,9 +129,9 @@ async function read_shebang(path: Path) {
   if (shebang) {
     return Path.abs(shebang)?.basename()
   }
-  shebang = line.match(/^\s*#!\/usr\/bin\/env (-\S+ )?(\S+)$/)?.[1]
+  shebang = line.match(/^\s*#!\/usr\/bin\/env (-\S+ )?(\S+)$/)?.[2]
   if (shebang && shebang != 'tea') {
-    return shebang[2]
+    return shebang
   }
 }
 
