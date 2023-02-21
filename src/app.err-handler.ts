@@ -1,6 +1,6 @@
 import * as logger from "./hooks/useLogger.ts"
 import { usePantry, useFlags, usePrefix } from "hooks"
-import { chuzzle, flatmap, TeaError, undent, UsageError } from "utils"
+import { chuzzle, TeaError, undent, UsageError } from "utils"
 import help from "./app.help.ts"
 import Path from "path"
 
@@ -17,22 +17,21 @@ async function suggestions(err: TeaError) {
 export default async function(err: Error) {
   const { silent, debug } = useFlags()
 
-  if (silent) {
-    return 1
-  } else if (err instanceof UsageError) {
-    await help()
+  if (err instanceof UsageError) {
+    if (!silent) await help()
     return 1
   } else if (err instanceof TeaError) {
-    const suggestion = await suggestions(err).swallow()
-    console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
-    if (suggestion) {
-      console.error()
-      console.error(suggestion)
-      console.error()
+    if (!silent) {
+      const suggestion = await suggestions(err).swallow()
+      console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
+      if (suggestion) {
+        console.error()
+        console.error(suggestion)
+        console.error()
+      }
+      console.error(msg(err))
+      if (debug) console.error(err.ctx)
     }
-    console.error(msg(err))
-    if (debug) console.error(err.ctx)
-
     const code = chuzzle(parseInt(err.code().match(/\d+$/)?.[0] ?? '1')) ?? 1
     return code
   } else {
