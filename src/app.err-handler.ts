@@ -53,6 +53,7 @@ export default async function(err: Error) {
 
     // this way: deno will show the backtrace
     if (err instanceof Error == false) throw err
+    return 1
   }
 }
 

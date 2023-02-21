@@ -47,8 +47,11 @@ it(suite, "tea env shebang with args", async function() {
 
     console.log('${fuzz}')
     `
-  })
-  const out = await this.run({args: [fixture.string]}).stdout()
+  }).chmod(0o500)
+  let out = await this.run({args: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+
+  out = await this.run({cmd: [fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })
 
@@ -60,7 +63,10 @@ it(suite, "tea env shebang with args in the shebang", async function() {
     echo "${fuzz}"
     `
   }).chmod(0o500)
-  const out = await this.run({cmd: [fixture.string]}).stdout()
+  let out = await this.run({cmd: [fixture.string]}).stdout()
+  assertEquals(out.trim(), fuzz)
+
+  out = await this.run({args: [fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })
 
@@ -74,7 +80,11 @@ if (Deno.build.os == "darwin") {
       echo "${fuzz}"
       `
     }).chmod(0o500)
-    const out = await this.run({cmd: [fixture.string]}).stdout()
+
+    let out = await this.run({cmd: [fixture.string]}).stdout()
+    assertEquals(out.trim(), fuzz)
+
+    out = await this.run({args: [fixture.string]}).stdout()
     assertEquals(out.trim(), fuzz)
   })
 }
@@ -124,10 +134,10 @@ it(suite, "env shebang with args in the shebang line without the -S executing vi
 it(suite, "env shebang with args in both places", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env -S deno run --allow-read
+    #!/usr/bin/env -S deno run
 
     /*---
-     args: [deno, __WOULD_FAIL]
+     args: [--allow-read]
     ---*/
 
     Deno.readTextFileSync("fixture.sh")
@@ -139,13 +149,13 @@ it(suite, "env shebang with args in both places", async function() {
   assertEquals(out.trim(), fuzz)
 })
 
-it(suite, "shebang with args in both places", async function() {
+it(suite, "deno shebang with args in both places", async function() {
   const fuzz = "hi"
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/deno run --allow-read
+    #!/usr/bin/deno run
 
     /*---
-     args: [deno, __WOULD_FAIL]
+     args: [--allow-read]
     ---*/
 
     Deno.readTextFileSync("fixture.sh")
@@ -157,14 +167,14 @@ it(suite, "shebang with args in both places", async function() {
   assertEquals(out.trim(), fuzz)
 })
 
-it(suite, "tea shebang with args in both places", async function() {
+it(suite, "tea shebang with YAML args", async function() {
   const fuzz = "hi"
 
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env -S tea deno run --allow-read
+    #!/usr/bin/env -S tea
 
     /*---
-     args: [deno, __WOULD_FAIL]
+     args: [deno, run, --allow-read]
     ---*/
 
     Deno.readTextFileSync("fixture.sh")
@@ -187,13 +197,11 @@ it(suite, "tea script that tea doesn’t know what to do with errors cleanly", a
   assertEquals(out, 103)
 })
 
-it(suite, "tea shebang but executed via tea still works", async function() {
+it(suite, "tea shebang but executed via tea interprets shebang", async function() {
   const fuzz = "hi"
 
   const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
-    #!/usr/bin/env -S tea deno run --allow-read
-
-    Deno.readTextFileSync("fixture.sh")
+    #!/usr/bin/env -S tea node
 
     console.log('${fuzz}')
     `
