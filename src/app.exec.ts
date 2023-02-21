@@ -25,6 +25,7 @@ export default async function(cmd: string[], env: Record<string, string>) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", teal(arg0))
+      Deno.exit(127)  // 127 is used for command not found
     } else if (err instanceof Deno.errors.PermissionDenied) {
       if (Path.abs(arg0)?.isDirectory()) {
         console.error("tea: is directory:", teal(arg0))
