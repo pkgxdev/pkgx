@@ -35,7 +35,7 @@ export interface FrontMatter {
   env: Record<string, string>
 }
 
-export function refineFrontMatter(obj: PlainObject, srcroot?: Path): FrontMatter {
+export function refineFrontMatter(obj: unknown, srcroot?: Path): FrontMatter {
   const rv = usePackageYAML(obj)
 
   const getArgs = () => {
@@ -49,8 +49,8 @@ export function refineFrontMatter(obj: PlainObject, srcroot?: Path): FrontMatter
   }
 
   const env: Record<string, string> = {}
-  if (isPlainObject(obj.env)) {
-    for (const [k, v] of Object.entries(obj.env)) {
+  if (isPlainObject(rv.yaml.env)) {
+    for (const [k, v] of Object.entries(rv.yaml.env)) {
       if (!isString(v)) throw new Error()
       env[k] = fix(v)
     }

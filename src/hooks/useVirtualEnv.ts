@@ -174,7 +174,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       }
     }
     if (_if("tea.yml", "tea.yaml")) {
-      insert(refineFrontMatter(f!))
+      insert(refineFrontMatter(await f!.readYAML()))
     }
     if (_if("VERSION")) {
       flatmap(semver.parse(await f!.read()), v => version = v)
