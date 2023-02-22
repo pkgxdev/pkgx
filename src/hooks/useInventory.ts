@@ -25,7 +25,7 @@ const select = async (rq: PackageRequirement | Package) => {
   }
 
   const releases = await rsp.text()
-  let versions = releases.split("\n").map(x => new SemVer(x))
+  let versions = releases.split("\n").compact(x => new SemVer(x))
 
   if (versions.length < 1) throw new Error()
 
