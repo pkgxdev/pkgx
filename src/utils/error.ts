@@ -56,7 +56,7 @@ export default class TeaError extends Error {
       msg = undent`
         couldn’t find a pkg to provide: \`${ctx.arg0}'
 
-            https://github.com/teaxyz/pantry.zero#contributing
+            https://github.com/teaxyz/pantry.extra#contributing
 
         `
         break
@@ -83,7 +83,11 @@ export default class TeaError extends Error {
       msg = ctx.cause?.message ?? "unknown HTTP error"
       break
     case 'not-found: pantry: package.yml':
-      msg = "    https://github.com/teaxyz/pantry.zero#contributing\n"
+      msg = undent`
+        Not in pantry: ${ctx.project}
+
+        https://github.com/teaxyz/pantry.extra#contributing
+        `
       break
     case 'parser: pantry: package.yml':
       msg = undent`
