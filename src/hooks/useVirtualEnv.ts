@@ -36,14 +36,13 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
   let srcroot: Path | undefined
   let f: Path | undefined
 
-  while (true) {
+  while (dir.neq(Path.root) && dir.neq(home)) {
     try {
       await supp(dir)
     } catch (err) {
       err.cause = f
       throw err
     }
-    if (dir.eq(TEA_DIR ?? Path.root) || dir.eq(home)) break
     dir = dir.parent()
   }
 
@@ -187,7 +186,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     if (_if_d(".hg", ".svn")) {
       srcroot ??= f
     }
-    if ((f = dir.join(".envrc").isFile())) {
+    if (_if(".envrc")) {
       //TODO really we should pkg `direnv` install it if we find this file and configure it to do the following
       const subst = Deno.env.toObject()
       subst.SRCROOT = "{{srcroot}}"
@@ -200,7 +199,6 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
         }
         env[key] = value
       }
-      srcroot ??= f
     }
   }
 }

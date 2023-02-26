@@ -1,4 +1,5 @@
-import { usePrefix, useExec, useVirtualEnv, useVersion, useErrorHandler } from "hooks"
+import { usePrefix, useExec, useVirtualEnv, useVersion } from "hooks"
+import err_handler from "./app.err-handler.ts"
 import * as logger from "hooks/useLogger.ts"
 import useFlags, { Args, useArgs } from "hooks/useFlags.ts"
 import syncf from "./app.sync.ts"
@@ -7,7 +8,7 @@ import help from "./app.help.ts"
 import provides from "./app.provides.ts";
 import magic from "./app.magic.ts"
 import exec, { repl } from "./app.exec.ts"
-import { print, pkg as pkgutils, flatmap, UsageError } from "utils"
+import { print, pkg as pkgutils, flatmap } from "utils"
 import Path from "path"
 import { Verbosity } from "./types.ts"
 import * as semver from "semver"
@@ -103,13 +104,8 @@ try {
     await print(magic(new Path(Deno.execPath()), args.mode[1]))
   }
 } catch (err) {
-  if (err instanceof UsageError) {
-    if (!useFlags().silent) await help()
-    Deno.exit(1)
-  } else {
-    const code = await useErrorHandler(err)
-    Deno.exit(code)
-  }
+  const code = await err_handler(err)
+  Deno.exit(code)
 }
 
 function announce() {
