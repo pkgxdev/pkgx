@@ -36,13 +36,14 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
   let srcroot: Path | undefined
   let f: Path | undefined
 
-  while (dir.neq(Path.root) && dir.neq(home)) {
+  while (true) {
     try {
       await supp(dir)
     } catch (err) {
       err.cause = f
       throw err
     }
+    if (dir.eq(TEA_DIR ?? Path.root) || dir.eq(home)) break
     dir = dir.parent()
   }
 
