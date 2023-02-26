@@ -30,6 +30,11 @@ export default class Path {
       switch (Deno.build.os) {
         case "linux":
         case "darwin":
+        case "freebsd":
+        case "netbsd":
+        case "aix":
+        case "solaris":
+        case "illumos":
           return Deno.env.get("HOME")!
         case "windows":
           return Deno.env.get("USERPROFILE")!

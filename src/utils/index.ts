@@ -308,7 +308,22 @@ export function host(): HostReturnValue {
     }
   })()
 
-  const { os: platform, target } = Deno.build
+  const { target } = Deno.build
+
+  const platform = (() => {
+    switch (Deno.build.os) {
+      case "darwin":
+      case "linux":
+      case "windows":
+        return Deno.build.os
+      case "freebsd":
+      case "netbsd":
+      case "aix":
+      case "solaris":
+      case "illumos":
+        throw new Error(`unsupported-os: ${Deno.build.os}`)
+    }
+  })()
 
   return {
     platform,
