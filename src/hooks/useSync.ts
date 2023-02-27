@@ -124,11 +124,11 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
 }
 
 async function *ls() {
-  for await (const [user] of pantries_dir.ls()) {
-    for await (const [repo] of user.ls()) {
-      yield repo
-    }
-  }
+  for await (const [user, {isDirectory}] of pantries_dir.ls()) {
+    if (!isDirectory) continue
+    for await (const [repo, isDirectory] of user.ls()) {
+      if (isDirectory) yield repo
+  }}
 }
 
 export const update = async () => {
