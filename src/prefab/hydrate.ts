@@ -61,6 +61,10 @@ export default async function hydrate(
 
       for (const dep of await get_deps(node.pkg, initial_set.has(node.project))) {
         if (children.has(dep.project)) {
+          const self = graph[dep.project]
+          if (self.pkg.constraint === target.pkg.constraint) {
+            self.pkg.constraint = dep.constraint
+          }
           if (!bootstrap.has(dep.project)) {
             console.warn(`${dep.project} must be bootstrapped to build ${node.project}`)
 
