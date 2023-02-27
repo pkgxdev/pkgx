@@ -19,7 +19,7 @@ in decades—*they still work the same way they always have*.
 * Why do you need to use a different one (with subtly different syntax) on
     every platform?
 * Why is it that you can have any version (*as long as its the latest*) but you
-    have to to wait weeks for it?
+    have to wait weeks for it?
 
 Introducing `tea`, the next-generation, cross-platform package manager from
 the creator of [`brew`].
@@ -159,8 +159,8 @@ Using existing files further cements the notion that using tea is
 
 They either use tea or they source the dependencies themselves.
 
-Some files are indicators of what tools they need so if you choose to not
-use the README you’re saying you expect your users to know `package.json`
+Some files are indicators of what tools they need, so if you choose not to
+explain them in a README that means you expect your users "just know" `package.json`
 means `node`, `cargo.toml` means `rust` and so on.
 
 Which is why you may prefer to encode the data in the `README` since then
@@ -213,9 +213,9 @@ $ sh <(curl tea.xyz) bun run start
 # sandbox and runs everything in there
 ```
 
-> Now in your blog posts, tweets and tutorials you don’t have to start
-> with any “how to install tea” preamble nor will they need to google anything.
-> If they want to learn about tea first they can go to the same URL as they’re
+> So now, in your blog posts, tweets, and tutorials, you don’t have to start
+> with any “how to install tea” preamble nor will readers need to google anything.
+> If they want to learn about tea first, they can go to the same URL as they’re
 > curl’ing. We already work on Linux, macOS, and WSL; soon we’ll support Windows
 > natively.
 
@@ -224,7 +224,7 @@ As a bonus the installer also updates tea.
 ## “Now see here fella’, I \*hate\* installers…”
 
 Package managers can’t install themselves (`#cantfix`).
-How via `brew` or Docker instead?
+How about installing via `brew` or Docker instead?
 
 ```sh
 $ brew install teaxyz/pkgs/tea-cli
@@ -288,9 +288,9 @@ a GitHub Action’s `action.yml`. If we see a `.node-version` file, we add that
 version of node to the environment. We want to support everything that makes
 sense (your PRs are *very* welcome!)
 
-Where there isn’t a convention for specifying tool versions you can add
-YAML front matter to that tool’s configuration file. For example, if we’re
-talking a python poetry project then you can specify your python version by
+Where there isn’t a convention for specifying tool versions, you can add
+YAML front matter to its configuration file. For example, if we’re
+talking a python poetry project, then you can specify your python version by
 adding YAML front matter to its `pyproject.toml`:
 
 ```sh
@@ -302,7 +302,7 @@ $ cat <<EoYAML >> pyproject.toml
 EoYAML
 ```
 
-If your poetry project needs other non pypa dependencies, like a c compiler,
+If your poetry project needs other non pypa dependencies (like a c compiler)
 then you can add them there too (eg. `llvm.org`, our deps are always named
 after project homepages because then you just google it and there’s no
 ambiguity).
@@ -340,7 +340,7 @@ readable.
 >
 > Then when you do deploy you may as well install those deps with tea.
 >
-> Frankly, tea is properly versioned unlike system packagers, so with tea your
+> Frankly, tea is properly versioned (unlike system packagers) so with tea your
 > deployments actually remain *more* stable.
 > </details>
 
@@ -351,7 +351,7 @@ you step into a directory as that would violate the principle of least
 surprise. But this may mean the full environment doesn’t work initially.
 You can fix this with a `tea -SE && cd .`. We’re working on improving this.
 
-## I added YAML front matter and it doesn’t work, what now?
+## I added YAML front matter and it doesn’t work; what now?
 
 * After changing any files you need to do a `cd .` to reload the environment.
 * While debugging you can do `tea -E` to see if we’re picking up your changes.
@@ -458,7 +458,7 @@ $ tea +imagemagick.org my-script.sh
 # a VHS script that needs `wget`
 $ tea +gnu.org/wget vhs demo.tape
 
-# if tea doesn’t provide the package it passes the args through to your system
+# if tea doesn’t provide the package, it passes the args through to your system
 $ tea +neovim.io which nvim
 ~/.tea/neovim.io/v0.8.2/bin/nvim
 
@@ -476,24 +476,24 @@ XDG_DATA_DIRS=/Users/mxl/.tea/zlib.net/v1.2.13/share
 ## Contributing New Magic
 
 Is there a file that we should know about? Is there some other magic we should
-inject in certain circumstances? [Open a ticket](../../issues).
+inject in certain circumstances? Open a [ticket].
 
 
 # Packagers Who Care
 
 You trust us to just work and make your workflows happen.
-We take this job seriously and we go the extra mile on a per package basis
-eg. our git ignores `.DS_Store` files by default and our RubyGems defaults to
+We take this job seriously and we go the extra mile on a per-package basis,
+eg. our git ignores `.DS_Store` files by default, and our RubyGems defaults to
 user-installs and ensures gems are in `PATH`. Also we insist our packages
-are relocatable, which is why we can install in your home directory, but this
+are relocatable, which is why we can install in your home directory (but this
 also means you could pick up the whole `~/.tea` directory and bundle it with
-your app. We also begin packaging new releases almost immediately as soon as
+your app.) We also begin packaging new releases almost immediately as soon as
 they go live using various automations.
 
 
 # Contributing
 
-If you have suggestions or ideas, start a [discussion]. If we agree we’ll
+If you have suggestions or ideas, start a [discussion]. If we agree, we’ll
 move it to an issue. Bug fixes straight to pull request or issue please!
 
 Probably the place you’ll want to start is by supplementing the
@@ -513,7 +513,7 @@ deno task install   # deploys the local checkout into your `~/.tea`
 
 ## Contributing Packages
 
-There’s hundreds of thousands of open source projects and we need your help
+There are hundreds-of-thousands of open source projects, and we need your help
 supporting them! Check out the docs for the [pantry] to learn more.
 
 &nbsp;
@@ -545,7 +545,7 @@ $ sh <(curl tea.xyz) --sync
 open $(tea --prefix)
 ```
 
-We agree this is not great UX.
+We hope to improve this UX very soon.
 
 ### I need a tool in `PATH` (aka `brew install`)
 
@@ -575,7 +575,7 @@ v19.3.0
 ### How do I use tea with editors like VSCode?
 
 We intend to make a VSCode extension that automatically fetches the
-environment for the active workspace. In the meantime add tools to your `PATH`
+environment for the active workspace. In the meantime, add tools to your `PATH`
 as described in the above FAQ.
 
 ### What are these `^`, `~`, etc. symbols?
@@ -585,8 +585,8 @@ tea adheres to [semantic versioning](https://semver.org).
 ### How do I find available packages?
 
 We list all packages at [tea.xyz](https://tea.xyz/+/).
-Or `open ~/.tea/tea.xyz/var/pantry`. We
-agree this is not great UX.
+Or `open ~/.tea/tea.xyz/var/pantry`.
+We hope to improve this UX very soon, too.
 
 ### Will you support platform `foo`?
 
@@ -595,8 +595,8 @@ Start a [discussion] and let’s talk about how to move forward with that.
 
 ### What happened to executable markdown?
 
-We may revisit executable markdown, but we realized that since tea makes it
-so trivial to use anything from the open source ecosystem, it makes it trivial
+We may revisit it, but we realized quickly that because tea makes it
+so trivial to use anything from the open source ecosystem, it also makes it trivial
 for you as a developer to use [`xc`]†, `make` or [`just`] or any of the
 myriad of other tools that are tightly scoped to the initial goals of
 executable markdown.
@@ -611,13 +611,13 @@ executable markdown.
 
 Delete everything under `~/.tea`. Job done.
 
-> Well. Strictly there’s an (automatically deactivated) one-liner in your
-> shell’s configuration file you may want to remove (eg `~/.zshrc`).
+> Strictly speaking, there's also an (automatically silenced) one-liner in your
+> shell’s configuration file (eg. `~/.zshrc`) you may want to remove.
 
 ### I have another question
 
 We have further FAQs in our [wiki](https://github.com/teaxyz/cli/wiki/FAQ).
-Failing that Start a [discussion] and we’ll get back to you.
+Failing that, Start a [discussion] and we’ll get back to you.
 
 &nbsp;
 
@@ -647,8 +647,8 @@ If you got this error message, you need to install tea:
 
 ### Changing directory takes a long time sometimes
 
-This is a bug, though it can be insidious to fix. Please report it.
-Changing directories should not slow down significantly due to tea’s magic.
+This is a known and insidious bug. Please open a [ticket] and report it to us.
+tea’s magic should never significantly slow down directory changes.
 
 
 [pantry]: https://github.com/teaxyz/pantry.core
