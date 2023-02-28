@@ -269,7 +269,7 @@ $ docker run --rm -it ghcr.io/teaxyz/infuser
 [Our action] installs your deps and makes them (and tea) accessible to the rest
 of the workflow.
 
-[Out action]: https://github.com/teaxyz/setup
+[Our action]: https://github.com/teaxyz/setup
 
 &nbsp;
 
