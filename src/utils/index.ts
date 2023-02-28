@@ -305,6 +305,8 @@ export function host(): HostReturnValue {
       case "aarch64": return "aarch64"
       case "x86_64": return "x86-64"
       // ^^ ∵ https://en.wikipedia.org/wiki/X86-64 and semver.org prohibits underscores
+      default:
+        throw new Error(`unsupported-arch: ${Deno.build.arch}`)
     }
   })()
 
@@ -316,12 +318,9 @@ export function host(): HostReturnValue {
       case "linux":
       case "windows":
         return Deno.build.os
-      case "freebsd":
-      case "netbsd":
-      case "aix":
-      case "solaris":
-      case "illumos":
-        throw new Error(`unsupported-os: ${Deno.build.os}`)
+      default:
+        console.warn("assuming linux mode for:", Deno.build.os)
+        return 'linux'
     }
   })()
 
