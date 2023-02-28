@@ -24,8 +24,7 @@ jobs:
           - runner: macos-latest
           - runner: ubuntu-latest
             container: debian:buster-slim
-          - runner: ubuntu-latest
-            container: archlinux:latest
+            # ^^ no git
     container: ${{ matrix.platform.container }}
     name: test sync-lock (${{ matrix.platform.container || matrix.platform.runner }})
     steps:
@@ -51,3 +50,16 @@ jobs:
 
       # run again to test this work in the “update” scenario
       - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+
+  test-double-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
+      - uses: denoland/setup-deno@v1
+
+      - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
+        working-directory: /usr/local/bin
+
+      - run: tea -S
+      - run: tea +deno.land | tea +deno.land cat
