@@ -24,6 +24,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const dst = useCache().path(stowage)
+  const vdirname = `v${pkg.version}`
 
   const log_install_msg = (install: Installation, title = 'installed') => {
     const str = [
@@ -35,12 +36,11 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   }
 
   if (dryrun) {
-    const install = { pkg, path: dstdir.join(pkg.project, `v${pkg.version}`) }
+    const install = { pkg, path: dstdir.join(pkg.project, vdirname) }
     log_install_msg(install, 'imagined')
     return install
   }
 
-  const vdirname = `v${pkg.version}`
   const lock_dir = dstdir.join(pkg.project)
   const atomic_dstdir = lock_dir.join(`tmp.${vdirname}`)
 

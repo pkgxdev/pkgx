@@ -6,6 +6,7 @@ on:
       - import-map.json
       - src/hooks/app.sync.ts
       - src/hooks/useSync.ts
+      - src/prefab/install.ts
       - .github/workflows/ci.sync.yml
 
 concurrency:
