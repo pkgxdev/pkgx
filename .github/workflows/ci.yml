@@ -24,10 +24,10 @@ jobs:
       - run: deno task test --coverage=cov_profile
       - run: deno coverage cov_profile --lcov --output=cov_profile.lcov
       - name: coveralls
-          uses: coverallsapp/github-action@master
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            path-to-lcov: cov_profile.lcov
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: cov_profile.lcov
 
   # run tests for non-ubuntu OS's
   tests:
