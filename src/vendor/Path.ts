@@ -28,11 +28,10 @@ export default class Path {
   static home(): Path {
     return new Path((() => {
       switch (Deno.build.os) {
-        case "linux":
-        case "darwin":
-          return Deno.env.get("HOME")!
         case "windows":
           return Deno.env.get("USERPROFILE")!
+        default:
+          return Deno.env.get("HOME")!
       }
     })())
   }
