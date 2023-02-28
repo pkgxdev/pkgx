@@ -40,9 +40,13 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     return install
   }
 
+  const vdirname = `v${pkg.version}`
+  const lock_dir = dstdir.join(pkg.project)
+  const atomic_dstdir = lock_dir.join(`tmp.${vdirname}`)
+
   logger.replace(teal("locking"))
 
-  const { rid } = await Deno.open(dstdir.mkpath().string)
+  const { rid } = await Deno.open(lock_dir.mkpath().string)
   await Deno.flock(rid, true)
 
   try {
@@ -71,12 +75,21 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     }
 
     const cmd = new TarballUnarchiver({
-      zipfile: tarball, dstdir, verbosity
+      zipfile: tarball, dstdir: atomic_dstdir.mkpath(), verbosity, stripComponents: 2
     }).args()
 
     logger.replace(teal('extracting'))
 
     await run({ cmd, clearEnv: true })
+
+    // we have accidentally bottled some bottles with a `./` prefix which counts
+    // as one component when stripping them. ugh.
+    if (atomic_dstdir.join(vdirname).isDirectory()) {
+      atomic_dstdir.join(vdirname).mv({ into: lock_dir })
+      atomic_dstdir.rm()
+    } else {
+      atomic_dstdir.mv({ to: lock_dir.join(vdirname) })
+    }
 
     //FIXME unecessary compute
     const install = await cellar.resolve(pkg)
