@@ -46,14 +46,18 @@ jobs:
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
         working-directory: /usr/local/bin
 
-      - run: |
+      - name: test sync-lock
+        run: |
           set -o pipefail
           tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+        shell: bash
 
       # run again to test this work in the “update” scenario
-      - run: |
+      - name: test sync-lock again
+        run: |
           set -o pipefail
           tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+        shell: bash
 
   test-double-install:
     runs-on: ubuntu-latest
