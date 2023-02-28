@@ -3,6 +3,7 @@ import { usePantry, useFlags, usePrefix } from "hooks"
 import { chuzzle, TeaError, undent, UsageError } from "utils"
 import help from "./app.help.ts"
 import Path from "path"
+import useInventory from "./hooks/useInventory.ts"
 
 async function suggestions(err: TeaError) {
   switch (err.id) {
@@ -11,7 +12,14 @@ async function suggestions(err: TeaError) {
     return suggestion
       ? `did you mean \`${logger.teal(suggestion)}\`? otherwise… see you on GitHub?`
       : undefined
-  }}
+  }
+  case 'not-found: pkg.version':
+    if (err.ctx.pkg) {
+      const versions = await useInventory().get(err.ctx.pkg)
+      return `inventory: ${versions.join(", ")}`
+    }
+    break
+  }
 }
 
 export default async function(err: Error) {

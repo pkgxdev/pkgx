@@ -12,6 +12,18 @@ export interface Inventory {
 }
 
 const select = async (rq: PackageRequirement | Package) => {
+  const versions = await get(rq)
+
+  console.debug({ project: rq.project, versions })
+
+  if ("constraint" in rq) {
+    return rq.constraint.max(versions)
+  } else if (versions.find(x => x.eq(rq.version))) {
+    return rq.version
+  }
+}
+
+const get = async (rq: PackageRequirement | Package) => {
   const { platform, arch } = host()
 
   const url = new URL('https://dist.tea.xyz')
@@ -35,15 +47,12 @@ const select = async (rq: PackageRequirement | Package) => {
     versions = versions.filter(x => x.neq(v))
   }
 
-  console.debug({ project: rq.project, versions })
-
-  if ("constraint" in rq) {
-    return rq.constraint.max(versions)
-  } else if (versions.find(x => x.eq(rq.version))) {
-    return rq.version
-  }
+  return versions
 }
 
 export default function useInventory() {
-  return { select: error.wrap(select, 'http') }
+  return {
+    select: error.wrap(select, 'http'),
+    get
+  }
 }
