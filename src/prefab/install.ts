@@ -50,13 +50,13 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   await Deno.flock(rid, true)
 
   try {
-    await (async () => {
-      const installation = await cellar.has(pkg)
-      if (installation) {
-        logger.replace(teal("installed"))
-        return installation
-      }
-    })()
+    const already_installed = await cellar.has(pkg)
+    if (already_installed) {
+      // some other tea instance installed us while we were waiting for the lock
+      // or potentially we were already installed and the caller is naughty
+      logger.replace(teal("installed"))
+      return already_installed
+    }
 
     logger.replace(teal("querying"))
 

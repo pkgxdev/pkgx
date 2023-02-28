@@ -46,10 +46,14 @@ jobs:
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
         working-directory: /usr/local/bin
 
-      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+      - run: |
+          set -o pipefail
+          tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
 
       # run again to test this work in the “update” scenario
-      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+      - run: |
+          set -o pipefail
+          tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
 
   test-double-install:
     runs-on: ubuntu-latest
