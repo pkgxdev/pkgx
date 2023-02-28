@@ -62,4 +62,6 @@ jobs:
         working-directory: /usr/local/bin
 
       - run: tea -S
-      - run: tea +deno.land | tea +deno.land cat
+      - run: |
+          set -o pipefail
+          tea +deno.land | tea +deno.land cat

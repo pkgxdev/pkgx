@@ -1,8 +1,7 @@
-import { usePrefix, useExec, useVirtualEnv, useVersion } from "hooks"
+import { usePrefix, useExec, useVirtualEnv, useVersion, useSync } from "hooks"
 import err_handler from "./app.err-handler.ts"
 import * as logger from "hooks/useLogger.ts"
 import useFlags, { Args, useArgs } from "hooks/useFlags.ts"
-import syncf from "./app.sync.ts"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
 import provides from "./app.provides.ts";
@@ -23,10 +22,8 @@ try {
     Deno.chdir(chdir.string)
   }
 
-  const syringe = await injection(args)
-
   if (args.sync) {
-    await syncf(args.pkgs, syringe)
+    await useSync()
   }
 
   if (!Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
