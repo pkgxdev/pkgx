@@ -80,6 +80,13 @@ jobs:
       - uses: teaxyz/cli/.github/actions/cache@v0  # avoids sporadic 500s from deno’s CDN
       - uses: teaxyz/setup@v0
       - run: deno task compile
+      - uses: teaxyz/pantry.core/.github/actions/codesign@main
+        if: startsWith(matrix.platform.build-id, 'darwin+')
+        with:
+            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+            p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
+            identity: "Developer ID Application: Tea Inc. (7WV56FL599)"
+            paths: ./tea
       - name: sanity check
         run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
       - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
