@@ -1,5 +1,5 @@
 import { PlainObject } from "is_what"
-import { undent } from "utils"
+import { undent, pkg } from "utils"
 
 type ID =
   'not-found: tea -X: arg0' |
@@ -118,13 +118,14 @@ export default class TeaError extends Error {
     case '#helpwanted':
       msg = ctx.details
       break
-    case 'not-found: pkg.version':
+    case 'not-found: pkg.version': {
+      const str = ctx.pkg ? pkg.str(ctx.pkg) : 'this version'
       msg = undent`
-        we haven’t packaged this version. but we will… *if* you open a ticket:
+        we haven’t packaged ${str}. but we will… *if* you open a ticket:
 
             https://github.com/teaxyz/pantry.core/issues/new
         `
-      break
+    } break
     case 'confused: interpreter':
       msg = undent`
         we’re not sure what to do with this file ¯\\_(ツ)_/¯
