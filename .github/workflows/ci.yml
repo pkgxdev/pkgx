@@ -14,6 +14,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # run tests + coverage for unbuntu
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
+      - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
+      - run: deno task test --coverage=cov_profile
+      - run: deno coverage cov_profile --lcov --output=cov_profile.lcov
+      - name: coveralls
+          uses: coverallsapp/github-action@master
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            path-to-lcov: cov_profile.lcov
+
+  # run tests for non-ubuntu OS's
   tests:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -21,7 +37,6 @@ jobs:
       matrix:
         os:
           - macos-latest
-          - ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
