@@ -34,6 +34,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: cov_profile.lcov
           parallel: true
+          flag-name: ${{ matrix.os }}
 
   finish-tests:
     needs: tests
