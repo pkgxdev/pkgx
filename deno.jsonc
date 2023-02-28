@@ -24,7 +24,7 @@
   },
   "tea": {
     "dependencies": {
-      "deno.land": "^1.30"
+      "deno.land": "^1.31.1"
     }
   },
   "importMap": "import-map.json"
