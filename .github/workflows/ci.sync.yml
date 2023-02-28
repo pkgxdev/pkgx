@@ -6,6 +6,7 @@ on:
       - import-map.json
       - src/hooks/app.sync.ts
       - src/hooks/useSync.ts
+      - src/prefab/install.ts
       - .github/workflows/ci.sync.yml
 
 concurrency:
@@ -23,8 +24,7 @@ jobs:
           - runner: macos-latest
           - runner: ubuntu-latest
             container: debian:buster-slim
-          - runner: ubuntu-latest
-            container: archlinux:latest
+            # ^^ no git
     container: ${{ matrix.platform.container }}
     name: test sync-lock (${{ matrix.platform.container || matrix.platform.runner }})
     steps:
@@ -46,7 +46,30 @@ jobs:
       - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
         working-directory: /usr/local/bin
 
-      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+      - name: test sync-lock
+        run: |
+          set -o pipefail
+          tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+        shell: bash
 
       # run again to test this work in the “update” scenario
-      - run: tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+      - name: test sync-lock again
+        run: |
+          set -o pipefail
+          tea -S +gnu.org/wget wget -L tea.xyz/white-paper/ | tea -S +charm.sh/glow glow -
+        shell: bash
+
+  test-double-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
+      - uses: denoland/setup-deno@v1
+
+      - run: deno task --config $GITHUB_WORKSPACE/deno.jsonc compile
+        working-directory: /usr/local/bin
+
+      - run: tea -S
+      - run: |
+          set -o pipefail
+          tea +deno.land | tea +deno.land cat
