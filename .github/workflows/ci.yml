@@ -20,13 +20,32 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-latest
           - ubuntu-latest
+          - macos-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
-      - run: deno task test
+      - run: deno task test --coverage=cov_profile
+      - run: deno coverage cov_profile --lcov --output=cov_profile.lcov
+      - name: coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: cov_profile.lcov
+          parallel: true
+          flag-name: ${{ matrix.os }}
+
+  finish-tests:
+    needs: tests
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true
 
   lint:
     runs-on: ubuntu-latest

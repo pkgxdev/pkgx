@@ -10,6 +10,9 @@
   <a href="#">
     <img src="https://img.shields.io/github/v/release/teaxyz/cli?label=tea/cli&color=ff00ff" alt="Version" />
   </a>
+  <a href='https://coveralls.io/github/teaxyz/cli?branch=main'>
+    <img src='https://coveralls.io/repos/github/teaxyz/cli/badge.svg?branch=main' alt='Coverage Status' />
+  </a>
 </p>
 
 Package managers are the foundation of every stack yet they haven’t evolved

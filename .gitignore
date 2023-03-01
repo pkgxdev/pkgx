@@ -5,3 +5,4 @@
 /deno.lock
 
 .idea/
+cov_profile**
