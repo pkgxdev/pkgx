@@ -60,6 +60,7 @@ export default async function hydrate(
     const ascend = async (node: Node, children: Set<string>) => {
 
       for (const dep of await get_deps(node.pkg, initial_set.has(node.project))) {
+
         if (children.has(dep.project)) {
           if (!bootstrap.has(dep.project)) {
             console.warn(`${dep.project} must be bootstrapped to build ${node.project}`)
@@ -93,10 +94,13 @@ export default async function hydrate(
   }
 
   for (const pkg of dry) {
-    if (pkg.project in graph) continue
-    const new_node = new Node(pkg)
-    graph[pkg.project] = new_node
-    await go(new_node)
+    if (pkg.project in graph) {
+      graph[pkg.project].pkg.constraint = semver.intersect(graph[pkg.project].pkg.constraint, pkg.constraint)
+    } else {
+      const new_node = new Node(pkg)
+      graph[pkg.project] = new_node
+      await go(new_node)
+    }
   }
 
   const pkgs = Object.values(graph)

@@ -224,7 +224,7 @@ As a bonus the installer also updates tea.
 ## “Now see here fella’, I \*hate\* installers…”
 
 Package managers can’t install themselves (`#cantfix`).
-How about installing via `brew` or Docker instead?
+But there’s other ways:
 
 ```sh
 $ brew install teaxyz/pkgs/tea-cli
@@ -233,7 +233,7 @@ $ brew install teaxyz/pkgs/tea-cli
 $ docker run --rm -it ghcr.io/teaxyz/infuser
 ```
 
-> <details><summary><i>Other ways to install tea</i></summary><br>
+> <details><summary><i>Even more ways to install tea</i></summary><br>
 >
 > Take your pick:
 >
@@ -266,8 +266,10 @@ $ docker run --rm -it ghcr.io/teaxyz/infuser
 # ^^ https://github.com/teaxyz/setup
 ```
 
-Our action installs your deps and makes them (and tea) accessible to the rest
+[Our action] installs your deps and makes them (and tea) accessible to the rest
 of the workflow.
+
+[Our action]: https://github.com/teaxyz/setup
 
 &nbsp;
 
