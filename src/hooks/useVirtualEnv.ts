@@ -60,6 +60,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
   }
 
   function fix(input: string): string {
+    if (!input) return ''  // https://github.com/teaxyz/cli/issues/424
     const moustaches = useMoustaches()
     const foo = [
       ...moustaches.tokenize.host(),
