@@ -74,8 +74,11 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
       throw err
     }
 
+    // converts `github.com/create-dmg/create-dmg/v1.1.0/bin` >>> `bin`
+    const stripComponents = pkg.project.split("/").length
+
     const cmd = new TarballUnarchiver({
-      zipfile: tarball, dstdir: atomic_dstdir.mkpath(), verbosity, stripComponents: 2
+      zipfile: tarball, dstdir: atomic_dstdir.mkpath(), verbosity, stripComponents
     }).args()
 
     logger.replace(teal('extracting'))
