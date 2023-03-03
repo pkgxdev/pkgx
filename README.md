@@ -233,25 +233,19 @@ But there’s other ways:
 $ brew install teaxyz/pkgs/tea-cli
 
 # or just try it out first
-$ docker run --rm -it ghcr.io/teaxyz/infuser
+$ docker run --rm -it teaxyz/cli
 ```
 
 > <details><summary><i>Even more ways to install tea</i></summary><br>
 >
 > Take your pick:
 >
-> * Grab the latest [release][releases] with your browser. On macOS you’ll
->   have to unquarantine the binary:
+> * Grab a standalone binary from GitHub [release][releases].
+>
+> * Or get a plain text listing of standalone binary download URLs:
 >
 >   ```sh
->   # download from https://github.com/teaxyz/cli/releases first
->   $ xattr -d com.apple.quarantine ./tea
->   ```
->
-> * Or get a plain text listing of binary downloads:
->
->   ```sh
->   $ curl dist.tea.xyz   # pick your platform and `curl` it
+>   $ curl dist.tea.xyz   # then copy, paste and cURL again
 >   ```
 >
 > * Or here’s a fancy one-liner:
@@ -259,6 +253,12 @@ $ docker run --rm -it ghcr.io/teaxyz/infuser
 >   ```sh
 >   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
+> On macOS you may need to unquarantine the binary before it will execute:
+>
+> ```sh
+> # download from https://github.com/teaxyz/cli/releases first
+> $ xattr -d com.apple.quarantine ./tea
+> ```
 >
 > </details>
 
