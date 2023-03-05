@@ -12,6 +12,7 @@ interface DownloadOptions {
   src: URL
   headers?: Record<string, string>
   logger?: Logger | string
+  dst?: Path
 }
 
 interface RV {
@@ -22,8 +23,7 @@ interface RV {
   sha: string | undefined
 }
 
-async function internal<T>({ src, headers, logger }: DownloadOptions,
-  body?: (src: ReadableStream<Uint8Array>) => Promise<T>): Promise<[Path, T?]>
+async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Promise<[Path, ReadableStream<Uint8Array> | undefined]>
 {
   logger = isString(logger) ? new Logger(logger) : logger ?? new Logger()
 
@@ -31,7 +31,7 @@ async function internal<T>({ src, headers, logger }: DownloadOptions,
   const mtime_entry = hash.join("mtime")
   const etag_entry = hash.join("etag")
 
-  const dst = hash.join(src.path().basename())
+  dst ??= hash.join(src.path().basename())
   if (src.protocol === "file:") throw new Error()
 
   console.verbose({src: src, dst})
@@ -68,46 +68,34 @@ async function internal<T>({ src, headers, logger }: DownloadOptions,
     logger.replace(txt)
 
     const reader = rsp.body ?? error.panic()
-    dst.parent().mkpath()
-    const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
 
-    try {
-      let t: T | undefined
-      const show_stats = !Deno.env.get('CI') && !useFlags().silent
-      if (body && !show_stats) {
-        const tee = reader.tee()
-        const p1 = body(tee[0])
-        const p2 = reader.pipeTo(f.writable);
-        [t] = await Promise.all([p1, p2])
-      } else if (body) {
-        const tee = reader.tee()
-        const p1 = body(tee[0])
-        let n = 0
-        const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
-          if (sz) {
-            n += buf.length
-            const pc = Math.round(n / sz * 100);
-            (logger as Logger).replace(`${teal('downloading')} ${pc}%`)
+    const text = rsp.headers.get("Last-Modified")
+    if (text) mtime_entry.write({text, force: true})
+    const etag = rsp.headers.get("ETag")
+    if (etag) etag_entry.write({text: etag, force: true})
+
+    if (Deno.env.get('CI') || useFlags().silent) {
+      return [dst, reader]
+    } else {
+      let n = 0
+      return [dst, reader.pipeThrough(new TransformStream({
+        transform: (buf, controller) => {
+          let s = txt
+          if (!sz) {
+            s += ` ${pretty_size(n)}`
           } else {
-            (logger as Logger).replace(`${teal('downloaded')} ${pretty_size(n)}`)
+            n += buf.length
+            if (n < sz) {
+              let pc = n / sz * 100;
+              pc = pc < 1 ? Math.round(pc) : Math.floor(pc);  // don’t say 100% at 99.5%
+              s += ` ${pc}%`
+            } else {
+              s = teal('extracting')
+            }
           }
-          return f.write(buf)
-        }});
-        [t] = await Promise.all([p1, p2])
-      } else {
-        await reader.pipeTo(f.writable)
-      }
-
-      const text = rsp.headers.get("Last-Modified")
-      const etag = rsp.headers.get("ETag")
-
-      if (text) mtime_entry.write({text, force: true})
-      if (etag) etag_entry.write({text: etag, force: true})
-
-      return [dst, t]
-
-    } finally {
-      f.close()
+          (logger as Logger).replace(s)
+          controller.enqueue(buf)
+      }}))]
     }
   }
   case 304:
@@ -120,25 +108,26 @@ async function internal<T>({ src, headers, logger }: DownloadOptions,
 
 async function download(opts: DownloadOptions): Promise<Path> {
   try {
-    const [path] = await internal(opts)
+    const [path, stream] = await internal(opts)
+    if (!stream) return path  // already downloaded
+
+    path.parent().mkpath()
+    const f = await Deno.open(path.string, {create: true, write: true, truncate: true})
+    try {
+      await stream.pipeTo(f.writable)
+    } finally {
+      f.close()
+    }
     return path
   } catch (cause) {
     throw new TeaError('http', {cause, ...opts})
   }
 }
 
-async function stream<T>(opts: DownloadOptions, body: (src: ReadableStream<Uint8Array>) => Promise<T>): Promise<[Path, T]> {
+async function stream<T>(opts: DownloadOptions): Promise<ReadableStream<Uint8Array> | undefined> {
   try {
-    const [path, t] = await internal(opts, body)
-    if (t) return [path, t]
-
-    const f = await Deno.open(path.string, { read: true })
-    try {
-      const t = await body(f.readable)
-      return [path, t]
-    } finally {
-      Deno.close(f.rid)
-    }
+    const [, stream] = await internal(opts)
+    return stream
   } catch (cause) {
     throw new TeaError('http', {cause, ...opts})
   }
