@@ -3,14 +3,13 @@ import { copy } from "deno/streams/copy.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { crypto, toHashString } from "deno/crypto/mod.ts";
-import { usePrefix } from "hooks"
+import { useFlags, usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
 
 
 interface DownloadOptions {
   src: URL
-  dst?: Path  /// default is our own unique cache path
   headers?: Record<string, string>
   logger?: Logger | string
 }
@@ -23,33 +22,26 @@ interface RV {
   sha: string | undefined
 }
 
-async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
-  body: (src: ReadableStream<Uint8Array>, dst: Deno.Writer, sz?: number) => Promise<T>): Promise<Path>
+async function internal<T>({ src, headers, logger }: DownloadOptions,
+  body?: (src: ReadableStream<Uint8Array>) => Promise<T>): Promise<[Path, T?]>
 {
-  if (isString(logger)) {
-    logger = new Logger(logger)
-  } else if (!logger) {
-    logger = new Logger()
-  }
+  logger = isString(logger) ? new Logger(logger) : logger ?? new Logger()
+
+  const hash = hash_key(src)
+  const mtime_entry = hash.join("mtime")
+  const etag_entry = hash.join("etag")
+
+  const dst = hash.join(src.path().basename())
+  if (src.protocol === "file:") throw new Error()
 
   console.verbose({src: src, dst})
 
-  const hash = (() => {
-    let memo: Path
-    return () => memo ?? (memo = hash_key(src))
-  })()
-  const mtime_entry = () => hash().join("mtime")
-  const etag_entry = () => hash().join("etag")
-
-  dst ??= hash().join(src.path().basename())
-  if (src.protocol === "file:") throw new Error()
-
   if (dst.isReadableFile()) {
     headers ??= {}
-    if (etag_entry().isFile()) {
-      headers["If-None-Match"] = await etag_entry().read()
-    } else if (mtime_entry().isFile()) {
-      headers["If-Modified-Since"] = await mtime_entry().read()
+    if (etag_entry.isFile()) {
+      headers["If-None-Match"] = await etag_entry.read()
+    } else if (mtime_entry.isFile()) {
+      headers["If-Modified-Since"] = await mtime_entry.read()
     }
     logger.replace(teal('querying'))
   } else {
@@ -80,78 +72,76 @@ async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
     const f = await Deno.open(dst.string, {create: true, write: true, truncate: true})
 
     try {
-      await body(reader, f, sz)
+      let t: T | undefined
+      const show_stats = !Deno.env.get('CI') && !useFlags().silent
+      if (body && !show_stats) {
+        const tee = reader.tee()
+        const p1 = body(tee[0])
+        const p2 = reader.pipeTo(f.writable);
+        [t] = await Promise.all([p1, p2])
+      } else if (body) {
+        const tee = reader.tee()
+        const p1 = body(tee[0])
+        let n = 0
+        const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
+          if (sz) {
+            n += buf.length
+            const pc = Math.round(n / sz * 100);
+            (logger as Logger).replace(`${teal('downloading')} ${pc}%`)
+          } else {
+            (logger as Logger).replace(`${teal('downloaded')} ${pretty_size(n)}`)
+          }
+          return f.write(buf)
+        }});
+        [t] = await Promise.all([p1, p2])
+      } else {
+        await reader.pipeTo(f.writable)
+      }
 
       const text = rsp.headers.get("Last-Modified")
       const etag = rsp.headers.get("ETag")
 
-      if (text) mtime_entry().write({text, force: true})
-      if (etag) etag_entry().write({text: etag, force: true})
+      if (text) mtime_entry.write({text, force: true})
+      if (etag) etag_entry.write({text: etag, force: true})
+
+      return [dst, t]
 
     } finally {
       f.close()
     }
-  } break
+  }
   case 304:
     logger.replace(`cache: ${teal('hit')}`)
-    break
+    return [dst, undefined]
   default:
     throw new Error(`${rsp.status}: ${src}`)
   }
-
-  return dst
 }
 
 async function download(opts: DownloadOptions): Promise<Path> {
   try {
-    return await internal(opts, (src, dst) => copy(readerFromStreamReader(src.getReader()), dst))
+    const [path] = await internal(opts)
+    return path
   } catch (cause) {
     throw new TeaError('http', {cause, ...opts})
   }
 }
 
-async function download_with_sha({ logger, ...opts}: DownloadOptions): Promise<{path: Path, sha: string}> {
-  if (isString(logger)) {
-    logger = new Logger(logger)
-  } else if (!logger) {
-    logger = new Logger()
+async function stream<T>(opts: DownloadOptions, body: (src: ReadableStream<Uint8Array>) => Promise<T>): Promise<[Path, T]> {
+  try {
+    const [path, t] = await internal(opts, body)
+    if (t) return [path, t]
+
+    const f = await Deno.open(path.string, { read: true })
+    try {
+      const t = await body(f.readable)
+      return [path, t]
+    } finally {
+      Deno.close(f.rid)
+    }
+  } catch (cause) {
+    throw new TeaError('http', {cause, ...opts})
   }
-
-  let run = false
-
-  // don’t fill CI logs with dozens of download percentage lines
-  const ci = Deno.env.get("CI")
-
-  const path = await internal({...opts, logger}, (src, dst, sz) => {
-    let n = 0
-
-    run = true
-    const tee = src.tee()
-    const p1 = copy(readerFromStreamReader(tee[0].getReader()), dst)
-    const p2 = copy(readerFromStreamReader(tee[1].getReader()), { write: buf => {
-      if (sz && !ci) {
-        n += buf.length
-        const pc = Math.round(n / sz * 100);
-        (logger as Logger).replace(`${teal('downloading')} ${pc}%`)
-      } else if (!ci) {
-        (logger as Logger).replace(`${teal('downloading')} ${pretty_size(n)}`)
-      }
-      return Promise.resolve(buf.length)
-    }})
-    return Promise.all([p1, p2])
-  })
-
-  if (!run) {
-    logger.replace(teal('verifying'))
-  }
-
-  // Calculate the hash using an async iterable to avoid loading
-  // the whole file into memory. We don't need to call f.close()
-  // because we are using f.readable.
-  const f = await Deno.open(path.string, { read: true })
-  const digest = await crypto.subtle.digest("SHA-256", f.readable)
-
-  return { path, sha: toHashString(digest) }
 }
 
 function hash_key(url: URL): Path {
@@ -173,8 +163,8 @@ function hash_key(url: URL): Path {
 export default function useDownload() {
   return {
     download,
-    hash_key,
-    download_with_sha: error.wrap(download_with_sha, 'http')
+    stream,
+    hash_key
   }
 }
 

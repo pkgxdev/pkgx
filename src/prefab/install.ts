@@ -1,12 +1,9 @@
 import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
 import { run, TarballUnarchiver, host, pkg as pkgutils } from "utils"
-import { Installation, StowageNativeBottle } from "types"
 import { Logger, red, teal, gray } from "hooks/useLogger.ts"
+import { Installation, StowageNativeBottle } from "types"
+import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Package } from "types"
-
-// # NOTE
-// *only installs binaries*
-// > to install from source you must use `$SRCROOT../pantry/scripts/build.ts`
 
 // # contract
 // - if already installed, will extract over the top
@@ -16,7 +13,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const { project, version } = pkg
   logger ??= new Logger(pkgutils.str(pkg))
 
-  const { download_with_sha: download } = useDownload()
+  const { stream } = useDownload()
   const cellar = useCellar()
   const { verbosity, dryrun } = useFlags()
   const dstdir = usePrefix()
@@ -61,7 +58,9 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     logger.replace(teal("querying"))
 
     //FIXME if we already have the gz or xz versions don’t download the other version!
-    const { path: tarball, sha } = await download({ src: url, dst, logger })
+    const [tarball, sha] = await stream({ src: url, logger }, async (src) =>
+      toHashString(await crypto.subtle.digest("SHA-256", src))
+    )
 
     try {
       const url = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
@@ -73,6 +72,9 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
       console.error("we deleted the invalid tarball. try again?")
       throw err
     }
+
+    /// put the downloaded tarball in a user visible location
+    await Deno.link(tarball.string, dst.string)
 
     // converts `github.com/create-dmg/create-dmg/v1.1.0/bin` >>> `bin`
     const stripComponents = pkg.project.split("/").length
