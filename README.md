@@ -30,7 +30,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.24.10
+# tea/cli 0.25.0
 
 ```sh
 $ node --eval 'console.log("Hello World!")'

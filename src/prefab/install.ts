@@ -1,27 +1,23 @@
 import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
-import { run, TarballUnarchiver, host, pkg as pkgutils } from "utils"
+import { host, panic, pkg as pkgutils } from "utils"
 import { Logger, red, teal, gray } from "hooks/useLogger.ts"
 import { Installation, StowageNativeBottle } from "types"
 import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Package } from "types"
 
-// # contract
-// - if already installed, will extract over the top
-// - files not in the newer archive will not be deleted
-
 export default async function install(pkg: Package, logger?: Logger): Promise<Installation> {
   const { project, version } = pkg
   logger ??= new Logger(pkgutils.str(pkg))
 
-  const { stream } = useDownload()
   const cellar = useCellar()
-  const { verbosity, dryrun } = useFlags()
-  const dstdir = usePrefix()
+  const { dryrun } = useFlags()
+  const tea_prefix = usePrefix()
   const compression = get_compression()
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
-  const dst = useCache().path(stowage)
+  const tarball = useCache().path(stowage)
   const vdirname = `v${pkg.version}`
+  const shelf = tea_prefix.join(pkg.project)
 
   const log_install_msg = (install: Installation, title = 'installed') => {
     const str = [
@@ -33,17 +29,13 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   }
 
   if (dryrun) {
-    const install = { pkg, path: dstdir.join(pkg.project, vdirname) }
+    const install = { pkg, path: tea_prefix.join(pkg.project, vdirname) }
     log_install_msg(install, 'imagined')
     return install
   }
 
-  const lock_dir = dstdir.join(pkg.project)
-  const atomic_dstdir = lock_dir.join(`tmp.${vdirname}`)
-
   logger.replace(teal("locking"))
-
-  const { rid } = await Deno.open(lock_dir.mkpath().string)
+  const { rid } = await Deno.open(shelf.mkpath().string)
   await Deno.flock(rid, true)
 
   try {
@@ -57,46 +49,50 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
     logger.replace(teal("querying"))
 
-    const remote_SHA_URL = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
-    const remote_SHA_p = remote_SHA(remote_SHA_URL)
+    let stream = await useDownload().stream({ src: url, logger, dst: tarball })
+    const is_downloading = stream !== undefined
+    stream ??= await Deno.open(tarball.string, {read: true}).then(f => f.readable) ?? panic()
+    const tar_args = compression == 'xz' ? 'xJ' : 'xz'  // laughably confusing
+    const tee = stream.tee()
+    const pp: Promise<unknown>[] = []
 
-    //FIXME if we already have the gz or xz versions don’t download the other version!
-    const [tarball, local_SHA] = await stream({ src: url, logger }, async (src) =>
-      toHashString(await crypto.subtle.digest("SHA-256", src))
+    if (is_downloading) {  // cache the download
+      tarball.parent().mkpath()
+      const f = await Deno.open(tarball.string, {create: true, write: true, truncate: true})
+      const teee = tee[1].tee()
+      pp.push(teee[0].pipeTo(f.writable))
+      tee[1] = teee[1]
+    }
+
+    const tmpdir = usePrefix().join("tmp").mkpath()
+    const untar = new Deno.Command("tar", {
+      args: [tar_args, "-"],
+      stdin: 'piped', stdout: "inherit", stderr: "inherit",
+      cwd: tmpdir.string,
+    }).spawn()
+
+    pp.unshift(
+      crypto.subtle.digest("SHA-256", tee[0]).then(toHashString),
+      remote_SHA(new URL(`${url}.sha256sum`)),
+      untar.status,
+      tee[1].pipeTo(untar.stdin)
     )
 
-    if (await remote_SHA_p != local_SHA) {
+    const [computed_hash_value, checksum, tar_exit_status] = await Promise.all(pp) as [string, string, Deno.CommandStatus]
+
+    if (!tar_exit_status.success) {
+      throw new Error(`tar exited with status ${tar_exit_status}`)
+    }
+
+    if (computed_hash_value != checksum) {
       logger.replace(red('error'))
       tarball.rm()
       console.error("we deleted the invalid tarball. try again?")
-      throw {expected: await remote_SHA_p, got: local_SHA}
+      throw new Error(`sha: expected: ${checksum}, got: ${computed_hash_value}`)
     }
 
-    /// put the downloaded tarball in a user visible location
-    await Deno.link(tarball.string, dst.string)
-
-    // converts `github.com/create-dmg/create-dmg/v1.1.0/bin` >>> `bin`
-    const stripComponents = pkg.project.split("/").length
-
-    const cmd = new TarballUnarchiver({
-      zipfile: tarball, dstdir: atomic_dstdir.mkpath(), verbosity, stripComponents
-    }).args()
-
-    logger.replace(teal('extracting'))
-
-    await run({ cmd, clearEnv: true })
-
-    // we have accidentally bottled some bottles with a `./` prefix which counts
-    // as one component when stripping them. ugh.
-    if (atomic_dstdir.join(vdirname).isDirectory()) {
-      atomic_dstdir.join(vdirname).mv({ into: lock_dir })
-      atomic_dstdir.rm()
-    } else {
-      atomic_dstdir.mv({ to: lock_dir.join(vdirname) })
-    }
-
-    //FIXME unecessary compute
-    const install = await cellar.resolve(pkg)
+    const path = tmpdir.join(pkg.project, `v${pkg.version}`).mv({ into: shelf })
+    const install = { pkg, path }
 
     log_install_msg(install)
 
@@ -107,12 +103,6 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     Deno.close(rid)  // docs aren't clear if we need to do this or not
   }
 }
-
-//TODO strictly the checksum file needs to be rewritten
-//TODO so instead download to default cache path and write a checksum file for all bottles/srcs
-//FIXME there is a potential attack here since download streams to a file
-//  and AFTER we read back out of the file, a malicious actor could rewrite the file
-//  in that gap. Also it’s less efficient.
 
 async function remote_SHA(url: URL) {
   const rsp = await fetch(url)
