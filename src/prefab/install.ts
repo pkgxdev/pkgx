@@ -57,20 +57,19 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
     logger.replace(teal("querying"))
 
+    const remote_SHA_URL = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
+    const remote_SHA_p = remote_SHA(remote_SHA_URL)
+
     //FIXME if we already have the gz or xz versions don’t download the other version!
-    const [tarball, sha] = await stream({ src: url, logger }, async (src) =>
+    const [tarball, local_SHA] = await stream({ src: url, logger }, async (src) =>
       toHashString(await crypto.subtle.digest("SHA-256", src))
     )
 
-    try {
-      const url = useOffLicense('s3').url({pkg, compression, type: 'bottle'})
-      logger.replace(teal("verifying"))
-      await sumcheck(sha, new URL(`${url}.sha256sum`))
-    } catch (err) {
+    if (await remote_SHA_p != local_SHA) {
       logger.replace(red('error'))
       tarball.rm()
       console.error("we deleted the invalid tarball. try again?")
-      throw err
+      throw {expected: await remote_SHA_p, got: local_SHA}
     }
 
     /// put the downloaded tarball in a user visible location
@@ -115,19 +114,11 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 //  and AFTER we read back out of the file, a malicious actor could rewrite the file
 //  in that gap. Also it’s less efficient.
 
-async function sumcheck(local_SHA: string, url: URL) {
-  const remote_SHA = await (async () => {
-    const rsp = await fetch(url)
-    if (!rsp.ok) throw rsp
-    const txt = await rsp.text()
-    return txt.split(' ')[0]
-  })()
-
-  console.verbose({ remote_SHA, local_SHA })
-
-  if (remote_SHA != local_SHA) {
-    throw {expected: remote_SHA, got: local_SHA}
-  }
+async function remote_SHA(url: URL) {
+  const rsp = await fetch(url)
+  if (!rsp.ok) throw rsp
+  const txt = await rsp.text()
+  return txt.split(' ')[0]
 }
 
 function get_compression() {
