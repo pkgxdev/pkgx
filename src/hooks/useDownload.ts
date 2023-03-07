@@ -1,12 +1,9 @@
-import { readerFromStreamReader } from "deno/streams/reader_from_stream_reader.ts"
-import { copy } from "deno/streams/copy.ts"
+import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
-import { crypto, toHashString } from "deno/crypto/mod.ts";
 import { useFlags, usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
-
 
 interface DownloadOptions {
   src: URL
@@ -113,11 +110,7 @@ async function download(opts: DownloadOptions): Promise<Path> {
 
     path.parent().mkpath()
     const f = await Deno.open(path.string, {create: true, write: true, truncate: true})
-    try {
-      await stream.pipeTo(f.writable)
-    } finally {
-      f.close()
-    }
+    await stream.pipeTo(f.writable)
     return path
   } catch (cause) {
     throw new TeaError('http', {cause, ...opts})

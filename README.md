@@ -253,7 +253,10 @@ $ docker run --rm -it teaxyz/cli
 >   ```sh
 >   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
-> On macOS you may need to unquarantine the binary before it will execute:
+>
+> ### Unquarantining on macOS
+>
+> If the macOS GateKeeper says no try this:
 >
 > ```sh
 > # download from https://github.com/teaxyz/cli/releases first
