@@ -94,9 +94,9 @@ $ node~16.18 --version
 tea: installing node~16.18
 v16.18.1
 
-# when you need even more control we support the full https://semver.org spec
+# for even more control see the [semver cheatsheet](https://devhints.io/semver)
 # though you will need to invoke tea directly
-$ tea +nodejs.org'>=15,<17' node --version
+$ tea +nodejs.org'>=15 <17' node --version
 v16.19.0
 ```
 
