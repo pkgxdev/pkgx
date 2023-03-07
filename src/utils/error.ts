@@ -21,19 +21,21 @@ export default class TeaError extends Error {
   ctx: PlainObject
 
   code() {
+    // starting at 3 ∵ https://tldp.org/LDP/abs/html/exitcodes.html
+    // https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.7-4.6/+/refs/heads/tools_r20/sysroot/usr/include/sysexits.h
     switch (this.id) {
-      case 'not-found: tea -X: arg0': return 'spilt-tea-001'
-      case 'not-found: exe/md: default target': return 'spilt-tea-002'
-      case 'not-found: exe/md: region': return 'spilt-tea-003'
-      case 'not-found: pkg.version': return 'spilt-tea-004'
-      case 'not-found: pantry: package.yml': return 'spilt-tea-005'
-      case 'not-found: dev-env': return 'spilt-tea-006'
-      case 'not-found: pantry': return 'spilt-tea-007'
-      case 'not-found: arg': return 'spilt-tea-008'
-      case 'parser: pantry: package.yml': return 'spilt-tea-102'
-      case '#helpwanted': return 'spilt-tea-411'
-      case 'http': return 'spilt-tea-500'
-      case 'confused: interpreter': return 'spilt-tea-103'
+      case 'not-found: tea -X: arg0': return 'spilt-tea-003'
+      case 'not-found: exe/md: default target': return 'spilt-tea-004'
+      case 'not-found: exe/md: region': return 'spilt-tea-005'
+      case 'not-found: pkg.version': return 'spilt-tea-006'
+      case 'not-found: pantry: package.yml': return 'spilt-tea-007'
+      case 'not-found: dev-env': return 'spilt-tea-008'
+      case 'not-found: pantry': return 'spilt-tea-009'
+      case 'not-found: arg': return 'spilt-tea-010'
+      case 'parser: pantry: package.yml': return 'spilt-tea-011'
+      case '#helpwanted': return 'spilt-tea-012'
+      case 'http': return 'spilt-tea-013'
+      case 'confused: interpreter': return 'spilt-tea-14'
     default: {
       const exhaustiveness_check: never = this.id
       throw new Error(`unhandled id: ${exhaustiveness_check}`)

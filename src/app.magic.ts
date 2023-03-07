@@ -21,8 +21,10 @@ export default function(self: Path, shell?: string) {
         chpwd_functions=( _tea_chpwd_hook \${chpwd_functions[@]} )
       fi
 
-      # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
+      if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
+        export PATH="$HOME/.local/bin:$PATH"
+      fi
+
       if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi
@@ -43,7 +45,10 @@ export default function(self: Path, shell?: string) {
       # insert env for current dir too
       eval ("${d}"/tea +tea.xyz/magic -Esk --chaste env | slurp)
 
-      # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
+      if not (echo $PATH | split ':' | each [p]{ has-prefix $p $HOME/.local/bin }) {
+        echo "$HOME/.local/bin is not in PATH"
+      }
+
       if (not (has-external tea)) {
         set paths = [
           ${d}
@@ -58,13 +63,13 @@ export default function(self: Path, shell?: string) {
 
         if (not-eq $error $nil) {
           var reason
-          
+
           try {
             set reason = $error[reason]
           } catch {
             set reason = ""
           }
-          
+
           use str
           if (str:has-prefix (repr $reason) "<unknown exec:") {
             "${d}"/tea (str:split &max=-1 ' ' $src[code])
@@ -78,8 +83,10 @@ export default function(self: Path, shell?: string) {
         "${d}"/tea --env --keep-going --silent --dry-run=w/trace | source
       end
 
-      # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
+      if not string contains -q -r "^$HOME/.local/bin(:|\\$)" $PATH
+        export PATH="$HOME/.local/bin:$PATH"
+      end
+
       if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null
         export PATH="${d}:$PATH"
       end
@@ -97,8 +104,10 @@ export default function(self: Path, shell?: string) {
         fi
       }
 
-      # if the user put tea in eg. /usr/local/bin then don’t pollute their PATH
-      # we check for \`tea --prefix\` due to \`gitea\` being \`tea\` when installed with \`brew\`
+      if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
+        export PATH="$HOME/.local/bin:$PATH"
+      fi
+
       if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi

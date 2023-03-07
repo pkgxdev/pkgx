@@ -30,7 +30,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.24.9
+# tea/cli 0.25.0
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -94,9 +94,9 @@ $ node~16.18 --version
 tea: installing node~16.18
 v16.18.1
 
-# when you need even more control we support the full https://semver.org spec
+# for even more control see the [semver cheatsheet](https://devhints.io/semver)
 # though you will need to invoke tea directly
-$ tea +nodejs.org'>=15,<17' node --version
+$ tea +nodejs.org'>=15 <17' node --version
 v16.19.0
 ```
 
@@ -253,7 +253,10 @@ $ docker run --rm -it teaxyz/cli
 >   ```sh
 >   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
-> On macOS you may need to unquarantine the binary before it will execute:
+>
+> ### Unquarantining on macOS
+>
+> If the macOS GateKeeper says no try this:
 >
 > ```sh
 > # download from https://github.com/teaxyz/cli/releases first

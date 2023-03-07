@@ -1,11 +1,10 @@
 // deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
-import { host, flatmap, undent, validate_plain_obj, validate_str, validate_arr, pkg, TeaError } from "utils"
+import { host, validate_plain_obj, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
-import { useCellar, useGitHubAPI, usePrefix } from "hooks"
+import { useCellar, usePrefix } from "hooks"
 import { ls, pantry_paths, prefix } from "./usePantry.ls.ts"
-import SemVer, * as semver from "semver"
 import Path from "path"
 
 interface Entry {
@@ -22,47 +21,20 @@ export interface Interpreter {
 export default function usePantry() {
   return {
     getClosestPackageSuggestion,
-    getVersions,
     getDeps,
-    getDistributable,
     getCompanions,
-    getScript,
     getProvides,
-    getYAML,
     getInterpreter,
     getRuntimeEnvironment,
-    resolve,
     ls,
     prefix
-  }
-}
-
-async function resolve(spec: Package | PackageRequirement): Promise<Package> {
-  const constraint = "constraint" in spec ? spec.constraint : new semver.Range(`=${spec.version}`)
-  const versions = await getVersions(spec)
-  const version = constraint.max(versions)
-  if (!version) throw new Error(`not-found: version: ${pkg.str(spec)}`)
-  console.debug({selected: version})
-  return { project: spec.project, version };
-}
-
-//TODO take `T` and then type check it
-const getYAML = (pkg: Package | PackageRequirement) => {
-  const foo = entry(pkg)
-  return {
-    path: foo.dir.join("package.yml").isFile() ?? foo.dir.join("package.yaml"),
-    parse: foo.yml
   }
 }
 
 /// returns ONE LEVEL of deps, to recurse use `hydrate.ts`
 const getDeps = async (pkg: Package | PackageRequirement) => {
   const yml = await entry(pkg).yml()
-  return {
-    runtime: parse_pkgs_node(yml.dependencies),
-    build: parse_pkgs_node(yml.build?.dependencies),
-    test: parse_pkgs_node(yml.test?.dependencies)
-  }
+  return parse_pkgs_node(yml.dependencies)
 }
 
 // deno-lint-ignore no-explicit-any
@@ -76,74 +48,6 @@ function parse_pkgs_node(node: any) {
     rv.compact_push(validatePackageRequirement({ project, constraint }))
   }
   return rv
-}
-
-const getRawDistributableURL = (yml: PlainObject) => {
-  if (isPlainObject(yml.distributable)) {
-    return validate_str(yml.distributable.url)
-  } else if (isString(yml.distributable)) {
-    return yml.distributable
-  } else if (yml.distributable === null || yml.distributable === undefined) {
-    return
-  } else {
-    throw new Error(`invalid distributable node: ${yml.distributable}`)
-  }
-}
-
-const getDistributable = async (pkg: Package) => {
-  const moustaches = useMoustaches()
-
-  const yml = await entry(pkg).yml()
-  let urlstr = getRawDistributableURL(yml)
-  if (!urlstr) return
-  let stripComponents: number | undefined
-  if (isPlainObject(yml.distributable)) {
-    stripComponents = flatmap(yml.distributable["strip-components"], coerceNumber)
-  }
-
-  urlstr = moustaches.apply(urlstr, [
-    ...moustaches.tokenize.version(pkg.version),
-    ...moustaches.tokenize.host()
-  ])
-
-  const url = new URL(urlstr)
-
-  return { url, stripComponents }
-}
-
-const getScript = async (pkg: Package, key: 'build' | 'test', deps: Installation[]) => {
-  const yml = await entry(pkg).yml()
-  const node = yml[key]
-
-  const mm = useMoustaches()
-  const script = (input: string) => mm.apply(validate_str(input), mm.tokenize.all(pkg, deps))
-
-  if (isPlainObject(node)) {
-    let raw = script(node.script)
-
-    let wd = node["working-directory"]
-    if (wd) {
-      wd = mm.apply(wd, [
-        ...mm.tokenize.version(pkg.version),
-        ...mm.tokenize.host(),
-        ...tokenizePackage(pkg)
-      ])
-      raw = undent`
-        mkdir -p ${wd}
-        cd ${wd}
-
-        ${raw}
-        `
-    }
-
-    const env = node.env
-    if (isPlainObject(env)) {
-      raw = `${expand_env(env, pkg, deps)}\n\n${raw}`
-    }
-    return raw
-  } else {
-    return script(node)
-  }
 }
 
 const getProvides = async (pkg: { project: string }) => {
@@ -193,11 +97,6 @@ const getRuntimeEnvironment = async (pkg: Package): Promise<Record<string, strin
   const yml = await entry(pkg).yml()
   const obj = validate_plain_obj(yml["runtime"]?.["env"] ?? {})
   return expand_env_obj(obj, pkg, [])
-}
-
-// deno-lint-ignore no-explicit-any
-function coerceNumber(input: any) {
-  if (isNumber(input)) return input
 }
 
 function entry({ project }: { project: string }): Entry {
@@ -264,102 +163,6 @@ function levenshteinDistance (str1: string, str2:string):number{
      }
   }
   return track[str2.length][str1.length]
-}
-
-/// returns sorted versions
-async function getVersions(spec: { project: string }): Promise<SemVer[]> {
-  const files = entry(spec)
-  const versions = await files.yml().then(x => x.versions)
-
-  if (isArray(versions)) {
-    return versions.map(raw => new SemVer(validate_str(raw), {tolerant: true}))
-  } else if (isPlainObject(versions)) {
-    return handleComplexVersions(versions)
-  } else {
-    throw new Error(`couldn’t parse versions for ${spec.project}`)
-  }
-}
-
-//SRC https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-function escapeRegExp(string: string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
-}
-
-async function handleComplexVersions(versions: PlainObject): Promise<SemVer[]> {
-  const [user, repo, ...types] = validate_str(versions.github).split("/")
-  const type = types?.join("/").chuzzle() ?? 'releases'
-
-  const ignore = (() => {
-    const arr = (() => {
-      if (!versions.ignore) return []
-      if (isString(versions.ignore)) return [versions.ignore]
-      return validate_arr(versions.ignore)
-    })()
-    return arr.map(input => {
-      let rx = validate_str(input)
-      if (!(rx.startsWith("/") && rx.endsWith("/"))) {
-        rx = escapeRegExp(rx)
-        rx = rx.replace(/(x|y|z)\b/g, '\\d+')
-        rx = `^${rx}$`
-      } else {
-        rx = rx.slice(1, -1)
-      }
-      return new RegExp(rx)
-    })
-  })()
-
-  const strip: (x: string) => string = (() => {
-    let rxs = versions.strip
-    if (!rxs) return x => x
-    if (!isArray(rxs)) rxs = [rxs]
-    // deno-lint-ignore no-explicit-any
-    rxs = rxs.map((rx: any) => {
-      if (!isString(rx)) throw new Error()
-      if (!(rx.startsWith("/") && rx.endsWith("/"))) throw new Error()
-      return new RegExp(rx.slice(1, -1))
-    })
-    return x => {
-      for (const rx of rxs) {
-        x = x.replace(rx, "")
-      }
-      return x
-    }
-  })()
-
-  switch (type) {
-  case 'releases':
-  case 'releases/tags':
-  case 'tags':
-    break
-  default:
-    throw new Error()
-  }
-
-  const rv: SemVer[] = []
-  for await (const pre_strip_name of useGitHubAPI().getVersions({ user, repo, type })) {
-    let name = strip(pre_strip_name)
-
-    if (ignore.some(x => x.test(name))) {
-      console.debug({ignoring: pre_strip_name, reason: 'explicit'})
-    } else {
-      // it's common enough to use _ instead of . in github tags, but we require a `v` prefix
-      if (/^v\d+_\d+(_\d+)+$/.test(name)) {
-        name = name.replace(/_/g, '.')
-      }
-      const v = semver.parse(name)
-      if (!v) {
-        console.warn({ignoring: pre_strip_name, reason: 'unparsable'})
-      } else if (v.prerelease.length <= 0) {
-        console.debug({ found: v.toString(), from: pre_strip_name });
-        // used by some packages
-        (v as unknown as {tag: string}).tag = pre_strip_name
-        rv.push(v)
-      } else {
-        console.debug({ignoring: pre_strip_name, reason: 'prerelease'})
-      }
-    }
-  }
-  return rv
 }
 
 /// expands platform specific keys into the object
@@ -432,19 +235,6 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
     throw new Error("unexpected-error")
   }
 }
-
-function expand_env(env: PlainObject, pkg: Package, deps: Installation[]): string {
-  return Object.entries(expand_env_obj(env, pkg, deps)).map(([key,value]) => {
-    // weird POSIX string escaping/concat stuff
-    // eg. export FOO="bar ""$baz"" bun"
-    value = `"${value.trim().replace(/"/g, '""')}"`
-    while (value.startsWith('""')) value = value.slice(1)  //FIXME lol better pls
-    while (value.endsWith('""')) value = value.slice(0,-1) //FIXME lol better pls
-
-    return `export ${key}=${value}`
-  }).join("\n")
-}
-
 
 //////////////////////////////////////////// useMoustaches() additions
 import useMoustachesBase from "./useMoustaches.ts"
