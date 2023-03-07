@@ -66,7 +66,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
     const tmpdir = usePrefix().join("tmp").mkpath()
     const untar = new Deno.Command("tar", {
-      args: [tar_args, "-"],
+      args: [tar_args],
       stdin: 'piped', stdout: "inherit", stderr: "inherit",
       cwd: tmpdir.string,
     }).spawn()
