@@ -9,12 +9,29 @@ export function parse(input: string): PackageRequirement {
 
   const project = match[1]
 
-  if (match[2] =="@latest") {
-    console.warn(`@latest is deprecated, instead specify \`${project}*' or just \`${project}'`)
+  if (match[2] == "@latest") {
     return { project, constraint: new semver.Range('*') }
   } else {
-    // everyone expects `@` and for it to work this way
-    if (match[2].startsWith("@")) match[2] = `~${match[2].slice(1)}`
+    // @ is not a valid semver operator, but people expect it to work like so:
+    // @5 => latest 5.x (ie ^5)
+    // @5.1 => latest 5.1.x
+    // @5.1.0 => latest 5.1.0 (usually 5.1.0 since most stuff hasn't got more digits)
+    if (match[2].startsWith("@")) {
+      const v = match[2].slice(1)
+      const parts = v.split(".")
+      const n = parts.length
+      switch (n) {
+      case 0:
+        match[2] = `^${v}`
+        break
+      case 1:
+        match[2] = `~${v}`
+        break
+      default: {
+        const x = parseInt(parts.pop()!) + 1
+        match[2] = `>=${v} <${parts.join('.')}.${x}`
+      }}
+    }
 
     const constraint = new semver.Range(match[2])
     return { project, constraint }
