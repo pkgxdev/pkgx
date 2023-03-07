@@ -6,6 +6,7 @@ import useDownload from "./useDownload.ts"
 import useCache from "./useCache.ts"
 import useCellar from "./useCellar.ts"
 import useExec from "./useExec.ts"
+import useFetch from "./useFetch.ts"
 import useFlags from "./useFlags.ts"
 import useGitHubAPI from "./useGitHubAPI.ts"
 import useInventory from "./useInventory.ts"
@@ -24,6 +25,7 @@ export {
   useCellar,
   useDownload,
   useExec,
+  useFetch,
   useFlags,
   useGitHubAPI,
   useInventory,

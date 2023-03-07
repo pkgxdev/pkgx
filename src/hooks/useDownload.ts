@@ -3,7 +3,7 @@ import { copy } from "deno/streams/copy.ts"
 import { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { crypto, toHashString } from "deno/crypto/mod.ts";
-import { usePrefix } from "hooks"
+import { useFetch, usePrefix } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
 
@@ -65,7 +65,7 @@ async function internal<T>({ src, dst, headers, logger }: DownloadOptions,
     }
   }
 
-  const rsp = await fetch(src, {headers})
+  const rsp = await useFetch(src, { headers })
 
   switch (rsp.status) {
   case 200: {
