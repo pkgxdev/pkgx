@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "deno/testing/asserts.ts"
+import { assert, assertEquals, assertFalse } from "deno/testing/asserts.ts"
 import SemVer, { Range } from "utils/semver.ts"
 import * as pkg from "utils/pkg.ts"
 
@@ -43,5 +43,28 @@ Deno.test("pkg.str", async test => {
     })
     assert(constraint.single())
     assertEquals(out, `test=1.2.3`)
+  })
+})
+
+Deno.test("pkg.parse", async test => {
+  await test.step("@5", () => {
+    const { constraint } = pkg.parse("test@5")
+    assert(constraint.satisfies(new SemVer([5,0,0])))
+    assert(constraint.satisfies(new SemVer([5,1,0])))
+    assertFalse(constraint.satisfies(new SemVer([6,0,0])))
+  })
+
+  await test.step("@5.0", () => {
+    const { constraint } = pkg.parse("test@5.0")
+    assert(constraint.satisfies(new SemVer([5,0,0])))
+    assert(constraint.satisfies(new SemVer([5,0,1])))
+    assertFalse(constraint.satisfies(new SemVer([5,1,0])))
+  })
+
+  await test.step("@5.0.0", () => {
+    const { constraint } = pkg.parse("test@5.0.0")
+    assert(constraint.satisfies(new SemVer([5,0,0])))
+    assert(constraint.satisfies(new SemVer([5,0,0,1])))
+    assertFalse(constraint.satisfies(new SemVer([5,0,1])))
   })
 })
