@@ -3,15 +3,12 @@ import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
 import Path from "path"
 
-// temporary until node bottles are not crashing on macOS again
-if (Deno.build.os != 'darwin' || !Deno.env.get("GITHUB_ACTIONS")) {
-
 async function run(cmd: string[], PATH: Path, TEA_PREFIX: Path) {
   const proc = Deno.run({
     cmd,
     stdout: "piped",
     env: {
-      PATH: PATH.string,
+      PATH: `${PATH}:/usr/bin:/bin`,
       TEA_PREFIX: TEA_PREFIX.string
     }
   })
@@ -20,7 +17,7 @@ async function run(cmd: string[], PATH: Path, TEA_PREFIX: Path) {
   try {
     const { success } = await proc.status()
     out = new TextDecoder().decode(await proc.output())
-    if (!success) console.error("error:", `stdout: out`)
+    if (!success) console.error("error:", `stdout: ${out}`)
     assert(success, out)
   } finally {
     if (out === undefined) proc.stdout!.close()
@@ -72,5 +69,3 @@ it(suite, "hardlinks work", async function() {
   const out = await run(['node', "--eval", "console.log('hello')"], node.parent(), this.TEA_PREFIX)
   assertEquals(out, "hello\n", out)
 })
-
-}
