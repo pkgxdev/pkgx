@@ -2,6 +2,7 @@ import { Package, PackageRequirement } from "types"
 import { host, error, TeaError } from "utils"
 import SemVer from "semver"
 import Path from "../vendor/Path.ts"
+import { useFetch } from "hooks";
 
 export interface Inventory {
   [project: string]: {
@@ -29,7 +30,7 @@ const get = async (rq: PackageRequirement | Package) => {
   const url = new URL('https://dist.tea.xyz')
   url.pathname = Path.root.join(rq.project, platform, arch, 'versions.txt').string
 
-  const rsp = await fetch(url)
+  const rsp = await useFetch(url)
 
   if (!rsp.ok) {
     const cause = new Error(`${rsp.status}: ${url}`)

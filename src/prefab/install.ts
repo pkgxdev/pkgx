@@ -1,4 +1,4 @@
-import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense } from "hooks"
+import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense, useFetch } from "hooks"
 import { host, panic, pkg as pkgutils } from "utils"
 import { Logger, red, teal, gray } from "hooks/useLogger.ts"
 import { Installation, StowageNativeBottle } from "types"
@@ -105,7 +105,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 }
 
 async function remote_SHA(url: URL) {
-  const rsp = await fetch(url)
+  const rsp = await useFetch(url)
   if (!rsp.ok) throw rsp
   const txt = await rsp.text()
   return txt.split(' ')[0]

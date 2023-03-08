@@ -1,5 +1,6 @@
 import { GET2, undent, validate_arr, validate_str } from "utils"
 import { isArray } from "is_what"
+import { useFetch } from "hooks";
 
 //TODO pagination
 
@@ -66,7 +67,7 @@ async function *getVersions({ user, repo, type }: GetVersionsOptions): AsyncGene
             }
           }
         }`
-      const rsp = await fetch('https://api.github.com/graphql', {
+      const rsp = await useFetch('https://api.github.com/graphql', {
         method: 'POST',
         body: JSON.stringify({ query }),
         headers
