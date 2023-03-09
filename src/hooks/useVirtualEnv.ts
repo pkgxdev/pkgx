@@ -57,7 +57,11 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
   if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, TEA_DIR})
 
   for (const [key, value] of Object.entries(env)) {
-    env[key] = fix(value)
+    if (key != 'TEA_PREFIX') {
+      env[key] = fix(value)
+    } else {
+      delete env['TEA_PREFIX']  // screws everything up… so… no
+    }
   }
 
   function fix(input: string): string {
