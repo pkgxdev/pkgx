@@ -87,23 +87,34 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
 
 
 import { parse as parseYaml } from "deno/encoding/yaml.ts"
+import { readLines } from "deno/io/read_lines.ts"
 
 async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined> {
   //TODO be smart with knowing the comment types
   // this parsing logic should be in the pantry ofc
 
+  //TODO should only parse blank lines and comments before bailing
+  // at the first non-comment line
+
+  //TODO should be savvy to what comment type is acceptable!
+
   let yaml: string | undefined
-  for await (const line of path.readLines()) {
-    if (yaml !== undefined) {
-      if (line.trim().match(/^((#|\/\/)\s*)?---(\s*\*\/)?$/)) {
-        const rv = await parseYaml(yaml)
-        if (!isPlainObject(rv)) throw new Error("bad-yaml")
-        return rv
+  const fd = await Deno.open(path.string, { read: true })
+  try {
+    for await (const line of readLines(fd)) {
+      if (yaml !== undefined) {
+        if (/^((#|\/\/)\s*)?---(\s*\*\/)?$/.test(line.trim())) {
+          const rv = await parseYaml(yaml)
+          if (!isPlainObject(rv)) throw new Error("yaml is not dictionary")
+          return rv
+        }
+        yaml += line?.replace(/^(#|\/\/)/, '')
+        yaml += "\n"
+      } else if (/^((\/\*|#|\/\/)\s*)?---/.test(line.trim())) {
+        yaml = ''
       }
-      yaml += line?.replace(/^#/, '')
-      yaml += "\n"
-    } else if (line.trim().match(/^((\/\*|#|\/\/)\s*)?---/)) {
-      yaml = ''
     }
+  } finally {
+    fd.close()
   }
 }

@@ -1,0 +1,7 @@
+# ---
+# dependencies:
+#   zlib.net: ^1.2
+# ---
+
+[project]
+name = "tea/cli example"

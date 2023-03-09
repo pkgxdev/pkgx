@@ -1,0 +1,7 @@
+{
+  "tea": {
+    "dependencies": {
+      "zlib.net": "^1.2"
+    }
+  }
+}
