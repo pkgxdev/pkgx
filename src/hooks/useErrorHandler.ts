@@ -6,7 +6,7 @@ import Path from "path"
 async function suggestions(err: TeaError) {
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
-    const suggestion = await usePantry().getClosestPackageSuggestion(err.ctx.project).swallow()
+    const suggestion = await getClosestPackageSuggestion(err.ctx.project).swallow()
     return suggestion
       ? `did you mean \`${logger.teal(suggestion)}\`? otherwise… see you on GitHub?`
       : undefined
@@ -88,4 +88,49 @@ function msg(err: TeaError): string {
   }
 
   return msg
+}
+
+async function getClosestPackageSuggestion(input: string) {
+  let choice: string | undefined
+  let min = Infinity
+  const pantry = usePantry()
+  for await (const {project} of pantry.ls()) {
+    if (min == 0) break
+
+    pantry.getProvides({ project }).then(provides => {
+      if (provides.includes(input)) {
+        choice = project
+        min = 0
+      }
+    })
+
+    const dist = levenshteinDistance(project, input)
+    if (dist < min) {
+      min = dist
+      choice = project
+    }
+  }
+  return choice
+}
+
+function levenshteinDistance (str1: string, str2:string):number{
+  const track = Array(str2.length + 1).fill(null).map(() =>
+    Array(str1.length + 1).fill(null))
+  for (let i = 0; i <= str1.length; i += 1) {
+     track[0][i] = i
+  }
+  for (let j = 0; j <= str2.length; j += 1) {
+     track[j][0] = j
+  }
+  for (let j = 1; j <= str2.length; j += 1) {
+     for (let i = 1; i <= str1.length; i += 1) {
+        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1
+        track[j][i] = Math.min(
+           track[j][i - 1] + 1, // deletion
+           track[j - 1][i] + 1, // insertion
+           track[j - 1][i - 1] + indicator, // substitution
+        );
+     }
+  }
+  return track[str2.length][str1.length]
 }

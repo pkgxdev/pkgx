@@ -208,11 +208,6 @@ export async function attempt<T>(body: () => Promise<T>, opts: {swallow: unknown
   }
 }
 
-/////////////////////////////////////////////////////////////////// Unarchiver
-import { Unarchiver, TarballUnarchiver, ZipUnarchiver } from "./Unarchiver.ts"
-export { Unarchiver, TarballUnarchiver, ZipUnarchiver }
-
-
 ////////////////////////////////////////////////////////////////////////// run
 import Path from "path"
 
