@@ -25,7 +25,7 @@ const prefix = (() => {
   }
 })()
 
-class Prefix extends Path {
+export class Prefix extends Path {
   www: Path
 
   constructor(prefix: Path) {

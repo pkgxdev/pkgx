@@ -4,7 +4,8 @@ import useFlags from "./useFlags.ts"
 
 let global_prefix: string | undefined
 export function set_global_prefix(prefix: string) {
-  if (global_prefix !== undefined) throw new Error()
+  // FIX ME!!!
+  //if (global_prefix !== undefined) throw new Error()
   global_prefix = prefix.trim()
 }
 

@@ -1,4 +1,5 @@
-import {which} from "hooks/useExec.ts";
+import { which } from "hooks/useExec.ts"
+import { ExitError } from "./types.ts"
 
 export default async function provides(args: string[]) {
   let status = 0;
@@ -6,5 +7,5 @@ export default async function provides(args: string[]) {
     const provides = await which(arg);
     if (!provides) status = 1;
   }
-  Deno.exit(status);
+  throw new ExitError(status)
 }

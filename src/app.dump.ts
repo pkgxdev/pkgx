@@ -1,6 +1,6 @@
-import { EnvKeys } from "hooks/useShellEnv.ts"
-import { flatmap, print, validate_plain_obj } from "utils"
-import { isPlainObject, isFullArray, isEmptyObject } from "is_what"
+import { flatmap } from "utils"
+import { usePrint } from "hooks"
+import { isPlainObject } from "is_what"
 
 //TODO should read from the shell configuration files to get originals properly
 //TODO don’t wait on each print, instead chain the promises to be more time-efficient
@@ -11,6 +11,8 @@ interface Parameters {
 }
 
 export default async function dump({ env, shell }: Parameters) {
+  const { print } = usePrint()
+
   const [set, unset]= (() => {
     switch (shell) {
     case "elvish":

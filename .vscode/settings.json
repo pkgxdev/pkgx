@@ -3,6 +3,11 @@
   "deno.lint": true,
   "deno.unstable": true,
   "deno.config": "deno.jsonc",
+  "deno.codeLens.testArgs": [
+    "--allow-all",
+    "--no-check",
+    "--import-map=import-map.test.json"
+  ],
   "markdownlint.config": {
     "extends": "./.github/markdownlint.yml"
   }

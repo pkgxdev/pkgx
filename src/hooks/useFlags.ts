@@ -53,7 +53,8 @@ export type Args = {
 }
 
 export function useArgs(args: string[], arg0: string): [Args, Flags & ConvenienceFlags] {
-  if (flags) throw new Error("contract-violated")
+  // FIXME this needs some refactoring
+  //if (flags) throw new Error("contract-violated")
 
   // pre 0.19.0 this was how we sourced our (more limited) shell magic
   if (new Set(['-Eds', '--env --keep-going --silent --dry-run=w/trace']).has(args.join(' '))) {

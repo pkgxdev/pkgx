@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "request": "launch",
+            "name": "Debug Test",
+            "type": "node",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "deno",
+            "runtimeArgs": [
+                "test",
+                "--unstable",
+                "--inspect-brk",
+                "--allow-all",
+                "--import-map=import-map.test.json",
+                "${file}",
+            ],
+            "attachSimplePort": 9229
+        }
+    ]
+}

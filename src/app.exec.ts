@@ -1,6 +1,7 @@
-import { run, pkg as pkgutils, TeaError, RunError, chuzzle } from "utils"
-import { Installation } from "types"
-import { useFlags } from "hooks"
+import { pkg as pkgutils, TeaError, chuzzle } from "utils"
+import { ExitError, Installation } from "types"
+import { useFlags, useRun } from "hooks"
+import { RunError } from "hooks/useRun.ts"
 import { gray, red, teal } from "hooks/useLogger.ts"
 import { basename } from "deno/path/mod.ts"
 import { isNumber } from "is_what"
@@ -14,7 +15,7 @@ export default async function(cmd: string[], env: Record<string, string>) {
   if (nobomb > 20) throw new Error("FORK BOMB KILL SWITCH ACTIVATED")
 
   try {
-    await run({cmd, env})
+    await useRun({cmd, env})
   } catch (err) {
     const { debug } = useFlags()
     const arg0 = cmd?.[0]
@@ -25,7 +26,7 @@ export default async function(cmd: string[], env: Record<string, string>) {
       console.error(err)
     } else if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", teal(arg0))
-      Deno.exit(127)  // 127 is used for command not found
+      throw new ExitError(127)  // 127 is used for command not found
     } else if (err instanceof Deno.errors.PermissionDenied) {
       if (Path.abs(arg0)?.isDirectory()) {
         console.error("tea: is directory:", teal(arg0))
@@ -37,7 +38,7 @@ export default async function(cmd: string[], env: Record<string, string>) {
       console.error(`${red("error")}:`, decapitalize(err.message))
     }
     const code = err?.code ?? 1
-    Deno.exit(isNumber(code) ? code : 1)
+    throw new ExitError(isNumber(code) ? code : 1)
   }
 }
 
@@ -81,10 +82,10 @@ export async function repl(installations: Installation[], env: Record<string, st
   }
 
   try {
-    await run({ cmd, env })
+    await useRun({ cmd, env })
   } catch (err) {
     if (err instanceof RunError) {
-      Deno.exit(err.code)
+      throw new ExitError(err.code)
     } else {
       throw err
     }

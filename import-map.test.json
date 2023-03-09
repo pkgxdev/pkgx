@@ -1,0 +1,23 @@
+{
+  "imports": {
+    "hooks/usePrefix.ts": "./tests/mocks/mockUsePrefix.ts",
+    "hooks/usePrint.ts": "./tests/mocks/mockUsePrint.ts",
+    "hooks/useRun.ts": "./tests/mocks/mockUseRun.ts",
+    "path": "./src/vendor/Path.ts",
+    "types": "./src/types.ts",
+    "hooks": "./src/hooks/index.ts",
+    "hooks/": "./src/hooks/",
+    "prefab": "./src/prefab/index.ts",
+    "prefab/": "./src/prefab/",
+    "deno/": "https://deno.land/std@0.176.0/",
+    "semver": "./src/utils/semver.ts",
+    "utils": "./src/utils/index.ts",
+    "utils/": "./src/utils/",
+    "is_what": "https://deno.land/x/is_what@v4.1.8/src/index.ts",
+    "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
+    "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
+    "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
+    "rimbu/": "https://deno.land/x/rimbu@0.13.1/",
+    "jsonc": "https://deno.land/x/jsonc_parser@v0.0.1/mod.ts"
+  }
+}

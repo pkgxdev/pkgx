@@ -1,5 +1,6 @@
-import { useDownload, useCellar, usePantry, useFlags } from "hooks"
-import { host, run as base_run, RunOptions } from "utils"
+import { useDownload, useCellar, usePantry, useFlags, useRun } from "hooks"
+import { RunOptions } from "hooks/useRun.ts"
+import { host } from "utils"
 import useLogger, { Logger } from "./useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
@@ -188,5 +189,5 @@ export default update
 
 function run(opts: RunOptions) {
   const spin = useFlags().verbosity < 1
-  return base_run({ ...opts, spin })
+  return useRun({ ...opts, spin })
 }

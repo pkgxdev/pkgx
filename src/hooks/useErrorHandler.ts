@@ -2,6 +2,7 @@ import * as logger from "./useLogger.ts"
 import { usePantry, useFlags, usePrefix, useInventory } from "hooks"
 import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
+import { ExitError } from "../types.ts"
 
 async function suggestions(err: TeaError) {
   switch (err.id) {
@@ -23,7 +24,9 @@ async function suggestions(err: TeaError) {
 export default async function(err: Error) {
   const { silent, debug } = useFlags()
 
-  if (err instanceof TeaError) {
+  if (err instanceof ExitError) {
+    return err.code
+  } else if (err instanceof TeaError) {
     if (!silent) {
       const suggestion = await suggestions(err).swallow()
       console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
