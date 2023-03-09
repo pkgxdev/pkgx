@@ -1,0 +1,10 @@
+# ---
+# dependencies:
+#   zlib.net: ^1.2
+# ---
+
+[package]
+name = "tea/cli example"
+version = "0.0.1"
+authors = ["mxcl"]
+autobins = false
