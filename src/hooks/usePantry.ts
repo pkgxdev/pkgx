@@ -1,10 +1,8 @@
-// deno-lint-ignore-file no-cond-assign
 import { Package, PackageRequirement, Installation } from "types"
 import { host, validate_plain_obj, pkg, TeaError } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, usePrefix } from "hooks"
-import { ls, pantry_paths, prefix } from "./usePantry.ls.ts"
 import Path from "path"
 
 interface Entry {
@@ -20,7 +18,6 @@ export interface Interpreter {
 
 export default function usePantry() {
   return {
-    getClosestPackageSuggestion,
     getDeps,
     getCompanions,
     getProvides,
@@ -121,50 +118,6 @@ function entry({ project }: { project: string }): Entry {
   throw new TeaError('not-found: pantry: package.yml', {project}, )
 }
 
-async function getClosestPackageSuggestion(input: string) {
-  let choice: string | undefined
-  let min = Infinity
-  for await (const {project} of ls()) {
-    if (min == 0) break
-
-    getProvides({ project }).then(provides => {
-      if (provides.includes(input)) {
-        choice = project
-        min = 0
-      }
-    })
-
-    const dist = levenshteinDistance(project, input)
-    if (dist < min) {
-      min = dist
-      choice = project
-    }
-  }
-  return choice
-}
-
-function levenshteinDistance (str1: string, str2:string):number{
-  const track = Array(str2.length + 1).fill(null).map(() =>
-    Array(str1.length + 1).fill(null))
-  for (let i = 0; i <= str1.length; i += 1) {
-     track[0][i] = i
-  }
-  for (let j = 0; j <= str2.length; j += 1) {
-     track[j][0] = j
-  }
-  for (let j = 1; j <= str2.length; j += 1) {
-     for (let i = 1; i <= str1.length; i += 1) {
-        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1
-        track[j][i] = Math.min(
-           track[j][i - 1] + 1, // deletion
-           track[j - 1][i] + 1, // insertion
-           track[j - 1][i - 1] + indicator, // substitution
-        );
-     }
-  }
-  return track[str2.length][str1.length]
-}
-
 /// expands platform specific keys into the object
 /// expands inplace because JS is nuts and you have to suck it up
 function platform_reduce(env: PlainObject) {
@@ -173,8 +126,8 @@ function platform_reduce(env: PlainObject) {
     const [os, arch] = (() => {
       let match = key.match(/^(darwin|linux)\/(aarch64|x86-64)$/)
       if (match) return [match[1], match[2]]
-      if (match = key.match(/^(darwin|linux)$/)) return [match[1]]
-      if (match = key.match(/^(aarch64|x86-64)$/)) return [,match[1]]
+      if ((match = key.match(/^(darwin|linux)$/))) return [match[1]]
+      if ((match = key.match(/^(aarch64|x86-64)$/))) return [,match[1]]
       return []
     })()
 
@@ -272,4 +225,49 @@ function useMoustaches() {
 
 function tokenizePackage(pkg: Package) {
   return [{ from: "prefix", to: useCellar().keg(pkg).string }]
+}
+
+const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
+
+export function pantry_paths(): Path[] {
+  const rv: Path[] = []
+  if (prefix.isDirectory()) rv.push(prefix)
+  const env = Deno.env.get("TEA_PANTRY_PATH")
+  if (env) for (const path of env.split(":").reverse()) {
+    rv.unshift(Path.cwd().join(path, "projects"))
+  }
+
+  if (rv.length == 0) throw new TeaError("not-found: pantry", {prefix})
+
+  return rv
+}
+
+interface LsEntry {
+  project: string
+  path: Path
+}
+
+export async function* ls(): AsyncGenerator<LsEntry> {
+  for (const prefix of pantry_paths()) {
+    for await (const path of _ls_pantry(prefix)) {
+      yield {
+        project: path.parent().relative({ to: prefix }),
+        path
+      }
+    }
+  }
+}
+
+async function* _ls_pantry(dir: Path): AsyncGenerator<Path> {
+  if (!dir.isDirectory()) throw new TeaError('not-found: pantry', { path: dir })
+
+  for await (const [path, { name, isDirectory }] of dir.ls()) {
+    if (isDirectory) {
+      for await (const x of _ls_pantry(path)) {
+        yield x
+      }
+    } else if (name === "package.yml" || name === "package.yaml") {
+      yield path
+    }
+  }
 }

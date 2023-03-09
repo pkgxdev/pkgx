@@ -8,10 +8,8 @@ import useCellar from "./useCellar.ts"
 import useExec from "./useExec.ts"
 import useFetch from "./useFetch.ts"
 import useFlags from "./useFlags.ts"
-import useGitHubAPI from "./useGitHubAPI.ts"
 import useInventory from "./useInventory.ts"
 import useShellEnv from "./useShellEnv.ts"
-import useSourceUnarchiver from "./useSourceUnarchiver.ts"
 import usePantry from "./usePantry.ts"
 import useVirtualEnv from "./useVirtualEnv.ts"
 import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
@@ -29,7 +27,6 @@ export {
   useExec,
   useFetch,
   useFlags,
-  useGitHubAPI,
   useInventory,
   useMoustaches,
   useOffLicense,
@@ -38,7 +35,6 @@ export {
   usePantry,
   usePrefix,
   useShellEnv,
-  useSourceUnarchiver,
   useSync,
   useVersion,
   useVirtualEnv,
