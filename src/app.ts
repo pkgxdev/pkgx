@@ -12,6 +12,7 @@ import Path from "path"
 import { Verbosity } from "./types.ts"
 import * as semver from "semver"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
+import { basename } from "deno/path/mod.ts"
 
 try {
   const [args] = useArgs(Deno.args, Deno.execPath())
@@ -75,16 +76,17 @@ try {
         await print(`${key}=${value.join(":")}`)
       }
       break
-    case "dump":
+    case "dump": {
       env['PATH'] = full_path().join(':')
       env["TEA_PKGS"] = pkgs.map(pkgutils.str).join(":")
       env["TEA_PREFIX"] ??= usePrefix().string
       env["TEA_VERSION"] = useVersion()
 
-      await dump({env, pkgs: installations})
-      break
-    }
-  } break
+      const shell = flatmap(Deno.env.get("SHELL"), basename)
+
+      await dump({env, shell})
+    } break
+  }} break
   case "help":
     await help()
     break

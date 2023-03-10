@@ -30,7 +30,7 @@ the creator of [`brew`].
 &nbsp;
 
 
-# tea/cli 0.24.9
+# tea/cli 0.24.10
 
 ```sh
 $ node --eval 'console.log("Hello World!")'
@@ -253,6 +253,7 @@ $ docker run --rm -it teaxyz/cli
 >   ```sh
 >   $ sudo install -m 755 <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) /usr/local/bin/tea
 >   ```
+>
 > On macOS you may need to unquarantine the binary before it will execute:
 >
 > ```sh
