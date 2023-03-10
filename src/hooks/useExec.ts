@@ -60,7 +60,11 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         precmd.unshift(...found.args)
         await add_companions(found)
       } else if (is_tea_shebang) {
-        throw new TeaError("confused: interpreter", {arg0})
+        if (arg0.extname() == '.sh') {
+          precmd.unshift("sh")
+        } else {
+          throw new TeaError("confused: interpreter", {arg0})
+        }
       }
     } else {
       const found = await which(precmd[0])
