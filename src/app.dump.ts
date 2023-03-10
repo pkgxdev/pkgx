@@ -1,21 +1,17 @@
 import { EnvKeys } from "hooks/useShellEnv.ts"
-import { flatmap, print } from "utils"
+import { flatmap, print, validate_plain_obj } from "utils"
 import { isPlainObject, isFullArray, isEmptyObject } from "is_what"
-import { basename } from "deno/path/mod.ts"
-import { Installation } from "types"
 
 //TODO should read from the shell configuration files to get originals properly
 //TODO don’t wait on each print, instead chain the promises to be more time-efficient
 
 interface Parameters {
   env: Record<string, string>
-  pkgs: Installation[]
+  shell?: string
 }
 
-export default async function dump({ env }: Parameters) {
-  const shell = flatmap(Deno.env.get("SHELL"), basename)
-
-  const [setEnv, unsetEnv]= (() => {
+export default async function dump({ env, shell }: Parameters) {
+  const [set, unset]= (() => {
     switch (shell) {
     case "elvish":
       return [
@@ -35,88 +31,63 @@ export default async function dump({ env }: Parameters) {
     }
   })()
 
-  // represents the dehydrated initial env
-  const defaults = get_defaults()
-  const keys = new Set([...EnvKeys, 'SRCROOT', 'VERSION', 'TEA_FILES', ...Object.keys(env)])
+  const is_env = env['SRCROOT']
 
-  if (!env["TEA_FILES"]) {
-    // this is shell magic mode and we need to reset the shell env to pristine defaults
+  if (is_env) {
+    const oldenv = Deno.env.toObject()
 
-    if (Deno.env.get("TEA_REWIND")?.includes("TEA_PREFIX")) {
-      // we do this manually because we also set it for stuff executed through tea
-      // which means when developing tea this otherwise doesn’t get unset lol
-      await print(unsetEnv("TEA_PREFIX"))
-    }
+    // first rewind the env to the original state
+    if (oldenv['TEA_REWIND']) {
+      const rewind = JSON.parse(oldenv['TEA_REWIND']) as { revert: Record<string, string>, unset: string[] }
+      delete oldenv['TEA_REWIND']
 
-    if (Deno.env.get("TEA_REWIND")) {
-      await print(unsetEnv("TEA_REWIND"))
-    }
-
-    for (const key of keys) {
-      if (defaults[key]) {
-        if (neq(defaults[key], Deno.env.get(key)?.split(":"))) {
-          await print(setEnv(key, defaults[key].join(":")))
+      for (const key of rewind.unset) {
+        if (!env[key]) {
+          await print(unset(key))
         }
-      } else if (Deno.env.get(key) !== undefined) {
-        await print(unsetEnv(key))
+        delete oldenv[key]
+      }
+      for (const [key, value] of Object.entries(rewind.revert)) {
+        if (!env[key]) {
+          await print(set(key, value))
+        }
+        oldenv[key] = value
       }
     }
-  } else {
-    for (const key of keys) {
-      const value = env[key]
-      if (value?.chuzzle()) {
-        await print(setEnv(key, value))
-      } else if (Deno.env.get(key) !== undefined) {
-        if (!defaults[key]?.chuzzle()) {
-          await print(unsetEnv(key))
+
+    // now calculate the new rewind
+    const TEA_REWIND = (() => {
+      const revert: Record<string, string> = {}
+      const unset: string[] = []
+      for (const key of Object.keys(env)) {
+        const value = oldenv[key]?.trim()
+        if (value) {
+          revert[key] = value
         } else {
-          const joined = defaults[key].join(":")
-          const current = Deno.env.get(key)?.trim()
-          if (joined != current) {
-            await print(setEnv(key, defaults[key].join(":")))
-          } else {
-            delete defaults[key]
-          }
+          unset.push(key)
         }
       }
-    }
+      return JSON.stringify({
+        revert, unset
+      })
+    })()
 
-    if (!isEmptyObject(defaults)) {
-      await print(setEnv("TEA_REWIND", JSON.stringify(defaults)))
-    } else if (Deno.env.get("TEA_REWIND") !== undefined) {
-      await print(unsetEnv("TEA_REWIND"))
+    // print the setters for the new env
+    for (const [key, value] of Object.entries(env)) {
+      await print(set(key, value))
     }
-  }
-}
+    await print(set('TEA_REWIND', TEA_REWIND))
 
-function neq(a: string[] | undefined, b: string[] | undefined) {
-  if (!a && !b) return false
-  if (!a || !b) return true
-  if (a.length != b.length) return true
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return true
-  }
-  return false
-}
-
-function get_defaults() {
-  const json = flatmap(Deno.env.get("TEA_REWIND"), x => JSON.parse(x), {rescue: true})
-  if (isPlainObject(json)) {
-    for (const [key, value] of Object.entries(json)) {
-      if (!isFullArray(value)) {
-        delete json[key]
-      }
-    }
-    return json as Record<string, string[]>
   } else {
-    return EnvKeys.reduce((obj, key) => {
-      const value = Deno.env.get(key)
-      if (value) {
-        obj[key] = value.split(":")
-      } else {
-        delete obj[key]
-      }
-      return obj
-    }, {} as Record<string, string[]>)
+    const unwind = flatmap(Deno.env.get('TEA_REWIND'), JSON.parse) as { revert: Record<string, string>, unset: string[] }
+    if (!isPlainObject(unwind)) return
+
+    for (const key of unwind.unset) {
+      await print(unset(key))
+    }
+    for (const [key, value] of Object.entries(unwind.revert)) {
+      await print(set(key, value))
+    }
+    await print(unset('TEA_REWIND'))
   }
 }
