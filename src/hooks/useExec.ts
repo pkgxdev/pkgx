@@ -83,11 +83,14 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
 
   let installations: Installation[]
   if (!opts.chaste) {
-    installations = await install(pkgs, sync)
+    const { installed, dry } = await install(pkgs, sync)
+    installations = installed
+    pkgs = dry  // reassign as condensed + sorted
   } else {
     const cellar = useCellar()
-    const { pkgs: wet } = await hydrate(pkgs)
+    const { pkgs: wet, dry } = await hydrate(pkgs)
     installations = (await Promise.all(wet.map(cellar.has))).compact()
+    pkgs = dry  // reassign as condensed + sorted
   }
 
   Object.assign(env, flatten(await useShellEnv({ installations })))
@@ -104,13 +107,13 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
 
 ///////////////////////////////////////////////////////////////////////////// funcs
 
-async function install(pkgs: PackageSpecification[], update: boolean): Promise<Installation[]> {
+async function install(pkgs: PackageSpecification[], update: boolean) {
   const logger = new Logger()
   logger.replace("resolving package graph")
 
   console.debug({hydrating: pkgs})
 
-  const { pkgs: wet } = await hydrate(pkgs)
+  const { pkgs: wet, dry } = await hydrate(pkgs)
   const {installed, pending} = await resolve(wet, { update })
   logger.clear()
 
@@ -120,7 +123,7 @@ async function install(pkgs: PackageSpecification[], update: boolean): Promise<I
     installed.push(install)
   }
 
-  return installed
+  return { installed, dry }
 }
 
 import { readLines } from "deno/io/read_lines.ts"
