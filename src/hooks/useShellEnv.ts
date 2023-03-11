@@ -155,12 +155,8 @@ function suffixes(key: EnvKey) {
 
 export function expand(env: Record<string, string[]>) {
   let rv = ''
-  for (let [key, value] of Object.entries(env)) {
+  for (const [key, value] of Object.entries(env)) {
     if (value.length == 0) continue
-    // so far we don’t know any situation where we want dupes
-    // but we've seen a few where this breaks things, notably for single value keys that have
-    // gotten duped
-    value = value.uniq()
     rv += `export ${key}="${value.join(":")}"\n`
   }
   return rv
