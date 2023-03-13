@@ -23,7 +23,7 @@ export default async function help() {
 
   15  more:
         $ tea --verbose --help
-        $ open https://github.com/teaxyz/cli
+        $ open https://docs.tea.xyz
       `)
   } else {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
