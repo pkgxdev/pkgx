@@ -80,7 +80,7 @@ jobs:
       - uses: teaxyz/cli/.github/actions/cache@v0  # avoids sporadic 500s from deno’s CDN
       - uses: teaxyz/setup@v0
       - run: deno task compile
-      - uses: teaxyz/pantry.core/.github/actions/codesign@main
+      - uses: teaxyz/brewkit/actions/codesign@v0
         if: startsWith(matrix.platform.build-id, 'darwin+')
         with:
             p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
