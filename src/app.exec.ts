@@ -1,6 +1,6 @@
 import { pkg as pkgutils, TeaError, chuzzle } from "utils"
 import { ExitError, Installation } from "types"
-import { useFlags, useRun } from "hooks"
+import { useEnv, useConfig, useRun } from "hooks"
 import { RunError } from "hooks/useRun.ts"
 import { gray, red, teal } from "hooks/useLogger.ts"
 import { basename } from "deno/path/mod.ts"
@@ -8,16 +8,17 @@ import { isNumber } from "is_what"
 import Path from "path"
 
 export default async function(cmd: string[], env: Record<string, string>) {
+  const { TEA_FORK_BOMB_PROTECTOR } = useEnv()
 
   // ensure we cannot fork bomb the user since this is basically the worst thing tea/cli can do
-  let nobomb = chuzzle(parseInt(Deno.env.get('TEA_FORK_BOMB_PROTECTOR') ?? '0')) ?? 0
+  let nobomb = chuzzle(parseInt(TEA_FORK_BOMB_PROTECTOR ?? '0')) ?? 0
   env['TEA_FORK_BOMB_PROTECTOR'] = `${++nobomb}`
   if (nobomb > 20) throw new Error("FORK BOMB KILL SWITCH ACTIVATED")
 
   try {
     await useRun({cmd, env})
   } catch (err) {
-    const { debug } = useFlags()
+    const { debug } = useConfig()
     const arg0 = cmd?.[0]
 
     if (err instanceof TeaError) {
@@ -43,6 +44,7 @@ export default async function(cmd: string[], env: Record<string, string>) {
 }
 
 export async function repl(installations: Installation[], env: Record<string, string>) {
+  const { SHELL } = useEnv()
   const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
 
   // going to stderr so that we don’t potentially break (nonsensical) pipe scenarios, eg.
@@ -52,7 +54,7 @@ export async function repl(installations: Installation[], env: Record<string, st
   console.error(pkgs_str())
   console.error("when done type: `exit'")
 
-  const shell = Deno.env.get("SHELL")?.trim() || "/bin/sh"
+  const shell = SHELL?.trim() || "/bin/sh"
   const cmd = [shell, '-i'] // interactive
 
   //TODO other shells pls #help-wanted

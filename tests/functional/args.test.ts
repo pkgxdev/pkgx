@@ -1,25 +1,33 @@
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
 import { wut } from "../../src/app.main.ts"
-import { useArgs } from "hooks/useFlags.ts"
+import { parseArgs } from "../../src/args.ts"
+import { init } from "../../src/init.ts"
 
 Deno.test("args", async test => {
+  const runTest = (a: string[]) => {
+    const [args, flags] = parseArgs(a, "/tea")
+    init(flags)
+    return wut(args)
+  }
+
   await test.step("should use env", () => {
-    const [args] = useArgs(["+zlib.net"], "/tea")
-    assertEquals(wut(args), 'env')
+    assertEquals(runTest(["+zlib.net"]), 'env')
   })
 
   await test.step("should exec", () => {
-    const [args] = useArgs(["node"], "/tea")
-    assertEquals(wut(args), 'exec')
+    assertEquals(runTest(["node", "--version"]), 'exec')
   })
 
   await test.step("should enter repl", () => {
-    const [args] = useArgs(["sh"], "/tea")
-    assertEquals(wut(args), 'repl')
+    assertEquals(runTest(["sh"]), "repl")
   })
 
   await test.step("should dry run", () => {
-    const [args] = useArgs(["--dry-run"], "/tea")
-    assertEquals(wut(args), 'dryrun')
+    assertEquals(runTest(["--dry-run"]), "dryrun")
+  })
+
+  await test.step("should dump env", () => {
+    assertEquals(runTest(["+tea.xyz/magic", "env"]), "dump")
   })
 })
+

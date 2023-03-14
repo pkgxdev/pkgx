@@ -24,7 +24,7 @@ export default function usePantry() {
     getInterpreter,
     getRuntimeEnvironment,
     ls,
-    prefix
+    prefix: getPantryPrefix()
   }
 }
 
@@ -191,6 +191,7 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
 
 //////////////////////////////////////////// useMoustaches() additions
 import useMoustachesBase from "./useMoustaches.ts"
+import { useEnv } from "./useConfig.ts"
 
 function useMoustaches() {
   const base = useMoustachesBase()
@@ -227,13 +228,16 @@ function tokenizePackage(pkg: Package) {
   return [{ from: "prefix", to: useCellar().keg(pkg).string }]
 }
 
-const prefix = usePrefix().join('tea.xyz/var/pantry/projects')
+const getPantryPrefix = () => usePrefix().join('tea.xyz/var/pantry/projects')
 
 export function pantry_paths(): Path[] {
   const rv: Path[] = []
+  const { TEA_PANTRY_PATH } = useEnv()
+
+  const prefix = getPantryPrefix()
   if (prefix.isDirectory()) rv.push(prefix)
-  const env = Deno.env.get("TEA_PANTRY_PATH")
-  if (env) for (const path of env.split(":").reverse()) {
+
+  if (TEA_PANTRY_PATH) for (const path of TEA_PANTRY_PATH.split(":").reverse()) {
     rv.unshift(Path.cwd().join(path, "projects"))
   }
 

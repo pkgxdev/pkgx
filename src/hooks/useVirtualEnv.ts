@@ -1,6 +1,6 @@
 import { usePackageYAMLFrontMatter, refineFrontMatter, FrontMatter } from "./usePackageYAML.ts"
 import { flatmap, TeaError, validate_plain_obj } from "utils"
-import { useMoustaches, usePrefix } from "hooks"
+import { useEnv, useMoustaches, usePrefix } from "hooks"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
 import { isPlainObject } from "is_what"
@@ -19,9 +19,10 @@ export interface VirtualEnv {
 const cache: Record<string, VirtualEnv> = {}
 
 export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
+  const { TEA_DIR } = useEnv()
 
-  const TEA_DIR = flatmap(Deno.env.get("TEA_DIR"), Path.cwd().join)
-  if (TEA_DIR) cwd = TEA_DIR
+  const teaDir = flatmap(TEA_DIR, Path.cwd().join)
+  if (teaDir) cwd = teaDir
 
   if (cache[cwd.string]) return cache[cwd.string]
 
@@ -43,18 +44,18 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       err.cause = f
       throw err
     }
-    if (dir.eq(TEA_DIR ?? Path.root) || dir.eq(home)) break
+    if (dir.eq(teaDir ?? Path.root) || dir.eq(home)) break
     dir = dir.parent()
   }
 
   const lastd = teafiles.slice(-1)[0]?.parent()
-  if (TEA_DIR) {
-    srcroot = TEA_DIR
+  if (teaDir) {
+    srcroot = teaDir
   } else if (!srcroot || lastd?.components().length < srcroot.components().length) {
     srcroot = lastd
   }
 
-  if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, TEA_DIR})
+  if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, teaDir})
 
   for (const [key, value] of Object.entries(env)) {
     if (key != 'TEA_PREFIX') {

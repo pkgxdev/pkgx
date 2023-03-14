@@ -4,7 +4,7 @@
     "strict": true
   },
   "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --unstable --import-map=import-map.test.json",
+    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --unstable",
     "coverage" : "scripts/run_coverage.sh",
     "typecheck": "deno check --unstable ./src/app.ts",
     // runs this source checkout for testing

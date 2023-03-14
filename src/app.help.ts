@@ -1,8 +1,8 @@
-import { useFlags, usePrint } from "hooks"
+import { useConfig, usePrint } from "hooks"
 import { undent } from "utils"
 
 export default async function help() {
-  const { verbose } = useFlags()
+  const { verbose } = useConfig()
   const { print } = usePrint()
 
   if (!verbose) {

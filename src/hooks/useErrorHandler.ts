@@ -1,5 +1,5 @@
 import * as logger from "./useLogger.ts"
-import { usePantry, useFlags, usePrefix, useInventory } from "hooks"
+import { usePantry, useConfig, usePrefix, useInventory } from "hooks"
 import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
 import { ExitError } from "../types.ts"
@@ -22,7 +22,7 @@ async function suggestions(err: TeaError) {
 }
 
 export default async function(err: Error) {
-  const { silent, debug } = useFlags()
+  const { silent, debug } = useConfig()
 
   if (err instanceof ExitError) {
     return err.code
