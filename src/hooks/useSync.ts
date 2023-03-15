@@ -154,7 +154,7 @@ export const update = async () => {
     await lock(async () => {
       const pp: Promise<void>[] = []
       for await (const cwd of ls()) {
-        const p = run({cmd: [git, "fetch", "origin", "main:main"], cwd })
+        const p = run({cmd: [git, "fetch", "origin", "--force", "main:main"], cwd })
         pp.push(p)
       }
       await Promise.all(pp)
