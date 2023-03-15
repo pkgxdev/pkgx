@@ -130,7 +130,7 @@ function announce() {
 }
 
 function injection({ args, inject }: Args) {
-  const TEA_PKGS = Deno.env.get("TEA_PKGS")
+  const TEA_PKGS = Deno.env.get("TEA_PKGS")?.trim()
 
   //TODO if TEA_PKGS then extract virtual-env from that, don’t reinterpret it
 
