@@ -83,7 +83,7 @@ export default function(self: Path, shell?: string) {
         "${d}"/tea --env --keep-going --silent --dry-run=w/trace | source
       end
 
-      if not string contains -q -r "^$HOME/.local/bin(:|\\$)" $PATH
+      if not string match -q -r "^$HOME/.local/bin(:|\\$)" $PATH
         export PATH="$HOME/.local/bin:$PATH"
       end
 
