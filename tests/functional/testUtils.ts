@@ -34,6 +34,10 @@ export const createTestHarness = async (config?: TestConfig) => {
     const cwd = Deno.cwd()
     Deno.chdir(teaDir.string)
 
+    useConfigInternals.getEnvAsObject = () => {
+      return (useConfigInternals.getConfig()?.env ?? {}) as {[index: string]: string}
+    }
+
     try {
       const [appArgs, flags] = parseArgs(args, teaDir.string)
       init(flags)

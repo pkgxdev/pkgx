@@ -19,7 +19,7 @@ export interface VirtualEnv {
 const cache: Record<string, VirtualEnv> = {}
 
 export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
-  const { TEA_DIR } = useEnv()
+  const { TEA_DIR, getEnvAsObject } = useEnv()
 
   const teaDir = flatmap(TEA_DIR, Path.cwd().join)
   if (teaDir) cwd = teaDir
@@ -195,7 +195,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     }
     if ((f = dir.join(".envrc").isFile())) {
       //TODO really we should pkg `direnv` install it if we find this file and configure it to do the following
-      const subst = Deno.env.toObject()
+      const subst = getEnvAsObject()
       subst.SRCROOT = "{{srcroot}}"
       subst.TEA_PREFIX = "{{tea.prefix}}"
       subst.VERSION = "{{version}}"

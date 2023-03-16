@@ -2,7 +2,7 @@ import { createTestHarness } from "./testUtils.ts";
 import { assert, assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
 import { flatmap } from "../../src/utils/safe-utils.ts";
 
-Deno.test("should dump env", { sanitizeResources: false, sanitizeOps: false }, async test => {
+Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
   for (const shell of ["bash", "fish", "elvish"]) {
     await test.step(shell, async () => {
       const {run, teaDir, getPrintedLines } = await createTestHarness({ sync: false })
@@ -19,8 +19,8 @@ Deno.test("should dump env", { sanitizeResources: false, sanitizeOps: false }, a
 
       const lines = getPrintedLines()
       assertEquals(envVar("FOO"), "BAR", "should set virtual env var")
-      //assertEquals(envVar("VAL"), "REVERTED", "should revert previous env")
-      //assert(isUnset("BAZ"), "should unset previous env")
+      assertEquals(envVar("VAL"), "REVERTED", "should revert previous env")
+      assert(isUnset("BAZ"), "should unset previous env")
       // use endswith instead of equality because osx sometimes resolves /private/var instead of /var
       assert(envVar("SRCROOT")?.endsWith(teaDir.string), "should set virtual env SRCROOT")
 
@@ -28,6 +28,26 @@ Deno.test("should dump env", { sanitizeResources: false, sanitizeOps: false }, a
       assert(rewind != null, "rewind should be set")
       assert(rewind.unset.includes("FOO"), "should rewind FOO")
       assert(rewind.unset.includes("SRCROOT"), "should rewind SRCROOT")
+    })
+  }
+})
+
+Deno.test("should leave dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
+  for (const shell of ["bash", "fish", "elvish"]) {
+    await test.step(shell, async () => {
+      const {run, getPrintedLines } = await createTestHarness({ sync: false })
+
+      const envVar = (key: string) => getEnvVar(shell, getPrintedLines(), key)
+      const isUnset = (key: string) => isEnvVarUnset(shell, getPrintedLines(), key)
+
+      const TEA_REWIND = JSON.stringify({revert: {VAL: "REVERTED"}, unset: ["BAZ"]})
+
+      const config = { env: { SHELL: shell, TEA_REWIND } }
+      await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config) 
+
+      assertEquals(envVar("VAL"), "REVERTED", "should revert VAL")
+      assert(isUnset("BAZ"), "rewind should be unset")
+      assert(isUnset("TEA_REWIND"), "rewind should be unset")
     })
   }
 })

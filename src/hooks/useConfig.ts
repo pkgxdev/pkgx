@@ -2,6 +2,10 @@ import Path from "path";
 import { Verbosity } from "../types.ts";
 import { set_tmp } from "path"
 
+export interface EnvAccessor {
+  getEnvAsObject: () => { [index: string]: string }
+}
+
 export interface Env {
   CI?: string
   CLICOLOR?: string
@@ -75,13 +79,19 @@ export default function useConfig(): Readonly<Config> {
   return config
 }
 
-// useEnv is a convience hook for useConfig
-export function useEnv(): Readonly<Env> {
-  return useConfig().env
+export function useEnv(): Readonly<Env> & EnvAccessor {
+  const { env } = useConfig()
+  return {
+    ...env,
+    getEnvAsObject: _internals.getEnvAsObject
+  }
 }
+
+const nativeGetEnvAsObject = () => Deno.env.toObject()
 
 // _internals are used for testing
 export const _internals = {
   getConfig: () => config,
-  setConfig: (c: Config) => config = c
+  setConfig: (c: Config) => config = c,
+  getEnvAsObject: nativeGetEnvAsObject,
 }

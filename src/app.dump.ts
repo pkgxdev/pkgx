@@ -11,7 +11,7 @@ interface Parameters {
 }
 
 export default async function dump({ env, shell }: Parameters) {
-  const { TEA_REWIND } = useEnv();
+  const { TEA_REWIND, getEnvAsObject } = useEnv();
   const { print } = usePrint()
 
   const [set, unset]= (() => {
@@ -37,7 +37,7 @@ export default async function dump({ env, shell }: Parameters) {
   const is_env = env['SRCROOT']
 
   if (is_env) {
-    const oldenv = Deno.env.toObject()
+    const oldenv = getEnvAsObject()
 
     // first rewind the env to the original state
     if (oldenv['TEA_REWIND']) {
