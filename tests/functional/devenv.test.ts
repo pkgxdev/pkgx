@@ -3,7 +3,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.176.0/testing/asse
 import { flatmap } from "../../src/utils/safe-utils.ts";
 
 Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
-  for (const shell of ["bash", "fish", "elvish"]) {
+  for (const shell of ["/bin/bash", "/bin/fish", "/bin/elvish"]) {
     await test.step(shell, async () => {
       const {run, teaDir, getPrintedLines } = await createTestHarness({ sync: false })
 
@@ -33,7 +33,7 @@ Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false
 })
 
 Deno.test("should leave dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
-  for (const shell of ["bash", "fish", "elvish"]) {
+  for (const shell of ["/bin/bash", "/bin/fish", "/bin/elvish"]) {
     await test.step(shell, async () => {
       const {run, getPrintedLines } = await createTestHarness({ sync: false })
 
@@ -56,9 +56,9 @@ Deno.test("should leave dev env", { sanitizeResources: false, sanitizeOps: false
 function getEnvVar(shell: string, lines: string[], key: string): string | null {
   const pattern = () => {
     switch (shell) {
-      case "fish":
+      case "/bin/fish":
         return `^set -gx ${key} '(.*)';$`
-      case "elvish": 
+      case "/bin/elvish": 
         return `^set-env ${key} '(.*)'$`
       default:
         return `export ${key}='(.*)'$`
@@ -77,9 +77,9 @@ function getEnvVar(shell: string, lines: string[], key: string): string | null {
 function isEnvVarUnset(shell: string, lines: string[], key:string): boolean {
   const pattern = () => {
     switch (shell) {
-      case "fish":
+      case "/bin/fish":
         return `^set -e ${key};$`
-      case "elvish": 
+      case "/bin/elvish": 
         return `^unset-env ${key}$`
       default:
         return `unset ${key}$`

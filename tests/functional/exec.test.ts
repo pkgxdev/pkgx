@@ -33,7 +33,7 @@ Deno.test("exec run error", { sanitizeResources: false, sanitizeOps: false }, as
   }, ExitError, "exiting with code: 123", "should throw exit error")
 })
 
-Deno.test("forward env to exec",{ sanitizeResources: false, sanitizeOps: false }, async () => { 
+Deno.test("forward env to exec", { sanitizeResources: false, sanitizeOps: false }, async () => { 
   const {run, TEA_PREFIX, useRunInternals } = await createTestHarness()
 
   const useRunSpy = spy(useRunInternals, "nativeRun")
