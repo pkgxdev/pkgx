@@ -4,7 +4,7 @@ import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
 import { ExitError } from "../types.ts"
 
-async function suggestions(err: TeaError) {
+export async function suggestions(err: TeaError) {
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
     const suggestion = await getClosestPackageSuggestion(err.ctx.project).swallow()

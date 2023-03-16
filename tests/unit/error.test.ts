@@ -1,7 +1,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
 import { TeaError, error } from "utils"
-import SemVer from "../../src/utils/semver.ts"
+import SemVer from "semver"
 
 Deno.test("errors", async test => {
   await test.step("package not found", () => {
