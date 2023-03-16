@@ -2,7 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
 import { stub, returnsNext } from "https://deno.land/std@0.176.0/testing/mock.ts"
 import { createTestHarness, newMockProcess } from "./testUtils.ts"
 
-Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: false }, async () => { 
+Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: false }, async test => { 
   const tests = [
     { 
       shell: "/bin/sh",
@@ -35,21 +35,23 @@ Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: fal
   ]
 
   for (const {shell, expectedCmd, expectedEnv} of tests) {
-    const {run, TEA_PREFIX, useRunInternals } = await createTestHarness()
-    const useRunStub = stub(useRunInternals, "nativeRun", returnsNext([newMockProcess()]))
+    await test.step(shell, async () => {
+      const {run, TEA_PREFIX, useRunInternals } = await createTestHarness()
+      const useRunStub = stub(useRunInternals, "nativeRun", returnsNext([newMockProcess()]))
 
-    try {
-      await run(["sh"], { env: { SHELL: shell } }) 
-    } finally {
-      useRunStub.restore()
-    }
+      try {
+        await run(["sh"], { env: { SHELL: shell } }) 
+      } finally {
+        useRunStub.restore()
+      }
 
-    assertEquals(useRunStub.calls[0].args[0].cmd, expectedCmd)
+      assertEquals(useRunStub.calls[0].args[0].cmd, expectedCmd)
 
-    const { env } = useRunStub.calls[0].args[0]
-    assertEquals(env?.["TEA_PREFIX"], TEA_PREFIX.string)
-    Object.entries(expectedEnv).forEach(([key, value]) => {
-      assertEquals(env?.[key], value)
+      const { env } = useRunStub.calls[0].args[0]
+      assertEquals(env?.["TEA_PREFIX"], TEA_PREFIX.string)
+      Object.entries(expectedEnv).forEach(([key, value]) => {
+        assertEquals(env?.[key], value)
+      })
     })
   }
 })

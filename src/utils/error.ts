@@ -56,7 +56,7 @@ export default class TeaError extends Error {
     switch (id) {
     case 'not-found: tea -X: arg0':
       msg = undent`
-        couldn’t find a pkg to provide: \`${ctx.arg0}'
+        couldn’t find a pkg to provide: \`${ctx.arg0}\`
 
             https://github.com/teaxyz/pantry.extra#contributing
 
