@@ -15,7 +15,7 @@ export interface TestConfig {
 export const createTestHarness = async (config?: TestConfig) => {
   const sync = config?.sync ?? true
 
-  const tmpDir = new Path(await Deno.makeTempDir({ prefix: "tea-" })).readlink()
+  const tmpDir = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
   const teaDir = tmpDir.join("tea").mkdir()
 
   const TEA_PREFIX = tmpDir.join('opt').mkdir()
@@ -23,7 +23,7 @@ export const createTestHarness = async (config?: TestConfig) => {
   if (sync) {
     const [syncArgs, flags] = parseArgs(["--sync", "--silent"], teaDir.string)
     init(flags)
-    updateConfig({ teaPrefix: new Path(TEA_PREFIX.string) })
+    updateConfig({ teaPrefix: new Path(TEA_PREFIX.string), env: { NO_COLOR: "1" } })
     await run(syncArgs) 
   }
 
