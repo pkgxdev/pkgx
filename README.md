@@ -13,7 +13,7 @@
 </p>
 
 
-# tea/cli 0.25.1
+# tea/cli 0.25.2
 
 `tea` puts the whole open source ecosystem at your fingertips:
 
@@ -25,7 +25,7 @@ $ sh <(curl tea.xyz)
 installing ~/.tea…
 
 $ node
-tea: installing ~/.tea/nodejs.org/v19.7.0
+tea: installing ~/.tea/nodejs.org/v19.7.0 and 9 other pkgs…
 
 Welcome to Node.js v19.7.0.
 >
