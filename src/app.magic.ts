@@ -99,7 +99,7 @@ export default function(self: Path, shell?: string) {
     return undent`
       cd() {
         builtin cd "$@" || return
-        source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
+        source /dev/stdin <<<"$("${d}"/tea +tea.xyz/magic -Esk --chaste env)"
       }
 
       if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
