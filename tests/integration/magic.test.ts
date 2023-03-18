@@ -100,3 +100,24 @@ it(suite, "tea --magic in a script. fish", async function() {
 
   await this.run({ args: [script.string] })
 })
+
+
+it(suite, "tea verify --magic is parsed correctly by fish", async function() {
+  const script = this.sandbox.join("magic-fish").write({ text: undent`
+    #!/usr/bin/fish
+
+    tea --magic=fish | source
+
+    `})
+
+  // fish doesn't have an equivalent of bash's "set -e" to exit the script if an error occurs
+  // for more information go here: https://github.com/fish-shell/fish-shell/issues/510
+  // we will assume if stderr contains anything that isn't prefixed with tea that then 
+  // an error occurred
+  const stderr = await this.run({ args: [script.string] }).stderr()
+
+  const errorLines = stderr.split("\n")
+    .compact(x => strip_ansi_escapes(x).trim())
+    .filter(x => !x.startsWith("tea:"))
+  assertEquals(errorLines, [])
+})
