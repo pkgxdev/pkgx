@@ -122,7 +122,7 @@ function announce() {
 }
 
 function injection({ args, inject }: Args) {
-  const TEA_PKGS = Deno.env.get("TEA_PKGS")
+  const TEA_PKGS = Deno.env.get("TEA_PKGS")?.trim()
 
   //TODO if TEA_PKGS then extract virtual-env from that, don’t reinterpret it
 
@@ -174,6 +174,7 @@ function injection({ args, inject }: Args) {
 
 
 export function wut(args: Args): 'dump' | 'exec' | 'repl' | 'env' | 'dryrun' {
+
   // HACK until we split this out into its own pkg/cmd
   const stack_mode = (() => {
     if (args.pkgs.length != 1) return false

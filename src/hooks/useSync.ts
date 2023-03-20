@@ -94,20 +94,14 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
   }
 
   async function clone(git: Path) {
-    const pp: Promise<void>[] = []
-    for (const name of ["pantry.core", "pantry.extra"]) {
-      const p = run({
-        cmd: [
-          git, "clone",
-            "--bare", "--depth=1",
-            `https://github.com/teaxyz/${name}`,
-            pantries_dir.join("teaxyz").mkpath().join(name)
-        ]
-      })
-      pp.push(p)
-    }
-
-    await Promise.all(pp)
+    await run({
+      cmd: [
+        git, "clone",
+          "--bare", "--depth=1",
+          `https://github.com/teaxyz/pantry`,
+          pantries_dir.join("teaxyz").mkpath().join("pantry")
+      ]
+    })
     await co(git)
   }
 
@@ -115,20 +109,23 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
     //FIXME if we do this, we need to be able to convert it to a git installation later
     //TODO use our tar if necessary
     //TODO if we keep this then don’t store the files, just pipe to tar
-    for (const name of ["pantry.core", "pantry.extra"]) {
-      const src = new URL(`https://github.com/teaxyz/${name}/archive/refs/heads/main.tar.gz`)
-      const tgz = await useDownload().download({ src })
-      const cwd = pantry_dir.mkpath()
-      await run({cmd: ["tar", "xzf", tgz, "--strip-components=1"], cwd })
-    }
+    const src = new URL(`https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz`)
+    const tgz = await useDownload().download({ src })
+    const cwd = pantry_dir.mkpath()
+    await run({cmd: ["tar", "xzf", tgz, "--strip-components=1"], cwd })
   }
 }
 
 async function *ls() {
-  for await (const [user, {isDirectory}] of pantries_dir.ls()) {
+  for await (const [user, {isDirectory, name: user_name}] of pantries_dir.ls()) {
     if (!isDirectory) continue
-    for await (const [repo, isDirectory] of user.ls()) {
-      if (isDirectory) yield repo
+    for await (const [repo, {isDirectory, name: repo_name}] of user.ls()) {
+      if (!isDirectory) continue
+      if (user_name == "teaxyz" && repo_name == "pantry.core") {
+        // we used to have multiple pantries, but not anymore!
+        continue
+      }
+      yield repo
   }}
 }
 
@@ -155,7 +152,7 @@ export const update = async () => {
     await lock(async () => {
       const pp: Promise<void>[] = []
       for await (const cwd of ls()) {
-        const p = run({cmd: [git, "fetch", "origin", "main:main"], cwd })
+        const p = run({cmd: [git, "fetch", "origin", "--force", "main:main"], cwd })
         pp.push(p)
       }
       await Promise.all(pp)

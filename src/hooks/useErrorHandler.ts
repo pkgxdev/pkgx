@@ -81,7 +81,7 @@ function msg(err: TeaError): string {
       msg = undent`
         pantry entry invalid. please report this bug!
 
-            https://github.com/teaxyz/pantry.core/issues/new
+            https://github.com/teaxyz/pantry/issues/new
 
         ----------------------------------------------------->> attachment begin
         ${logger.gray(attachment)}
