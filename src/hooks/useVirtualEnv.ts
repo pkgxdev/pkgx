@@ -37,15 +37,25 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
   let srcroot: Path | undefined
   let f: Path | undefined
 
-  while (dir.neq(home) && dir.neq(Path.root)) {
+  if (cwd.eq(home)) {
+    // if the CWD is HOME then allow it to be a dev env but don't continue searching
     try {
       await supp(dir)
     } catch (err) {
       err.cause = f
       throw err
     }
-    if (teaDir && dir.eq(teaDir)) break
-    dir = dir.parent()
+  } else {
+    while (dir.neq(home) && dir.neq(Path.root)) {
+      try {
+        await supp(dir)
+      } catch (err) {
+        err.cause = f
+        throw err
+      }
+      if (teaDir && dir.eq(teaDir)) break
+      dir = dir.parent()
+    }
   }
 
   const lastd = teafiles.slice(-1)[0]?.parent()

@@ -1,5 +1,6 @@
-import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
-import { stub, returnsNext } from "https://deno.land/std@0.176.0/testing/mock.ts"
+import { assertEquals, assertRejects } from "deno/testing/asserts.ts"
+import { stub, returnsNext } from "deno/testing/mock.ts"
+import { ExitError } from "types"
 import { createTestHarness, newMockProcess } from "./testUtils.ts"
 
 Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: false }, async test => { 
@@ -54,4 +55,41 @@ Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: fal
       })
     })
   }
+})
+
+
+Deno.test("repl errors", { sanitizeResources: false, sanitizeOps: false }, async test => { 
+  await test.step("run error", async () => {
+    const {run, useRunInternals } = await createTestHarness()
+
+    const mockProc = newMockProcess()
+    mockProc.status = () => Promise.resolve({success: false, code: 123})
+
+    const useRunStub = stub(useRunInternals, "nativeRun", returnsNext([mockProc]))
+
+    await assertRejects(async () => {
+      try {
+        await run(["sh"]) 
+      } finally {
+        useRunStub.restore()
+      }
+    }, ExitError, "exiting with code: 123", "should throw exit error")
+  })
+
+  await test.step("other error", async () => {
+    const {run, useRunInternals } = await createTestHarness()
+
+    const mockProc = newMockProcess()
+    mockProc.status = () => Promise.reject(new Error("test error"))
+
+    const useRunStub = stub(useRunInternals, "nativeRun", returnsNext([mockProc]))
+
+    await assertRejects(async () => {
+      try {
+        await run(["sh"]) 
+      } finally {
+        useRunStub.restore()
+      }
+    }, "test error")
+  })
 })

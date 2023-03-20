@@ -1,6 +1,8 @@
 // ---
 // dependencies:
 //   zlib.net: ^1.2
+// env:
+//   FOO: BAR
 // ---
 
 module github.com/teaxyz/go-mod-example

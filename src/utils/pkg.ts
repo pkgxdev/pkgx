@@ -21,10 +21,10 @@ export function parse(input: string): PackageRequirement {
       const parts = v.split(".")
       const n = parts.length
       switch (n) {
-      case 0:
+      case 1:
         match[2] = `^${v}`
         break
-      case 1:
+      case 2:
         match[2] = `~${v}`
         break
       default: {
