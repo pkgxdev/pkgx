@@ -28,7 +28,7 @@ export default async function useRun({ spin, ...opts }: RunOptions) {
 
   let proc: Deno.Process | undefined
   try {
-    proc = Deno.run({ ...opts, cmd, cwd, ...stdio })
+    proc = _internals.nativeRun({ ...opts, cmd, cwd, ...stdio })
     const exit = await proc.status()
     console.verbose({ exit })
     if (!exit.success) throw new RunError(exit.code, cmd)
@@ -42,5 +42,14 @@ export default async function useRun({ spin, ...opts }: RunOptions) {
     }
     err.cmd = cmd  // help us out since deno-devs don’t want to
     throw err
+  } finally {
+    proc?.close()
   }
+}
+
+const nativeRun = (runOptions: Deno.RunOptions) => Deno.run(runOptions)
+
+// _internals are used for testing
+export const _internals = {
+  nativeRun
 }

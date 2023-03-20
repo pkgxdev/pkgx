@@ -1,9 +1,11 @@
 import { basename } from "deno/path/mod.ts"
 import { undent } from "utils"
 import Path from "path"
+import { useEnv } from "./hooks/useConfig.ts"
 
 export default function(self: Path, shell?: string) {
-  shell ??= basename(Deno.env.get("SHELL") ?? "unknown")
+  const { SHELL } = useEnv()
+  shell ??= basename(SHELL ?? "unknown")
   const d = self.parent()
 
   switch (shell) {

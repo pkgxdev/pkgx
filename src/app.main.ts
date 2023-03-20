@@ -1,6 +1,4 @@
-import { usePrefix, useExec, useVirtualEnv, useVersion, useSync, usePrint } from "hooks"
-import * as logger from "hooks/useLogger.ts"
-import useFlags, { Args } from "hooks/useFlags.ts"
+import { usePrefix, useExec, useVirtualEnv, useVersion, useSync, usePrint, useConfig, useEnv } from "hooks"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
 import provides from "./app.provides.ts";
@@ -12,9 +10,12 @@ import { Verbosity } from "./types.ts"
 import * as semver from "semver"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { basename } from "deno/path/mod.ts"
+import { Args } from "./args.ts";
 
 export async function run(args: Args) {
   const { print } = usePrint();
+  const { execPath } = useConfig()
+  const { PATH, SHELL } = useEnv()
 
   if (args.cd) {
     const chdir = args.cd
@@ -26,20 +27,16 @@ export async function run(args: Args) {
     await useSync()
   }
 
-  if (!Deno.isatty(Deno.stdout.rid) || Deno.env.get('CI')) {
-    logger.set_global_prefix('tea:')
-  }
-
   switch (args.mode) {
   case "std": {
-    announce()
+    announce(execPath)
 
     const wut_ = wut(args)
 
     const venv = await injection(args)
     const {cmd, env, pkgs, installations} = await useExec({...args, inject: venv})
 
-    const full_path = () => [...env["PATH"]?.split(':') ?? [], ...Deno.env.get('PATH')?.split(':') ?? []].uniq()
+    const full_path = () => [...env["PATH"]?.split(':') ?? [], ...PATH?.split(':') ?? []].uniq()
 
     switch (wut_) {
     case 'exec':
@@ -81,8 +78,7 @@ export async function run(args: Args) {
       env["TEA_PREFIX"] ??= usePrefix().string
       env["TEA_VERSION"] = useVersion()
 
-      const shell = flatmap(Deno.env.get("SHELL"), basename)
-
+      const shell = flatmap(SHELL, basename)
       await dump({env, shell})
     } break
   }} break
@@ -99,16 +95,15 @@ export async function run(args: Args) {
     await provides(args.args)
     break
   default:
-    await print(magic(new Path(Deno.execPath()), args.mode[1]))
+    await print(magic(execPath, args.mode[1]))
   }
 }
 
-function announce() {
-  const self = new Path(Deno.execPath())
+function announce(self: Path) {
   const prefix = usePrefix().string
   const version = useVersion()
 
-  switch (useFlags().verbosity) {
+  switch (useConfig().verbosity) {
   case Verbosity.debug:
     if (self.basename() == "deno") {
       console.debug({ deno: self.string, prefix, import: import.meta, tea: version })
@@ -122,8 +117,8 @@ function announce() {
 }
 
 function injection({ args, inject }: Args) {
-  const TEA_PKGS = Deno.env.get("TEA_PKGS")?.trim()
-
+  const { TEA_FILES, TEA_PKGS, SRCROOT, VERSION } = useEnv()
+  const teaPkgs = TEA_PKGS?.trim()
   //TODO if TEA_PKGS then extract virtual-env from that, don’t reinterpret it
 
   if (inject) {
@@ -138,9 +133,9 @@ function injection({ args, inject }: Args) {
       cwd = file.parent()
     }
 
-    if (useFlags().keep_going) {
+    if (useConfig().keepGoing) {
       return useVirtualEnv(cwd).swallow(/^not-found/)
-    } else if (TEA_PKGS) {
+    } else if (teaPkgs) {
       /// if an env is defined then we still are going to try to read it
       /// because `-E` was explicitly stated, however if we fail then
       /// we’ll delegate to the env we previously defined
@@ -154,12 +149,11 @@ function injection({ args, inject }: Args) {
     } else {
       return useVirtualEnv(cwd)
     }
-  } else if (TEA_PKGS && inject !== false) {
+  } else if (teaPkgs && inject !== false) {
     return from_env()
   }
 
   function from_env(): VirtualEnv | undefined {
-    const { TEA_FILES, SRCROOT, VERSION } = Deno.env.toObject()
     if (!TEA_FILES || !TEA_PKGS || !SRCROOT) return
     //TODO anything that isn’t an absolute path will crash
     return {
@@ -186,7 +180,7 @@ export function wut(args: Args): 'dump' | 'exec' | 'repl' | 'env' | 'dryrun' {
     return true
   })()
 
-  if (useFlags().dryrun) {
+  if (useConfig().dryrun) {
     return 'dryrun'
   } else if (stack_mode) {
     return 'dump'

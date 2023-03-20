@@ -7,7 +7,6 @@ import useCache from "hooks/useCache.ts"
 import useCellar from "hooks/useCellar.ts"
 import useExec from "hooks/useExec.ts"
 import useFetch from "hooks/useFetch.ts"
-import useFlags from "hooks/useFlags.ts"
 import useInventory from "hooks/useInventory.ts"
 import useShellEnv from "hooks/useShellEnv.ts"
 import usePantry from "hooks/usePantry.ts"
@@ -19,6 +18,7 @@ import useMoustaches from "hooks/useMoustaches.ts"
 import useErrorHandler from "hooks/useErrorHandler.ts"
 import usePrint from "hooks/usePrint.ts"
 import useRun from "hooks/useRun.ts"
+import useConfig, { useEnv } from "hooks/useConfig.ts"
 
 // but we can sort these alphabetically
 export {
@@ -28,7 +28,6 @@ export {
   useErrorHandler,
   useExec,
   useFetch,
-  useFlags,
   useInventory,
   useMoustaches,
   useOffLicense,
@@ -42,4 +41,6 @@ export {
   useVirtualEnv,
   usePrint,
   useRun,
+  useConfig,
+  useEnv,
 }

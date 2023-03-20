@@ -12,7 +12,6 @@
                 "--unstable",
                 "--inspect-brk",
                 "--allow-all",
-                "--import-map=import-map.test.json",
                 "${file}",
             ],
             "attachSimplePort": 9229
