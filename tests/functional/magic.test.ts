@@ -1,11 +1,13 @@
 import { assert } from "https://deno.land/std@0.176.0/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
 
-Deno.test("suggestions", { sanitizeResources: false, sanitizeOps: false }, async test => {
+Deno.test("magic", { sanitizeResources: false, sanitizeOps: false }, async test => {
     await test.step("/bin/bash", async () => {
       const { run, teaDir, getPrintedLines } = await createTestHarness({sync: false})
       await run(["--magic"], { execPath: teaDir, env: { SHELL: "/bin/bash" }})
-      const expected = `source <("${teaDir.parent()}"/tea +tea.xyz/magic -Esk --chaste env)`
+      const lines = getPrintedLines()
+      console.log(lines)
+      const expected = `source /dev/stdin <<<"$("${teaDir.parent()}"/tea +tea.xyz/magic -Esk --chaste env)"`
       assert(getPrintedLines()[0].includes(expected))
     })
 
