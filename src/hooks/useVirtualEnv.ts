@@ -44,7 +44,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       err.cause = f
       throw err
     }
-    if (dir.eq(teaDir ?? Path.root) || dir.eq(home)) break
+    if (teaDir && dir.eq(teaDir)) break
     dir = dir.parent()
   }
 
