@@ -58,7 +58,7 @@ export default class TeaError extends Error {
       msg = undent`
         couldn’t find a pkg to provide: \`${ctx.arg0}'
 
-            https://github.com/teaxyz/pantry.extra#contributing
+            https://github.com/teaxyz/pantry#contributing
 
         `
         break
@@ -88,14 +88,14 @@ export default class TeaError extends Error {
       msg = undent`
         Not in pantry: ${ctx.project}
 
-        https://github.com/teaxyz/pantry.extra#contributing
+        https://github.com/teaxyz/pantry#contributing
         `
       break
     case 'parser: pantry: package.yml':
       msg = undent`
         pantry entry invalid. please report this bug!
 
-            https://github.com/teaxyz/pantry.core/issues/new
+            https://github.com/teaxyz/pantry/issues/new
 
         ----------------------------------------------------->> attachment begin
         ${ctx.project}: ${ctx.cause?.message}
@@ -125,7 +125,7 @@ export default class TeaError extends Error {
       msg = undent`
         we haven’t packaged ${str}. but we will… *if* you open a ticket:
 
-            https://github.com/teaxyz/pantry.core/issues/new
+            https://github.com/teaxyz/pantry/issues/new
         `
     } break
     case 'confused: interpreter':

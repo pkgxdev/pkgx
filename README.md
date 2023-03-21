@@ -219,7 +219,7 @@ deno task install   # deploys the local checkout into your `~/.tea`
 
 
 [docs.tea.xyz]: https://docs.tea.xyz
-[pantry]: https://github.com/teaxyz/pantry.core
+[pantry]: https://github.com/teaxyz/pantry
 [deno]: https://deno.land
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions

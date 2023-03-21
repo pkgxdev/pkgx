@@ -94,7 +94,7 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
 
   async function clone(git: Path) {
     const pp: Promise<void>[] = []
-    for (const name of ["pantry.core", "pantry.extra"]) {
+    for (const name of ["pantry"]) {
       const p = run({
         cmd: [
           git, "clone",
@@ -114,7 +114,7 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
     //FIXME if we do this, we need to be able to convert it to a git installation later
     //TODO use our tar if necessary
     //TODO if we keep this then don’t store the files, just pipe to tar
-    for (const name of ["pantry.core", "pantry.extra"]) {
+    for (const name of ["pantry"]) {
       const src = new URL(`https://github.com/teaxyz/${name}/archive/refs/heads/main.tar.gz`)
       const tgz = await useDownload().download({ src })
       const cwd = pantry_dir.mkpath()
