@@ -49,8 +49,11 @@ function parse_pkgs_node(node: any) {
 
 const getProvides = async (pkg: { project: string }) => {
   const yml = await entry(pkg).yml()
-  const node = yml["provides"]
+  let node = yml["provides"]
   if (!node) return []
+  if (isPlainObject(node)) {
+    node = node[host().platform]
+  }
   if (!isArray(node)) throw new Error("bad-yaml")
 
   return node.compact(x => {
