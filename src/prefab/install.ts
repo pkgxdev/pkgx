@@ -1,18 +1,19 @@
-import { usePrefix, useCache, useCellar, useFlags, useDownload, useOffLicense, useFetch } from "hooks"
+import { usePrefix, useCache, useCellar, useDownload, useOffLicense, useFetch } from "hooks"
 import { host, panic, pkg as pkgutils } from "utils"
-import { Logger, red, teal, gray } from "hooks/useLogger.ts"
+import useLogger, { Logger, red, teal, gray } from "hooks/useLogger.ts"
 import { Installation, StowageNativeBottle } from "types"
 import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Package } from "types"
+import useConfig from "../hooks/useConfig.ts"
 
 export default async function install(pkg: Package, logger?: Logger): Promise<Installation> {
   const { project, version } = pkg
-  logger ??= new Logger(pkgutils.str(pkg))
+  logger ??= useLogger(pkgutils.str(pkg))
 
   const cellar = useCellar()
-  const { dryrun } = useFlags()
   const tea_prefix = usePrefix()
-  const compression = get_compression()
+  const { isCI, dryrun } = useConfig()
+  const compression = get_compression(isCI)
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const tarball = useCache().path(stowage)
@@ -111,8 +112,8 @@ async function remote_SHA(url: URL) {
   return txt.split(' ')[0]
 }
 
-function get_compression() {
-  if (Deno.env.get("CI")) return 'gz' // in CI CPU is more constrained than bandwidth
+function get_compression(isCI: boolean) {
+  if (isCI) return 'gz' // in CI CPU is more constrained than bandwidth
   if (host().platform == 'darwin') return 'xz' // most users are richer in CPU than bandwidth
   // TODO determine if `tar` can handle xz
   return 'gz'

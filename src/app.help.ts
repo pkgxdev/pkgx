@@ -1,8 +1,9 @@
-import { useFlags } from "hooks"
-import { print, undent } from "utils"
+import { useConfig, usePrint } from "hooks"
+import { undent } from "utils"
 
 export default async function help() {
-  const { verbose } = useFlags()
+  const { verbose } = useConfig()
+  const { print } = usePrint()
 
   if (!verbose) {
     //        10|       20|       30|       40|       50|       60|       70| |     80|

@@ -1,12 +1,12 @@
 import { Package, Installation } from "types"
-import { useCellar, useFlags } from "hooks"
+import { useCellar, useConfig } from "hooks"
 import SemVer, * as semver from "semver"
 import { panic } from "utils"
 import Path from "path"
 
 
 export default async function link(pkg: Package | Installation) {
-  if (useFlags().dryrun) return
+  if (useConfig().dryrun) return
 
   const installation = await useCellar().resolve(pkg)
   pkg = installation.pkg

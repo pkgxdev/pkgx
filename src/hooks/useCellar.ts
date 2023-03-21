@@ -3,9 +3,7 @@ import { pkg as pkgutils } from "utils"
 import SemVer from "semver"
 import Path from "path"
 //ALERT!! do not usePantry() or you can softlock in usePantry.git.ts
-import { usePrefix } from "hooks"
-import useFlags from "./useFlags.ts"
-
+import { usePrefix, useConfig } from "hooks"
 
 export default function useCellar() {
   return {
@@ -29,7 +27,7 @@ const keg = (pkg: Package) => shelf(pkg.project).join(`v${pkg.version}`)
 /// returns a project’s installations (sorted by version)
 async function ls(project: string) {
   const d = shelf(project)
-  const { verbose } = useFlags()
+  const { verbose } = useConfig()
 
   if (!d.isDirectory()) return []
 
