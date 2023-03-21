@@ -15,6 +15,11 @@ export default function(self: Path, shell?: string) {
         fi
       }
 
+      if test "$TERM_PROGRAM" = WarpTerminal; then
+        # warp.dev seems to start shells in a way that this doesn’t trigger
+        _tea_chpwd_hook
+      fi
+
       typeset -ag chpwd_functions
 
       if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
