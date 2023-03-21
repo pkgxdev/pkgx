@@ -13,7 +13,7 @@
 </p>
 
 
-# tea/cli 0.25.2
+# tea/cli 0.25.3
 
 `tea` puts the whole open source ecosystem at your fingertips:
 
