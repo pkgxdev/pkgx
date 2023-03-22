@@ -54,6 +54,9 @@ it(suite, "tea --magic in a script. bash", async function() {
 })
 
 it(suite, "tea --magic in a script. fish", async function() {
+  // fish doesn’t error if there's an error when sourcing our magic script
+  // so instead we verify each part of our magic is working separately
+
   const script = this.sandbox.join("magic-fish").write({ text: undent`
     #!/usr/bin/fish
 
@@ -63,6 +66,10 @@ it(suite, "tea --magic in a script. fish", async function() {
       set N 4
     end
 
+    if which node
+      exit 2
+    end
+
     test $(basename $(ps -hp $fish_pid | awk "{print \\$$N}" | tail -n1)) = fish
 
     tea --magic=fish | source
@@ -70,20 +77,26 @@ it(suite, "tea --magic in a script. fish", async function() {
     export NODE_DISABLE_COLORS=1
     export CLICOLOR_FORCE=0
     export VERBOSE=-1  # no tea output FIXME doesn’t seem to work…?
-    node^18 --eval "console.log('xyz')"
+
+    # we write a file because currently there's a bug where
+    # fish cannot redirect from the command not found handler
+
+    node^18 --eval "require('fs').writeFileSync('node.out', 'xyz.tea.hi')"
+
+    if test "$(cat node.out)" != xyz.tea.hi
+      exit 3
+    end
+
+    # check again
+    if which node
+      exit 2
+    end
+
+    echo 'dependencies: { node: ^18 }' > ./tea.yaml
+
+    cd .
+    node --version
     `})
 
-  // fish forces all output to stderr when running in the command not found handler
-  const out = await this.run({ args: [script.string] }).stdout()
-
-  // splitting it as stderr includes our output
-  //FIXME I can't stop it doing color codes whatever I try
-  let asserted = false
-  for (const line of out.split("\n").compact(x => strip_ansi_escapes(x).trim())) {
-    if (line.startsWith("tea:")) continue
-    assertEquals(line, "xyz", `hi: ${line}`)
-    asserted = true
-    break
-  }
-  assert(asserted)
+  await this.run({ args: [script.string] })
 })
