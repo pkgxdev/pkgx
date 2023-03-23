@@ -43,7 +43,34 @@ export default class SemVer {
         } else {
           throw new Error(`invalid version: ${input}`)
         }
-      })
+      });
+      this.pretty = (() => {
+        // detect calver (eg. 2023.03.01)
+        // we also accept 0.0.0.2023.03.01 because this is how we version pre-release software
+        // we version pre-release software this was so when they finally release a version
+        // it will be versioned higher than the pre-releases
+
+        const cc = [...this.components]
+        if (cc[0] == 0) cc.shift()
+        if (cc.length != 3) return
+        if (this.components[0] < 1990) return  // anything before 1990 can go fish
+        if (this.components[1] < 1) return
+        if (this.components[1] > 12) return
+        if (this.components[3] < 1) return
+        if (this.components[3] > 31) return    // probs not worth being more thorugh
+
+        const major = cc[0]
+        const minor = cc[1].toString().padStart(2, '0')
+        const patch = cc[2].toString().padStart(2, '0')
+        const rv = `${major}.${minor}.${patch}`
+
+        if (this.components[0] == 0) {
+          return `0.${rv}`
+        } else {
+          return rv
+        }
+      })()
+
       this.raw = raw
       if (pretty_is_raw) this.pretty = raw
     } else if (input instanceof Range || input instanceof SemVer) {
