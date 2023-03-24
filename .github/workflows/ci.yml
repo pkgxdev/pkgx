@@ -29,7 +29,7 @@ jobs:
         shell: wsl-bash {0}
       - run: echo $PATH
         shell: wsl-bash {0}
-      - run: echo "/root/.deno/bin" >> $GITHUB_PATH
+      - run: mv /root/.deno/bin/deno /usr/local/bin
         shell: wsl-bash {0}
       - run: deno task test --coverage=cov_profile
         shell: wsl-bash {0}
