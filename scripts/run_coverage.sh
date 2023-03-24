@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env -S tea
+
+#---
+# dependencies:
+#   github.com/linux-test-project/lcov: 1.16.0
+#---
 
 set -e
 
