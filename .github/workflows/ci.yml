@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-on-windows:
+  test-on-wsl:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,9 @@ jobs:
             unzip
       - run: curl -fsSL https://deno.land/x/install/install.sh | sh
         shell: wsl-bash {0}
-      - run: /root/.deno/bin/deno task test --coverage=cov_profile
+      - run: echo "/root/.deno/bin" >> $GITHUB_PATH
+        shell: wsl-bash {0}
+      - run: deno task test --coverage=cov_profile
         shell: wsl-bash {0}
 
   tests:
