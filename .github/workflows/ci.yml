@@ -27,12 +27,16 @@ jobs:
             unzip
       - run: curl -fsSL https://deno.land/x/install/install.sh | sh
         shell: wsl-bash {0}
+      - run: echo $PATH
+        shell: wsl-bash {0}
       - run: echo "/root/.deno/bin" >> $GITHUB_PATH
         shell: wsl-bash {0}
       - run: deno task test --coverage=cov_profile
         shell: wsl-bash {0}
 
   tests:
+    # TODO: REMOVE THIS
+    needs: test-on-wsl
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
