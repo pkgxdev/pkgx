@@ -22,6 +22,7 @@ jobs:
       - uses: Vampire/setup-wsl@v2
       - uses: denoland/setup-deno@v1
       - run: deno task test --coverage=cov_profile
+        shell: wsl-bash {0}
 
   tests:
     runs-on: ${{ matrix.os }}
