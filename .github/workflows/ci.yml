@@ -14,6 +14,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test-on-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/cache
+      - uses: Vampire/setup-wsl@v2
+      - uses: denoland/setup-deno@v1
+      - run: deno task test --coverage=cov_profile
+
   tests:
     runs-on: ${{ matrix.os }}
     strategy:
