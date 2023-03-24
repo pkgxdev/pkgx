@@ -24,6 +24,7 @@ jobs:
           additional-packages:
             curl
             ca-certificates
+            unzip
       - run: curl -fsSL https://deno.land/x/install/install.sh | sh
         shell: wsl-bash {0}
       - run: deno task test --coverage=cov_profile
