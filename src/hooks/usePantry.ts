@@ -184,7 +184,9 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
       return "0"
     } else if (isString(value)) {
       const mm = useMoustaches()
-      return mm.apply(value, mm.tokenize.all(pkg, deps))
+      const obj = Object.entries(Deno.env.toObject()).map(([key, value]) => ({ from: `env.${key}`, to: value }))
+      obj.push(...mm.tokenize.all(pkg, deps))
+      return mm.apply(value, obj)
     } else if (isNumber(value)) {
       return value.toString()
     }
