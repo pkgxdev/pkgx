@@ -1,0 +1,3 @@
+runs:
+  using: 'node16'
+  main: 'main.js'

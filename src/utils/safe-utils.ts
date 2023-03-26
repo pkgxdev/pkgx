@@ -7,11 +7,3 @@ export function chuzzle(input: number) {
 export function panic(message?: string): never {
   throw new Error(message)
 }
-
-export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined, opts?: {rescue?: boolean}): NonNullable<S> | undefined {
-  try {
-    if (t) return body(t) ?? undefined
-  } catch (err) {
-    if (!opts?.rescue) throw err
-  }
-}

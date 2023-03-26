@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
+import { assert, assertEquals } from "deno/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
 import { suggestions } from "hooks/useErrorHandler.ts"
 import { TeaError } from "utils"

@@ -1,7 +1,6 @@
-import { assert, assertEquals, assertFalse } from "deno/testing/asserts.ts"
+import { assert, assertEquals, assertFalse, assertThrows } from "deno/testing/asserts.ts"
 import SemVer, { Range } from "utils/semver.ts"
 import * as pkg from "utils/pkg.ts"
-
 
 Deno.test("pkg.str", async test => {
   let out: string
@@ -47,6 +46,13 @@ Deno.test("pkg.str", async test => {
 })
 
 Deno.test("pkg.parse", async test => {
+  await test.step("@latest", () => {
+    const { constraint } = pkg.parse("test@latest")
+    assert(constraint.satisfies(new SemVer([5,0,0])))
+    assert(constraint.satisfies(new SemVer([5,1,0])))
+    assert(constraint.satisfies(new SemVer([6,0,0])))
+  })
+
   await test.step("@5", () => {
     const { constraint } = pkg.parse("test@5")
     assert(constraint.satisfies(new SemVer([5,0,0])))
@@ -66,5 +72,23 @@ Deno.test("pkg.parse", async test => {
     assert(constraint.satisfies(new SemVer([5,0,0])))
     assert(constraint.satisfies(new SemVer([5,0,0,1])))
     assertFalse(constraint.satisfies(new SemVer([5,0,1])))
+  })
+
+  await test.step("bad input", () => {
+    assertThrows(() => pkg.parse("asdf^@~"), "invalid pkgspec: asdf^@~")
+  })
+})
+
+Deno.test("pkg.compare", async test => {
+  await test.step("compare versions", () => {
+    const a = { project: "test", version: new SemVer("1.2.3") }
+    const b = { project: "test", version: new SemVer("2.1.3") }
+    assert(pkg.compare(a, b) < 0)
+  })
+
+  await test.step("compare pkg names", () => {
+    const a = { project: "a", version: new SemVer("1.2.3") }
+    const b = { project: "b", version: new SemVer("1.2.3") }
+    assert(pkg.compare(a, b) < 0)
   })
 })
