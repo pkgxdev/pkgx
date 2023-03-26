@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "deno/testing/asserts.ts"
+import { assertEquals } from "deno/testing/asserts.ts"
 import { strip_ansi_escapes } from "hooks/useLogger.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
@@ -112,7 +112,7 @@ it(suite, "tea verify --magic is parsed correctly by fish", async function() {
 
   // fish doesn't have an equivalent of bash's "set -e" to exit the script if an error occurs
   // for more information go here: https://github.com/fish-shell/fish-shell/issues/510
-  // we will assume if stderr contains anything that isn't prefixed with tea that then 
+  // we will assume if stderr contains anything that isn't prefixed with tea that then
   // an error occurred
   const stderr = await this.run({ args: [script.string] }).stderr()
 
