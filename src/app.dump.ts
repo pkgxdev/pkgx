@@ -77,7 +77,7 @@ export default async function dump({ env, shell }: Parameters) {
 
     // print the setters for the new env
     for (const [key, value] of Object.entries(env)) {
-      await print(set(key, value))
+      if (value) await print(set(key, value))
     }
     await print(set('TEA_REWIND', TEA_REWIND))
 

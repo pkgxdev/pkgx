@@ -6,7 +6,6 @@ import { parseArgs } from "./args.ts";
 import { init } from "./init.ts";
 import useConfig from "./hooks/useConfig.ts";
 
-
 try {
   const [args, flags] = parseArgs(Deno.args, Deno.execPath())
   init(flags)

@@ -74,7 +74,7 @@ export async function run(args: Args) {
       break
     case "dump": {
       env['PATH'] = full_path().join(':')
-      env["TEA_PKGS"] = pkgs.map(pkgutils.str).join(":")
+      env["TEA_PKGS"] = pkgs.map(pkgutils.str).join(":").trim()
       env["TEA_PREFIX"] ??= usePrefix().string
       env["TEA_VERSION"] = useVersion()
 
