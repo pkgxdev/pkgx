@@ -118,10 +118,6 @@ Array.prototype.compact_push = function<T>(item: T | null | undefined) {
   if (item) this.push(item)
 }
 
-Array.prototype.compact_unshift = function<T>(item: T | null | undefined) {
-  if (item) this.unshift(item)
-}
-
 export function flatmap<S, T>(t: T | undefined | null, body: (t: T) => S | undefined, opts?: {rescue?: boolean}): NonNullable<S> | undefined {
   try {
     if (t) return body(t) ?? undefined
@@ -137,19 +133,6 @@ export async function async_flatmap<S, T>(t: Promise<T | undefined | null>, body
   } catch (err) {
     if (!opts?.rescue) throw err
   }
-}
-
-export function pivot<E, L, R>(input: E[], body: (e: E) => ['L', L] | ['R', R]): [L[], R[]] {
-  const rv = {
-    'L': [] as L[],
-    'R': [] as R[]
-  }
-  for (const e of input) {
-    const [side, value] = body(e)
-    // deno-lint-ignore no-explicit-any
-    rv[side].push(value as any)
-  }
-  return [rv['L'], rv['R']]
 }
 
 declare global {
@@ -179,23 +162,10 @@ Promise.prototype.swallow = function(gristle?: unknown) {
   })
 }
 
-export async function attempt<T>(body: () => Promise<T>, opts: {swallow: unknown}): Promise<T | undefined> {
-  try {
-    return await body()
-  } catch (err) {
-    if (err !== opts.swallow) throw err
-  }
-}
-
 ///////////////////////////////////////////////////////////////////////// misc
 import TeaError, { UsageError, panic } from "./error.ts"
 export { TeaError, UsageError, panic }
 export * as error from "./error.ts"
-
-// deno-lint-ignore no-explicit-any
-export function tuplize<T extends any[]>(...elements: T) {
-  return elements
-}
 
 ///////////////////////////////////////////////////////////////////////// pkgs
 export * as pkg from "./pkg.ts"
