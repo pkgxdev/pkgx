@@ -1,0 +1,9 @@
+# ---
+# dependencies:
+#   zlib.net: ^1.2
+# env:
+#   FOO: BAR
+# ---
+tensorflow==2.3.1
+uvicorn==0.12.2
+fastapi==0.63.0

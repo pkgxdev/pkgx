@@ -53,3 +53,13 @@ export type Stowed = Stowage & { path: Path }
 export function StowageNativeBottle(opts: { pkg: Package, compression: 'xz' | 'gz' }): Stowage {
   return { ...opts, host: host(), type: 'bottle' }
 }
+
+// ExitError will cause the application to exit with the specified exit code if it bubbles
+// up to the main error handler
+export class ExitError extends Error {
+  code: number
+  constructor(code: number) {
+    super(`exiting with code: ${code}`)
+    this.code = code
+  }
+}

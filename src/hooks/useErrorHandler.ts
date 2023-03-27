@@ -1,9 +1,10 @@
 import * as logger from "./useLogger.ts"
-import { usePantry, useFlags, usePrefix, useInventory } from "hooks"
+import { usePantry, useConfig, usePrefix, useInventory } from "hooks"
 import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
+import { ExitError } from "../types.ts"
 
-async function suggestions(err: TeaError) {
+export async function suggestions(err: TeaError) {
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
     const suggestion = await getClosestPackageSuggestion(err.ctx.project).swallow()
@@ -21,9 +22,11 @@ async function suggestions(err: TeaError) {
 }
 
 export default async function(err: Error) {
-  const { silent, debug } = useFlags()
+  const { silent, debug } = useConfig()
 
-  if (err instanceof TeaError) {
+  if (err instanceof ExitError) {
+    return err.code
+  } else if (err instanceof TeaError) {
     if (!silent) {
       const suggestion = await suggestions(err).swallow()
       console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
@@ -78,7 +81,7 @@ function msg(err: TeaError): string {
       msg = undent`
         pantry entry invalid. please report this bug!
 
-            https://github.com/teaxyz/pantry.core/issues/new
+            https://github.com/teaxyz/pantry/issues/new
 
         ----------------------------------------------------->> attachment begin
         ${logger.gray(attachment)}

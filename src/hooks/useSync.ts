@@ -1,11 +1,15 @@
-import { useDownload, useCellar, usePantry, useFlags } from "hooks"
-import { host, run as base_run, RunOptions } from "utils"
+import { useDownload, useCellar, usePantry, useConfig, useRun } from "hooks"
+import { RunOptions } from "hooks/useRun.ts"
+import { host } from "utils"
 import useLogger, { Logger } from "./useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
+import { useEnv } from "hooks/useConfig.ts"
 
 async function find_git({tea_ok}: {tea_ok: boolean} = {tea_ok: false}): Promise<Path | undefined> {
-  for (const path_ of Deno.env.get('PATH')?.split(':') ?? []) {
+  const { PATH } = useEnv()
+
+  for (const path_ of PATH?.split(':') ?? []) {
     const path = Path.root.join(path_, 'git')
     if (path.string == '/usr/bin/git' && host().platform == 'darwin' && !await clt_installed()) {
       // if the CLT or Xcode is installed then we can use the system git
@@ -36,8 +40,8 @@ async function clt_installed() {
   return exit.success
 }
 
-const pantry_dir = usePantry().prefix.parent()
-const pantries_dir = pantry_dir.parent().join("pantries")
+const findPantryDir = () => usePantry().prefix.parent()
+const findPantriesDir = () => findPantryDir().parent().join("pantries")
 
 let avoid_softlock = false
 
@@ -45,7 +49,7 @@ async function lock<T>(body: () => Promise<T>) {
   if (avoid_softlock) throw new Error("aborting to prevent softlock")
   avoid_softlock = true
 
-  const { rid } = await Deno.open(pantry_dir.mkpath().string)
+  const { rid } = await Deno.open(findPantryDir().mkpath().string)
   await Deno.flock(rid, true)
 
   try {
@@ -60,9 +64,12 @@ async function lock<T>(body: () => Promise<T>) {
 
 //TODO we have a better system in mind than git
 export async function install(logger: Logger): Promise<true | 'not-git' | 'noop' | 'deprecated'> {
+  const pantryDir = findPantryDir()
+  const pantriesDir = findPantriesDir()
+
   if (usePantry().prefix.exists()) {
-    if (pantries_dir.exists()) return 'noop'
-    if (pantry_dir.join('.git').exists()) return 'deprecated'
+    if (pantriesDir.exists()) return 'noop'
+    if (pantryDir.join('.git').exists()) return 'deprecated'
 
     // FIXME in this case we have a downloaded pantry so we should install git
     return 'not-git'
@@ -87,26 +94,20 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
     logger.replace("pantries init’d ⎷")
     return rv
   } catch (e) {
-    pantries_dir.rm({ recursive: true }) // leave us in a blank state
-    pantry_dir.rm({ recursive: true })   // ^^
+    pantriesDir.rm({ recursive: true }) // leave us in a blank state
+    pantryDir.rm({ recursive: true })   // ^^
     throw e
   }
 
   async function clone(git: Path) {
-    const pp: Promise<void>[] = []
-    for (const name of ["pantry.core", "pantry.extra"]) {
-      const p = run({
-        cmd: [
-          git, "clone",
-            "--bare", "--depth=1",
-            `https://github.com/teaxyz/${name}`,
-            pantries_dir.join("teaxyz").mkpath().join(name)
-        ]
-      })
-      pp.push(p)
-    }
-
-    await Promise.all(pp)
+    await run({
+      cmd: [
+        git, "clone",
+          "--bare", "--depth=1",
+          `https://github.com/teaxyz/pantry`,
+          pantriesDir.join("teaxyz").mkpath().join("pantry")
+      ]
+    })
     await co(git)
   }
 
@@ -114,20 +115,24 @@ export async function install(logger: Logger): Promise<true | 'not-git' | 'noop'
     //FIXME if we do this, we need to be able to convert it to a git installation later
     //TODO use our tar if necessary
     //TODO if we keep this then don’t store the files, just pipe to tar
-    for (const name of ["pantry.core", "pantry.extra"]) {
-      const src = new URL(`https://github.com/teaxyz/${name}/archive/refs/heads/main.tar.gz`)
-      const tgz = await useDownload().download({ src })
-      const cwd = pantry_dir.mkpath()
-      await run({cmd: ["tar", "xzf", tgz, "--strip-components=1"], cwd })
-    }
+    const src = new URL(`https://github.com/teaxyz/pantry/archive/refs/heads/main.tar.gz`)
+    const tgz = await useDownload().download({ src })
+    const cwd = pantryDir.mkpath()
+    await run({cmd: ["tar", "xzf", tgz, "--strip-components=1"], cwd })
   }
 }
 
 async function *ls() {
-  for await (const [user, {isDirectory}] of pantries_dir.ls()) {
+  const pantriesDir = findPantriesDir()
+  for await (const [user, {isDirectory, name: user_name}] of pantriesDir.ls()) {
     if (!isDirectory) continue
-    for await (const [repo, isDirectory] of user.ls()) {
-      if (isDirectory) yield repo
+    for await (const [repo, {isDirectory, name: repo_name}] of user.ls()) {
+      if (!isDirectory) continue
+      if (user_name == "teaxyz" && repo_name == "pantry.core") {
+        // we used to have multiple pantries, but not anymore!
+        continue
+      }
+      yield repo
   }}
 }
 
@@ -176,7 +181,7 @@ async function co(git: string | Path) {
   for await (const git_dir of ls()) {
     const cmd = [git,
       "--git-dir", git_dir,
-      "--work-tree", pantry_dir,
+      "--work-tree", findPantryDir(),
       "checkout",
       "--force"
     ]
@@ -187,6 +192,6 @@ async function co(git: string | Path) {
 export default update
 
 function run(opts: RunOptions) {
-  const spin = useFlags().verbosity < 1
-  return base_run({ ...opts, spin })
+  const spin = useConfig().verbosity < 1
+  return useRun({ ...opts, spin })
 }

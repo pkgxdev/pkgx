@@ -1,12 +1,13 @@
 #!/usr/bin/env -S deno run -A
 
-import { useCellar, useFlags } from "hooks"
+import { init } from "../src/init.ts";
+import { useCellar } from "hooks"
 import { Installation } from "types"
 import { link } from "prefab"
 import * as semver from "semver"
 
 if (import.meta.main) {
-  useFlags()
+  init()
 
   for (const project of Deno.args) {
     await repairLinks(project)

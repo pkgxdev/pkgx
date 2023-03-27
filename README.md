@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.25.3
+# tea/cli 0.26.0
 
 `tea` puts the whole open source ecosystem at your fingertips:
 
@@ -175,8 +175,8 @@ sh <(curl https://tea.xyz)
 ```
 
 Our one-liner sets up in `~/.tea` and enables magic but it actually can do a
-whole bunch more. For all the deets and other ways to install check out
-the manual [docs.tea.xyz].
+whole bunch more. For all the deets and other ways to install (including [our
+GitHub Action]) check out the manual [docs.tea.xyz].
 
 &nbsp;
 
@@ -222,9 +222,10 @@ deno task install   # deploys the local checkout into your `~/.tea`
 
 
 [docs.tea.xyz]: https://docs.tea.xyz
-[pantry]: https://github.com/teaxyz/pantry.core
+[pantry]: https://github.com/teaxyz/pantry
 [deno]: https://deno.land
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [stable-diffusion-webui]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 [releases]: ../../releases
+[our GitHub Action]: https://github.com/teaxyz/setup
