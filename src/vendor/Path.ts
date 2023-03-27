@@ -340,9 +340,21 @@ export default class Path {
     return Deno.readTextFile(this.string)
   }
 
-  readLines(): AsyncIterableIterator<string> {
+  async *readLines(): AsyncIterableIterator<string> {
     const fd = Deno.openSync(this.string)
-    return readLines(fd)
+    const lines = readLines(fd)
+    try {
+      while (true) {
+        const res = await lines.next()
+        if (res.done) {
+          break
+        }
+        yield res.value
+      }
+    }
+    finally {
+      fd.close()
+    }
   }
 
   //FIXME like, we don’t want a hard dependency in the published library
