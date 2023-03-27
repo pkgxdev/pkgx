@@ -3,7 +3,7 @@ import { PackageSpecification, Installation, PackageRequirement } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
-import { Logger } from "./useLogger.ts"
+import useLogger from "./useLogger.ts"
 import { pkg as pkgutils, TeaError } from "utils"
 import * as semver from "semver"
 import Path from "path"
@@ -112,7 +112,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
 ///////////////////////////////////////////////////////////////////////////// funcs
 
 async function install(pkgs: PackageSpecification[], update: boolean) {
-  const logger = new Logger()
+  const logger = useLogger()
   logger.replace("resolving package graph")
 
   console.debug({hydrating: pkgs})
@@ -152,18 +152,21 @@ async function read_shebang(path: Path): Promise<string[]> {
   return []
 }
 
-import { basename } from "deno/path/mod.ts"
 import useCellar from "./useCellar.ts"
+import useConfig, { useEnv } from "./useConfig.ts"
 
 async function fetch_it(arg0: string | undefined) {
   if (!arg0) return
+
   const url = urlify(arg0)
   if (url) {
     const path = await useDownload().download({ src: url })
     return path.chmod(0o700)  //FIXME like… I don’t feel we should necessarily do this…
   }
+
+  const { execPath } = useConfig()
   const path = Path.cwd().join(arg0)
-  if (path.exists() && basename(Deno.execPath()) == "tea") {
+  if (path.exists() && execPath.basename() == "tea") {
     // ^^ in the situation where we are shadowing other tool names
     // we don’t want to fork bomb if the tool in question is in CWD
 
@@ -212,6 +215,7 @@ export async function which(arg0: string | undefined) {
     return false
   }
 
+  const { TEA_PKGS } = useEnv()
   const pantry = usePantry()
   let found: { project: string, constraint: semver.Range, shebang: string } | undefined
   const promises: Promise<void>[] = []
@@ -223,8 +227,7 @@ export async function which(arg0: string | undefined) {
         if (found) {
           return
         } else if (provider == arg0) {
-          const inenv = Deno.env.get("TEA_PKGS")
-            ?.split(":")
+          const inenv = TEA_PKGS?.split(":")
             .map(pkgutils.parse)
             .find(x => x.project == entry.project)
           if (inenv) {

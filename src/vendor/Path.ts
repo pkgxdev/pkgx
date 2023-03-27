@@ -276,7 +276,7 @@ export default class Path {
 
   mkdir(): Path {
     if (!this.isDirectory()) {
-      Deno.mkdirSync(this.string)
+      Deno.mkdirSync(this.string, { recursive: true })
     }
     return this
   }
@@ -414,6 +414,10 @@ export default class Path {
       relComps.push(...newPathComps)
       return relComps.join("/")
     }
+  }
+
+  realpath(): Path {
+    return new Path(Deno.realPathSync(this.string))
   }
 
   prettyString(): string {

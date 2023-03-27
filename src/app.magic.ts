@@ -1,9 +1,11 @@
 import { basename } from "deno/path/mod.ts"
 import { undent } from "utils"
 import Path from "path"
+import { useEnv } from "./hooks/useConfig.ts"
 
 export default function(self: Path, shell?: string) {
-  shell ??= basename(Deno.env.get("SHELL") ?? "unknown")
+  const { SHELL } = useEnv()
+  shell ??= basename(SHELL ?? "unknown")
   const d = self.parent()
 
   switch (shell) {
@@ -14,6 +16,11 @@ export default function(self: Path, shell?: string) {
           source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
         fi
       }
+
+      if test "$TERM_PROGRAM" = WarpTerminal; then
+        # warp.dev seems to start shells in a way that this doesn’t trigger
+        _tea_chpwd_hook
+      fi
 
       typeset -ag chpwd_functions
 

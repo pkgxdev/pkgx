@@ -1,12 +1,7 @@
 import { colors, tty } from "cliffy/ansi/mod.ts"
-import { flatmap } from "../utils/index.ts";
-import useFlags from "./useFlags.ts"
-
-let global_prefix: string | undefined
-export function set_global_prefix(prefix: string) {
-  if (global_prefix !== undefined) throw new Error()
-  global_prefix = prefix.trim()
-}
+import { flatmap } from "utils";
+import useConfig, { useEnv } from "hooks/useConfig.ts";
+import { Verbosity } from "types";
 
 // ref https://github.com/chalk/ansi-regex/blob/main/index.js
 const ansi_escapes_rx = new RegExp([
@@ -32,30 +27,33 @@ function ln(s: string, prefix_length: number) {
 }
 
 export default function useLogger(prefix?: string) {
-  return new Logger(prefix)
+  const { verbosity, loggerGlobalPrefix } = useConfig()
+  return new Logger(verbosity, prefix, loggerGlobalPrefix)
 }
 
 function colorIfTTY(x: string, colorMethod: (x: string)=>string) {
   //TODO this function needs to take a out/err parameter since that's what
   // needs to be tested rather than testing for both (this is safe for now)
   const isTTY = () => Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stdout.rid)
+  const { isCI } = useConfig()
+  const { CLICOLOR, CLICOLOR_FORCE, NO_COLOR } = useEnv()
 
   const color_on = () => {
-    if ((Deno.env.get("CLICOLOR") ?? '1') != '0' && isTTY()){
+    if ((CLICOLOR ?? '1') != '0' && isTTY()){
       //https://bixense.com/clicolors/
       return true
     }
-    if ((Deno.env.get("CLICOLOR_FORCE") ?? '0') != '0') {
+    if ((CLICOLOR_FORCE ?? '0') != '0') {
       //https://bixense.com/clicolors/
       return true
     }
-    if ((Deno.env.get("NO_COLOR") ?? '0') != '0') {
+    if ((NO_COLOR ?? '0') != '0') {
       return false
     }
-    if (Deno.env.get("CLICOLOR") == '0' || Deno.env.get("CLICOLOR_FORCE") == '0') {
+    if (CLICOLOR == '0' || CLICOLOR_FORCE == '0') {
       return false
     }
-    if (Deno.env.get("CI")) {
+    if (isCI) {
       // this is what charm’s lipgloss does, we copy their lead
       // however surely nobody wants `tea foo > bar` to contain color codes?
       // the thing is otherwise we have no color in CI since it is not a TTY
@@ -73,20 +71,25 @@ export const dark = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 238))
 export const lite = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 252))
 
 export class Logger {
+  readonly verbosity: Verbosity
   readonly prefix: string
+  readonly globalPrefix?: string
   lines = 0
   last_line = ''
   tty = tty({ stdout: Deno.stderr })
-  verbosity = useFlags().verbosity
   prefix_length: number
 
-  constructor(prefix?: string) {
+  constructor(verbosity: Verbosity, prefix?: string, globalPrefix?: string) {
+    this.verbosity = verbosity
+
     prefix = prefix?.chuzzle()
     this.prefix_length = prefix?.length ?? 0
     this.prefix = prefix ? `${gray(prefix)} ` : ''
-    if (global_prefix) {
-      this.prefix = `${dark(global_prefix)} ${this.prefix}`
-      this.prefix_length += global_prefix.length + 1
+
+    if (globalPrefix) {
+      this.globalPrefix = globalPrefix
+      this.prefix = `${dark(globalPrefix)} ${this.prefix}`
+      this.prefix_length += globalPrefix.length + 1
     }
   }
 
@@ -109,9 +112,9 @@ export class Logger {
 
     const prefix = wprefix
       ? this.prefix
-      : flatmap(global_prefix?.chuzzle(), x => `${dark(x)} `) ?? ''
+      : flatmap(this.globalPrefix?.chuzzle(), x => `${dark(x)} `) ?? ''
     console.error(prefix + line)
-    this.lines += ln(line, wprefix ? this.prefix_length : global_prefix?.length ?? 0)
+    this.lines += ln(line, wprefix ? this.prefix_length : this.globalPrefix?.length ?? 0)
     this.last_line = line
   }
 

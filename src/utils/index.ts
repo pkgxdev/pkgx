@@ -22,27 +22,6 @@ export function validate_arr<T>(input: any): Array<T> {
   return input
 }
 
-
-///////////////////////////////////////////////////////////////////////// HTTP
-export async function GET<T>(url: URL | string, headers?: Headers): Promise<T> {
-  return (await GET2(url, headers))[0] as T
-}
-
-export async function GET2<T>(url: URL | string, headers?: Headers): Promise<[T, Response]> {
-  if (isString(url)) url = new URL(url)
-  if (url.host == "api.github.com") {
-    const token = Deno.env.get("GITHUB_TOKEN")
-    if (token) {
-      headers ??= new Headers()
-      headers.append("Authorization", `bearer ${token}`)
-    }
-  }
-  const rsp = await fetch(url, { headers })
-  if (!rsp.ok) throw new TeaError('http', { url, headers })
-  const json = await rsp.json()
-  return [json as T, rsp]
-}
-
 ////////////////////////////////////////////////////////////// base extensions
 import outdent from "outdent"
 export { outdent as undent }
@@ -207,69 +186,6 @@ export async function attempt<T>(body: () => Promise<T>, opts: {swallow: unknown
     if (err !== opts.swallow) throw err
   }
 }
-
-////////////////////////////////////////////////////////////////////////// run
-import Path from "path"
-
-export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'stderr'|'stdin'> {
-  cmd: (string | Path)[] | Path
-  cwd?: (string | Path)
-  clearEnv?: boolean  //NOTE might not be cross platform!
-  spin?: boolean  // hide output unless an error occurs
-}
-
-export class RunError extends Error {
-  code: number
-  constructor(code: number, cmd: (Path | string)[]) {
-    super(`cmd failed: ${code}: ${cmd.join(' ')}`)
-    this.code = code
-  }
-}
-
-export async function run({ spin, ...opts }: RunOptions) {
-  const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
-  const cwd = opts.cwd?.toString()
-  console.verbose({ cwd, ...opts, cmd })
-
-  const stdio = { stdout: 'inherit', stderr: 'inherit', stdin: 'inherit' } as Pick<Deno.RunOptions, 'stdout'|'stderr'|'stdin'>
-  if (spin) {
-    stdio.stderr = stdio.stdout = 'piped'
-  }
-
-  let proc: Deno.Process | undefined
-  try {
-    proc = Deno.run({ ...opts, cmd, cwd, ...stdio })
-    const exit = await proc.status()
-    console.verbose({ exit })
-    if (!exit.success) throw new RunError(exit.code, cmd)
-  } catch (err) {
-    if (spin && proc) {
-      //FIXME this doesn’t result in the output being correctly interlaced
-      // ie. stderr and stdout may (probably) have been output interleaved rather than sequentially
-      const decode = (() => { const e = new TextDecoder(); return e.decode.bind(e) })()
-      console.error(decode(await proc.output()))
-      console.error(decode(await proc.stderrOutput()))
-    }
-    err.cmd = cmd  // help us out since deno-devs don’t want to
-    throw err
-  }
-}
-
-export async function backticks(opts: RunOptions): Promise<string> {
-  const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
-  const cwd = opts.cwd?.toString()
-  console.verbose({ cwd, ...opts, cmd })
-  const proc = Deno.run({ ...opts, cwd, cmd, stdout: "piped" })
-  const out = await proc.output()
-  const txt = new TextDecoder().decode(out)
-  return txt
-}
-
-/////////////////////////////////////////////////////////////////////////// io
-// for output that the user requested, everything from console.* might be silenced
-const encoder = new TextEncoder()
-export const print = (x: string) => Deno.stdout.write(encoder.encode(`${x}\n`))
-
 
 ///////////////////////////////////////////////////////////////////////// misc
 import TeaError, { UsageError, panic } from "./error.ts"

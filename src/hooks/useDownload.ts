@@ -1,9 +1,10 @@
 import { crypto, toHashString } from "deno/crypto/mod.ts"
-import { Logger, teal, gray } from "./useLogger.ts"
+import useLogger, { Logger, teal, gray } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
-import { useFlags, usePrefix, useFetch } from "hooks"
+import { usePrefix, useFetch } from "hooks"
 import { isString } from "is_what"
 import Path from "path"
+import useConfig, { useEnv } from "./useConfig.ts"
 
 interface DownloadOptions {
   src: URL
@@ -22,7 +23,9 @@ interface RV {
 
 async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Promise<[Path, ReadableStream<Uint8Array> | undefined]>
 {
-  logger = isString(logger) ? new Logger(logger) : logger ?? new Logger()
+  const { isCI, silent } = useConfig();
+  const { GITHUB_TOKEN } = useEnv();
+  logger = isString(logger) ? useLogger(logger) : logger ?? useLogger()
 
   const hash = hash_key(src)
   const mtime_entry = hash.join("mtime")
@@ -47,10 +50,9 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
 
   // so the user can add private repos if they need to etc.
   if (/(^|\.)github.com$/.test(src.host)) {
-    const token = Deno.env.get("GITHUB_TOKEN")
-    if (token) {
+    if (GITHUB_TOKEN) {
       headers ??= {}
-      headers["Authorization"] = `bearer ${token}`
+      headers["Authorization"] = `bearer ${GITHUB_TOKEN}`
     }
   }
 
@@ -71,7 +73,7 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
     const etag = rsp.headers.get("ETag")
     if (etag) etag_entry.write({text: etag, force: true})
 
-    if (Deno.env.get('CI') || useFlags().silent) {
+    if (isCI || silent) {
       return [dst, reader]
     } else {
       let n = 0

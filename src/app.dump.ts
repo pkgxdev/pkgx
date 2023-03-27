@@ -1,4 +1,5 @@
-import { flatmap, print } from "utils"
+import { useEnv, usePrint } from "hooks"
+import { flatmap } from "utils"
 import { isPlainObject } from "is_what"
 
 //TODO should read from the shell configuration files to get originals properly
@@ -10,6 +11,9 @@ interface Parameters {
 }
 
 export default async function dump({ env, shell }: Parameters) {
+  const { TEA_REWIND, getEnvAsObject } = useEnv();
+  const { print } = usePrint()
+
   const [set, unset]= (() => {
     switch (shell) {
     case "elvish":
@@ -33,7 +37,7 @@ export default async function dump({ env, shell }: Parameters) {
   const is_env = env['SRCROOT']
 
   if (is_env) {
-    const oldenv = Deno.env.toObject()
+    const oldenv = getEnvAsObject()
 
     // first rewind the env to the original state
     if (oldenv['TEA_REWIND']) {
@@ -78,7 +82,7 @@ export default async function dump({ env, shell }: Parameters) {
     await print(set('TEA_REWIND', TEA_REWIND))
 
   } else {
-    const unwind = flatmap(Deno.env.get('TEA_REWIND'), JSON.parse) as { revert: Record<string, string>, unset: string[] }
+    const unwind = flatmap(TEA_REWIND, JSON.parse) as { revert: Record<string, string>, unset: string[] }
     if (!isPlainObject(unwind)) return
 
     for (const key of unwind.unset) {
