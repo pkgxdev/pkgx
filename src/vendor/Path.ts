@@ -342,16 +342,10 @@ export default class Path {
 
   async *readLines(): AsyncIterableIterator<string> {
     const fd = Deno.openSync(this.string)
-    const lines = readLines(fd)
     try {
-      while (true) {
-        const res = await lines.next()
-        if (res.done) {
-          break
-        }
-        yield res.value
+      for await (const line of readLines(fd)) 
+        yield line
       }
-    }
     finally {
       fd.close()
     }
