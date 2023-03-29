@@ -1,10 +1,10 @@
-import { usePrefix, useCache, useCellar, useDownload, useOffLicense, useFetch } from "hooks"
+import { usePrefix, useCache, useCellar, useDownload, useOffLicense, useFetch, useConfig } from "hooks"
 import { host, panic, pkg as pkgutils } from "utils"
 import useLogger, { Logger, red, teal, gray } from "hooks/useLogger.ts"
 import { Installation, StowageNativeBottle } from "types"
 import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Package } from "types"
-import useConfig from "../hooks/useConfig.ts"
+import Path from "path"
 
 export default async function install(pkg: Package, logger?: Logger): Promise<Installation> {
   const { project, version } = pkg
@@ -17,7 +17,6 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const tarball = useCache().path(stowage)
-  const vdirname = `v${pkg.version}`
   const shelf = tea_prefix.join(pkg.project)
 
   const log_install_msg = (install: Installation, title = 'installed') => {
@@ -30,7 +29,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   }
 
   if (dryrun) {
-    const install = { pkg, path: tea_prefix.join(pkg.project, vdirname) }
+    const install = { pkg, path: tea_prefix.join(pkg.project, `v${pkg.version}`) }
     log_install_msg(install, 'imagined')
     return install
   }
@@ -57,7 +56,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     const tee = stream.tee()
     const pp: Promise<unknown>[] = []
 
-    if (is_downloading) {  // cache the download
+    if (is_downloading) {  // cache the download (write stream to disk)
       tarball.parent().mkpath()
       const f = await Deno.open(tarball.string, {create: true, write: true, truncate: true})
       const teee = tee[1].tee()
@@ -65,9 +64,13 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
       tee[1] = teee[1]
     }
 
-    const tmpdir = usePrefix().join("tmp").mkpath()
+    const tmpdir = Path.mktemp({
+      prefix: pkg.project.replaceAll("/", "_") + "_",
+      dir: usePrefix().join("local/tmp")
+      //NOTE ^^ inside tea prefix to avoid TMPDIR is on a different volume problems
+    })
     const untar = new Deno.Command("tar", {
-      args: [tar_args],
+      args: [tar_args, "--strip-components", (pkg.project.split("/").length + 1).toString()],
       stdin: 'piped', stdout: "inherit", stderr: "inherit",
       cwd: tmpdir.string,
     }).spawn()
@@ -82,7 +85,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     const [computed_hash_value, checksum, tar_exit_status] = await Promise.all(pp) as [string, string, Deno.CommandStatus]
 
     if (!tar_exit_status.success) {
-      throw new Error(`tar exited with status ${tar_exit_status}`)
+      throw new Error(`tar exited with status ${tar_exit_status.code}`)
     }
 
     if (computed_hash_value != checksum) {
@@ -92,7 +95,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
       throw new Error(`sha: expected: ${checksum}, got: ${computed_hash_value}`)
     }
 
-    const path = tmpdir.join(pkg.project, `v${pkg.version}`).mv({ into: shelf })
+    const path = tmpdir.mv({ to: shelf.join(`v${pkg.version}`) })
     const install = { pkg, path }
 
     log_install_msg(install)
