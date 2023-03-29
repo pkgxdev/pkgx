@@ -39,6 +39,9 @@ export default function(self: Path, shell?: string) {
       function command_not_found_handler {
         if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
           "${d}"/tea -- $*
+        else
+          echo "zsh: command not found: $*" >&2
+          exit 127
         fi
       }
       `
