@@ -205,12 +205,8 @@ export default class Path {
     return this.string.split('/')
   }
 
-  static mktmp({ prefix }: { prefix: string } = { prefix: 'tea' }): Path {
-    const parts = tmp.join(prefix).split()
-    parts[0].mkpath()
-    const dir = parts[0].string
-    prefix = parts[1]
-    const rv = Deno.makeTempDirSync({prefix, dir})
+  static mktemp({ prefix, dir }: { prefix?: string, dir?: Path }): Path {
+    const rv = Deno.makeTempDirSync({prefix, dir: dir?.mkpath().string})
     return new Path(rv)
   }
 
@@ -440,11 +436,6 @@ export default class Path {
     return this.prettyString()
   }
 }
-
-let tmp = new Path('/tmp')
-const set_tmp = (path: Path) => tmp = path
-
-export { set_tmp }
 
 declare global {
   interface URL {
