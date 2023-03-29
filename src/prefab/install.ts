@@ -101,7 +101,9 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     log_install_msg(install)
 
     return install
-
+  } catch (err) {
+    tarball.rm()  //FIXME resumable downloads!
+    throw err
   } finally {
     await Deno.funlock(rid)
     Deno.close(rid)  // docs aren't clear if we need to do this or not
