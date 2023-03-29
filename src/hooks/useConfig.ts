@@ -1,6 +1,5 @@
-import Path from "path";
-import { Verbosity } from "../types.ts";
-import { set_tmp } from "path"
+import Path from "path"
+import { Verbosity } from "types"
 
 export interface EnvAccessor {
   getEnvAsObject: () => { [index: string]: string }
@@ -52,7 +51,6 @@ let config: Config | undefined;
 // Apply config should only be called once during application initialization
 export function applyConfig(cf: Config) {
   config = cf
-  set_tmp(config.teaPrefix.join('tea.xyz/tmp'))
   applyVerbosity(config)
 }
 

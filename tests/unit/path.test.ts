@@ -6,7 +6,7 @@ Deno.test("test Path", async test => {
     assertEquals(new Path("/a/b/c").components(), ["", "a", "b", "c"])
     assertEquals(new Path("/a/b/c").split(), [new Path("/a/b"), "c"])
 
-    const tmp = Path.mktmp({prefix: "tea-"})
+    const tmp = Path.mktemp({prefix: "tea-"})
     assert(tmp.isEmpty())
 
     const child = tmp.join("a/b/c")
@@ -25,7 +25,7 @@ Deno.test("test Path", async test => {
   })
 
   await test.step("write and read", async () => {
-    const tmp = Path.mktmp({prefix: "tea-"})
+    const tmp = Path.mktemp({prefix: "tea-"})
 
     const data = tmp.join("test.dat")
     data.write({text: "hello\nworld"})
@@ -41,7 +41,7 @@ Deno.test("test Path", async test => {
   })
 
   await test.step("test walk", async () => {
-    const tmp = Path.mktmp({prefix: "tea-"})
+    const tmp = Path.mktemp({prefix: "tea-"})
 
     const a = tmp.join("a").mkdir()
     a.join("a1").touch()
@@ -75,10 +75,10 @@ Deno.test("test Path", async test => {
   })
 })
 
-async function asyncIterToArray<T> (iter: AsyncIterable<T>){ 
-  const result = []; 
+async function asyncIterToArray<T> (iter: AsyncIterable<T>){
+  const result = [];
   for await(const i of iter) {
-    result.push(i); 
+    result.push(i);
   }
   return result;
 }
