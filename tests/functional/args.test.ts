@@ -1,6 +1,7 @@
 import { assertEquals } from "deno/testing/asserts.ts"
 import { wut } from "../../src/app.main.ts"
 import { parseArgs } from "../../src/args.ts"
+import { EnvKeys } from "../../src/hooks/useShellEnv.ts"
 import { collectEnv, init } from "../../src/init.ts"
 
 Deno.test("parse args", async test => {
@@ -108,7 +109,9 @@ Deno.test("reads env", () => {
     "TEA_FORK_BOMB_PROTECTOR", "TEA_PANTRY_PATH", "TEA_PKGS", "TEA_PREFIX", "TEA_REWIND",
     "VERBOSE", "VERSION"]
 
-  const oldEnv = keys.map(k => Deno.env.get(k))
+  const oldEnv = keys.reduce((env, key) => {
+    return { ...env, [key]: Deno.env.get(key) }
+  }, {} as Record<string, string | undefined>) 
 
   try {
     keys.forEach(k => Deno.env.set(k, `${k}-TEST`))
