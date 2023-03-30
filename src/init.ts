@@ -55,7 +55,7 @@ export function collectEnv(): Env {
     TEA_FILES: Deno.env.get("TEA_FILES"),
     TEA_FORK_BOMB_PROTECTOR: Deno.env.get("TEA_FORK_BOMB_PROTECTOR"),
     TEA_PANTRY_PATH: Deno.env.get("TEA_PANTRY_PATH"),
-    TEA_PKGS: Deno.env.get("TEAK_PKGS"),
+    TEA_PKGS: Deno.env.get("TEA_PKGS"),
     TEA_PREFIX: Deno.env.get("TEA_PREFIX"),
     TEA_REWIND: Deno.env.get("TEA_REWIND"),
     VERBOSE: Deno.env.get("VERBOSE"),
