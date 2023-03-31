@@ -202,22 +202,33 @@ you may be having.
 
 
 
-# Contributing
+# Adding New Packages
 
-* If you have suggestions or ideas, start a [discussion]. If we agree, we’ll
-move it to an issue. Bug fixes straight to pull request or issue please!
-* If you want to add a new package to `tea` then visit the [pantry].
+Check out the [pantry README].
+
+
+# Contributing to tea/cli
+
+If you have suggestions or ideas, start a [discussion].
+If we agree, we’ll move it to an issue.
+Bug fixes straight to pull request or issue please!
 
 ## Hacking on tea/cli
 
 `tea` is written in [TypeScript] using [deno].
 
 ```sh
-git clone https://github.com/teaxyz/cli tea
-cd tea
+$ git clone https://github.com/teaxyz/cli tea
+$ cd tea
 
-deno task run foo   # runs the local checkout passing `foo` as an argument
-deno task install   # deploys the local checkout into your `~/.tea`
+deno task run foo
+# ^^ runs the local checkout passing `foo` as an argument
+# NOTE this doesn't currently work due to a bug in deno :(
+
+$ deno task install
+# ^^ deploys the local checkout into your `~/.tea`
+
+$ deno task compile && ./tea
 ```
 
 
@@ -229,3 +240,4 @@ deno task install   # deploys the local checkout into your `~/.tea`
 [stable-diffusion-webui]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 [releases]: ../../releases
 [our GitHub Action]: https://github.com/teaxyz/setup
+[pantry README]: https://github.com/teaxyz/pantry#contributing
