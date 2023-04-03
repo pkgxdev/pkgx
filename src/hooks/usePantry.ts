@@ -184,7 +184,11 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
       return "0"
     } else if (isString(value)) {
       const mm = useMoustaches()
-      const obj = Object.entries(Deno.env.toObject()).map(([key, value]) => ({ from: `env.${key}`, to: value }))
+      const home = Path.home().string
+      const obj = [
+        { from: 'env.HOME', to: home },  // historic, should be removed at v1
+        { from: 'home', to: home }
+      ]
       obj.push(...mm.tokenize.all(pkg, deps))
       return mm.apply(value, obj)
     } else if (isNumber(value)) {
