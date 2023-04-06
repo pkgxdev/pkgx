@@ -39,4 +39,12 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     const { run } = await createTestHarness()
     await assertRejects(() => run(["--provides", "armone"]), ExitError, "exiting with code: 0")
   })
+
+  // FIXME: once you _execute_ cargo install, provides returns false,
+  // since it's in the path at that point. But I doubt uninstalling after
+  // run is the right answer.
+  await test.step("dark magic provides -- cargo install grex", async () => {
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "grex"]), ExitError, "exiting with code: 0")
+  })
 })
