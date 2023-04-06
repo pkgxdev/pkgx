@@ -287,6 +287,18 @@ export async function which(arg0: string | undefined) {
     return found
   }
 
+  // dark-magic will find a _lot_ of things, even when we might not want to.
+  // https://www.npmjs.com/package/sh is a great example, and probably not what
+  // we're looking for if we say `tea sh` (which is a common thing to do).
+  // So, we should only pass through if the tool we want isn't on the path.
+  const { env } = useConfig()
+  if (env.PATH) {
+    for (const dir of env.PATH.split(":")) {
+      const path = new Path(dir).join(arg0)
+      if (path.isExecutableFile()) return false
+    }
+  }
+
   // Here is where we check our dark magic providers for the name in question.
   return useDarkMagic().which(arg0)
 }
