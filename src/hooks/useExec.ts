@@ -1,4 +1,4 @@
-import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix } from "hooks"
+import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix, useDarkMagic } from "hooks"
 import { PackageSpecification, Installation, PackageRequirement } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
@@ -7,6 +7,7 @@ import useLogger from "./useLogger.ts"
 import { pkg as pkgutils, TeaError } from "utils"
 import * as semver from "semver"
 import Path from "path"
+import { isArray } from "is_what"
 
 interface Parameters {
   args: string[]
@@ -80,7 +81,11 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     const found = await which(arg0)
     if (found) {
       pkgs.push(found)
-      cmd[0] = found.shebang
+      if (isArray(found.shebang)) {
+        cmd.unshift(...found.shebang as string[])
+      } else {
+        cmd[0] = found.shebang as string
+      }
       await add_companions(found)
     }
   }
@@ -206,7 +211,7 @@ function urlify(arg0: string) {
 }
 
 type WhichResult = PackageRequirement & {
-  shebang?: string
+  shebang?: string | string[]
 }
 
 export async function which(arg0: string | undefined) {
@@ -281,6 +286,21 @@ export async function which(arg0: string | undefined) {
   if (found) {
     return found
   }
+
+  // dark-magic will find a _lot_ of things, even when we might not want to.
+  // https://www.npmjs.com/package/sh is a great example, and probably not what
+  // we're looking for if we say `tea sh` (which is a common thing to do).
+  // So, we should only pass through if the tool we want isn't on the path.
+  const { env } = useConfig()
+  if (env.PATH) {
+    for (const dir of env.PATH.split(":")) {
+      const path = new Path(dir).join(arg0)
+      if (path.isExecutableFile()) return false
+    }
+  }
+
+  // Here is where we check our dark magic providers for the name in question.
+  return useDarkMagic().which(arg0)
 }
 
 const subst = function(start: number, end: number, input: string, what: string) {
