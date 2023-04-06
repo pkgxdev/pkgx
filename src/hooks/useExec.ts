@@ -95,7 +95,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         // will also end up outside tea's prefix, so they won't be removed by
         // uninstall. So maybe this is fine?
 
-        // also FIXME: once you _execute_ cargo install, provides returns false,
+        // also FIXME: once you _execute_ cargo install, `--provides` returns false,
         // since it's in the path at that point. But I doubt uninstalling after
         // run is the right answer.
         await useRun({ cmd: found.precmd })
@@ -223,7 +223,7 @@ function urlify(arg0: string) {
   }
 }
 
-export type WhichResult = PackageRequirement & {
+type WhichResult = PackageRequirement & {
   shebang?: string | string[]
   precmd?: string[]
 }
