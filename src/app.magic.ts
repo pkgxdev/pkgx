@@ -17,8 +17,8 @@ export default function(self: Path, shell?: string) {
         fi
       }
 
-      if test "$TERM_PROGRAM" = WarpTerminal; then
-        # warp.dev seems to start shells in a way that this doesn’t trigger
+      if test "$TERM_PROGRAM" = WarpTerminal -o "$TERM_PROGRAM" = vscode; then
+        # warp.dev & vscode integrated terminal don’t call the hook on startup
         _tea_chpwd_hook
       fi
 
