@@ -22,11 +22,16 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
 
   await test.step("does not provide", async () => {
     const { run } = await createTestHarness()
-    await assertRejects(() => run(["--provides", "foobar"]), ExitError, "exiting with code: 1")
+    await assertRejects(() => run(["--provides", "this-isn't-a-real-package-name"]), ExitError, "exiting with code: 1")
   })
 
   await test.step("does not provide version", async () => {
     const { run } = await createTestHarness()
     await assertRejects(() => run(["--provides", "node@newest"]), ExitError, "exiting with code: 1")
+  })
+
+  await test.step("dark magic provides -- npx create-react-app", async () => {
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "create-react-app"]), ExitError, "exiting with code: 0")
   })
 })
