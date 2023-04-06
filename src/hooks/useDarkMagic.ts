@@ -22,7 +22,7 @@ const npx = async (arg0: string | undefined) => {
     return {
       project: "npmjs.com",
       constraint: new Range("*"),
-      shebang: ["npx", "-q"]
+      shebang: ["npx", "-y"]
     }
   }
 
