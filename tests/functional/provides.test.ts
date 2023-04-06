@@ -34,4 +34,9 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     const { run } = await createTestHarness()
     await assertRejects(() => run(["--provides", "create-react-app"]), ExitError, "exiting with code: 0")
   })
+
+  await test.step("dark magic provides -- pipx run armone", async () => {
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "armone"]), ExitError, "exiting with code: 0")
+  })
 })
