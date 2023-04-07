@@ -16,6 +16,7 @@ type RunOptions = ({
 }) & {
   env?: Record<string, string>
   throws?: boolean
+  sync?: boolean
 }
 
 interface Enhancements {
@@ -63,7 +64,8 @@ const suite = describe({
     const teafile = bin.join('tea')
     const { sandbox } = this
 
-    this.run = ({env, throws, ...opts}: RunOptions) => {
+    this.run = ({env, throws, sync, ...opts}: RunOptions) => {
+      sync ??= true
       env ??= {}
       for (const key of ['HOME', 'CI', 'RUNNER_DEBUG', 'GITHUB_ACTIONS']) {
         const value = Deno.env.get(key)
@@ -83,18 +85,26 @@ const suite = describe({
           ? [...opts.args]
           : [...opts.cmd]
 
-        // be faster when testing locally
+
+        //TODO we typically don’t want silent, we just want ERRORS-ONLY
         if ("args" in opts) {
-          if (!existing_tea_prefix) {
-            cmd.unshift("--sync", "--silent")
+          // be faster when testing locally
+
+          if (!existing_tea_prefix && sync) {
+            cmd.unshift("-Ss")
+          } else {
+            cmd.unshift("-s")
           }
           cmd.unshift(teafile.string)
         } else if (cmd[0] != 'tea') {
           // we need to do an initial --sync
-          const proc = Deno.run({ cmd: [teafile.string, '-Ss'], cwd: sandbox.string, env, clearEnv: true })
+          const arg = sync ? "-Ss" : "-s"
+          const proc = Deno.run({ cmd: [teafile.string, arg], cwd: sandbox.string, env, clearEnv: true })
           assertEquals((await proc.status()).code, 0)
           proc.close()
         }
+
+        console.log(cmd, env)
 
         const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
         try {
