@@ -8,7 +8,7 @@
     "coverage" : "scripts/run_coverage.sh",
     "typecheck": "deno check --unstable ./src/app.ts",
     // runs this source checkout for testing
-    //NOTE doesn’t work :/ passes the args to deno and doesn’t run the script
+    // NOTE this doesn't currently work due (our bug)
     "run": "deno run --unstable --allow-all src/app.ts",
     // compiles to ./tea
     "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output $INIT_CWD/tea src/app.ts",
