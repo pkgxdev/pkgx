@@ -70,7 +70,7 @@ const suite = describe({
         if (value) env[key] = value
       }
       env['PATH'] = `${bin}:/usr/bin:/bin`  // these systems are full of junk so we prune PATH
-      env['TEA_PREFIX'] = TEA_PREFIX.string
+      env['TEA_PREFIX'] ??= TEA_PREFIX.string
       env['CLICOLOR_FORCE'] = '1'
 
       let stdout: "piped" | undefined
