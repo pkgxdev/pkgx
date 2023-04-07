@@ -12,3 +12,8 @@ Goals:
 6. Consistent
 
 Based on [mxcl/Path.swift](https://github.com/mxcl/Path.swift)
+
+# PathUtils.ts
+
+Companion library to `Path.ts`. Contains common path-oriented
+operations that don't specifically belong on a `Path` object.

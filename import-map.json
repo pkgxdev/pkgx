@@ -1,6 +1,7 @@
 {
   "imports": {
     "path": "./src/vendor/Path.ts",
+    "path-utils": "./src/vendor/PathUtils.ts",
     "types": "./src/types.ts",
     "hooks": "./src/hooks/index.ts",
     "hooks/": "./src/hooks/",
