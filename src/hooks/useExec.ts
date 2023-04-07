@@ -1,5 +1,5 @@
 import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix, useDarkMagic, useRun } from "hooks"
-import { PackageSpecification, Installation, PackageRequirement, WhichResult } from "types"
+import { PackageSpecification, Installation, WhichResult } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
