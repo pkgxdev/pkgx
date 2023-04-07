@@ -223,7 +223,8 @@ $ cd tea
 
 deno task run foo
 # ^^ runs the local checkout passing `foo` as an argument
-# NOTE this doesn't currently work due to a bug in deno :(
+# NOTE this doesn't currently work due to a bug in Deno :(
+# see denoland/deno#11547 and denoland/deno#18631
 
 $ deno task install
 # ^^ deploys the local checkout into your `~/.tea`
