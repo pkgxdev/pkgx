@@ -18,12 +18,15 @@ it(suite, "runtime.env tildes", async function() {
       echo "$FOO"
       `, force: true}).chmod(0o755)
 
+      console.log(this.sandbox, this.sandbox.isDirectory())
+
     const out = await this.run({
       args: ["foo"],
       env: {
         TEA_PANTRY_PATH: this.sandbox.string,
         TEA_PREFIX: this.sandbox.string
-      }
+      },
+      sync: false
     }).stdout()
 
     assertEquals(out.trim(), FOO.replaceAll("{{home}}", Path.home().string))
