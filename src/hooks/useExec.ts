@@ -1,5 +1,5 @@
 import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix, useDarkMagic, useRun } from "hooks"
-import { PackageSpecification, Installation, PackageRequirement } from "types"
+import { PackageSpecification, Installation, PackageRequirement, WhichResult } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
@@ -82,9 +82,12 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     const found = await which(arg0)
     if (found) {
       pkgs.push(found)
+      if (found.explicit) {
+        cmd[0] = found.explicit.string
+      }
       if (isArray(found.shebang)) {
         cmd.unshift(...found.shebang as string[])
-      } else {
+      } else if (found.shebang) {
         cmd[0] = found.shebang as string
       }
       await add_companions(found)
@@ -223,11 +226,6 @@ function urlify(arg0: string) {
   }
 }
 
-type WhichResult = PackageRequirement & {
-  shebang?: string | string[]
-  precmd?: string[]
-}
-
 export async function which(arg0: string | undefined) {
   if (!arg0?.chuzzle() || arg0.includes("/")) {
     // no shell we know allows searching for subdirectories off PATH
@@ -236,7 +234,7 @@ export async function which(arg0: string | undefined) {
 
   const { TEA_PKGS } = useEnv()
   const pantry = usePantry()
-  let found: { project: string, constraint: semver.Range, shebang: string, precmd: string[] | undefined } | undefined
+  let found: WhichResult | undefined
   const promises: Promise<void>[] = []
 
   for await (const entry of pantry.ls()) {
@@ -253,19 +251,19 @@ export async function which(arg0: string | undefined) {
             // we are being executed via the command not found handler inside a dev-env
             // so let’s use the version that was already calculated for this dev-env
             if ("version" in inenv) {
-              found = {...inenv, constraint: new semver.Range(`=${inenv.version}`), shebang: provider, precmd: undefined }
+              found = {...inenv, constraint: new semver.Range(`=${inenv.version}`), shebang: provider }
             } else {
-              found = {...inenv, shebang: provider, precmd: undefined }
+              found = {...inenv, shebang: provider }
             }
           } else {
             const constraint = new semver.Range("*")
-            found = {...entry, constraint, shebang: provider, precmd: undefined }
+            found = {...entry, constraint, shebang: provider }
           }
         } else if (arg0.startsWith(provider)) {
           // eg. `node^16` symlink
           try {
             const constraint = new semver.Range(arg0.substring(provider.length))
-            found = {...entry, constraint, shebang: provider, precmd: undefined }
+            found = {...entry, constraint, shebang: provider }
           } catch {
             // not a valid semver range; fallthrough
           }
@@ -283,7 +281,7 @@ export async function which(arg0: string | undefined) {
           match = arg0.match(rx)
           if (match) {
             const constraint = new semver.Range(`~${match[1]}`)
-            found = {...entry, constraint, shebang: arg0, precmd: undefined }
+            found = {...entry, constraint, shebang: arg0 }
           }
         }
       }

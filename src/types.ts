@@ -63,3 +63,9 @@ export class ExitError extends Error {
     this.code = code
   }
 }
+
+export type WhichResult = PackageRequirement & {
+  explicit?: Path
+  shebang?: string | string[]
+  precmd?: string[]
+}
