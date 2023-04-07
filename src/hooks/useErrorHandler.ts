@@ -77,7 +77,7 @@ function msg(err: TeaError): string {
       // this yaml is being worked on by the user
       msg = `${ctx.filename.prettyLocalString()}: ${ctx.cause?.message ?? 'unknown cause'}`
     } else {
-      const attachment = `${ctx.project}: ${ctx.cause.message}`
+      const attachment = `${ctx.project}: ${ctx.cause?.message ?? 'unknown cause'}`
       msg = undent`
         pantry entry invalid. please report this bug!
 
