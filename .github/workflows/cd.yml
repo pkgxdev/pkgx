@@ -80,13 +80,16 @@ jobs:
       - uses: teaxyz/cli/.github/actions/cache@v0  # avoids sporadic 500s from deno’s CDN
       - uses: teaxyz/setup@v0
       - run: deno task compile
-      - uses: teaxyz/brewkit/actions/codesign@v0
+      - uses: teaxyz/brewkit/actions/setup-codesign@v0
         if: startsWith(matrix.platform.build-id, 'darwin+')
         with:
             p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
             p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
-            identity: "Developer ID Application: Tea Inc. (7WV56FL599)"
-            paths: ./tea
+      # codesign always fails for deno binaries, even though it
+      # signs fine. See https://github.com/denoland/deno/issues/575
+      - run: codesign --sign "$APPLE_IDENTITY" --force --preserve-metadata=entitlements,requirements,flags,runtime ./tea || true
+        env:
+          APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
       - name: sanity check
         run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
       - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
