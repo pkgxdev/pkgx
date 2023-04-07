@@ -13,6 +13,7 @@ Goals:
 
 Based on [mxcl/Path.swift](https://github.com/mxcl/Path.swift)
 
+<!-- markdownlint-disable-next-line MD025 -->
 # PathUtils.ts
 
 Companion library to `Path.ts`. Contains common path-oriented
