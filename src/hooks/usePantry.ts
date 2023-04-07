@@ -187,7 +187,7 @@ function expand_env_obj(env_: PlainObject, pkg: Package, deps: Installation[]): 
       const home = Path.home().string
       const obj = [
         { from: 'env.HOME', to: home },  // historic, should be removed at v1
-        { from: 'home', to: home }
+        { from: 'home', to: home }       // remove, stick with just ~
       ]
       obj.push(...mm.tokenize.all(pkg, deps))
       return mm.apply(value, obj)
