@@ -16,8 +16,6 @@ export const EnvKeys = [
   'SSL_CERT_FILE',
   'LDFLAGS',
   'TEA_PREFIX',
-  'PYTHONPATH',
-  'npm_config_prefix',
   'ACLOCAL_PATH'
 ] as const
 export type EnvKey = typeof EnvKeys[number]
@@ -70,21 +68,6 @@ export default async function useShellEnv({installations}: Options): Promise<Rec
       // this is a single file, so we assume a
       // valid entry is correct
       if (certPath) vars.SSL_CERT_FILE = OrderedHashSet.of(certPath)
-    }
-
-    // pip requires knowing where its root is
-    // otherwise it bases it off the location
-    // of python, which won't work for us
-    if (installation.pkg.project === 'pip.pypa.io') {
-      //TODO add to pip’s runtime env keys
-      vars.PYTHONPATH = compact_add(vars.PYTHONPATH, installation.path.string)
-    }
-
-    // npm requires knowing where its root is
-    // otherwise it bases it off the location
-    // of node, which won't work for us
-    if (installation.pkg.project === 'npmjs.com') {
-      vars.npm_config_prefix = OrderedHashSet.of(installation.path.string)
     }
 
     // pantry configured runtime environment
@@ -143,8 +126,6 @@ function suffixes(key: EnvKey) {
     case 'SSL_CERT_FILE':
     case 'LDFLAGS':
     case 'TEA_PREFIX':
-    case 'PYTHONPATH':
-    case 'npm_config_prefix':
     case 'ACLOCAL_PATH':
       return []  // we handle these specially
     default: {
