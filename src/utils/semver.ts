@@ -132,9 +132,19 @@ export class Range {
         } else if ((match = input.match(/^([~=<^])(.+)$/))) {
           let v1: SemVer | undefined, v2: SemVer | undefined
           switch (match[1]) {
+          // deno-lint-ignore no-case-declarations
           case "^":
             v1 = new SemVer(match[2], {tolerant: true})
-            v2 = new SemVer([v1.major + 1], {tolerant: true})
+            const parts = []
+            for (let i = 0; i < v1.components.length; i++) {
+              if (v1.components[i] === 0) {
+                parts.push(0)
+              } else if (v1.components[i] > 0) {
+                parts.push(v1.components[i] + 1)
+                break
+              }
+            }
+            v2 = new SemVer(parts, {tolerant: true})
             return [v1, v2]
           case "~": {
             v1 = new SemVer(match[2], {tolerant: true})
