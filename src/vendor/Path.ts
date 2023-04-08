@@ -205,7 +205,8 @@ export default class Path {
     return this.string.split('/')
   }
 
-  static mktemp({ prefix, dir }: { prefix?: string, dir?: Path }): Path {
+  static mktemp(opts?: { prefix?: string, dir?: Path }): Path {
+    const {prefix, dir} = opts ?? {}
     const rv = Deno.makeTempDirSync({prefix, dir: dir?.mkpath().string})
     return new Path(rv)
   }
@@ -339,7 +340,7 @@ export default class Path {
   async *readLines(): AsyncIterableIterator<string> {
     const fd = Deno.openSync(this.string)
     try {
-      for await (const line of readLines(fd)) 
+      for await (const line of readLines(fd))
         yield line
       }
     finally {
