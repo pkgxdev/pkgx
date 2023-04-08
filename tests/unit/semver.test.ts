@@ -51,7 +51,10 @@ Deno.test("semver", async test => {
     assertFalse(a.satisfies(new SemVer("2.5.0")))
 
     const b = new semver.Range("^0.15")
-    assertEquals(b.toString(), "^0.15")
+    // Due to the nature of the `^` operator, this
+    // is the same as `~0.15`, and our code represents
+    // it as such.
+    assertEquals(b.toString(), "~0.15")
 
     const c = new semver.Range("~0.15")
     assertEquals(c.toString(), "~0.15")
@@ -94,6 +97,22 @@ Deno.test("semver", async test => {
     assert(i.satisfies(new SemVer("1.2.4.2")))
     assert(i.satisfies(new SemVer("1.3.4.2")))
     assertFalse(i.satisfies(new SemVer("2.0.0")))
+
+    const j = new semver.Range("^0.1.2.3")
+    assert(j.satisfies(new SemVer("0.1.2.3")))
+    assert(j.satisfies(new SemVer("0.1.3")))
+    assertFalse(j.satisfies(new SemVer("0.2.0")))
+
+    const k = new semver.Range("^0.0.1.2")
+    assertFalse(k.satisfies(new SemVer("0.0.1.1")))
+    assert(k.satisfies(new SemVer("0.0.1.2")))
+    assert(k.satisfies(new SemVer("0.0.1.9")))
+    assertFalse(k.satisfies(new SemVer("0.0.2.0")))
+
+    const l = new semver.Range("^0.0.0.1")
+    assertFalse(l.satisfies(new SemVer("0.0.0.0")))
+    assert(l.satisfies(new SemVer("0.0.0.1")))
+    assertFalse(l.satisfies(new SemVer("0.0.0.2")))
 
     assertThrows(() => new semver.Range("1"))
     assertThrows(() => new semver.Range("1.2"))
