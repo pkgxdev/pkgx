@@ -72,6 +72,12 @@ const cargo = async (arg0: string | undefined) => {
   return undefined
 }
 
+// Installs will also end up outside tea's prefix, so they won't be removed by
+// uninstall. So maybe this is fine?
+
+// also FIXME: once you _execute_ brew install, `--provides` returns false,
+// since it's in the path at that point. But I doubt uninstalling after
+// run is the right answer.
 const brew = async (arg0: string | undefined) => {
   if (!PathUtils.findBinary("brew")) return undefined
 

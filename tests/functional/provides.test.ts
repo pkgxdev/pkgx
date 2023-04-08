@@ -46,7 +46,9 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     await assertRejects(() => run(["--provides", "so_stupid_search"]), ExitError, "exiting with code: 0")
   })
 
-  // Same install issue as above.
+  // FIXME: once you _execute_ brew install, `--provides` returns false,
+  // since it's in the path at that point. But I doubt uninstalling after
+  // run is the right answer.
   await test.step("dark magic provides -- brew install php-cs-fixer", async () => {
     // FIXME: package brew.sh
     if (!PathUtils.findBinary("brew")) return
