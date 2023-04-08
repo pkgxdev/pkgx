@@ -7,6 +7,7 @@ import useLogger from "./useLogger.ts"
 import { pkg as pkgutils, TeaError } from "utils"
 import * as semver from "semver"
 import Path from "path"
+import PathUtils from "path-utils"
 import { isArray } from "is_what"
 
 interface Parameters {
@@ -292,12 +293,7 @@ export async function which(arg0: string | undefined) {
   // we're looking for if we say `tea sh` (which is a common thing to do).
   // So, we should only pass through if the tool we want isn't on the path.
   const { env } = useConfig()
-  if (env.PATH) {
-    for (const dir of env.PATH.split(":")) {
-      const path = new Path(dir).join(arg0)
-      if (path.isExecutableFile()) return false
-    }
-  }
+  if (PathUtils.findBinary(arg0, env.PATH)) return false
 
   // Here is where we check our dark magic providers for the name in question.
   return useDarkMagic().which(arg0)
