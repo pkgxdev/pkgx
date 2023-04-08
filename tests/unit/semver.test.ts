@@ -114,6 +114,14 @@ Deno.test("semver", async test => {
     assert(l.satisfies(new SemVer("0.0.0.1")))
     assertFalse(l.satisfies(new SemVer("0.0.0.2")))
 
+    // This one is weird, but it should mean "<1"
+    const m = new semver.Range("^0")
+    assert(m.satisfies(new SemVer("0.0.0")))
+    assert(m.satisfies(new SemVer("0.0.1")))
+    assert(m.satisfies(new SemVer("0.1.0")))
+    assert(m.satisfies(new SemVer("0.9.1")))
+    assertFalse(m.satisfies(new SemVer("1.0.0")))
+
     assertThrows(() => new semver.Range("1"))
     assertThrows(() => new semver.Range("1.2"))
     assertThrows(() => new semver.Range("1.2.3"))
