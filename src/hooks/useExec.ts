@@ -94,13 +94,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
       if (found.precmd) {
         // FIXME: this is a weird one. It could take _minutes_ to install something
         // (though ctrl-c works, as long as you're not in docker). That's a little
-        // less magical, but for installs they should only run one time. Installs
-        // will also end up outside tea's prefix, so they won't be removed by
-        // uninstall. So maybe this is fine?
-
-        // also FIXME: once you _execute_ cargo install, `--provides` returns false,
-        // since it's in the path at that point. But I doubt uninstalling after
-        // run is the right answer.
+        // less magical, but for installs they should only run one time. 
         await useRun({ cmd: found.precmd })
       }
     }
