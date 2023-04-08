@@ -137,9 +137,9 @@ export class Range {
             v1 = new SemVer(match[2], {tolerant: true})
             const parts = []
             for (let i = 0; i < v1.components.length; i++) {
-              if (v1.components[i] === 0) {
+              if (v1.components[i] === 0 && i < v1.components.length - 1) {
                 parts.push(0)
-              } else if (v1.components[i] > 0) {
+              } else {
                 parts.push(v1.components[i] + 1)
                 break
               }
