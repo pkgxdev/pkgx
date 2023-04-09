@@ -104,6 +104,8 @@ export default function(self: Path, shell?: string) {
       function fish_command_not_found
         "${d}"/tea -- $argv
       end
+
+      "${d}"/tea --env --keep-going --silent --dry-run=w/trace | source
       `
   case "bash":
     return undent`
