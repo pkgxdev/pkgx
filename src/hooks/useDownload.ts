@@ -40,7 +40,10 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
     headers ??= {}
     if (etag_entry.isFile()) {
       headers["If-None-Match"] = await etag_entry.read()
-    } else if (mtime_entry.isFile()) {
+    }
+    // sending both if we have them is ChatGPT recommended
+    // also this fixes getting the mysql.com sources, otherwise it redownloads 400MB every time!
+    if (mtime_entry.isFile()) {
       headers["If-Modified-Since"] = await mtime_entry.read()
     }
     logger.replace(teal('querying'))
