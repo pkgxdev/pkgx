@@ -1,5 +1,5 @@
-import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix, useDarkMagic } from "hooks"
-import { PackageSpecification, Installation, PackageRequirement } from "types"
+import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix, useDarkMagic, useRun } from "hooks"
+import { PackageSpecification, Installation, WhichResult } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
@@ -82,12 +82,21 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     const found = await which(arg0)
     if (found) {
       pkgs.push(found)
+      if (found.explicit) {
+        cmd[0] = found.explicit.string
+      }
       if (isArray(found.shebang)) {
         cmd.unshift(...found.shebang as string[])
-      } else {
+      } else if (found.shebang) {
         cmd[0] = found.shebang as string
       }
       await add_companions(found)
+      if (found.precmd) {
+        // FIXME: this is a weird one. It could take _minutes_ to install something
+        // (though ctrl-c works, as long as you're not in docker). That's a little
+        // less magical, but for installs they should only run one time. 
+        await useRun({ cmd: found.precmd })
+      }
     }
   }
 
@@ -211,10 +220,6 @@ function urlify(arg0: string) {
   }
 }
 
-type WhichResult = PackageRequirement & {
-  shebang?: string | string[]
-}
-
 export async function which(arg0: string | undefined) {
   if (!arg0?.chuzzle() || arg0.includes("/")) {
     // no shell we know allows searching for subdirectories off PATH
@@ -223,7 +228,7 @@ export async function which(arg0: string | undefined) {
 
   const { TEA_PKGS } = useEnv()
   const pantry = usePantry()
-  let found: { project: string, constraint: semver.Range, shebang: string } | undefined
+  let found: WhichResult | undefined
   const promises: Promise<void>[] = []
 
   for await (const entry of pantry.ls()) {
