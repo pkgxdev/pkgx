@@ -39,4 +39,9 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     const { run } = await createTestHarness()
     await assertRejects(() => run(["--provides", "armone"]), ExitError, "exiting with code: 0")
   })
+
+  await test.step("dark magic provides -- cargo install so_stupid_search", async () => {
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "so_stupid_search"]), ExitError, "exiting with code: 0")
+  })
 })
