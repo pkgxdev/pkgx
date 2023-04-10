@@ -94,7 +94,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
       if (found.precmd) {
         // FIXME: this is a weird one. It could take _minutes_ to install something
         // (though ctrl-c works, as long as you're not in docker). That's a little
-        // less magical, but for installs they should only run one time. 
+        // less magical, but for installs they should only run one time.
         await useRun({ cmd: found.precmd })
       }
     }

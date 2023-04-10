@@ -1,5 +1,6 @@
 import { assertRejects } from "deno/testing/asserts.ts"
 import { ExitError } from "types"
+import PathUtils from "path-utils"
 import { createTestHarness } from "./testUtils.ts"
 
 Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async test => {
@@ -43,5 +44,15 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
   await test.step("dark magic provides -- cargo install so_stupid_search", async () => {
     const { run } = await createTestHarness()
     await assertRejects(() => run(["--provides", "so_stupid_search"]), ExitError, "exiting with code: 0")
+  })
+
+  // FIXME: once you _execute_ brew install, `--provides` returns false,
+  // since it's in the path at that point. But I doubt uninstalling after
+  // run is the right answer.
+  await test.step("dark magic provides -- brew install php-cs-fixer", async () => {
+    // FIXME: package brew.sh
+    if (!PathUtils.findBinary("brew")) return
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "php-cs-fixer"]), ExitError, "exiting with code: 0")
   })
 })

@@ -1,6 +1,7 @@
 import { Range } from "semver"
 import { useFetch, usePrefix } from "hooks"
 import { WhichResult } from "types"
+import PathUtils from "path-utils"
 
 export default function useDarkMagic() {
   return { which }
@@ -12,6 +13,7 @@ const which = async (arg0: string | undefined): Promise<WhichResult | undefined>
     npx(arg0),
     pipx(arg0),
     cargo(arg0),
+    brew(arg0),
   ])
 
   // Return the first non-empty result
@@ -64,6 +66,30 @@ const cargo = async (arg0: string | undefined) => {
         binDir.parent().string, // installs to {root}/bin
         arg0!,
       ]
+    }
+  }
+
+  return undefined
+}
+
+// Installs will also end up outside tea's prefix, so they won't be removed by
+// uninstall. So maybe this is fine?
+
+// also FIXME: once you _execute_ brew install, `--provides` returns false,
+// since it's in the path at that point. But I doubt uninstalling after
+// run is the right answer.
+const brew = async (arg0: string | undefined) => {
+  if (!PathUtils.findBinary("brew")) return undefined
+
+  const res = await useFetch(`https://formulae.brew.sh/api/formula/${arg0}.json`)
+
+  if (res.status == 200) {
+    return {
+      // FIXME: we should package brew; in the interim
+      // we have to return a WhichResult with a project
+      project: "tea.xyz",
+      constraint: new Range("*"),
+      precmd: ["brew", "install", arg0!]
     }
   }
 
