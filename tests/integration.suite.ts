@@ -86,7 +86,7 @@ const suite = describe({
         // be faster when testing locally
         if ("args" in opts) {
           if (!existing_tea_prefix) {
-            cmd.unshift("--sync", "--silent")
+            cmd.unshift("--sync")
           }
           cmd.unshift(teafile.string)
         } else if (cmd[0] != 'tea') {
