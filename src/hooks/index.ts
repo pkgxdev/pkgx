@@ -20,6 +20,7 @@ import usePrint from "hooks/usePrint.ts"
 import useRun from "hooks/useRun.ts"
 import useConfig, { useEnv } from "hooks/useConfig.ts"
 import useDarkMagic from "hooks/useDarkMagic.ts"
+import useDb from "hooks/useDb.ts";
 
 // but we can sort these alphabetically
 export {
@@ -45,4 +46,5 @@ export {
   useConfig,
   useEnv,
   useDarkMagic,
+  useDb,
 }

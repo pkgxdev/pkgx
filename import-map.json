@@ -16,6 +16,7 @@
     "s3": "https://deno.land/x/s3@0.5.0/mod.ts",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "rimbu/": "https://deno.land/x/rimbu@0.13.2/",
-    "jsonc": "https://deno.land/x/jsonc_parser@v0.0.1/mod.ts"
+    "jsonc": "https://deno.land/x/jsonc_parser@v0.0.1/mod.ts",
+    "ssql": "https://deno.land/x/smallorm_sqlite@0.2.1/mod.ts"
   }
 }
