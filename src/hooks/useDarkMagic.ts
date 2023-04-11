@@ -60,15 +60,17 @@ const cargo = async (arg0: string | undefined) => {
   const exe = binDir.join(arg0!)
 
   // This only runs the installer if we're not already installed
-  const precmd = exe.isExecutableFile() &&
-    [
-      "cargo",
-      "uninstall",
-      "--quiet",
-      "--root",
-      binDir.parent().string,  // installs to {root}/bin
-      arg0!,
-    ]
+  const precmd = (() => {
+    if (!exe.isExecutableFile())
+      return [
+        "cargo",
+        "install",
+        "--quiet",
+        "--root",
+        binDir.parent().string,  // installs to {root}/bin
+        arg0!,
+      ]
+  })()
 
   if (res.status == 200) {
     return {
