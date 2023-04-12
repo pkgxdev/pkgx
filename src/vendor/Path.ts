@@ -436,6 +436,30 @@ export default class Path {
   [Symbol.for("Deno.customInspect")]() {
     return this.prettyString()
   }
+
+  // Provide XDG Base Directory support under the .xdg property
+  // https://specifications.freedesktop.org/basedir-spec/latest/ar01s03.html
+  static xdg = {
+    data: () => xdgEnvOrDefault("XDG_DATA_HOME", ".local/share"),
+    config: () => xdgEnvOrDefault("XDG_CONFIG_HOME", ".config"),
+    state: () => xdgEnvOrDefault("XDG_STATE_HOME", ".local/state"),
+    data_dirs: () => {
+      const xdd = Deno.env.get("XDG_DATA_DIRS")
+      if (xdd) return xdd.split(":").map(x => new Path(x))
+      return [new Path("/usr/local/share"), new Path("/usr/share")]
+    },
+    config_dirs: () => {
+      const xcd = Deno.env.get("XDG_CONFIG_DIRS")
+      if (xcd) return xcd.split(":").map(x => new Path(x))
+      return [new Path("/etc/xdg")]
+    },
+    cache: () => xdgEnvOrDefault("XDG_CACHE_HOME", ".cache"),
+    runtime: () => xdgEnvOrDefault("XDG_RUNTIME_DIR", ".local/run"),
+  }
+}
+
+function xdgEnvOrDefault(key: string, default_: string): Path {
+  return new Path(Deno.env.get(key) ?? Path.home().join(default_))
 }
 
 declare global {
