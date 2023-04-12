@@ -2,12 +2,17 @@ import { Range } from "semver"
 import { useFetch, usePrefix } from "hooks"
 import { WhichResult } from "types"
 import PathUtils from "path-utils"
+import useConfig from "./useConfig.ts"
 
 export default function useDarkMagic() {
   return { which }
 }
 
 const which = async (arg0: string | undefined): Promise<WhichResult | undefined> => {
+  // we only want dark magic with explicit TEA_MAGIC=dark
+  const { env } = useConfig()
+  if (env.TEA_MAGIC?.toLocaleLowerCase() !== "dark") return undefined
+
   // Query external providers; return commands to run if found
   const found = await Promise.all([
     npx(arg0),
@@ -52,20 +57,27 @@ const cargo = async (arg0: string | undefined) => {
   const res = await useFetch(`https://crates.io/api/v1/crates/${arg0}`)
 
   const binDir = usePrefix().bin
+  const exe = binDir.join(arg0!)
+
+  // This only runs the installer if we're not already installed
+  const precmd = (() => {
+    if (!exe.isExecutableFile())
+      return [
+        "cargo",
+        "install",
+        "--quiet",
+        "--root",
+        binDir.parent().string,  // installs to {root}/bin
+        arg0!,
+      ]
+  })()
 
   if (res.status == 200) {
     return {
       project: "rust-lang.org/cargo",
       constraint: new Range("*"),
-      explicit: binDir.join(arg0!),
-      precmd: [
-        "cargo",
-        "install",
-        "--quiet",
-        "--root",
-        binDir.parent().string, // installs to {root}/bin
-        arg0!,
-      ]
+      explicit: exe,
+      precmd,
     }
   }
 
@@ -89,7 +101,7 @@ const brew = async (arg0: string | undefined) => {
       // we have to return a WhichResult with a project
       project: "tea.xyz",
       constraint: new Range("*"),
-      precmd: ["brew", "install", arg0!]
+      precmd: ["brew", "install", arg0!] // This is safe, since if it were on the path, we'd have found it
     }
   }
 
