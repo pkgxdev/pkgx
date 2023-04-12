@@ -31,19 +31,25 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     await assertRejects(() => run(["--provides", "node@newest"]), ExitError, "exiting with code: 1")
   })
 
+  await test.step("no dark magic does not provide -- npx create-react-app", async () => {
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "create-react-app"]), ExitError, "exiting with code: 1")
+  })
+
   await test.step("dark magic provides -- npx create-react-app", async () => {
     const { run } = await createTestHarness()
-    await assertRejects(() => run(["--provides", "create-react-app"]), ExitError, "exiting with code: 0")
+
+    await assertRejects(() => run(["--provides", "create-react-app"], { env: { TEA_MAGIC: "dark" } }), ExitError, "exiting with code: 0")
   })
 
   await test.step("dark magic provides -- pipx run armone", async () => {
     const { run } = await createTestHarness()
-    await assertRejects(() => run(["--provides", "armone"]), ExitError, "exiting with code: 0")
+    await assertRejects(() => run(["--provides", "armone"], { env: { TEA_MAGIC: "dark" } }), ExitError, "exiting with code: 0")
   })
 
   await test.step("dark magic provides -- cargo install so_stupid_search", async () => {
     const { run } = await createTestHarness()
-    await assertRejects(() => run(["--provides", "so_stupid_search"]), ExitError, "exiting with code: 0")
+    await assertRejects(() => run(["--provides", "so_stupid_search"], { env: { TEA_MAGIC: "dark" } }), ExitError, "exiting with code: 0")
   })
 
   // FIXME: once you _execute_ brew install, `--provides` returns false,
@@ -53,6 +59,6 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     // FIXME: package brew.sh
     if (!PathUtils.findBinary("brew")) return
     const { run } = await createTestHarness()
-    await assertRejects(() => run(["--provides", "php-cs-fixer"]), ExitError, "exiting with code: 0")
+    await assertRejects(() => run(["--provides", "php-cs-fixer"], { env: { TEA_MAGIC: "dark" } }), ExitError, "exiting with code: 0")
   })
 })
