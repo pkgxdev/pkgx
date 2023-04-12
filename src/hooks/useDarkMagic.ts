@@ -14,15 +14,23 @@ const which = async (arg0: string | undefined): Promise<WhichResult | undefined>
   if (env.TEA_MAGIC?.toLocaleLowerCase() !== "dark") return undefined
 
   // Query external providers; return commands to run if found
-  const found = await Promise.all([
+  const found = (await Promise.all([
     npx(arg0),
     pipx(arg0),
     cargo(arg0),
     brew(arg0),
-  ])
+  ])).filter(x => x)
+
+  if (found.length === 0) return undefined
+  if (found.length === 1) return found[0]
+
+  console.info(`Multiple providers found for \`${arg0}\`\nPlease choose one:`)
+  const res = await Deno.run({ cmd: ["tea", "gum", "choose", ...found.map(f => f!.provider)], stdout: "piped" })
+
+  const pick = new TextDecoder().decode(await res.output())
 
   // Return the first non-empty result
-  return found.find(x => x)
+  return found.find(x => x?.provider === pick.trim())
 }
 
 const npx = async (arg0: string | undefined) => {
@@ -30,6 +38,7 @@ const npx = async (arg0: string | undefined) => {
 
   if (res.status == 200) {
     return {
+      provider: "npm",
       project: "npmjs.com",
       constraint: new Range("*"),
       shebang: ["npx", "-y"],
@@ -44,6 +53,7 @@ const pipx = async (arg0: string | undefined) => {
 
   if (res.status == 200) {
     return {
+      provider: "pip",
       project: "pypa.github.io/pipx",
       constraint: new Range("*"),
       shebang: ["pipx", "run"],
@@ -74,6 +84,7 @@ const cargo = async (arg0: string | undefined) => {
 
   if (res.status == 200) {
     return {
+      provider: "cargo",
       project: "rust-lang.org/cargo",
       constraint: new Range("*"),
       explicit: exe,
@@ -97,6 +108,7 @@ const brew = async (arg0: string | undefined) => {
 
   if (res.status == 200) {
     return {
+      provider: "brew",
       // FIXME: we should package brew; in the interim
       // we have to return a WhichResult with a project
       project: "tea.xyz",
