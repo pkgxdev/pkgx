@@ -19,7 +19,7 @@ export interface Flags {
   keepGoing: boolean
 }
 
-export function parseArgs(args: string[], arg0: string): [Args, Flags] {
+export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
   // pre 0.19.0 this was how we sourced our (more limited) shell magic
   if (new Set(['-Eds', '--env --keep-going --silent --dry-run=w/trace']).has(args.join(' '))) {
     args = ["+tea.xyz/magic", "-Esk", "--chaste", "env"]

@@ -1,8 +1,32 @@
 import * as logger from "./useLogger.ts"
-import { usePantry, useConfig, usePrefix, useInventory } from "hooks"
+import { usePantry, usePrefix, useInventory } from "hooks"
+import useConfigBase, { applyConfig } from "hooks/useConfig.ts"
 import { chuzzle, TeaError, undent } from "utils"
 import Path from "path"
-import { ExitError } from "../types.ts"
+import { ExitError, Verbosity } from "../types.ts"
+
+const useConfig = () => {
+  try {
+    return useConfigBase()
+  } catch {
+    // lol we threw before we could apply the config
+    // these defaults will do for error handling
+    applyConfig({
+      isCI: false,
+      execPath: Path.root,
+      teaPrefix: Path.root,
+      verbosity: Verbosity.normal,
+      dryrun: false,
+      keepGoing: false,
+      verbose: false,
+      debug: false,
+      silent: false,
+      env: {},
+      json: false
+    })
+    return useConfigBase()
+  }
+}
 
 export async function suggestions(err: TeaError) {
   switch (err.id) {
