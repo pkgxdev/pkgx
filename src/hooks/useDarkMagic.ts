@@ -2,6 +2,7 @@ import { Range } from "semver"
 import { useDb, useFetch, usePrefix, useConfig } from "hooks"
 import { WhichResult } from "types"
 import PathUtils from "path-utils"
+import Path from "../vendor/Path.ts"
 
 export default function useDarkMagic() {
   return { which }
@@ -104,22 +105,30 @@ const cargo = async (arg0: string) => {
 // since it's in the path at that point. But I doubt uninstalling after
 // run is the right answer.
 const brew = async (arg0: string) => {
-  if (!PathUtils.findBinary("brew")) return undefined
+  const brew = new Path("/opt/homebrew/bin/brew").isExecutableFile() ?? new Path("/usr/local/bin/brew").isExecutableFile()
 
-  const res = await useFetch(`https://formulae.brew.sh/api/formula/${arg0}.json`)
+  if (!brew) return
 
-  if (res.status == 200) {
-    return {
-      provider: Provider.brew,
-      // FIXME: we should package brew; in the interim
-      // we have to return a WhichResult with a project
-      project: "tea.xyz",
-      constraint: new Range("*"),
-      precmd: ["brew", "install", arg0] // This is safe, since if it were on the path, we'd have found it
-    }
+  const explicit = brew.parent().join(arg0)
+  const isInstalled = explicit.isExecutableFile()
+  const precmd = !isInstalled ? [brew.string, "install", arg0] : undefined
+
+  const rv = {
+    provider: Provider.brew,
+    // FIXME: we should package brew; in the interim
+    // we have to return a WhichResult with a project
+    project: "tea.xyz",
+    constraint: new Range("*"),
+    explicit,
+    precmd
   }
 
-  return undefined
+  if (isInstalled) {
+    return rv
+  } else {
+    const res = await useFetch(`https://formulae.brew.sh/api/formula/${arg0}.json`)
+    if (res.status == 200) return rv
+  }
 }
 
 export enum Provider {
