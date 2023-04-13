@@ -112,8 +112,14 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
 ///////////////////////////////////////////////////////////////////////////// funcs
 
 async function install(pkgs: PackageSpecification[], update: boolean) {
+  const { json } = useConfig()
   const logger = useLogger()
-  logger.replace("resolving package graph")
+
+  if (!json) {
+    logger.replace("resolving package graph")
+  } else {
+    console.error({ status: "resolving" })
+  }
 
   console.debug({hydrating: pkgs})
 

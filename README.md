@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.27.0
+# tea/cli 0.28.0
 
 `tea` puts the whole open source ecosystem at your fingertips:
 
