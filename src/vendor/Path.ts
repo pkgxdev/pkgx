@@ -293,11 +293,6 @@ export default class Path {
     return this
   }
 
-  mkparent(): Path {
-    this.parent().mkpath()
-    return this
-  }
-
   eq(that: Path): boolean {
     return this.string == that.string
   }

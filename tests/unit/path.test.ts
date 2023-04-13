@@ -11,7 +11,7 @@ Deno.test("test Path", async test => {
 
     const child = tmp.join("a/b/c")
     assertFalse(child.parent().isDirectory())
-    child.mkparent()
+    child.parent().mkpath()
     assert(child.parent().isDirectory())
 
     assertThrows(() => child.readlink()) // not found

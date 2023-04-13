@@ -23,7 +23,7 @@ export default class Db {
 
   constructor(db: Path | undefined = undefined) {
     const db_ = db ?? Path.xdg.state().join("tea/db.sqlite3")
-    if (!db_.parent().isDirectory()) db_.mkparent()
+    db_.parent().isDirectory()?.mkpath()
     this.db = new SSQL(db_.string, Db.models)
 
     const versions = this.db.findMany(Config, { where: { clause: "key = ?", values: ["version"] }, limit: 1 })
