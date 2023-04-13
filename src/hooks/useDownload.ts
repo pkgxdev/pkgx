@@ -23,7 +23,7 @@ interface RV {
 
 async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Promise<[Path, ReadableStream<Uint8Array> | undefined]>
 {
-  const { isCI, silent } = useConfig();
+  const { isCI, silent, json } = useConfig();
   const { GITHUB_TOKEN } = useEnv();
   logger = isString(logger) ? useLogger(logger) : logger ?? useLogger()
 
@@ -46,8 +46,7 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
     if (mtime_entry.isFile()) {
       headers["If-Modified-Since"] = await mtime_entry.read()
     }
-    logger.replace(teal('querying'))
-  } else {
+  } else if (!json) {
     logger.replace(teal('downloading'))
   }
 
@@ -67,7 +66,11 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
 
     let txt = teal('downloading')
     if (sz) txt += ` ${gray(pretty_size(sz))}`
-    logger.replace(txt)
+    if (!json) {
+      logger.replace(txt)
+    } else {
+      console.error({status: "downloading"})
+    }
 
     const reader = rsp.body ?? error.panic()
 
@@ -82,11 +85,13 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
       let n = 0
       return [dst, reader.pipeThrough(new TransformStream({
         transform: (buf, controller) => {
-          let s = txt
-          if (!sz) {
-            s += ` ${pretty_size(n)}`
+          n += buf.length
+          if (json) {
+            console.error({status: "downloading", "received": n, "content-size": sz })
+          } else if (!sz) {
+            (logger as Logger).replace(`${txt} ${pretty_size(n)}`)
           } else {
-            n += buf.length
+            let s = txt
             if (n < sz) {
               let pc = n / sz * 100;
               pc = pc < 1 ? Math.round(pc) : Math.floor(pc);  // don’t say 100% at 99.5%
@@ -94,14 +99,18 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
             } else {
               s = teal('extracting')
             }
+            (logger as Logger).replace(s)
           }
-          (logger as Logger).replace(s)
           controller.enqueue(buf)
       }}))]
     }
   }
   case 304:
-    logger.replace(`cache: ${teal('hit')}`)
+    if (json) {
+      console.error({status: "downloaded"})
+    } else {
+      logger.replace(`cache: ${teal('hit')}`)
+    }
     return [dst, undefined]
   default:
     throw new Error(`${rsp.status}: ${src}`)

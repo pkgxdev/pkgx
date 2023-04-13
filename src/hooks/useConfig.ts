@@ -44,6 +44,8 @@ export interface Config {
   silent: boolean
 
   env: Env
+
+  json: boolean
 }
 
 let config: Config | undefined;

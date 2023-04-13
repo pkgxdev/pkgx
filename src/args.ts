@@ -17,6 +17,7 @@ export interface Flags {
   verbosity?: number
   dryrun: boolean
   keepGoing: boolean
+  json: boolean
 }
 
 export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
@@ -48,6 +49,7 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
   const flags: Flags = {
     dryrun: false,
     keepGoing: false,
+    json: false,
   }
 
   const it = args[Symbol.iterator]()
@@ -100,6 +102,9 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
       case 'magic':
         rv.mode = ['magic', value]
         break
+      case 'json':
+          flags.json = parseBool(value ?? "yes") ?? barf()
+          break
       case 'prefix':
       case 'version':
         nonovalue()

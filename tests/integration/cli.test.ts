@@ -12,6 +12,16 @@ it(suite, "tea +zlib.net", async function() {
   assertEquals(code, 0)
 })
 
+it(suite, "tea +zlib.net --json", async function() {
+  const code = await this.run({ args: ["--json", "+zlib.net", "true"] })
+  assertEquals(code, 0)
+})
+
+it(suite, "`tea +foo.com --json` errors neatly", async function() {
+  const code = await this.run({ args: ["--json", "+foo.com", "true"], throws: false })
+  assertEquals(code, 7)
+})
+
 it(suite, "tea --version", async function() {
   const out = await this.run({ args: ["--version"] }).stdout()
   assertMatch(out, /tea \d+\.\d+\.\d+/)

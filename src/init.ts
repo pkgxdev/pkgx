@@ -23,6 +23,8 @@ export function createConfig(flags?: Flags): Config {
   const dryrun = !!flags?.dryrun
   const keepGoing = !!flags?.keepGoing
 
+  const json = !!flags?.json
+
   return {
     isCI,
     execPath,
@@ -35,6 +37,7 @@ export function createConfig(flags?: Flags): Config {
     debug: verbosity >= Verbosity.debug,
     silent: verbosity <= Verbosity.quiet,
     env,
+    json,
   }
 }
 

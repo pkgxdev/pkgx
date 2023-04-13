@@ -12,7 +12,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   const cellar = useCellar()
   const tea_prefix = usePrefix()
-  const { isCI, dryrun } = useConfig()
+  const { isCI, dryrun, json } = useConfig()
   const compression = get_compression(isCI)
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
@@ -20,12 +20,16 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const shelf = tea_prefix.join(pkg.project)
 
   const log_install_msg = (install: Installation, title = 'installed') => {
-    const str = [
-      gray(usePrefix().prettyString()),
-      install.pkg.project,
-      `${gray('v')}${install.pkg.version}`
-    ].join(gray('/'))
-    logger!.replace(`${title}: ${str}`, { prefix: false })
+    if (json) {
+      console.error({status: title, pkg: pkgutils.str(install.pkg)})
+    } else {
+      const str = [
+        gray(usePrefix().prettyString()),
+        install.pkg.project,
+        `${gray('v')}${install.pkg.version}`
+      ].join(gray('/'))
+      logger!.replace(`${title}: ${str}`, { prefix: false })
+    }
   }
 
   if (dryrun) {
@@ -34,7 +38,11 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     return install
   }
 
-  logger.replace(teal("locking"))
+  if (!json) {
+    logger.replace(teal("locking"))
+  } else {
+    console.error({status: "locking", pkg: pkgutils.str(pkg) })
+  }
   const { rid } = await Deno.open(shelf.mkpath().string)
   await Deno.flock(rid, true)
 
@@ -43,11 +51,19 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     if (already_installed) {
       // some other tea instance installed us while we were waiting for the lock
       // or potentially we were already installed and the caller is naughty
-      logger.replace(teal("installed"))
+      if (!json) {
+        logger.replace(teal("installed"))
+      } else {
+        console.error({status: "installed", pkg: pkgutils.str(pkg) })
+      }
       return already_installed
     }
 
-    logger.replace(teal("querying"))
+    if (!json) {
+      logger.replace(teal("querying"))
+    } else {
+      console.error({status: "querying", pkg: pkgutils.str(pkg) })
+    }
 
     let stream = await useDownload().stream({ src: url, logger, dst: tarball })
     const is_downloading = stream !== undefined
@@ -89,7 +105,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     }
 
     if (computed_hash_value != checksum) {
-      logger.replace(red('error'))
+      if (!json) logger.replace(red('error'))
       tarball.rm()
       console.error("we deleted the invalid tarball. try again?")
       throw new Error(`sha: expected: ${checksum}, got: ${computed_hash_value}`)
