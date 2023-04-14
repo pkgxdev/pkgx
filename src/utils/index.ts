@@ -102,18 +102,6 @@ Array.prototype.chuzzle = function<T>() {
 console.verbose = console.error
 console.debug = console.error
 
-console.silence = async function<T>(body: () => Promise<T>) {
-  const originals = [console.log, console.info]
-  try {
-    console.log = () => {}
-    console.info = () => {}
-    return await body()
-  } finally {
-    console.log = originals[0]
-    console.info = originals[1]
-  }
-}
-
 Array.prototype.compact_push = function<T>(item: T | null | undefined) {
   if (item) this.push(item)
 }

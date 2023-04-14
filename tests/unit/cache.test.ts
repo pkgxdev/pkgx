@@ -2,6 +2,18 @@ import { assert } from "deno/testing/asserts.ts"
 import { useDownload } from "hooks"
 import Path from "path"
 
+console.silence = async function<T>(body: () => Promise<T>) {
+  const originals = [console.log, console.info]
+  try {
+    console.log = () => {}
+    console.info = () => {}
+    return await body()
+  } finally {
+    console.log = originals[0]
+    console.info = originals[1]
+  }
+}
+
 Deno.test("etag-mtime-check",async () => {
   const tmpdir = new Path(await Deno.makeTempDir({ prefix: "tea" }))
   try {
