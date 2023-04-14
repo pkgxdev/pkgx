@@ -100,8 +100,6 @@ const suite = describe({
           proc.close()
         }
 
-        console.log(cmd, env)
-
         const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
         try {
           const status = await proc.status()
