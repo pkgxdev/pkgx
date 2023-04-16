@@ -191,6 +191,16 @@ Deno.test("semver", async test => {
       assert(b.satisfies(new SemVer("12.9.0")))
     })
 
+    await test.step(">=0.47<1", () => {
+      const a = new semver.Range(">=0.47<1")
+      assertEquals(a.toString(), ">=0.47<1")
+      assert(a.satisfies(new SemVer("0.47.0")))
+      assert(a.satisfies(new SemVer("0.47.9")))
+      assert(a.satisfies(new SemVer("0.48.0")))
+      assert(a.satisfies(new SemVer("0.80.0")))
+      assertFalse(a.satisfies(new SemVer("1.0.0")))
+    })
+
     //FIXME this *should* work
     // await test.step("^11,^12…^11.3,^12.2", () => {
     //   const a = new semver.Range("^11,^12")
