@@ -183,7 +183,7 @@ export class Range {
       return this.set.map(v => {
         if (!isArray(v)) return `=${v.toString()}`
         const [v1, v2] = v
-        if (v2.major == v1.major + 1 && v2.minor == 0 && v2.patch == 0) {
+        if (v1.major > 0 && v2.major == v1.major + 1 && v2.minor == 0 && v2.patch == 0) {
           const v = chomp(v1)
           return `^${v}`
         } else if (v2.major == v1.major && v2.minor == v1.minor + 1 && v2.patch == 0) {
