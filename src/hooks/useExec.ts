@@ -127,6 +127,10 @@ async function install(pkgs: PackageSpecification[], update: boolean) {
   const {installed, pending} = await resolve(wet, { update })
   logger.clear()
 
+  if (json) {
+    console.error({ status: "resolved", pkgs: pending.map(pkgutils.str) })
+  }
+
   for (const pkg of pending) {
     const install = await base_install(pkg)
     await link(install)
