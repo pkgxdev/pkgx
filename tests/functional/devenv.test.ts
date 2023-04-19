@@ -107,7 +107,7 @@ Deno.test("should provide packages in dev env", { sanitizeResources: false, sani
   const SHELL = "/bin/zsh"
 
   const tests = [
-    { file: ".node-version", pkg: "nodejs.org~16.16" },
+    { file: ".node-version", pkg: "nodejs.org>=16.16<16.16.1" },
     { file: "action.yml", pkg: "nodejs.org^16" },
     { file: "README.md", pkg: "nodejs.org=16.16.0" }
   ]
@@ -124,16 +124,20 @@ Deno.test("should provide packages in dev env", { sanitizeResources: false, sani
   }
 })
 
-Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const SHELL = "/bin/zsh"
 
-  const {run, teaDir } = await createTestHarness()
-  teaDir.join(".node-version").write({ text: "\n\n\nv16\n" })
+  for (const [spec, interpretation] of [["v16", "^16"], ["v16.16", "~16.16"], ["v16.16.0", ">=16.16<16.16.1"]]) {
+    await test.step(spec, async () => {
+      const {run, teaDir } = await createTestHarness()
+      teaDir.join(".node-version").write({ text: `\n\n\n${spec}\n` })
 
-  const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
 
-  const pkg = "nodejs.org^16"
-  assert(getTeaPackages(SHELL, stdout).includes(pkg), "should include nodejs dep")
+      const pkg = `nodejs.org${interpretation}`
+      assert(getTeaPackages(SHELL, stdout).includes(pkg), "should include nodejs dep")
+    })
+  }
 })
 
 function getEnvVar(shell: string, lines: string[], key: string): string | null {

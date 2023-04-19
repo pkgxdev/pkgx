@@ -132,6 +132,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       }
     }
     if (_if(".node-version")) {
+      // https://github.com/shadowspawn/node-version-usage
       let s = (await f!.read()).trim()
       if (s.startsWith('v')) s = s.slice(1)  // v prefix has no effect but is allowed
       s = `nodejs.org@${s}`
