@@ -1,5 +1,5 @@
 import { crypto, toHashString } from "deno/crypto/mod.ts"
-import useLogger, { Logger, teal, gray } from "./useLogger.ts"
+import useLogger, { Logger, teal, gray, logJSON } from "./useLogger.ts"
 import { chuzzle, error, TeaError } from "utils"
 import { usePrefix, useFetch } from "hooks"
 import { isString } from "is_what"
@@ -69,7 +69,7 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
     if (!json) {
       logger.replace(txt)
     } else {
-      console.error({status: "downloading"})
+      logJSON({status: "downloading"})
     }
 
     const reader = rsp.body ?? error.panic()
@@ -87,7 +87,7 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
         transform: (buf, controller) => {
           n += buf.length
           if (json) {
-            console.error({status: "downloading", "received": n, "content-size": sz })
+            logJSON({status: "downloading", "received": n, "content-size": sz })
           } else if (!sz) {
             (logger as Logger).replace(`${txt} ${pretty_size(n)}`)
           } else {
@@ -107,7 +107,7 @@ async function internal<T>({ src, headers, logger, dst }: DownloadOptions): Prom
   }
   case 304:
     if (json) {
-      console.error({status: "downloaded"})
+      logJSON({status: "downloaded"})
     } else {
       logger.replace(`cache: ${teal('hit')}`)
     }

@@ -125,3 +125,7 @@ export class Logger {
     }
   }
 }
+
+export function logJSON(data: Record<string, unknown>) {
+  console.error(JSON.stringify(data));
+}
