@@ -1,5 +1,5 @@
 import { usePackageYAMLFrontMatter, refineFrontMatter, FrontMatter } from "./usePackageYAML.ts"
-import { flatmap, TeaError, validate_plain_obj } from "utils"
+import { flatmap, pkg, TeaError, validate_plain_obj } from "utils"
 import { useEnv, useMoustaches, usePrefix } from "hooks"
 import { PackageRequirement } from "types"
 import SemVer, * as semver from "semver"
@@ -133,10 +133,13 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     }
     if (_if(".node-version")) {
       let s = (await f!.read()).trim()
-      if (s.startsWith('v')) s = s.slice(1)  // is allowed
-      const constraint = semver.Range.parse(s)
-      if (!constraint) throw new Error('couldn’t parse: .node-version')
-      pkgs.push({ project: "nodejs.org", constraint })
+      if (s.startsWith('v')) s = s.slice(1)  // v prefix has no effect but is allowed
+      s = `nodejs.org@${s}`
+      try {
+        pkgs.push(pkg.parse(s))
+      } catch {
+        throw new Error('couldn’t parse: .node-version')
+      }
     }
     if (_if("package.json")) {
       const json = JSON.parse(await f!.read())
