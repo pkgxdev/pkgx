@@ -1,6 +1,6 @@
 import { usePrefix, useCache, useCellar, useDownload, useOffLicense, useFetch, useConfig } from "hooks"
 import { host, panic, pkg as pkgutils } from "utils"
-import useLogger, { Logger, red, teal, gray } from "hooks/useLogger.ts"
+import useLogger, { Logger, red, teal, gray, logJSON } from "hooks/useLogger.ts"
 import { Installation, StowageNativeBottle } from "types"
 import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Package } from "types"
@@ -21,7 +21,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   const log_install_msg = (install: Installation, title = 'installed') => {
     if (json) {
-      console.error({status: title, pkg: pkgutils.str(install.pkg)})
+      logJSON({status: title, pkg: pkgutils.str(install.pkg)})
     } else {
       const str = [
         gray(usePrefix().prettyString()),
@@ -41,7 +41,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   if (!json) {
     logger.replace(teal("locking"))
   } else {
-    console.error({status: "locking", pkg: pkgutils.str(pkg) })
+    logJSON({status: "locking", pkg: pkgutils.str(pkg) })
   }
   const { rid } = await Deno.open(shelf.mkpath().string)
   await Deno.flock(rid, true)
@@ -54,7 +54,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
       if (!json) {
         logger.replace(teal("installed"))
       } else {
-        console.error({status: "installed", pkg: pkgutils.str(pkg) })
+        logJSON({status: "installed", pkg: pkgutils.str(pkg) })
       }
       return already_installed
     }
@@ -62,7 +62,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
     if (!json) {
       logger.replace(teal("querying"))
     } else {
-      console.error({status: "querying", pkg: pkgutils.str(pkg) })
+      logJSON({status: "querying", pkg: pkgutils.str(pkg) })
     }
 
     let stream = await useDownload().stream({ src: url, logger, dst: tarball })

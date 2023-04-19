@@ -49,11 +49,11 @@ export default async function(err: Error) {
   const { silent, debug, json } = useConfig()
 
   if (err instanceof ExitError) {
-    if (json) console.error({ error: true })
+    if (json) logger.logJSON({ error: true })
     return err.code
   } else if (err instanceof TeaError) {
     if (json) {
-      console.error({ error: true, message: msg(err) })
+      logger.logJSON({ error: true, message: msg(err) })
     } else if (!silent) {
       const suggestion = await suggestions(err).swallow()
       console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
@@ -68,7 +68,7 @@ export default async function(err: Error) {
     const code = chuzzle(parseInt(err.code().match(/\d+$/)?.[0] ?? '1')) ?? 1
     return code
   } else if (json) {
-    console.error({ error: true, message: err.message })
+    logger.logJSON({ error: true, message: err.message })
   } else if (!silent) {
     const { stack, message } = err ?? {}
 

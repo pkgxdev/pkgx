@@ -3,7 +3,7 @@ import { PackageSpecification, Installation, PackageRequirement } from "types"
 import { hydrate, resolve, install as base_install, link } from "prefab"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import { flatten } from "./useShellEnv.ts"
-import useLogger from "./useLogger.ts"
+import useLogger, { logJSON } from "./useLogger.ts"
 import { pkg as pkgutils, TeaError } from "utils"
 import * as semver from "semver"
 import Path from "path"
@@ -118,7 +118,7 @@ async function install(pkgs: PackageSpecification[], update: boolean) {
   if (!json) {
     logger.replace("resolving package graph")
   } else {
-    console.error({ status: "resolving" })
+    logJSON({ status: "resolving" })
   }
 
   console.debug({hydrating: pkgs})
@@ -128,7 +128,7 @@ async function install(pkgs: PackageSpecification[], update: boolean) {
   logger.clear()
 
   if (json) {
-    console.error({ status: "resolved", pkgs: pending.map(pkgutils.str) })
+    logJSON({ status: "resolved", pkgs: pending.map(pkgutils.str) })
   }
 
   for (const pkg of pending) {
