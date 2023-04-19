@@ -132,7 +132,9 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       }
     }
     if (_if(".node-version")) {
-      const constraint = semver.Range.parse((await f!.read()).trim())
+      let s = (await f!.read()).trim()
+      if (s.startsWith('v')) s = s.slice(1)  // is allowed
+      const constraint = semver.Range.parse(s)
       if (!constraint) throw new Error('couldn’t parse: .node-version')
       pkgs.push({ project: "nodejs.org", constraint })
     }
