@@ -32,7 +32,7 @@ Deno.test("dev env interactions with HOME", { sanitizeResources: false, sanitize
       }
 
       try {
-        const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"]) 
+        const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"])
 
         const envVar = (key: string) => getEnvVar("/bin/zsh", stdout, key)
         const srcroot = envVar("SRCROOT")
@@ -62,7 +62,7 @@ Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false
         const TEA_REWIND = JSON.stringify({revert: {VAL: "REVERTED"}, unset: ["BAZ"]})
 
         const config = { env: { SHELL: shell, TEA_REWIND } }
-        const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config) 
+        const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config)
 
         const envVar = (key: string) => getEnvVar(shell, stdout, key)
         const isUnset = (key: string) => isEnvVarUnset(shell, stdout, key)
@@ -91,7 +91,7 @@ Deno.test("should leave dev env", { sanitizeResources: false, sanitizeOps: false
       const TEA_REWIND = JSON.stringify({revert: {VAL: "REVERTED"}, unset: ["BAZ"]})
 
       const config = { env: { SHELL: shell, TEA_REWIND } }
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config) 
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config)
 
       const envVar = (key: string) => getEnvVar(shell, stdout, key)
       const isUnset = (key: string) => isEnvVarUnset(shell, stdout, key)
@@ -117,11 +117,23 @@ Deno.test("should provide packages in dev env", { sanitizeResources: false, sani
       const {run, teaDir } = await createTestHarness()
 
       fixturesDir.join(file).cp({into: teaDir})
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } }) 
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
 
       assert(getTeaPackages(SHELL, stdout).includes(pkg), "should include nodejs dep")
     })
   }
+})
+
+Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitizeOps: false }, async () => {
+  const SHELL = "/bin/zsh"
+
+  const {run, teaDir } = await createTestHarness()
+  teaDir.join(".node-version").write({ text: "\n\n\nv16\n" })
+
+  const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+
+  const pkg = "nodejs.org^16"
+  assert(getTeaPackages(SHELL, stdout).includes(pkg), "should include nodejs dep")
 })
 
 function getEnvVar(shell: string, lines: string[], key: string): string | null {
@@ -129,7 +141,7 @@ function getEnvVar(shell: string, lines: string[], key: string): string | null {
     switch (shell) {
       case "/bin/fish":
         return `^set -gx ${key} '(.*)';$`
-      case "/bin/elvish": 
+      case "/bin/elvish":
         return `^set-env ${key} '(.*)'$`
       default:
         return `export ${key}='(.*)'$`
@@ -150,7 +162,7 @@ function isEnvVarUnset(shell: string, lines: string[], key:string): boolean {
     switch (shell) {
       case "/bin/fish":
         return `^set -e ${key};$`
-      case "/bin/elvish": 
+      case "/bin/elvish":
         return `^unset-env ${key}$`
       default:
         return `unset ${key}$`
