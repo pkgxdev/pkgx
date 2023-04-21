@@ -8,7 +8,7 @@ import "utils"  //FIXME for console.verbose
 // based on https://github.com/mxcl/Path.swift
 
 // everything is Sync because TypeScript will unfortunately not
-// cascade `await`, meaing our chainable syntax would become:
+// cascade `await`, meaning our chainable syntax would become:
 //
 //     await (await foo).bar
 //

@@ -67,7 +67,7 @@ Deno.test("parse args", async test => {
     assertEquals(args.mode, 'help')
   })
 
-  await test.step("arg seperator", () => {
+  await test.step("arg separator", () => {
     const [args, flags] = parseArgs(["-S", "--", "node", "run.js", "-n", "1", "-h", "2"], "/tea")
     assertEquals(args.args, ["node", "run.js", "-n", "1", "-h", "2"])
     assertEquals(args.mode, "std")
