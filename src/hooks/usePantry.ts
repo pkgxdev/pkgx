@@ -1,5 +1,5 @@
 import { Package, PackageRequirement, Installation } from "types"
-import { host, validate_plain_obj, pkg, TeaError } from "utils"
+import { host, validate_plain_obj, pkg, TeaError, validate_arr } from "utils"
 import { isNumber, isPlainObject, isString, isArray, isPrimitive, PlainObject, isBoolean } from "is_what"
 import { validatePackageRequirement } from "utils/hacks.ts"
 import { useCellar, usePrefix } from "hooks"
@@ -21,6 +21,7 @@ export default function usePantry() {
     getDeps,
     getCompanions,
     getProvides,
+    getProvider,
     getInterpreter,
     getRuntimeEnvironment,
     available,
@@ -66,6 +67,41 @@ const getProvides = async (pkg: { project: string }) => {
       if (x.startsWith("sbin/")) return x.slice(5)
     }
   })
+}
+
+import { parse as parseYaml } from "deno/encoding/yaml.ts"
+
+const getProvider = async ({ project }: { project: string }) => {
+  for (const prefix of pantry_paths()) {
+    if (!prefix.exists()) continue
+    const dir = prefix.join(project)
+    const filename = dir.join("provider.yml")
+    if (!filename.exists()) continue
+    const read = await Deno.readTextFile(filename.string)
+    const yaml = validate_plain_obj(await parseYaml(read))
+    const cmds = validate_arr<string>(yaml.cmds)
+    return (binname: string) => {
+      if (!cmds.includes(binname)) return
+      const args = yaml['args']
+      if (isPlainObject(args)) {
+        if (args[binname]) {
+          return get_args(args[binname])
+        } else {
+          return get_args(args['...'])
+        }
+      } else {
+        return get_args(args)
+      }
+    }
+  }
+
+  function get_args(input: unknown) {
+    if (isString(input)) {
+      return input.split(/\s+/)
+    } else {
+      return validate_arr<string>(input)
+    }
+  }
 }
 
 const getCompanions = async (pkg: {project: string}) => {

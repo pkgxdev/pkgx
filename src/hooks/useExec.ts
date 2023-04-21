@@ -17,7 +17,7 @@ interface Parameters {
 }
 
 export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
-  const cmd = [...opts.args]
+  let cmd = [...opts.args]
   const arg0 = await fetch_it(cmd[0])
   if (arg0) cmd[0] = arg0?.toString()  // if we downloaded it then we need to replace args[0]
   const clutch = pkgs.length > 0
@@ -80,7 +80,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     const found = await which(arg0)
     if (found) {
       pkgs.push(found)
-      cmd[0] = found.shebang
+      cmd = [...found.shebang, ...cmd.slice(1)]
       await add_companions(found)
     }
   }
@@ -227,7 +227,7 @@ export async function which(arg0: string | undefined) {
 
   const { TEA_PKGS } = useEnv()
   const pantry = usePantry()
-  let found: { project: string, constraint: semver.Range, shebang: string } | undefined
+  let found: { project: string, constraint: semver.Range, shebang: string[] } | undefined
   const promises: Promise<void>[] = []
 
   for await (const entry of pantry.ls()) {
@@ -244,19 +244,19 @@ export async function which(arg0: string | undefined) {
             // we are being executed via the command not found handler inside a dev-env
             // so let’s use the version that was already calculated for this dev-env
             if ("version" in inenv) {
-              found = {...inenv, constraint: new semver.Range(`=${inenv.version}`), shebang: provider }
+              found = {...inenv, constraint: new semver.Range(`=${inenv.version}`), shebang: [provider] }
             } else {
-              found = {...inenv, shebang: provider }
+              found = {...inenv, shebang: [provider] }
             }
           } else {
             const constraint = new semver.Range("*")
-            found = {...entry, constraint, shebang: provider }
+            found = {...entry, constraint, shebang: [provider] }
           }
         } else if (arg0.startsWith(provider)) {
           // eg. `node^16` symlink
           try {
             const constraint = new semver.Range(arg0.substring(provider.length))
-            found = {...entry, constraint, shebang: provider }
+            found = {...entry, constraint, shebang: [provider] }
           } catch {
             // not a valid semver range; fallthrough
           }
@@ -274,12 +274,23 @@ export async function which(arg0: string | undefined) {
           match = arg0.match(rx)
           if (match) {
             const constraint = new semver.Range(`~${match[1]}`)
-            found = {...entry, constraint, shebang: arg0 }
+            found = {...entry, constraint, shebang: [arg0] }
           }
         }
       }
     }).swallow(/^parser: pantry: package.yml/)
     promises.push(p)
+
+    const pp = pantry.getProvider({ project: entry.project }).then(f => {
+      if (!f) return
+      const rv = f(arg0)
+      if (rv) found = {
+        ...entry,
+        constraint: new semver.Range('*'),
+        shebang: [...rv, arg0]
+      }
+    })
+    promises.push(pp)
   }
 
   if (!found) {
