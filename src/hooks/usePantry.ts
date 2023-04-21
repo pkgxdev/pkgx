@@ -23,6 +23,7 @@ export default function usePantry() {
     getProvides,
     getInterpreter,
     getRuntimeEnvironment,
+    available,
     ls,
     prefix: getPantryPrefix()
   }
@@ -97,6 +98,14 @@ const getRuntimeEnvironment = async (pkg: Package): Promise<Record<string, strin
   const yml = await entry(pkg).yml()
   const obj = validate_plain_obj(yml["runtime"]?.["env"] ?? {})
   return expand_env_obj(obj, pkg, [])
+}
+
+const available = async (pkg: PackageRequirement): Promise<boolean> => {
+  let { platform } = await entry(pkg).yml()
+  if (!platform) return true
+  if (isString(platform)) platform = [platform]
+  if (!isArray(platform)) throw new Error("bad-yaml")
+  return platform.includes(host().platform) ||platform.includes(`${host().platform}/${host().arch}`)
 }
 
 function entry({ project }: { project: string }): Entry {
