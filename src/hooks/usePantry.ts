@@ -137,11 +137,11 @@ const getRuntimeEnvironment = async (pkg: Package): Promise<Record<string, strin
 }
 
 const available = async (pkg: PackageRequirement): Promise<boolean> => {
-  let { platform } = await entry(pkg).yml()
-  if (!platform) return true
-  if (isString(platform)) platform = [platform]
-  if (!isArray(platform)) throw new Error("bad-yaml")
-  return platform.includes(host().platform) ||platform.includes(`${host().platform}/${host().arch}`)
+  let { platforms } = await entry(pkg).yml()
+  if (!platforms) return true
+  if (isString(platforms)) platforms = [platforms]
+  if (!isArray(platforms)) throw new Error("bad-yaml")
+  return platforms.includes(host().platform) ||platforms.includes(`${host().platform}/${host().arch}`)
 }
 
 function entry({ project }: { project: string }): Entry {
