@@ -20,6 +20,7 @@ export interface Env {
   TEA_DIR?: string
   TEA_FILES?: string
   TEA_FORK_BOMB_PROTECTOR?: string
+  TEA_MAGIC?: string
   TEA_PANTRY_PATH?: string
   TEA_PKGS?: string
   TEA_PREFIX?: string

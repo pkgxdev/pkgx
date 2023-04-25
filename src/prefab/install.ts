@@ -12,12 +12,26 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
 
   const cellar = useCellar()
   const tea_prefix = usePrefix()
-  const { isCI, dryrun, json } = useConfig()
+  const { isCI, dryrun, json, env } = useConfig()
   const compression = get_compression(isCI)
   const stowage = StowageNativeBottle({ pkg: { project, version }, compression })
   const url = useOffLicense('s3').url(stowage)
   const tarball = useCache().path(stowage)
   const shelf = tea_prefix.join(pkg.project)
+
+  if(env.TEA_MAGIC === "prompt") {
+    do {
+      const val = prompt(`┌ ⚠️  Tea requests to install ${pkg.project} (v${pkg.version})\n└ \x1B[1mAllow?\x1B[0m [y/n]`)?.toLowerCase();
+      // If val is undefined, there was no prompt given since this isn't an interactive tty
+      if(!val || val === "y") {
+        break;
+      }
+      if(val === "n") {
+        Deno.exit(1);
+      }
+    }
+    while(true)
+  }
 
   const log_install_msg = (install: Installation, title = 'installed') => {
     if (json) {
