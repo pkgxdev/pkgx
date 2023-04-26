@@ -50,8 +50,13 @@ export default async function() {
 /// on darwin if xcode or xcode/clt is not installed this will fail to our http fallback above
 async function git(...args: (string | Path)[]) {
   const pkg = await useCellar().has({ project: 'git-scm.org', constraint: new semver.Range('*') })
-  const git = (pkg?.path ?? new Path("/usr")).join("bin/git")
-  await run({cmd: [git, ...args]})
+  const git = (pkg?.path ?? usr())?.join("bin/git")
+  if (git) await run({cmd: [git, ...args]})
+
+  function usr() {
+    // only return /usr/bin if in the PATH so user can explicitly override this
+    return Deno.env.get("PATH")?.split(":")?.includes("/usr/bin") ? new Path("/usr") : undefined
+  }
 }
 
 function run(opts: RunOptions) {
