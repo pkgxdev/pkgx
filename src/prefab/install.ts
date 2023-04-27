@@ -1,7 +1,7 @@
 import { usePrefix, useCache, useCellar, useDownload, useOffLicense, useFetch, useConfig } from "hooks"
-import { host, panic, pkg as pkgutils } from "utils"
+import { host, panic, pkg as pkgutils, undent } from "utils"
 import useLogger, { Logger, red, teal, gray, logJSON } from "hooks/useLogger.ts"
-import { Installation, StowageNativeBottle } from "types"
+import { ExitError, Installation, StowageNativeBottle } from "types"
 import { crypto, toHashString } from "deno/crypto/mod.ts"
 import { Package } from "types"
 import Path from "path"
@@ -19,29 +19,37 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
   const tarball = useCache().path(stowage)
   const shelf = tea_prefix.join(pkg.project)
 
-  if(env.TEA_MAGIC === "prompt") {
-    do {
-      const val = prompt(`┌ ⚠️  Tea requests to install ${pkg.project} (v${pkg.version})\n└ \x1B[1mAllow?\x1B[0m [y/n]`)?.toLowerCase();
-      // If val is undefined, there was no prompt given since this isn't an interactive tty
-      if(!val || val === "y") {
-        break;
-      }
-      if(val === "n") {
-        Deno.exit(1);
-      }
+  const pkg_prefix_str = (pkg: Package) => [
+      gray(usePrefix().prettyString()),
+      pkg.project,
+      `${gray('v')}${pkg.version}`
+    ].join(gray('/'))
+
+  if (env.TEA_MAGIC === "prompt") {
+    if (!Deno.isatty(Deno.stdin.rid)) {
+      throw new Error("TEA_MAGIC=prompt but stdin is not a tty")
     }
-    while(true)
+
+    do {
+      const val = prompt(undent`
+        ┌ ⚠️  tea requests to install ${pkg_prefix_str(pkg)}
+        └ \x1B[1mallow?\x1B[0m [y/n]`
+      )?.toLowerCase()
+
+      if (val === "y") {
+        break
+      }
+      if (val === "n") {
+        throw new ExitError(1)
+      }
+    } while (true)
   }
 
   const log_install_msg = (install: Installation, title = 'installed') => {
     if (json) {
       logJSON({status: title, pkg: pkgutils.str(install.pkg)})
     } else {
-      const str = [
-        gray(usePrefix().prettyString()),
-        install.pkg.project,
-        `${gray('v')}${install.pkg.version}`
-      ].join(gray('/'))
+      const str = pkg_prefix_str(install.pkg)
       logger!.replace(`${title}: ${str}`, { prefix: false })
     }
   }
