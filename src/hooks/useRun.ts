@@ -1,7 +1,7 @@
 import Path from "path"
 import { isArray } from "is_what"
 
-export interface RunOptions extends Omit<Deno.RunOptions, 'cmd'|'cwd'|'stdout'|'stderr'|'stdin'> {
+export interface RunOptions extends Omit<Deno.CommandOptions, 'args'|'cwd'|'stdout'|'stderr'|'stdin'> {
   cmd: (string | Path)[] | Path
   cwd?: (string | Path)
   clearEnv?: boolean  //NOTE might not be cross platform!
@@ -21,15 +21,15 @@ export default async function useRun({ spin, ...opts }: RunOptions) {
   const cwd = opts.cwd?.toString()
   console.verbose({ cwd, ...opts, cmd })
 
-  const stdio = { stdout: 'inherit', stderr: 'inherit', stdin: 'inherit' } as Pick<Deno.RunOptions, 'stdout'|'stderr'|'stdin'>
+  const stdio = { stdout: 'inherit', stderr: 'inherit', stdin: 'inherit' } as Pick<Deno.CommandOptions, 'stdout'|'stderr'|'stdin'>
   if (spin) {
     stdio.stderr = stdio.stdout = 'piped'
   }
 
-  let proc: Deno.Process | undefined
+  let proc: Deno.ChildProcess | undefined
   try {
-    proc = _internals.nativeRun({ ...opts, cmd, cwd, ...stdio })
-    const exit = await proc.status()
+    proc = _internals.nativeRun(cmd.shift()!, { ...opts, args: cmd, cwd, ...stdio }).spawn()
+    const exit = await proc.status
     console.verbose({ exit })
     if (!exit.success) throw new RunError(exit.code, cmd)
   } catch (err) {
@@ -37,17 +37,17 @@ export default async function useRun({ spin, ...opts }: RunOptions) {
       //FIXME this doesn’t result in the output being correctly interlaced
       // ie. stderr and stdout may (probably) have been output interleaved rather than sequentially
       const decode = (() => { const e = new TextDecoder(); return e.decode.bind(e) })()
-      console.error(decode(await proc.output()))
-      console.error(decode(await proc.stderrOutput()))
+      console.error(decode((await proc.output()).stdout))
+      console.error(decode((await proc.output()).stderr))
     }
+
     err.cmd = cmd  // help us out since deno-devs don’t want to
     throw err
-  } finally {
-    proc?.close()
   }
 }
 
-const nativeRun = (runOptions: Deno.RunOptions) => Deno.run(runOptions)
+
+const nativeRun = (cmd: string, opts: Deno.CommandOptions) => new Deno.Command(cmd, opts)
 
 // _internals are used for testing
 export const _internals = {

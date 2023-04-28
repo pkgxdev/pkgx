@@ -28,7 +28,7 @@ export const createTestHarness = async (config?: TestConfig) => {
     const [syncArgs, flags] = parseArgs(["--sync", "--silent"], teaDir.string)
     init(flags)
     updateConfig({ teaPrefix: new Path(TEA_PREFIX.string), env: { NO_COLOR: "1" } })
-    await run(syncArgs) 
+    await run(syncArgs)
   }
 
   const runTea = async (args: string[], configOverrides: Partial<Config> = {}) => {
@@ -46,7 +46,7 @@ export const createTestHarness = async (config?: TestConfig) => {
       init(flags)
       updateConfig({ execPath: teaDir, teaPrefix: new Path(TEA_PREFIX.string), ...configOverrides })
 
-      await run(appArgs) 
+      await run(appArgs)
     } finally {
       usePrintSpy.restore()
       Deno.chdir(cwd)
@@ -75,15 +75,27 @@ function updateConfig(updated: Partial<Config>) {
   useConfigInternals.setConfig({...config, ...updated, env: {...config.env, ...updated.env}})
 }
 
-// the Deno.Process object cannot be created externally with `new` so we'll just return a 
+// we need Deno.ChildProcress.status to be mutable
+type Mutable<Type> = {
+  -readonly [Key in keyof Type]: Type[Key];
+}
+
+// the Deno.Process object cannot be created externally with `new` so we'll just return a
 // ProcessLike object
-export function newMockProcess(statusFunction?: () => Promise<Deno.ProcessStatus>): Deno.Process {
-  const status = statusFunction ?? (() => Promise.resolve({success: true, code: 0}))
+export function newMockProcess(status?: () => Promise<Deno.CommandStatus>): Deno.Command {
   return {
-    status,
-    output: () => Promise.resolve(""),
-    stderrOutput: () => Promise.resolve(""),
-    close: () => {
-    },
-  } as unknown as Deno.Process
+    output: function(): Promise<Deno.CommandOutput> { throw new Error("UNIMPLEMENTED") },
+    outputSync(): Deno.CommandOutput { throw new Error("UNIMPLEMENTED") },
+    spawn: () => ({
+      pid: 10,
+      stdin: new WritableStream<Uint8Array>(),
+      stdout: new ReadableStream<Uint8Array>(),
+      stderr: new ReadableStream<Uint8Array>(),
+      status: status ? status() : Promise.resolve({ success: true, code: 0, signal: null }),
+      output: () => Promise.resolve({ stdout: new Uint8Array(), stderr: new Uint8Array(), success: false, code: 1, signal: null }),
+      kill: _ => {},
+      ref: () => {},
+      unref: () => {}
+    })
+  }
 }

@@ -317,12 +317,12 @@ export default class Path {
 
     let opts = "-s"
     if (force) opts += "fn"
-    const status = await Deno.run({
-      cmd: ["/bin/ln", opts, src, dst],
+    const status = await new Deno.Command("/bin/ln", {
+      args: [opts, src, dst],
       cwd: this.string
-    }).status()
+    }).spawn().status
 
-    if (status.code != 0) throw new Error(`failed: cd ${this} && ln -sf ${src} ${dst}`)
+    if (!status.success) throw new Error(`failed: cd ${this} && ln -sf ${src} ${dst}`)
 
     return to
   }
