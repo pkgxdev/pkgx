@@ -258,7 +258,17 @@ export async function which(arg0: string | undefined) {
             const constraint = new semver.Range(arg0.substring(provider.length))
             found = {...entry, constraint, shebang: [provider] }
           } catch {
-            // not a valid semver range; fallthrough
+            // not a valid semver ^ range; fallthrough
+          }
+
+          // parse with looser requirements iff contains "@" , eg. `node@16`
+          if (arg0.includes("@")) {
+            try {
+              const constraint = pkgutils.parse(arg0).constraint
+              found = {...entry, constraint, shebang: [provider] }
+            } catch {
+              // not a valid semver @ range; fallthrough
+            }
           }
         } else {
           //TODO more efficient to check the prefix fits arg0 first

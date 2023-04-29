@@ -8,9 +8,14 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
     await assertRejects(() => run(["--provides", "node"]), ExitError, "exiting with code: 0")
   })
 
-  await test.step("provides version", async () => {
+  await test.step("provides ^ version", async () => {
     const { run } = await createTestHarness()
     await assertRejects(() => run(["--provides", "node^18"]), ExitError, "exiting with code: 0")
+  })
+
+  await test.step("provides @ version", async () => {
+    const { run } = await createTestHarness()
+    await assertRejects(() => run(["--provides", "node@18"]), ExitError, "exiting with code: 0")
   })
 
   await test.step("provides version in dev env", async () => {
