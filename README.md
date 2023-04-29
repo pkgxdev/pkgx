@@ -230,6 +230,13 @@ $ deno task install
 $ deno task compile && ./tea
 ```
 
+## Visual Studio Code
+
+<!-- TODO: Add some info -->
+
+* Install [deno vscode extension](TODO: add link)
+* Install deno via homebrew?
+
 
 [docs.tea.xyz]: https://docs.tea.xyz
 [deno]: https://deno.land

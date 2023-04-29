@@ -35,7 +35,10 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
       ? target.basename()
       : link.basename()
     const match = base.match(/^tea[_+]([^\/]+)$/)
-    if (link.basename() == "deno" && !link.isSymlink()) return  // deno is literally executing our source code
+    const basename = link.basename()
+    // const isSymlink = link.isSymlink()
+    if (basename == "deno") return
+    // if (basename == "deno" && !isSymlink) return  // deno is literally executing our source code
     args = [match?.[1] ?? base, ...args]
   })()
 
