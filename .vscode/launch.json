@@ -2,6 +2,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+          "request": "launch",
+          "name": "Debug Command",
+          "type": "node",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "deno",
+          "runtimeArgs": [
+            "run",
+            "--inspect-brk",
+            "-A",
+            "${workspaceFolder}/src/app.ts",
+            "python@3"
+          ],
+          "attachSimplePort": 9229
+        },
+        {
             "request": "launch",
             "name": "Debug Test",
             "type": "node",
