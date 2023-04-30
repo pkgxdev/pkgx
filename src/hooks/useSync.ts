@@ -3,6 +3,7 @@ import useRun, { RunOptions } from "./useRun.ts"
 import useLogger from "./useLogger.ts"
 import * as semver from "semver"
 import Path from "path"
+import { host } from "../utils/index.ts";
 
 export default async function() {
   const logger = useLogger()
@@ -52,10 +53,21 @@ async function git(...args: (string | Path)[]) {
   const pkg = await useCellar().has({ project: 'git-scm.org', constraint: new semver.Range('*') })
   const git = (pkg?.path ?? usr())?.join("bin/git")
   if (git) await run({cmd: [git, ...args]})
+  throw new Error("no-git")  // caught above to trigger http download instead
 
   function usr() {
     // only return /usr/bin if in the PATH so user can explicitly override this
-    return Deno.env.get("PATH")?.split(":")?.includes("/usr/bin") ? new Path("/usr") : undefined
+    const rv = Deno.env.get("PATH")?.split(":")?.includes("/usr/bin") ? new Path("/usr") : undefined
+
+    /// don’t cause macOS to abort and then prompt the user to install the XcodeCLT
+    //FIXME test! but this is hard to test without docker images or something!
+    if (host().platform == 'darwin') {
+      if (new Path("/Library/Developer/CommandLineTools/usr/bin/git").isExecutableFile()) return rv
+      if (new Path("/Application/Xcode.app").isDirectory()) return rv
+      return
+    }
+
+    return  rv
   }
 }
 
