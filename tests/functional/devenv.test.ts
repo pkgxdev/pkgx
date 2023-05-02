@@ -140,6 +140,26 @@ Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitize
   }
 })
 
+Deno.test("should provide ruby in dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
+  const SHELL = "/bin/zsh"
+
+  const tests = [
+    { file: ".ruby-version", pkg: "ruby-lang.org>=3.2.1<3.2.2" }
+  ]
+
+  for (const { file, pkg } of tests) {
+    await test.step(file, async () => {
+      const { run, teaDir } = await createTestHarness()
+
+      fixturesDir.join(file).cp({ into: teaDir })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+
+      const output = getTeaPackages(SHELL, stdout)
+      assert(output.includes(pkg), "should include ruby dep")
+    })
+  }
+})
+
 function getEnvVar(shell: string, lines: string[], key: string): string | null {
   const pattern = () => {
     switch (shell) {

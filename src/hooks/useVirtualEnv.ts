@@ -142,6 +142,16 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
         throw new Error('couldn’t parse: .node-version')
       }
     }
+    if (_if(".ruby-version")) {
+      let s = (await f!.read()).trim()
+      // TODO: How to handle non-bare versions like mruby-3.2.0, jruby-9.4.2.0, etc. from `rbenv install -L`
+      s = `ruby-lang.org@${s}`
+      try {
+        pkgs.push(pkg.parse(s))
+      } catch {
+        throw new Error('couldn’t parse: .ruby-version')
+      }
+    }
     if (_if("package.json")) {
       const json = JSON.parse(await f!.read())
       if (isPlainObject(json?.tea)) {
