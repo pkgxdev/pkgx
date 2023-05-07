@@ -35,6 +35,10 @@ Deno.test("semver", async test => {
     assertEquals(new SemVer("1").toString(), "1.0.0")
     assertEquals(new SemVer("v1").toString(), "1.0.0")
 
+    assertEquals(new SemVer("9e").toString(), "9e")
+    assertEquals(new SemVer("9e").components, [9,5])
+    assertEquals(new SemVer("3.3a").toString(), "3.3a")
+    assertEquals(new SemVer("3.3a").components, [3,3,1])
     assertEquals(new SemVer("1.1.1q").toString(), "1.1.1q")
     assertEquals(new SemVer("1.1.1q").components, [1,1,1,17])
   })
