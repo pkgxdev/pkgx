@@ -30,9 +30,9 @@ Deno.test("semver", async test => {
     assertEquals(new SemVer("1.2.3.4").toString(), "1.2.3.4")
     assertEquals(new SemVer("1.2.3").toString(), "1.2.3")
     assertEquals(new SemVer("v1.2.3").toString(), "1.2.3")
-    assertThrows(() => new SemVer("1.2"))
+    assertEquals(new SemVer("1.2").toString(), "1.2.0")
     assertEquals(new SemVer("v1.2").toString(), "1.2.0")
-    assertThrows(() => new SemVer("1"))
+    assertEquals(new SemVer("1").toString(), "1.0.0")
     assertEquals(new SemVer("v1").toString(), "1.0.0")
 
     assertEquals(new SemVer("1.1.1q").toString(), "1.1.1q")
