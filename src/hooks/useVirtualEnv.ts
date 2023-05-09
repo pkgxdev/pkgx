@@ -152,6 +152,23 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
         throw new Error('couldn’t parse: .ruby-version')
       }
     }
+    if (_if(".python-version")) {
+      const s = (await f!.read()).trim()
+      const lines = s.split("\n")
+      for (let l of lines) {
+        l = l.trim()
+        if (!l) continue  // skip empty lines
+        if (l.startsWith('#')) continue  // skip commented lines
+        // TODO: How to handle 'system'?
+        // TODO: How to handle non-bare versions like pypy3.9-7.3.11, stackless-3.7.5, etc. in pyenv install --list?
+        l = `python.org@${l}`
+        try {
+          pkgs.push(pkg.parse(l))
+        } catch {
+          throw new Error('couldn’t parse: .python-version')
+        }
+      }
+    }
     if (_if("package.json")) {
       const json = JSON.parse(await f!.read())
       if (isPlainObject(json?.tea)) {

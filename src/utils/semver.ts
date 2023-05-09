@@ -21,12 +21,11 @@ export default class SemVer {
   readonly raw: string
   readonly pretty?: string
 
-  constructor(input: string | number[] | Range | SemVer, {tolerant}: {tolerant: boolean} = {tolerant: false}) {
+  constructor(input: string | number[] | Range | SemVer) {
     if (typeof input == 'string') {
       const vprefix = input.startsWith('v')
       const raw = vprefix ? input.slice(1) : input
       const parts = raw.split('.')
-      if (parts.length < 3 && !vprefix && !tolerant) throw new Error(`too short to parse without a \`v\` prefix: ${input}`)
       let pretty_is_raw = false
       this.components = parts.flatMap((x, index) => {
         const match = x.match(/^(\d+)([a-z])$/)
@@ -102,7 +101,7 @@ export default class SemVer {
 /// also slightly more tolerant parsing
 export function parse(input: string) {
   try {
-    return new SemVer(input, {tolerant: true})
+    return new SemVer(input)
   } catch {
     return undefined
   }
@@ -126,15 +125,15 @@ export class Range {
       this.set = input.split(/(?:,|\s*\|\|\s*)/).map(input => {
         let match = input.match(/^>=((\d+\.)*\d+)\s*(<((\d+\.)*\d+))?$/)
         if (match) {
-          const v1 = new SemVer(match[1], {tolerant: true})
-          const v2 = match[3] ? new SemVer(match[4], {tolerant: true})! : new SemVer([Infinity, Infinity, Infinity])
+          const v1 = new SemVer(match[1])
+          const v2 = match[3] ? new SemVer(match[4])! : new SemVer([Infinity, Infinity, Infinity])
           return [v1, v2]
         } else if ((match = input.match(/^([~=<^])(.+)$/))) {
           let v1: SemVer | undefined, v2: SemVer | undefined
           switch (match[1]) {
           // deno-lint-ignore no-case-declarations
           case "^":
-            v1 = new SemVer(match[2], {tolerant: true})
+            v1 = new SemVer(match[2])
             const parts = []
             for (let i = 0; i < v1.components.length; i++) {
               if (v1.components[i] === 0 && i < v1.components.length - 1) {
@@ -144,23 +143,23 @@ export class Range {
                 break
               }
             }
-            v2 = new SemVer(parts, {tolerant: true})
+            v2 = new SemVer(parts)
             return [v1, v2]
           case "~": {
-            v1 = new SemVer(match[2], {tolerant: true})
+            v1 = new SemVer(match[2])
             if (v1.components.length == 1) {
               // yep this is the official policy
-              v2 = new SemVer([v1.major + 1], {tolerant: true})
+              v2 = new SemVer([v1.major + 1])
             } else {
-              v2 = new SemVer([v1.major, v1.minor + 1], {tolerant: true})
+              v2 = new SemVer([v1.major, v1.minor + 1])
             }
           } return [v1, v2]
           case "<":
-            v1 = new SemVer([0], {tolerant: true})
-            v2 = new SemVer(match[2], {tolerant: true})
+            v1 = new SemVer([0])
+            v2 = new SemVer(match[2])
             return [v1, v2]
           case "=":
-            return new SemVer(match[2], {tolerant: true})
+            return new SemVer(match[2])
           }
         }
         throw err()

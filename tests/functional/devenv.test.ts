@@ -124,6 +124,26 @@ Deno.test("should provide packages in dev env", { sanitizeResources: false, sani
   }
 })
 
+Deno.test("should provide python in dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
+  const SHELL = "/bin/zsh"
+
+  const tests = [
+    { file: ".python-version", pkg: "python.org~3.10" }
+  ]
+
+  for (const { file, pkg } of tests) {
+    await test.step(file, async () => {
+      const { run, teaDir } = await createTestHarness()
+
+      fixturesDir.join(file).cp({ into: teaDir })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+
+      const output = getTeaPackages(SHELL, stdout)
+      assert(output.includes(pkg), "should include python dep")
+    })
+  }
+})
+
 Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const SHELL = "/bin/zsh"
 

@@ -183,11 +183,18 @@ jobs:
       - name: Invalidate CloudFront
         run:
           find . -name tea-\* |
-          sed 's/^.//' |
+          sed 's_^./binaries__' |
           xargs
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
-            --paths
+            --paths $STATIC_PATHS
+        env:
+          STATIC_PATHS: >-
+            /Darwin/arm64
+            /Darwin/x86_64
+            /Linux/arm64
+            /Linux/aarch64
+            /Linux/x86_64
 
   smoke-teaxyz-setup-github-action:
     needs: [upload-binaries]
