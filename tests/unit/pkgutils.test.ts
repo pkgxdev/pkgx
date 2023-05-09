@@ -77,6 +77,11 @@ Deno.test("pkg.parse", async test => {
   await test.step("bad input", () => {
     assertThrows(() => pkg.parse("asdf^@~"), "invalid pkgspec: asdf^@~")
   })
+
+  await test.step("leading & trailing space", () => {
+    const { constraint } = pkg.parse(" test@5\t")
+    assert(constraint.satisfies(new SemVer([5,0,0])))
+  })
 })
 
 Deno.test("pkg.compare", async test => {

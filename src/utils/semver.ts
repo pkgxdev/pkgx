@@ -270,11 +270,22 @@ function zip<T, U>(a: T[], b: U[]) {
   return rv
 }
 
+
 function _compare(a: SemVer, b: SemVer): number {
-  for (const [c,d] of zip(a.components, b.components)) {
+  for (const [c,d] of zip(cmpcomponents(a), cmpcomponents(b))) {
     if (c != d) return (c ?? 0) - (d ?? 0)
   }
   return 0
+
+  /// we sort calver before semver, mainly because we label pre-releases with calver
+  /// we worry that one day we will severely regret this but… it’s what we do for now
+  function cmpcomponents(v: SemVer) {
+    if (v.major > 1996 && v.major != Infinity) {
+      return [0,0,0, ...v.components]
+    } else {
+      return v.components
+    }
+  }
 }
 export { _compare as compare }
 

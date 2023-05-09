@@ -4,12 +4,25 @@ import SemVer, * as semver from "utils/semver.ts"
 
 Deno.test("semver", async test => {
   await test.step("sort", () => {
-    const input = [new SemVer([1,2,3]), new SemVer("2.3.4"), new SemVer("1.2.4"), semver.parse("1.2.3.1")!]
-    const sorted1 = input.sort(semver.compare)
-    const sorted2 = input.sort()
+    const input = [new SemVer([1,2,3]), new SemVer("10.3.4"), new SemVer("1.2.4"), semver.parse("1.2.3.1")!, new SemVer("2.3.4")]
+    const sorted1 = [...input].sort(semver.compare)
+    const sorted2 = [...input].sort()
 
-    assertEquals(sorted1.join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
-    assertEquals(sorted2.join(","), "1.2.3,1.2.3.1,1.2.4,2.3.4")
+    assertEquals(sorted1.join(", "), "1.2.3, 1.2.3.1, 1.2.4, 2.3.4, 10.3.4")
+
+    /// we are showing we understand how vanilla JS works here
+    assertEquals(sorted2.join(", "), "1.2.3, 1.2.3.1, 1.2.4, 10.3.4, 2.3.4")
+  })
+
+  await test.step("calver sort", () => {
+    const input = [new SemVer([1,2,3]), new SemVer("2.3.4"), new SemVer("2023.03.04"), semver.parse("1.2.3.1")!, new SemVer([3,4,5])]
+    const sorted1 = [...input].sort(semver.compare)
+    const sorted2 = [...input].sort()
+
+    assertEquals(sorted1.join(","), "2023.3.4,1.2.3,1.2.3.1,2.3.4,3.4.5")
+
+    /// we are showing we understand how vanilla JS works here
+    assertEquals(sorted2.join(","), "1.2.3,1.2.3.1,2.3.4,2023.3.4,3.4.5")
   })
 
   await test.step("parse", () => {
