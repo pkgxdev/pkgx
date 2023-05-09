@@ -37,9 +37,9 @@ jobs:
           git fetch --prune --unshallow --tags
 
           if git show-ref --tags v${{ steps.tea.outputs.version }} --quiet; then
-            echo "result=cancel" >> $GITHUB_OUTPUT;;
+            echo "result=cancel" >> $GITHUB_OUTPUT
           else
-            echo "result=commence" >> $GITHUB_OUTPUT;;
+            echo "result=commence" >> $GITHUB_OUTPUT
           fi
 
       - uses: andymckay/cancel-action@0.2
