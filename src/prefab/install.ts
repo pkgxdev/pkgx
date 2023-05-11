@@ -25,7 +25,7 @@ export default async function install(pkg: Package, logger?: Logger): Promise<In
       `${gray('v')}${pkg.version}`
     ].join(gray('/'))
 
-  if (env.TEA_MAGIC === "prompt") {
+  if (env.TEA_MAGIC?.split(":").includes("prompt")) {
     if (!Deno.isatty(Deno.stdin.rid)) {
       throw new Error("TEA_MAGIC=prompt but stdin is not a tty")
     }

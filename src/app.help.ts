@@ -62,7 +62,7 @@ export default async function help() {
 
       environment variables:
         TEA_PREFIX    stow packages here
-        TEA_MAGIC     if shell magic is active, \`TEA_MAGIC=0\` disables it
+        TEA_MAGIC     \`0\` force disables magic, \`prompt\` confirms installs
         CLICOLOR      see https://bixense.com/clicolors
         VERBOSE       {-1: silent, 0: default, 1: verbose, 2: debug}
         DEBUG         alias for \`VERBOSE=2\`
