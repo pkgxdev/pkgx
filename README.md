@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.31.2
+# tea/cli 0.32.0
 
 `tea` puts the whole open source ecosystem at your fingertips:
 
@@ -176,7 +176,7 @@ sh <(curl https://tea.xyz)
 
 Our one-liner sets up in `~/.tea` and enables magic but it actually can do a
 whole bunch more. For all the deets and other ways to install (including [our
-GitHub Action]) check out the manual [docs.tea.xyz].
+GitHub Action]) check out the manual [docs.tea.xyz/getting-started].
 
 &nbsp;
 
@@ -232,6 +232,7 @@ $ deno task compile && ./tea
 
 
 [docs.tea.xyz]: https://docs.tea.xyz
+[docs.tea.xyz/getting-started]: https://docs.tea.xyz/getting-started/install-tea
 [deno]: https://deno.land
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions

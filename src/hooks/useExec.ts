@@ -225,10 +225,11 @@ export async function which(arg0: string | undefined) {
     return false
   }
 
-  const { TEA_PKGS } = useEnv()
+  const { TEA_PKGS, TEA_MAGIC } = useEnv()
   const pantry = usePantry()
   let found: { project: string, constraint: semver.Range, shebang: string[] } | undefined
   const promises: Promise<void>[] = []
+  const abracadabra = TEA_MAGIC?.split(":").includes("abracadabra")
 
   for await (const entry of pantry.ls()) {
     if (found) break
@@ -236,7 +237,7 @@ export async function which(arg0: string | undefined) {
       for (const provider of providers) {
         if (found) {
           return
-        } else if (provider == arg0) {
+        } else if (provider == arg0 || (!abracadabra && provider == `tea-${arg0}`)) {
           const inenv = TEA_PKGS?.split(":")
             .map(pkgutils.parse)
             .find(x => x.project == entry.project)

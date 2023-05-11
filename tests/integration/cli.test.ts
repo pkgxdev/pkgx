@@ -34,11 +34,13 @@ it(suite, "tea /bin/ls", async function() {
 })
 
 it(suite, "tea chalk --version (via npx provider)", async function() {
-  this.sandbox.join("foo").mkdir().join("bar").touch()
   await this.run({ args: ["chalk", "--version"] })
 })
 
 it(suite, "tea http-server --help (via npx provider)", async function() {
-  this.sandbox.join("foo").mkdir().join("bar").touch()
   await this.run({ args: ["http-server", "--help"] })
+})
+
+it(suite, "tea pkg --version", async function() {
+  await this.run({ args: ["pkg", "--version"] })
 })
