@@ -164,8 +164,9 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
         l = `python.org@${l}`
         try {
           pkgs.push(pkg.parse(l))
+          break // only one thanks
         } catch {
-          throw new Error('couldn’t parse: .python-version')
+          //noop pyenv sticks random shit in here
         }
       }
     }
