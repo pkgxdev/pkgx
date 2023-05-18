@@ -1,11 +1,12 @@
+import { Verbosity } from "./hooks/useConfig.ts"
 import { useConfig, usePrint } from "hooks"
-import { undent } from "utils"
+import undent from "outdent"
 
 export default async function help() {
-  const { verbose } = useConfig()
+  const { modifiers: { verbosity } } = useConfig()
   const { print } = usePrint()
 
-  if (!verbose) {
+  if (verbosity < Verbosity.loud) {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:

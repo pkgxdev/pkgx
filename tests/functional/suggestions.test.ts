@@ -1,8 +1,7 @@
+import { suggestions } from "../../src/hooks/useErrorHandler.ts"
 import { assert, assertEquals } from "deno/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
-import { suggestions } from "hooks/useErrorHandler.ts"
-import { TeaError } from "utils"
-import SemVer from "semver"
+import { TeaError, SemVer } from "tea"
 
 Deno.test("suggestions", { sanitizeResources: false, sanitizeOps: false }, async test => {
   // suggestions need a sync to occur first

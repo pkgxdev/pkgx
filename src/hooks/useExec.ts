@@ -1,12 +1,13 @@
-import { usePantry, useShellEnv, useDownload, usePackageYAMLFrontMatter, usePrefix } from "hooks"
-import { PackageSpecification, Installation, PackageRequirement } from "types"
-import { hydrate, resolve, install as base_install, link } from "prefab"
+import { prefab, utils, hooks, PackageSpecification, Installation, PackageRequirement, Path, semver, TeaError } from "tea"
+import { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
+import { ExitError } from "./useErrorHandler.ts"
 import { VirtualEnv } from "./useVirtualEnv.ts"
-import { flatten } from "./useShellEnv.ts"
-import useLogger, { logJSON } from "./useLogger.ts"
-import { pkg as pkgutils, TeaError } from "utils"
-import * as semver from "semver"
-import Path from "path"
+import useConfig from "./useConfig.ts"
+import useLogger from "./useLogger.ts"
+import undent from "outdent"
+
+const { usePantry, useCellar, useDownload, useShellEnv } = hooks
+const { hydrate, resolve, install: base_install, link } = prefab
 
 interface Parameters {
   args: string[]
@@ -22,6 +23,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
   if (arg0) cmd[0] = arg0?.toString()  // if we downloaded it then we need to replace args[0]
   const clutch = pkgs.length > 0
   const env: Record<string, string> = inject?.env ?? {}
+  const sh = useShellEnv()
 
   if (inject) {
     const {version, srcroot, teafiles, ...vrtenv} = inject
@@ -54,7 +56,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     }
 
     if (precmd.length == 0) {
-      const found = await usePantry().getInterpreter(arg0.extname())
+      const found = await usePantry().which({ interprets: arg0.extname() })
       if (found) {
         pkgs.push({ ...found, constraint: new semver.Range('*') })
         precmd.unshift(...found.args)
@@ -97,14 +99,14 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
     pkgs = dry  // reassign as condensed + sorted
   }
 
-  Object.assign(env, flatten(await useShellEnv({ installations })))
+  Object.assign(env, sh.flatten(await sh.map({ installations })))
 
-  env["TEA_PREFIX"] ??= usePrefix().string
+  env["TEA_PREFIX"] ??= useConfig().prefix.string
 
   return { env, cmd, installations, pkgs }
 
   async function add_companions(pkg: {project: string}) {
-    pkgs.push(...await usePantry().getCompanions(pkg))
+    pkgs.push(...await usePantry().project(pkg).companions())
   }
 }
 
@@ -112,8 +114,9 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
 ///////////////////////////////////////////////////////////////////////////// funcs
 
 async function install(pkgs: PackageSpecification[], update: boolean) {
-  const { json } = useConfig()
-  const logger = useLogger()
+  const { modifiers: { json, dryrun }, env } = useConfig()
+  const logger = useLogger().new()
+  const { logJSON } = useLogger()
 
   if (!json) {
     logger.replace("resolving package graph")
@@ -128,10 +131,30 @@ async function install(pkgs: PackageSpecification[], update: boolean) {
   logger.clear()
 
   if (json) {
-    logJSON({ status: "resolved", pkgs: pending.map(pkgutils.str) })
+    logJSON({ status: "resolved", pkgs: pending.map(utils.pkg.str) })
   }
 
-  for (const pkg of pending) {
+  if (!dryrun && env.TEA_MAGIC?.split(':').includes("prompt")) {
+    if (!Deno.isatty(Deno.stdin.rid)) {
+      throw new Error("TEA_MAGIC=prompt but stdin is not a tty")
+    }
+
+    do {
+      const val = prompt(undent`
+        ┌ ⚠️  tea requests to install: ${pending.map(utils.pkg.str).join(", ")}
+        └ \x1B[1mallow?\x1B[0m [y/n]`
+      )?.toLowerCase()
+
+      if (val === "y") {
+        break
+      }
+      if (val === "n") {
+        throw new ExitError(1)
+      }
+    } while (true)
+  }
+
+  if (!dryrun) for (const pkg of pending) {
     const install = await base_install(pkg)
     await link(install)
     installed.push(install)
@@ -162,9 +185,6 @@ async function read_shebang(path: Path): Promise<string[]> {
   return []
 }
 
-import useCellar from "./useCellar.ts"
-import useConfig, { useEnv } from "./useConfig.ts"
-
 async function fetch_it(arg0: string | undefined) {
   if (!arg0) return
 
@@ -174,7 +194,7 @@ async function fetch_it(arg0: string | undefined) {
     return path.chmod(0o700)  //FIXME like… I don’t feel we should necessarily do this…
   }
 
-  const { execPath } = useConfig()
+  const { arg0: execPath } = useConfig()
   const path = Path.cwd().join(arg0)
   if (path.exists() && execPath.basename() == "tea") {
     // ^^ in the situation where we are shadowing other tool names
@@ -220,12 +240,12 @@ type WhichResult = PackageRequirement & {
 }
 
 export async function which(arg0: string | undefined) {
-  if (!arg0?.chuzzle() || arg0.includes("/")) {
+  if (!arg0?.trim() || arg0.includes("/")) {
     // no shell we know allows searching for subdirectories off PATH
     return false
   }
 
-  const { TEA_PKGS, TEA_MAGIC } = useEnv()
+  const { TEA_PKGS, TEA_MAGIC } = useConfig().env
   const pantry = usePantry()
   let found: { project: string, constraint: semver.Range, shebang: string[] } | undefined
   const promises: Promise<void>[] = []
@@ -233,13 +253,13 @@ export async function which(arg0: string | undefined) {
 
   for await (const entry of pantry.ls()) {
     if (found) break
-    const p = pantry.getProvides(entry).then(providers => {
+    const p = pantry.project(entry).provides().then(providers => {
       for (const provider of providers) {
         if (found) {
           return
         } else if (provider == arg0 || (!abracadabra && provider == `tea-${arg0}`)) {
           const inenv = TEA_PKGS?.split(":")
-            .map(pkgutils.parse)
+            .map(utils.pkg.parse)
             .find(x => x.project == entry.project)
           if (inenv) {
             // we are being executed via the command not found handler inside a dev-env
@@ -282,7 +302,7 @@ export async function which(arg0: string | undefined) {
     }).swallow(/^parser: pantry: package.yml/)
     promises.push(p)
 
-    const pp = pantry.getProvider({ project: entry.project }).then(f => {
+    const pp = pantry.project(entry).provider().then(f => {
       if (!f) return
       const rv = f(arg0)
       if (rv) found = {

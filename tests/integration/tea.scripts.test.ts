@@ -1,7 +1,7 @@
 import { assertEquals } from "deno/testing/asserts.ts"
-import { undent } from "../../src/utils/index.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
+import undent from "outdent"
 
 //TODO pick things macOS doesn’t have, eg. php
 //TODO don’t use deno *we use deno lol* so it will be available perhaps accidentally

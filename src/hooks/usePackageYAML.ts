@@ -1,10 +1,8 @@
-import { PackageRequirement } from "types"
-import { isPlainObject, isString, isArray, PlainObject } from "is_what"
-import { validatePackageRequirement } from "utils/hacks.ts"
-import { usePrefix } from "hooks"
-import { validate_plain_obj } from "utils"
-import Path from "path"
-import useMoustaches from "./useMoustaches.ts"
+import { isPlainObject, isString, isArray, PlainObject } from "is-what"
+import { PackageRequirement, Path, hacks, utils, hooks } from "tea"
+const { validatePackageRequirement } = hacks
+const { useMoustaches, useConfig } = hooks
+const { validate } = utils
 
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
@@ -21,8 +19,8 @@ export default function usePackageYAML(yaml: unknown): Return1 {
     // deno-lint-ignore no-explicit-any
     function go(node: any) {
       if (!node) return []
-      return Object.entries(validate_plain_obj(node))
-        .compact(([project, constraint]) => validatePackageRequirement({ project, constraint }))
+      return Object.entries(validate.obj(node))
+        .compact(([project, constraint]) => validatePackageRequirement(project, constraint))
     }
   }
 
@@ -67,7 +65,7 @@ export function refineFrontMatter(obj: unknown, srcroot?: Path): FrontMatter {
 
     const foo = [
       ...moustaches.tokenize.host(),
-      { from: "tea.prefix", to: usePrefix().string },
+      { from: "tea.prefix", to: useConfig().prefix.string },
       { from: "home", to: Path.home().string }
     ]
 

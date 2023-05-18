@@ -1,5 +1,5 @@
-import { which } from "hooks/useExec.ts"
-import { ExitError } from "./types.ts"
+import { ExitError } from "./hooks/useErrorHandler.ts"
+import { which } from "./hooks/useExec.ts"
 
 export default async function provides(args: string[]) {
   let status = 0;

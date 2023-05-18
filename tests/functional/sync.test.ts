@@ -1,7 +1,6 @@
 import { assert } from "deno/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
-import SemVer from "../../src/utils/semver.ts"
-import Path from "path"
+import { SemVer } from "tea"
 
 Deno.test("update package", { sanitizeResources: false, sanitizeOps: false }, async () => {
   const {run, TEA_PREFIX } = await createTestHarness()
@@ -24,7 +23,7 @@ Deno.test("sync and update without git on path", { sanitizeResources: false, san
   const {run, TEA_PREFIX } = await createTestHarness({sync: false})
 
   // empty path so tea can't find git
-  await run(["-S", "+zlib.net"], { env: { PATH: "" }})
+  await run(["-S", "+zlib.net"], { env: { PATH: "", obj: {} }})
 
   const expected = TEA_PREFIX.join("zlib.net")
   assert(expected.exists(), "zlib.net should exist")
@@ -32,14 +31,14 @@ Deno.test("sync and update without git on path", { sanitizeResources: false, san
   // allows us to verify that the subsequent update works
   TEA_PREFIX.join("tea.xyz/var/pantry/projects/zlib.net").rm({ recursive: true })
 
-  await run(["-S", "+zlib.net"], { env: { PATH: "" }})
+  await run(["-S", "+zlib.net"], { env: { PATH: "", obj: {} }})
 })
 
 Deno.test("sync without git then update with git", { sanitizeResources: false, sanitizeOps: false }, async () => {
   const {run, TEA_PREFIX } = await createTestHarness({sync: false})
 
   // empty path so tea can't find git
-  await run(["-S", "+zlib.net"], { env: { PATH: "" }})
+  await run(["-S", "+zlib.net"], { env: { PATH: "", obj: {} }})
 
   const expected = TEA_PREFIX.join("zlib.net")
   assert(expected.exists(), "zlib.net should exist")
@@ -61,5 +60,5 @@ Deno.test("sync with git then update without", { sanitizeResources: false, sanit
   // allows us to verify that the subsequent update works
   TEA_PREFIX.join("tea.xyz/var/pantry/projects/zlib.net").rm({ recursive: true })
 
-  await run(["-S", "+zlib.net"], { env: { PATH: "" }})
+  await run(["-S", "+zlib.net"], { env: { PATH: "", obj: {} }})
 })

@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertMatch } from "deno/testing/asserts.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
-import Path from "path"
+import { Path } from "tea"
 
 async function run(cmd: string[], PATH: Path, TEA_PREFIX: Path) {
   const proc = Deno.run({
@@ -32,7 +32,7 @@ if (Deno.build.os != 'linux') {
     it(suite, `symlink: node${v}`, async function() {
       await this.run({args: ["--sync", "--silent"]})
 
-      const node = this.tea.ln("s", {to: this.sandbox.join(`node${v}`)})
+      const node = this.sandbox.join(`node${v}`).ln("s", {target: this.tea})
       const out = await run([`node${v}`, "--eval", "console.log('hello')"], node.parent(), this.TEA_PREFIX)
       assertEquals(out, "hello\n")
     })
@@ -45,9 +45,9 @@ if (Deno.build.os != 'linux') {
   it(suite, `two level symlink`, async function() {
     await this.run({args: ["--sync", "--silent"]})
 
-    const node = this.tea
-      .ln('s', {to: this.sandbox.join('node^18')})
-      .ln('s', {to: this.sandbox.join('node')})
+    const node18 = this.sandbox.join('node^18')
+      .ln("s", { target: this.tea })
+    const node = this.sandbox.join('node').ln('s', { target: node18 })
 
     const out = await run(['node', '--version'], node.parent(), this.TEA_PREFIX)
     assertMatch(out, /v18\.\d+\.\d+/, out)
@@ -55,7 +55,7 @@ if (Deno.build.os != 'linux') {
 }
 
 it(suite, "symlinks to `tea` called `tea` act like tea", async function() {
-  const tea = this.tea.ln("s", {to: this.sandbox.join('tea')})
+  const tea = this.sandbox.join('tea').ln("s", {target: this.tea })
   const out = await run(['tea', '--version'], tea.parent(), Path.root)
   assertMatch(out, /tea \d+\.\d+\.\d+/)
 })

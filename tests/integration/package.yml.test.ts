@@ -1,8 +1,8 @@
+import { assertEquals } from "deno/testing/asserts.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
-import { assertEquals } from "deno/testing/asserts.ts"
-import { undent } from "utils"
-import Path from "path"
+import undent from "outdent"
+import { Path } from "tea"
 
 it(suite, "runtime.env tildes", async function() {
   const run = async (FOO: string) => {

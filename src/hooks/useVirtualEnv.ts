@@ -1,11 +1,10 @@
 import { usePackageYAMLFrontMatter, refineFrontMatter, FrontMatter } from "./usePackageYAML.ts"
-import { flatmap, pkg, TeaError, validate_plain_obj } from "utils"
-import { useEnv, useMoustaches, usePrefix } from "hooks"
-import { PackageRequirement } from "types"
-import SemVer, * as semver from "semver"
-import { isPlainObject } from "is_what"
+import { PackageRequirement, Path, SemVer, utils, TeaError, hooks, semver } from "tea"
+const { flatmap, pkg, validate } = utils
+import { isPlainObject } from "is-what"
+import useConfig from "./useConfig.ts"
+const { useMoustaches } = hooks
 import { JSONC } from "jsonc"
-import Path from "path"
 
 export interface VirtualEnv {
   pkgs: PackageRequirement[]
@@ -18,11 +17,9 @@ export interface VirtualEnv {
 // we call into useVirtualEnv a bunch of times
 const cache: Record<string, VirtualEnv> = {}
 
-export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
-  const { TEA_DIR, getEnvAsObject } = useEnv()
-
-  const teaDir = flatmap(TEA_DIR, Path.cwd().join)
-  if (teaDir) cwd = teaDir
+export default async function(cwd?: Path): Promise<VirtualEnv> {
+  const { TEA_DIR } = useConfig().env
+  cwd = TEA_DIR ?? cwd ?? Path.cwd()
 
   if (cache[cwd.string]) return cache[cwd.string]
 
@@ -53,19 +50,19 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
         err.cause = f
         throw err
       }
-      if (teaDir && dir.eq(teaDir)) break
+      if (TEA_DIR && dir.eq(TEA_DIR)) break
       dir = dir.parent()
     }
   }
 
   const lastd = teafiles.slice(-1)[0]?.parent()
-  if (teaDir) {
-    srcroot = teaDir
+  if (TEA_DIR) {
+    srcroot = TEA_DIR
   } else if (!srcroot || lastd?.components().length < srcroot.components().length) {
     srcroot = lastd
   }
 
-  if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, teaDir})
+  if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, TEA_DIR})
 
   for (const [key, value] of Object.entries(env)) {
     if (key != 'TEA_PREFIX') {
@@ -80,7 +77,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
     const moustaches = useMoustaches()
     const foo = [
       ...moustaches.tokenize.host(),
-      { from: "tea.prefix", to: usePrefix().string },
+      { from: "tea.prefix", to: useConfig().prefix.string },
       { from: "home", to: Path.home().string },
       { from: "srcroot", to: srcroot!.string}
     ]
@@ -185,7 +182,7 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       flatmap(semver.parse(json?.version), v => version = v)
     }
     if (_if("action.yml", "action.yaml")) {
-      const yaml = validate_plain_obj(await f!.readYAML())
+      const yaml = validate.obj(await f!.readYAML())
       const [,v] = yaml.runs?.using.match(/node(\d+)/) ?? []
       pkgs.push({
         project: "nodejs.org",
@@ -235,21 +232,6 @@ export default async function(cwd: Path = Path.cwd()): Promise<VirtualEnv> {
       srcroot ??= f
     }
     if (_if_d(".hg", ".svn")) {
-      srcroot ??= f
-    }
-    if ((f = dir.join(".envrc").isFile())) {
-      //TODO really we should pkg `direnv` install it if we find this file and configure it to do the following
-      const subst = getEnvAsObject()
-      subst.SRCROOT = "{{srcroot}}"
-      subst.TEA_PREFIX = "{{tea.prefix}}"
-      subst.VERSION = "{{version}}"
-      for await (const line of f!.readLines()) {
-        let [,key,value] = line.match(/^export (\S+)=(.*)$/) ?? []
-        if (key && value) for (const [key, value_subst] of Object.entries(subst)) {
-          value = value.replaceAll(`$${key}`, value_subst)
-        }
-        env[key] = value
-      }
       srcroot ??= f
     }
   }

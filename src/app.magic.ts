@@ -1,10 +1,10 @@
 import { basename } from "deno/path/mod.ts"
-import { undent } from "utils"
-import Path from "path"
-import { useEnv } from "./hooks/useConfig.ts"
+import { useConfig } from "hooks"
+import undent from "outdent"
+import { Path } from "tea"
 
 export default function(self: Path, shell?: string) {
-  const { SHELL } = useEnv()
+  const { SHELL } = useConfig().env
   shell ??= basename(SHELL ?? "unknown")
   const d = self.parent()
 

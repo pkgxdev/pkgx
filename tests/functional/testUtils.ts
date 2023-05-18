@@ -1,12 +1,11 @@
-import Path from "path"
-import { run } from "../../src/app.main.ts"
-import { parseArgs } from "../../src/args.ts"
-import { Config } from "../../src/hooks/useConfig.ts"
-import { init } from "../../src/init.ts";
-import { _internals as usePrintInternals } from "hooks/usePrint.ts"
-import { _internals as useConfigInternals } from "hooks/useConfig.ts"
-import { _internals as useRunInternals } from "hooks/useRun.ts"
+import { Config, ConfigDefault } from "../../src/hooks/useConfig.ts"
+import { _internals as usePrintInternals } from "../../src/hooks/usePrint.ts"
+import { _internals as useRunInternals } from "../../src/hooks/useRun.ts"
 import { spy } from "deno/testing/mock.ts"
+import { parseArgs } from "../../src/args.ts"
+import { run } from "../../src/app.main.ts"
+import { Path, hooks } from "tea"
+const { useConfig } = hooks
 
 export interface TestConfig {
   // run tea sync during test setup.  Default: true
@@ -20,14 +19,17 @@ export const createTestHarness = async (config?: TestConfig) => {
   const dir = config?.dir ?? "tea"
 
   const tmpDir = new Path(await Deno.makeTempDir({ prefix: "tea-" })).realpath()
-  const teaDir = tmpDir.join(dir).mkdir()
+  const teaDir = tmpDir.join(dir).mkdir('p')
 
   const TEA_PREFIX = tmpDir.join('opt').mkdir()
 
   if (sync) {
     const [syncArgs, flags] = parseArgs(["--sync", "--silent"], teaDir.string)
-    init(flags)
-    updateConfig({ teaPrefix: new Path(TEA_PREFIX.string), env: { NO_COLOR: "1" } })
+    const config = ConfigDefault(flags, teaDir.string, undefined, { NO_COLOR: '1' })
+    useConfig({
+      ...config,
+      prefix: TEA_PREFIX
+    })
     await run(syncArgs)
   }
 
@@ -37,16 +39,20 @@ export const createTestHarness = async (config?: TestConfig) => {
 
     const usePrintSpy = spy(usePrintInternals, "nativePrint")
 
-    useConfigInternals.getEnvAsObject = () => {
-      return (useConfigInternals.getConfig()?.env ?? {}) as {[index: string]: string}
-    }
-
     try {
       const [appArgs, flags] = parseArgs(args, teaDir.string)
-      init(flags)
-      updateConfig({ execPath: teaDir, teaPrefix: new Path(TEA_PREFIX.string), ...configOverrides })
+
+      const config = ConfigDefault(flags, teaDir.string, undefined, { NO_COLOR: '1', PATH: "/usr/bin:/bin" })
+      config.arg0 = teaDir
+
+      useConfig({
+        ...config,
+        prefix: TEA_PREFIX,
+        ...configOverrides,
+      })
 
       await run(appArgs)
+
     } finally {
       usePrintSpy.restore()
       Deno.chdir(cwd)
@@ -64,20 +70,6 @@ export const createTestHarness = async (config?: TestConfig) => {
     TEA_PREFIX,
     useRunInternals,
   }
-}
-
-// updates the application config by only overriding the provided keys
-function updateConfig(updated: Partial<Config>) {
-  const config = useConfigInternals.getConfig()
-  if (!config) {
-    throw new Error("test attempted to updated config that has not been applied")
-  }
-  useConfigInternals.setConfig({...config, ...updated, env: {...config.env, ...updated.env}})
-}
-
-// we need Deno.ChildProcress.status to be mutable
-type Mutable<Type> = {
-  -readonly [Key in keyof Type]: Type[Key];
 }
 
 // the Deno.Process object cannot be created externally with `new` so we'll just return a

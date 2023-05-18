@@ -1,6 +1,7 @@
-import { useEnv, usePrint } from "hooks"
-import { flatmap } from "utils"
-import { isPlainObject } from "is_what"
+import { useConfig, usePrint } from "hooks"
+import { isPlainObject } from "is-what"
+import { utils } from "tea"
+const { flatmap } = utils
 
 //TODO should read from the shell configuration files to get originals properly
 //TODO don’t wait on each print, instead chain the promises to be more time-efficient
@@ -11,7 +12,7 @@ interface Parameters {
 }
 
 export default async function dump({ env, shell }: Parameters) {
-  const { TEA_REWIND, getEnvAsObject } = useEnv();
+  const { TEA_REWIND, obj: oldenv } = useConfig().env
   const { print } = usePrint()
 
   const [set, unset]= (() => {
@@ -37,11 +38,9 @@ export default async function dump({ env, shell }: Parameters) {
   const is_env = env['SRCROOT']
 
   if (is_env) {
-    const oldenv = getEnvAsObject()
-
     // first rewind the env to the original state
-    if (oldenv['TEA_REWIND']) {
-      const rewind = JSON.parse(oldenv['TEA_REWIND']) as { revert: Record<string, string>, unset: string[] }
+    if (TEA_REWIND) {
+      const rewind = JSON.parse(TEA_REWIND) as { revert: Record<string, string>, unset: string[] }
       delete oldenv['TEA_REWIND']
 
       for (const key of rewind.unset) {
@@ -59,7 +58,7 @@ export default async function dump({ env, shell }: Parameters) {
     }
 
     // now calculate the new rewind
-    const TEA_REWIND = (() => {
+    const new_TEA_REWIND = (() => {
       const revert: Record<string, string> = {}
       const unset: string[] = []
       for (const key of Object.keys(env)) {
@@ -79,7 +78,7 @@ export default async function dump({ env, shell }: Parameters) {
     for (const [key, value] of Object.entries(env)) {
       if (value) await print(set(key, value))
     }
-    await print(set('TEA_REWIND', TEA_REWIND))
+    await print(set('TEA_REWIND', new_TEA_REWIND))
 
   } else {
     const unwind = flatmap(TEA_REWIND, JSON.parse) as { revert: Record<string, string>, unset: string[] }

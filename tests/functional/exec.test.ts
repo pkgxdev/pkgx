@@ -1,10 +1,10 @@
 import { assertEquals, assertRejects } from "deno/testing/asserts.ts"
 import { spy, stub, returnsNext } from "deno/testing/mock.ts"
 import { createTestHarness, newMockProcess } from "./testUtils.ts"
-import { TeaError } from "utils"
+import { TeaError } from "tea"
 
 Deno.test("exec", { sanitizeResources: false, sanitizeOps: false }, async () => {
-  const {run, useRunInternals } = await createTestHarness()
+  const { run, useRunInternals } = await createTestHarness()
 
   const useRunSpy = spy(useRunInternals, "nativeRun")
   try {
@@ -79,6 +79,6 @@ Deno.test("exec run errors", { sanitizeResources: false, sanitizeOps: false }, a
 Deno.test("exec forkbomb protector", { sanitizeResources: false, sanitizeOps: false }, async () => {
   const { run } = await createTestHarness()
   await assertRejects(
-    () => run(["sh", "-c", "echo $TEA_PREFIX"], { env: {TEA_FORK_BOMB_PROTECTOR: "21" }}),
+    () => run(["sh", "-c", "echo $TEA_PREFIX"], { env: {TEA_FORK_BOMB_PROTECTOR: "21", obj: {} }}),
     "FORK BOMB KILL SWITCH ACTIVATED")
 })

@@ -1,5 +1,5 @@
-import Path from "path"
-import { isArray } from "is_what"
+import { isArray } from "is-what"
+import { Path } from "tea"
 
 export interface RunOptions extends Omit<Deno.CommandOptions, 'args'|'cwd'|'stdout'|'stderr'|'stdin'> {
   cmd: (string | Path)[] | Path
@@ -19,7 +19,7 @@ export class RunError extends Error {
 export default async function useRun({ spin, ...opts }: RunOptions) {
   const cmd = isArray(opts.cmd) ? opts.cmd.map(x => `${x}`) : [opts.cmd.string]
   const cwd = opts.cwd?.toString()
-  console.verbose({ cwd, ...opts, cmd })
+  console.log({ cwd, ...opts, cmd })
 
   const stdio = { stdout: 'inherit', stderr: 'inherit', stdin: 'inherit' } as Pick<Deno.CommandOptions, 'stdout'|'stderr'|'stdin'>
   if (spin) {
@@ -30,7 +30,7 @@ export default async function useRun({ spin, ...opts }: RunOptions) {
   try {
     proc = _internals.nativeRun(cmd.shift()!, { ...opts, args: cmd, cwd, ...stdio }).spawn()
     const exit = await proc.status
-    console.verbose({ exit })
+    console.log({ exit })
     if (!exit.success) throw new RunError(exit.code, cmd)
   } catch (err) {
     if (spin && proc) {

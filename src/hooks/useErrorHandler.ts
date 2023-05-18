@@ -1,39 +1,25 @@
-import * as logger from "./useLogger.ts"
-import { usePantry, usePrefix, useInventory } from "hooks"
-import useConfigBase, { applyConfig } from "hooks/useConfig.ts"
-import { chuzzle, TeaError, undent } from "utils"
-import Path from "path"
-import { ExitError, Verbosity } from "../types.ts"
+import { useLogger, Verbosity, useConfig } from "hooks"
+import { hooks, Path, TeaError } from "tea"
+const { usePantry, useInventory } = hooks
+import undent from "outdent"
 
-const useConfig = () => {
-  try {
-    return useConfigBase()
-  } catch {
-    // lol we threw before we could apply the config
-    // these defaults will do for error handling
-    applyConfig({
-      isCI: false,
-      execPath: Path.root,
-      teaPrefix: Path.root,
-      verbosity: Verbosity.normal,
-      dryrun: false,
-      keepGoing: false,
-      verbose: false,
-      debug: false,
-      silent: false,
-      env: {},
-      json: false
-    })
-    return useConfigBase()
+// ExitError will cause the application to exit with the specified exit code if it bubbles
+// up to the main error handler
+export class ExitError extends Error {
+  code: number
+  constructor(code: number) {
+    super(`exiting with code: ${code}`)
+    this.code = code
   }
 }
 
 export async function suggestions(err: TeaError) {
+  const { teal } = useLogger()
   switch (err.id) {
   case 'not-found: pantry: package.yml': {
     const suggestion = await getClosestPackageSuggestion(err.ctx.project).swallow()
     return suggestion
-      ? `did you mean \`${logger.teal(suggestion)}\`? otherwise… see you on GitHub?`
+      ? `did you mean \`${teal(suggestion)}\`? otherwise… see you on GitHub?`
       : undefined
   }
   case 'not-found: pkg.version':
@@ -46,17 +32,20 @@ export async function suggestions(err: TeaError) {
 }
 
 export default async function(err: Error) {
-  const { silent, debug, json } = useConfig()
+  const { logJSON, red, gray } = useLogger()
+  const { verbosity, json } = useConfig().modifiers
+  const silent = verbosity <= Verbosity.quiet
+  const debug = verbosity >= Verbosity.debug
 
   if (err instanceof ExitError) {
-    if (json) logger.logJSON({ error: true })
+    if (json) logJSON({ error: true })
     return err.code
   } else if (err instanceof TeaError) {
     if (json) {
-      logger.logJSON({ error: true, message: msg(err) })
+      logJSON({ error: true, message: msg(err) })
     } else if (!silent) {
       const suggestion = await suggestions(err).swallow()
-      console.error(`${logger.red('error')}: ${err.title()} (${logger.gray(err.code())})`)
+      console.error(`${red('error')}: ${err.title()} (${gray(err.code())})`)
       if (suggestion) {
         console.error()
         console.error(suggestion)
@@ -65,10 +54,10 @@ export default async function(err: Error) {
       console.error(msg(err))
       if (debug) console.error(err.ctx)
     }
-    const code = chuzzle(parseInt(err.code().match(/\d+$/)?.[0] ?? '1')) ?? 1
+    const code = parseInt(err.code().match(/\d+$/)?.[0] ?? '1').chuzzle() ?? 1
     return code
   } else if (json) {
-    logger.logJSON({ error: true, message: err.message })
+    logJSON({ error: true, message: err.message })
   } else if (!silent) {
     const { stack, message } = err ?? {}
 
@@ -76,12 +65,12 @@ export default async function(err: Error) {
     const url = `https://github.com/teaxyz/cli/issues/new?title=${title}`
 
     console.error()
-    console.error(`${logger.red("panic")}:`, "spilt tea. we’re sorry and we’ll fix it… but you have to report the bug!")
+    console.error(`${red("panic")}:`, "spilt tea. we’re sorry and we’ll fix it… but you have to report the bug!")
     console.error()
-    console.error("   ", logger.gray(url))
+    console.error("   ", gray(url))
     console.error()
     console.error("----------------------------------------------------->> attachment begin")
-    console.error(logger.gray(stack ?? "null"))
+    console.error(gray(stack ?? "null"))
     console.debug("------------------------------------------------------------------------")
     console.debug({ err })
     console.error("<<----------------------------------------------------- attachment end")
@@ -97,12 +86,13 @@ export default async function(err: Error) {
 /// this is here because error.ts cannot import higher level modules
 /// like hooks without creating a cyclic dependency
 function msg(err: TeaError): string {
+  const { gray } = useLogger()
   let msg = err.message
   const { ctx } = err
 
   switch (err.code()) {
   case 'spilt-tea-009':
-    if (ctx.filename instanceof Path && !ctx.filename.in(usePrefix())) {
+    if (ctx.filename instanceof Path && !ctx.filename.string.startsWith(useConfig().prefix.string)) {
       // this yaml is being worked on by the user
       msg = `${ctx.filename.prettyLocalString()}: ${ctx.cause?.message ?? 'unknown cause'}`
     } else {
@@ -113,7 +103,7 @@ function msg(err: TeaError): string {
             https://github.com/teaxyz/pantry/issues/new
 
         ----------------------------------------------------->> attachment begin
-        ${logger.gray(attachment)}
+        ${gray(attachment)}
         <<------------------------------------------------------- attachment end
         `
     }
@@ -129,7 +119,7 @@ async function getClosestPackageSuggestion(input: string) {
   for await (const {project} of pantry.ls()) {
     if (min == 0) break
 
-    pantry.getProvides({ project }).then(provides => {
+    pantry.project(project).provides().then(provides => {
       if (provides.includes(input)) {
         choice = project
         min = 0

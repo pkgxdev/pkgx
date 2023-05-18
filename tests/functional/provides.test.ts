@@ -1,5 +1,5 @@
+import { ExitError } from "../../src/hooks/useErrorHandler.ts"
 import { assertRejects } from "deno/testing/asserts.ts"
-import { ExitError } from "types"
 import { createTestHarness } from "./testUtils.ts"
 
 Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async test => {
@@ -16,7 +16,7 @@ Deno.test("provides", { sanitizeResources: false, sanitizeOps: false }, async te
   await test.step("provides version in dev env", async () => {
     const { run } = await createTestHarness()
     await assertRejects(() => {
-      return run(["--provides", "node"], { env: { TEA_PKGS: "nodejs.org=18.14.2"} })
+      return run(["--provides", "node"], { env: { TEA_PKGS: "nodejs.org=18.14.2", obj: {} } })
     }, ExitError, "exiting with code: 0")
   })
 

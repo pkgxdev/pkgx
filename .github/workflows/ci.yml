@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: deno lint src/*/**.ts
+      - run: deno lint
 
   typecheck:
     runs-on: ubuntu-latest
