@@ -31,10 +31,9 @@ function applyVerbosity(config: Config) {
   function noop() {}
   if (config!.modifiers.verbosity < Verbosity.debug) console.debug = noop
   if (config!.modifiers.verbosity < Verbosity.loud) console.log = noop
-  if (config!.modifiers.verbosity < Verbosity.normal) {
+  if (config!.modifiers.verbosity < Verbosity.quiet) {
     console.info = noop
     console.warn = noop
-    console.log = noop
     console.error = noop
   }
 }

@@ -14,7 +14,7 @@ const { useSync } = hooks
 
 export async function run(args: Args) {
   const { print } = usePrint()
-  const { arg0: execPath, env: { PATH, SHELL } } = useConfig()
+  const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity } } = useConfig()
 
   if (args.cd) {
     const chdir = args.cd
@@ -82,7 +82,7 @@ export async function run(args: Args) {
     } break
   }} break
   case "help":
-    await help()
+    await help(verbosity)
     break
   case "version":
     await print(`tea ${useVersion()}`)

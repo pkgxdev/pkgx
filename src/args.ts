@@ -117,9 +117,12 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
         flags.keepGoing = parseBool(value ?? "yes") ?? barf()
         break
       case 'quiet':
-      case 'silent':
         nonovalue()
         flags.verbosity = -1
+        break
+      case 'silent':
+        nonovalue()
+        flags.verbosity = -2
         break
       case 'dump':
         console.warn("tea --dump is deprecated, instead only provide pkg specifiers")
@@ -152,7 +155,7 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
           rv.cd = Path.cwd().join(validate.str(it.next().value))
           break
         case 's':
-          flags.verbosity = -1;
+          flags.verbosity = -2;
           break
         case 'X':
           console.warn("tea -X is now implicit and thus specifying `-X` now both unrequired and deprecated")
@@ -210,6 +213,6 @@ function parseBool(input: string) {
 
 export class UsageError extends Error {
   constructor(arg: string) {
-    super(`usage error: no such arg: ${arg}`)
+    super(`error: no such arg: ${arg}`)
   }
 }

@@ -69,7 +69,7 @@ export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.
     UserAgent: `tea.cli/${useVersion()}`,
     logger: {
       prefix: undefined,
-      color: loggerColor(env)
+      color: getColor(env)
     },
     modifiers: {
       dryrun: flags?.dryrun ?? false,
@@ -94,6 +94,7 @@ export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.
 }
 
 export enum Verbosity {
+  silent = -2,
   quiet = -1,
   normal = 0,
   loud = 1,
@@ -102,16 +103,22 @@ export enum Verbosity {
 }
 
 function getVerbosity(env: Record<string, string>): Verbosity {
-  const { DEBUG, GITHUB_ACTIONS, RUNNER_DEBUG, VERBOSE } = env
+  const { DEBUG, GITHUB_ACTIONS, RUNNER_DEBUG, VERBOSE, CI } = env
 
   if (DEBUG == '1') return Verbosity.debug
   if (GITHUB_ACTIONS == 'true' && RUNNER_DEBUG  == '1') return Verbosity.debug
 
   const verbosity = flatmap(VERBOSE, parseInt)
-  return isNumber(verbosity) ? verbosity : Verbosity.normal
+  if (isNumber(verbosity)) {
+    return verbosity
+  } else if (boolize(CI)) {
+    return Verbosity.quiet
+  } else {
+    return Verbosity.normal
+  }
 }
 
-function loggerColor(env: Record<string, string>) {
+function getColor(env: Record<string, string>) {
   const isTTY = () => Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stdout.rid)
 
   if ((env.CLICOLOR ?? '1') != '0' && isTTY()){
@@ -136,4 +143,17 @@ function loggerColor(env: Record<string, string>) {
   }
 
   return false
+}
+
+function boolize(input: string | undefined): boolean | undefined {
+  switch (input?.trim()?.toLowerCase()) {
+    case '0':
+    case 'false':
+    case 'no':
+      return false
+    case '1':
+    case 'true':
+    case 'yes':
+      return true
+  }
 }

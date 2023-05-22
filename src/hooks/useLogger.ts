@@ -76,7 +76,7 @@ export class Logger {
 
   //TODO don’t erase whole lines, just erase the part that is different
   replace(line: string, {prefix: wprefix}: {prefix: boolean} = {prefix: true}) {
-    if (this.verbosity < 0) return
+    if (this.verbosity < -1) return
 
     if (line == this.last_line) {
       return  //noop
