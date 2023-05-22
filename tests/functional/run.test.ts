@@ -78,3 +78,13 @@ Deno.test("tea +zlib.net --cd /tmp", async () => {
   const { run } = await createTestHarness()
   await run(["--cd", "/tmp", "+zlib.net"])
 })
+
+Deno.test("tea --env --keep-going", async () => {
+  const { run } = await createTestHarness()
+  await run(["--env", "--keep-going"])
+})
+
+Deno.test("usage error", async () => {
+  const { run } = await createTestHarness()
+  assertRejects(() => run(["--invalid-option"]))
+})
