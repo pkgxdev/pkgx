@@ -61,10 +61,10 @@ Deno.test("help verbose", { sanitizeResources: false, sanitizeOps: false }, asyn
 
 Deno.test("tea +zlib.net --json", async () => {
   const { run } = await createTestHarness()
-  await run(["--json", "+zlib.net", "true"])
+  await run(["--json", "+zlib.net"])
 })
 
 Deno.test("`tea +foo.com --json` errors neatly", async function() {
   const { run } = await createTestHarness()
-  assertRejects(() => run(["--json", "+foo.com", "true"]))
+  assertRejects(() => run(["--json", "+foo.com"]))
 })
