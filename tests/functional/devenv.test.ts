@@ -181,6 +181,29 @@ Deno.test("should provide ruby in dev env", { sanitizeResources: false, sanitize
   }
 })
 
+Deno.test("TEA_DIR", { sanitizeResources: false, sanitizeOps: false }, async test => {
+  const SHELL = "/bin/zsh"
+
+  const tests = [
+    { file: ".ruby-version", pkg: "ruby-lang.org>=3.2.1<3.2.2" }
+  ]
+
+  for (const { file, pkg } of tests) {
+    await test.step(file, async () => {
+      const { run, teaDir } = await createTestHarness()
+      const foo = teaDir.join("foo").mkdir()
+
+      fixturesDir.join(file).cp({ into: foo })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, TEA_DIR: foo, obj: {} } })
+
+      const output = getTeaPackages(SHELL, stdout)
+      assert(output.includes(pkg), "should include ruby dep")
+    })
+  }
+})
+
+////////////////////// utils //////////////////////
+
 function getEnvVar(shell: string, lines: string[], key: string): string | null {
   const pattern = () => {
     switch (shell) {

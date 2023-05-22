@@ -113,6 +113,7 @@ function getVerbosity(env: Record<string, string>): Verbosity {
   if (isNumber(verbosity)) {
     return verbosity
   } else if (parseBool(CI)) {
+    // prevents dumping 100s of lines of download progress
     return Verbosity.quiet
   } else {
     return Verbosity.normal
