@@ -1,4 +1,5 @@
 import useVersion from "./useVersion.ts"
+import { parseBool } from "../args.ts"
 import { Flags } from "../args.ts"
 import { isNumber } from "is-what"
 import { utils, Path } from "tea"
@@ -111,7 +112,7 @@ function getVerbosity(env: Record<string, string>): Verbosity {
   const verbosity = flatmap(VERBOSE, parseInt)
   if (isNumber(verbosity)) {
     return verbosity
-  } else if (boolize(CI)) {
+  } else if (parseBool(CI)) {
     return Verbosity.quiet
   } else {
     return Verbosity.normal
@@ -143,17 +144,4 @@ function getColor(env: Record<string, string>) {
   }
 
   return false
-}
-
-function boolize(input: string | undefined): boolean | undefined {
-  switch (input?.trim()?.toLowerCase()) {
-    case '0':
-    case 'false':
-    case 'no':
-      return false
-    case '1':
-    case 'true':
-    case 'yes':
-      return true
-  }
 }

@@ -39,7 +39,7 @@ export const createTestHarness = async (config?: TestConfig) => {
     try {
       const [appArgs, flags] = parseArgs(args, teaDir.string)
 
-      const config = ConfigDefault(flags, teaDir.string, { NO_COLOR: '1', PATH: "/usr/bin:/bin", TEA_PREFIX: TEA_PREFIX.string })
+      const config = ConfigDefault(flags, teaDir.string, { NO_COLOR: '1', PATH: "/usr/bin:/bin", TEA_PREFIX: TEA_PREFIX.string, VERBOSE: '-1' })
 
       useConfig({
         ...config,

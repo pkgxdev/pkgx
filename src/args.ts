@@ -194,7 +194,7 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
   return [rv, flags]
 }
 
-function parseBool(input: string) {
+export function parseBool(input: string) {
   switch (input) {
   case '1':
   case 'true':
