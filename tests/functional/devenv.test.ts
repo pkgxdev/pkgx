@@ -50,8 +50,8 @@ Deno.test("dev env interactions with HOME", { sanitizeResources: false, sanitize
 
 Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false }, async test => {
   // each of the files in this list must have a zlib.net^1.2 dependency and a FOO=BAR env
-  const envFiles = ["tea.yaml"]//, "deno.json", "deno.jsonc", "package.json", "cargo.toml",
-                    // "Gemfile", "pyproject.toml", "go.mod", "requirements.txt"]
+  const envFiles = ["tea.yaml", "deno.json", "deno.jsonc", "package.json", "cargo.toml",
+                    "Gemfile", "pyproject.toml", "go.mod", "requirements.txt"]
 
   for (const shell of ["/bin/bash", "/bin/fish", "/bin/elvish"]) {
     for (const envFile of envFiles) {

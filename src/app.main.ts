@@ -14,7 +14,7 @@ const { useSync } = hooks
 
 export async function run(args: Args) {
   const { print } = usePrint()
-  const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity } } = useConfig()
+  const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity, json } } = useConfig()
 
   if (args.cd) {
     const chdir = args.cd
@@ -64,6 +64,8 @@ export async function run(args: Args) {
         } else {
           console.error("tea: empty pkg env")
         }
+      } else if (json) {
+        await print(JSON.stringify({env}))
       } else for (const key in env) {
         const inferred = env[key].split(":")
         const inherited = Deno.env.get(key)?.split(":") ?? []
