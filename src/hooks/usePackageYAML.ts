@@ -85,7 +85,7 @@ export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): P
 }
 
 
-import { parse as parseYaml } from "deno/encoding/yaml.ts"
+import { parse as parseYaml } from "https://deno.land/std@0.182.0/encoding/yaml.ts"
 import { readLines } from "deno/io/read_lines.ts"
 
 async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined> {
