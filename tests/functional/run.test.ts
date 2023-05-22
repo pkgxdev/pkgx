@@ -15,7 +15,7 @@ Deno.test("env", { sanitizeResources: false, sanitizeOps: false }, async () => {
 Deno.test("dry-run", { sanitizeResources: false, sanitizeOps: false }, async () => {
   const {run, TEA_PREFIX } = await createTestHarness()
 
-  await run(["--dry-run", "+kubernetes.io/kubectl"])
+  await run(["--dry-run", "+kubernetes.io/kubectl", "foo", "bar"])
 
   // TODO: try to capture "imagined text"
 
@@ -67,4 +67,14 @@ Deno.test("tea +zlib.net --json", async () => {
 Deno.test("`tea +foo.com --json` errors neatly", async function() {
   const { run } = await createTestHarness()
   assertRejects(() => run(["--json", "+foo.com"]))
+})
+
+Deno.test("tea +zlib.net --verbose", async () => {
+  const { run } = await createTestHarness()
+  await run(["--verbose", "+zlib.net"])
+})
+
+Deno.test("tea +zlib.net --cd /tmp", async () => {
+  const { run } = await createTestHarness()
+  await run(["--cd", "/tmp", "+zlib.net"])
 })
