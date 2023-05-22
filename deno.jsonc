@@ -32,7 +32,7 @@
     }
   },
   "imports": {
-    "tea": "https://raw.github.com/teaxyz/lib/v0/mod.ts",
+    "tea": "../lib/mod.ts",
     "tea/": "https://raw.github.com/teaxyz/lib/v0/src/",
     "hooks": "./src/hooks/index.ts",
     "deno/": "https://deno.land/std@0.182.0/",
