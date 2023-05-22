@@ -25,11 +25,8 @@ export const createTestHarness = async (config?: TestConfig) => {
 
   if (sync) {
     const [syncArgs, flags] = parseArgs(["--sync", "--silent"], teaDir.string)
-    const config = ConfigDefault(flags, teaDir.string, undefined, { NO_COLOR: '1' })
-    useConfig({
-      ...config,
-      prefix: TEA_PREFIX
-    })
+    const config = ConfigDefault(flags, teaDir.string, { NO_COLOR: '1', TEA_PREFIX: TEA_PREFIX.string })
+    useConfig(config)
     await run(syncArgs)
   }
 
@@ -42,12 +39,10 @@ export const createTestHarness = async (config?: TestConfig) => {
     try {
       const [appArgs, flags] = parseArgs(args, teaDir.string)
 
-      const config = ConfigDefault(flags, teaDir.string, undefined, { NO_COLOR: '1', PATH: "/usr/bin:/bin" })
-      config.arg0 = teaDir
+      const config = ConfigDefault(flags, teaDir.string, { NO_COLOR: '1', PATH: "/usr/bin:/bin", TEA_PREFIX: TEA_PREFIX.string })
 
       useConfig({
         ...config,
-        prefix: TEA_PREFIX,
         ...configOverrides,
       })
 

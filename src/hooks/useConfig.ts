@@ -47,8 +47,8 @@ export default function(input?: Config): Config {
   }
 }
 
-export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), defaults?: ConfigBase, env = Deno.env.toObject()): Config {
-  defaults ??= ConfigBaseDefault(env)
+export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.env.toObject()): Config {
+  const defaults = ConfigBaseDefault(env)
 
   const {
     TEA_DIR,
