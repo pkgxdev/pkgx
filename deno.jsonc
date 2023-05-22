@@ -32,8 +32,8 @@
     }
   },
   "imports": {
-    "tea": "https://raw.github.com/teaxyz/lib/v0/mod.ts",
-    "tea/": "https://raw.github.com/teaxyz/lib/v0/src/",
+    "tea": "https://raw.github.com/teaxyz/lib/v0.1.2/mod.ts",
+    "tea/": "https://raw.github.com/teaxyz/lib/v0.1.2/src/",
     "hooks": "./src/hooks/index.ts",
     "deno/": "https://deno.land/std@0.182.0/",
     "is-what": "https://deno.land/x/is_what@v4.1.8/src/index.ts",
