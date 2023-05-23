@@ -1,30 +1,42 @@
-import { usePrefix, useExec, useVirtualEnv, useVersion, useSync, usePrint, useConfig, useEnv } from "hooks"
+import { usePrefix, useExec, useVirtualEnv, useVersion, usePrint, useConfig, useLogger } from "hooks"
+import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
+import { Verbosity } from "./hooks/useConfig.ts"
+import { Path, utils, semver, hooks } from "tea"
+import { basename } from "deno/path/mod.ts"
+import exec, { repl } from "./app.exec.ts"
+import provides from "./app.provides.ts"
+import magic from "./app.magic.ts"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
-import provides from "./app.provides.ts";
-import magic from "./app.magic.ts"
-import exec, { repl } from "./app.exec.ts"
-import { pkg as pkgutils, flatmap } from "utils"
-import Path from "path"
-import { Verbosity } from "./types.ts"
-import * as semver from "semver"
-import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
-import { basename } from "deno/path/mod.ts"
-import { Args } from "./args.ts";
+import { Args } from "./args.ts"
+const { flatmap } = utils
+const { useSync } = hooks
 
 export async function run(args: Args) {
-  const { print } = usePrint();
-  const { execPath } = useConfig()
-  const { PATH, SHELL } = useEnv()
+  const { print } = usePrint()
+  const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity, json } } = useConfig()
 
   if (args.cd) {
     const chdir = args.cd
-    console.verbose({ chdir })
+    console.log({ chdir })
     Deno.chdir(chdir.string)
   }
 
   if (args.sync) {
-    await useSync()
+    const logger = (({ new: make, logJSON }) => {
+      if (!json) {
+        const logger = make()
+        return {
+          syncing: () => logger.replace("syncing pantries…"),
+          syncd: () => logger.replace("]pantries sync’d ⎷")
+        }
+      } else return {
+        syncing: () => logJSON({status: "syncing"}),
+        syncd: () => logJSON({status: "syncd"})
+      }
+    })(useLogger())
+
+    await useSync(logger)
   }
 
   switch (args.mode) {
@@ -65,6 +77,8 @@ export async function run(args: Args) {
         } else {
           console.error("tea: empty pkg env")
         }
+      } else if (json) {
+        await print(JSON.stringify({env}))
       } else for (const key in env) {
         const inferred = env[key].split(":")
         const inherited = Deno.env.get(key)?.split(":") ?? []
@@ -74,7 +88,7 @@ export async function run(args: Args) {
       break
     case "dump": {
       env['PATH'] = full_path().join(':')
-      env["TEA_PKGS"] = pkgs.map(pkgutils.str).join(":").trim()
+      env["TEA_PKGS"] = pkgs.map(utils.pkg.str).join(":").trim()
       env["TEA_PREFIX"] ??= usePrefix().string
       env["TEA_VERSION"] = useVersion()
 
@@ -83,7 +97,7 @@ export async function run(args: Args) {
     } break
   }} break
   case "help":
-    await help()
+    await help(verbosity)
     break
   case "version":
     await print(`tea ${useVersion()}`)
@@ -103,7 +117,7 @@ function announce(self: Path) {
   const prefix = usePrefix().string
   const version = useVersion()
 
-  switch (useConfig().verbosity) {
+  switch (useConfig().modifiers.verbosity) {
   case Verbosity.debug:
     if (self.basename() == "deno") {
       console.debug({ deno: self.string, prefix, import: import.meta, tea: version })
@@ -117,7 +131,7 @@ function announce(self: Path) {
 }
 
 function injection({ args, inject }: Args) {
-  const { TEA_FILES, TEA_PKGS, SRCROOT, VERSION } = useEnv()
+  const { TEA_FILES, TEA_PKGS, SRCROOT, VERSION } = useConfig().env
   const teaPkgs = TEA_PKGS?.trim()
   //TODO if TEA_PKGS then extract virtual-env from that, don’t reinterpret it
 
@@ -133,7 +147,7 @@ function injection({ args, inject }: Args) {
       cwd = file.parent()
     }
 
-    if (useConfig().keepGoing) {
+    if (useConfig().modifiers.keepGoing) {
       return useVirtualEnv(cwd).swallow(/^not-found/)
     } else if (teaPkgs) {
       /// if an env is defined then we still are going to try to read it
@@ -158,7 +172,7 @@ function injection({ args, inject }: Args) {
     //TODO anything that isn’t an absolute path will crash
     return {
       env: {},
-      pkgs: TEA_PKGS!.split(":").map(pkgutils.parse),
+      pkgs: TEA_PKGS!.split(":").map(utils.pkg.parse),
       teafiles: TEA_FILES.split(":").map(x => new Path(x)),
       srcroot: new Path(SRCROOT),
       version: flatmap(VERSION, semver.parse)
@@ -180,7 +194,7 @@ export function wut(args: Args): 'dump' | 'exec' | 'repl' | 'env' | 'dryrun' {
     return true
   })()
 
-  if (useConfig().dryrun) {
+  if (useConfig().modifiers.dryrun) {
     return 'dryrun'
   } else if (stack_mode) {
     return 'dump'

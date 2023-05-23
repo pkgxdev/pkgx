@@ -1,7 +1,5 @@
-import Path from "path"
-import { chuzzle, pkg, validate_str } from "utils"
-import { PackageSpecification } from "types"
-import { TeaError } from "utils"
+import { utils, PackageSpecification, Path } from "tea"
+const { pkg, validate } = utils
 
 export type Args = {
   cd?: Path
@@ -55,10 +53,10 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
 
   const it = args[Symbol.iterator]()
   for (const arg of it) {
-    const barf = (arg_?: string) => { throw new TeaError('not-found: arg', {arg: arg_ ?? arg}) }
+    const barf = (arg_?: string) => { throw new UsageError(arg_ ?? arg) }
 
     if (arg == '+' || arg == '-') {
-      throw new TeaError('not-found: arg', {arg})
+      throw new UsageError(arg)
     }
 
     if (arg.startsWith('+')) {
@@ -79,13 +77,13 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
           flags.verbosity = 1
           break
         }
-        const bi = chuzzle(parseInt(value) + 1)
+        const bi = (parseInt(value) + 1).chuzzle()
         if (bi !== undefined) {
           flags.verbosity = bi
           break
         }
         const bv = parseBool(value)
-        if (bv === undefined) throw new TeaError('not-found: arg', {arg})
+        if (bv === undefined) throw new UsageError(arg)
         flags.verbosity = bv ? 1 : 0
       } break
       case 'debug':
@@ -94,7 +92,7 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
       case 'cd':
       case 'chdir':
       case 'cwd':   // ala bun
-        rv.cd = Path.cwd().join(validate_str(value ?? it.next().value))
+        rv.cd = Path.cwd().join(validate.str(value ?? it.next().value))
         break
       case 'help':
         nonovalue()
@@ -119,9 +117,12 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
         flags.keepGoing = parseBool(value ?? "yes") ?? barf()
         break
       case 'quiet':
-      case 'silent':
         nonovalue()
         flags.verbosity = -1
+        break
+      case 'silent':
+        nonovalue()
+        flags.verbosity = -2
         break
       case 'dump':
         console.warn("tea --dump is deprecated, instead only provide pkg specifiers")
@@ -151,10 +152,10 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
           flags.verbosity = (flags.verbosity ?? 0) + 1
           break
         case 'C':
-          rv.cd = Path.cwd().join(validate_str(it.next().value))
+          rv.cd = Path.cwd().join(validate.str(it.next().value))
           break
         case 's':
-          flags.verbosity = -1;
+          flags.verbosity = -2;
           break
         case 'X':
           console.warn("tea -X is now implicit and thus specifying `-X` now both unrequired and deprecated")
@@ -193,7 +194,7 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
   return [rv, flags]
 }
 
-function parseBool(input: string) {
+export function parseBool(input: string) {
   switch (input) {
   case '1':
   case 'true':
@@ -207,5 +208,11 @@ function parseBool(input: string) {
   case 'off':
   case 'disable':
     return false
+  }
+}
+
+export class UsageError extends Error {
+  constructor(arg: string) {
+    super(`error: no such arg: ${arg}`)
   }
 }

@@ -1,98 +1,148 @@
-import Path from "path"
-import { Verbosity } from "types"
+import useVersion from "./useVersion.ts"
+import { parseBool } from "../args.ts"
+import { Flags } from "../args.ts"
+import { isNumber } from "is-what"
+import { utils, Path } from "tea"
+const { flatmap } = utils
 
-export interface EnvAccessor {
-  getEnvAsObject: () => { [index: string]: string }
-}
+import useConfig, { Config as ConfigBase, ConfigDefault as ConfigBaseDefault, _internals } from "tea/hooks/useConfig.ts"
 
-export interface Env {
-  CI?: string
-  CLICOLOR?: string
-  CLICOLOR_FORCE?: string
-  DEBUG?: string
-  GITHUB_ACTIONS?: string
-  GITHUB_TOKEN?: string
-  NO_COLOR?: string
-  PATH?: string
-  RUNNER_DEBUG?: string
-  SHELL?: string
-  SRCROOT?: string
-  TEA_DIR?: string
-  TEA_FILES?: string
-  TEA_FORK_BOMB_PROTECTOR?: string
-  TEA_MAGIC?: string
-  TEA_PANTRY_PATH?: string
-  TEA_PKGS?: string
-  TEA_PREFIX?: string
-  TEA_REWIND?: string
-  VERBOSE?: string
-  VERSION?: string
-}
+export interface Config extends ConfigBase {
+  arg0: Path
 
-export interface Config {
-  isCI: boolean
+  logger: {
+    prefix?: string
+    color: boolean
+  }
 
-  execPath: Path
-  loggerGlobalPrefix?: string
-  teaPrefix: Path
+  env: {
+    TEA_DIR?: Path
+    TEA_PKGS?: string
+    TEA_FILES?: string
+    TEA_MAGIC?: string
+    TEA_REWIND?: string
+    TEA_FORK_BOMB_PROTECTOR?: string
+    VERSION?: string
+    SRCROOT?: string
+    SHELL?: string
+    PATH?: string
 
-  verbosity: Verbosity
-  dryrun: boolean
-  keepGoing: boolean
+    obj: Record<string, string>
+  }
 
-  verbose: boolean
-  debug: boolean
-  silent: boolean
-
-  env: Env
-
-  json: boolean
-}
-
-let config: Config | undefined;
-
-// Apply config should only be called once during application initialization
-export function applyConfig(cf: Config) {
-  config = cf
-  applyVerbosity(config)
-}
-
-function applyVerbosity(config: Config) {
-  function noop() {}
-  if (config.verbosity > Verbosity.debug) config.verbosity = Verbosity.debug
-  if (config.verbosity < Verbosity.debug) console.debug = noop
-  if (config.verbosity < Verbosity.loud) console.verbose = noop
-  if (config.verbosity < Verbosity.normal) {
-    console.info = noop
-    console.warn = noop
-    console.log = noop
-    console.error = noop
+  modifiers: {
+    dryrun: boolean
+    verbosity: Verbosity
+    json: boolean
+    keepGoing: boolean
   }
 }
 
-// useConfig provides the global configuration state of the application.
-// It must not be called until applyConfig has been called.
-export default function useConfig(): Readonly<Config> {
-  if (!config) {
-    throw Error("contract-violated: config must be applied before it can be used.")
+export default function(input?: Config): Config {
+  if (!_internals.initialized()) {
+    const rv = useConfig(input ?? ConfigDefault()) as Config
+    return rv
+  } else {
+    if (input) console.warn("useConfig() already initialized, new parameters ignored")
+    return useConfig() as Config
   }
-
-  return config
 }
 
-export function useEnv(): Readonly<Env> & EnvAccessor {
-  const { env } = useConfig()
+export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.env.toObject()): Config {
+  const defaults = ConfigBaseDefault(env)
+
+  const {
+    TEA_DIR,
+    TEA_REWIND,
+    TEA_FORK_BOMB_PROTECTOR,
+    SHELL,
+    TEA_FILES,
+    TEA_PKGS,
+    TEA_MAGIC,
+    SRCROOT,
+    VERSION,
+    PATH
+  } = env
+
   return {
-    ...env,
-    getEnvAsObject: _internals.getEnvAsObject
+    ...defaults,
+    arg0: new Path(arg0),
+    UserAgent: `tea.cli/${useVersion()}`,
+    logger: {
+      prefix: undefined,
+      color: getColor(env)
+    },
+    modifiers: {
+      dryrun: flags?.dryrun ?? false,
+      verbosity: flags?.verbosity ?? getVerbosity(env),
+      json: flags?.json ?? false,
+      keepGoing: flags?.keepGoing ?? false,
+    },
+    env: {
+      TEA_DIR: flatmap(TEA_DIR, x => Path.abs(x) ?? Path.cwd().join(x)),
+      TEA_REWIND,
+      TEA_FORK_BOMB_PROTECTOR,
+      SHELL,
+      TEA_FILES,
+      TEA_MAGIC,
+      TEA_PKGS,
+      SRCROOT,
+      VERSION,
+      PATH,
+      obj: env
+    }
   }
 }
 
-const nativeGetEnvAsObject = () => Deno.env.toObject()
+export enum Verbosity {
+  silent = -2,
+  quiet = -1,
+  normal = 0,
+  loud = 1,
+  debug = 2,
+  trace = 3
+}
 
-// _internals are used for testing
-export const _internals = {
-  getConfig: () => config,
-  setConfig: (c: Config) => config = c,
-  getEnvAsObject: nativeGetEnvAsObject,
+function getVerbosity(env: Record<string, string>): Verbosity {
+  const { DEBUG, GITHUB_ACTIONS, RUNNER_DEBUG, VERBOSE, CI } = env
+
+  if (DEBUG == '1') return Verbosity.debug
+  if (GITHUB_ACTIONS == 'true' && RUNNER_DEBUG  == '1') return Verbosity.debug
+
+  const verbosity = flatmap(VERBOSE, parseInt)
+  if (isNumber(verbosity)) {
+    return verbosity
+  } else if (parseBool(CI)) {
+    // prevents dumping 100s of lines of download progress
+    return Verbosity.quiet
+  } else {
+    return Verbosity.normal
+  }
+}
+
+function getColor(env: Record<string, string>) {
+  const isTTY = () => Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stdout.rid)
+
+  if ((env.CLICOLOR ?? '1') != '0' && isTTY()){
+    //https://bixense.com/clicolors/
+    return true
+  }
+  if ((env.CLICOLOR_FORCE ?? '0') != '0') {
+    //https://bixense.com/clicolors/
+    return true
+  }
+  if ((env.NO_COLOR ?? '0') != '0') {
+    return false
+  }
+  if (env.CLICOLOR == '0' || env.CLICOLOR_FORCE == '0') {
+    return false
+  }
+  if (env.CI) {
+    // this is what charm’s lipgloss does, we copy their lead
+    // however surely nobody wants `tea foo > bar` to contain color codes?
+    // the thing is otherwise we have no color in CI since it is not a TTY
+    return true
+  }
+
+  return false
 }

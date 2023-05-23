@@ -1,24 +1,21 @@
-import { pkg as pkgutils, TeaError, chuzzle } from "utils"
-import { ExitError, Installation } from "types"
-import { useEnv, useConfig, useRun } from "hooks"
-import { RunError } from "hooks/useRun.ts"
-import { gray, red, teal } from "hooks/useLogger.ts"
+import { useConfig, useRun, useLogger, RunError, Verbosity, ExitError } from "hooks"
+import { Installation, Path, utils, TeaError } from "tea"
 import { basename } from "deno/path/mod.ts"
-import { isNumber } from "is_what"
-import Path from "path"
+import { isNumber } from "is-what"
 
 export default async function(cmd: string[], env: Record<string, string>) {
-  const { TEA_FORK_BOMB_PROTECTOR } = useEnv()
+  const { TEA_FORK_BOMB_PROTECTOR } = useConfig().env
+  const { red, teal } = useLogger()
 
   // ensure we cannot fork bomb the user since this is basically the worst thing tea/cli can do
-  let nobomb = chuzzle(parseInt(TEA_FORK_BOMB_PROTECTOR ?? '0')) ?? 0
+  let nobomb = parseInt(TEA_FORK_BOMB_PROTECTOR ?? '0').chuzzle() ?? 0
   env['TEA_FORK_BOMB_PROTECTOR'] = `${++nobomb}`
   if (nobomb > 20) throw new Error("FORK BOMB KILL SWITCH ACTIVATED")
 
   try {
     await useRun({cmd, env})
   } catch (err) {
-    const { debug } = useConfig()
+    const debug = useConfig().modifiers.verbosity >= Verbosity.debug
     const arg0 = cmd?.[0]
 
     if (err instanceof TeaError) {
@@ -44,8 +41,9 @@ export default async function(cmd: string[], env: Record<string, string>) {
 }
 
 export async function repl(installations: Installation[], env: Record<string, string>) {
-  const { SHELL } = useEnv()
-  const pkgs_str = () => installations.map(({pkg}) => gray(pkgutils.str(pkg))).join(", ")
+  const { SHELL } = useConfig().env
+  const { gray } = useLogger()
+  const pkgs_str = () => installations.map(({pkg}) => gray(utils.pkg.str(pkg))).join(", ")
 
   // going to stderr so that we don’t potentially break (nonsensical) pipe scenarios, eg.
   //     tea -E | env
@@ -84,7 +82,7 @@ export async function repl(installations: Installation[], env: Record<string, st
   }
 
   try {
-    await useRun({ cmd, env })
+    await useRun({cmd, env})
   } catch (err) {
     if (err instanceof RunError) {
       throw new ExitError(err.code)

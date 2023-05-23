@@ -1,12 +1,13 @@
-import Path from "path"
-import { run } from "../../src/app.main.ts"
+import useConfig, { Config, ConfigDefault } from "../../src/hooks/useConfig.ts"
+import { _internals as usePrintInternals } from "../../src/hooks/usePrint.ts"
+import { _internals as useRunInternals } from "../../src/hooks/useRun.ts"
+import { _internals as useConfigInternals } from "tea/hooks/useConfig.ts"
 import { parseArgs } from "../../src/args.ts"
-import { Config } from "../../src/hooks/useConfig.ts"
-import { init } from "../../src/init.ts";
-import { _internals as usePrintInternals } from "hooks/usePrint.ts"
-import { _internals as useConfigInternals } from "hooks/useConfig.ts"
-import { _internals as useRunInternals } from "hooks/useRun.ts"
+import { run } from "../../src/app.main.ts"
 import { spy } from "deno/testing/mock.ts"
+import { Path, utils, hooks } from "tea"
+const { useSync } = hooks
+const { panic } = utils
 
 export interface TestConfig {
   // run tea sync during test setup.  Default: true
@@ -20,15 +21,14 @@ export const createTestHarness = async (config?: TestConfig) => {
   const dir = config?.dir ?? "tea"
 
   const tmpDir = new Path(await Deno.makeTempDir({ prefix: "tea-" })).realpath()
-  const teaDir = tmpDir.join(dir).mkdir()
+  const teaDir = tmpDir.join(dir).mkdir('p')
 
   const TEA_PREFIX = tmpDir.join('opt').mkdir()
+  let TEA_PANTRY_PATH: string | undefined
+  let TEA_CACHE_DIR = Path.home().join(".tea/tea.xyz/var/www").isDirectory()?.string
 
   if (sync) {
-    const [syncArgs, flags] = parseArgs(["--sync", "--silent"], teaDir.string)
-    init(flags)
-    updateConfig({ teaPrefix: new Path(TEA_PREFIX.string), env: { NO_COLOR: "1" } })
-    await run(syncArgs)
+    TEA_PANTRY_PATH = (Path.home().join(".tea/tea.xyz/var/pantry").isDirectory() ?? await mkpantry()).string
   }
 
   const runTea = async (args: string[], configOverrides: Partial<Config> = {}) => {
@@ -37,16 +37,31 @@ export const createTestHarness = async (config?: TestConfig) => {
 
     const usePrintSpy = spy(usePrintInternals, "nativePrint")
 
-    useConfigInternals.getEnvAsObject = () => {
-      return (useConfigInternals.getConfig()?.env ?? {}) as {[index: string]: string}
-    }
-
     try {
       const [appArgs, flags] = parseArgs(args, teaDir.string)
-      init(flags)
-      updateConfig({ execPath: teaDir, teaPrefix: new Path(TEA_PREFIX.string), ...configOverrides })
+
+      const env: Record<string, string> = {
+        NO_COLOR: '1',
+        PATH: "/usr/bin:/bin",
+        VERBOSE: '-1',
+        TEA_PREFIX: TEA_PREFIX.string,
+      }
+      if (TEA_CACHE_DIR) env['TEA_CACHE_DIR'] = TEA_CACHE_DIR
+      if (TEA_PANTRY_PATH) env['TEA_PANTRY_PATH'] = TEA_PANTRY_PATH
+
+      const config = ConfigDefault(flags, teaDir.string, env)
+
+      useConfigInternals.reset()
+      useConfig({
+        ...config,
+        ...configOverrides,
+      })
 
       await run(appArgs)
+
+      // ensure subsequent tests aren't polluted
+      useConfigInternals.reset()
+
     } finally {
       usePrintSpy.restore()
       Deno.chdir(cwd)
@@ -64,20 +79,6 @@ export const createTestHarness = async (config?: TestConfig) => {
     TEA_PREFIX,
     useRunInternals,
   }
-}
-
-// updates the application config by only overriding the provided keys
-function updateConfig(updated: Partial<Config>) {
-  const config = useConfigInternals.getConfig()
-  if (!config) {
-    throw new Error("test attempted to updated config that has not been applied")
-  }
-  useConfigInternals.setConfig({...config, ...updated, env: {...config.env, ...updated.env}})
-}
-
-// we need Deno.ChildProcress.status to be mutable
-type Mutable<Type> = {
-  -readonly [Key in keyof Type]: Type[Key];
 }
 
 // the Deno.Process object cannot be created externally with `new` so we'll just return a
@@ -98,4 +99,15 @@ export function newMockProcess(status?: () => Promise<Deno.CommandStatus>): Deno
       unref: () => {}
     })
   }
+}
+
+let __pantry: Path | undefined
+async function mkpantry() {
+  if (__pantry) return __pantry
+  const tmp = new Path(await Deno.makeTempDir({ prefix: "tea.functional-tests." }))
+  useConfigInternals.reset()
+  useConfig(ConfigDefault(undefined, tmp.join('tea').string, { TEA_PREFIX: tmp.string }))
+  await useSync()
+  useConfigInternals.reset()
+  return __pantry = tmp.join("tea.xyz/var/pantry")
 }

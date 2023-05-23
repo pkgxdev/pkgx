@@ -1,7 +1,7 @@
+import useConfig, { Verbosity } from "./useConfig.ts"
 import { colors, tty } from "cliffy/ansi/mod.ts"
-import { flatmap } from "utils";
-import useConfig, { useEnv } from "hooks/useConfig.ts";
-import { Verbosity } from "types";
+import { utils } from "tea"
+const { flatmap } = utils
 
 // ref https://github.com/chalk/ansi-regex/blob/main/index.js
 const ansi_escapes_rx = new RegExp([
@@ -26,42 +26,21 @@ function ln(s: string, prefix_length: number) {
   }
 }
 
-export default function useLogger(prefix?: string) {
-  const { verbosity, loggerGlobalPrefix } = useConfig()
-  return new Logger(verbosity, prefix, loggerGlobalPrefix)
+export default function() {
+  return {
+    new: useLogger,
+    teal, red, gray, dark, lite,
+    logJSON
+  }
+}
+
+function useLogger(prefix?: string) {
+  const { modifiers: { verbosity }, logger: { prefix: loggerGlobalPrefix, color } } = useConfig()
+  return new Logger(verbosity, prefix, loggerGlobalPrefix, color)
 }
 
 function colorIfTTY(x: string, colorMethod: (x: string)=>string) {
-  //TODO this function needs to take a out/err parameter since that's what
-  // needs to be tested rather than testing for both (this is safe for now)
-  const isTTY = () => Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stdout.rid)
-  const { isCI } = useConfig()
-  const { CLICOLOR, CLICOLOR_FORCE, NO_COLOR } = useEnv()
-
-  const color_on = () => {
-    if ((CLICOLOR ?? '1') != '0' && isTTY()){
-      //https://bixense.com/clicolors/
-      return true
-    }
-    if ((CLICOLOR_FORCE ?? '0') != '0') {
-      //https://bixense.com/clicolors/
-      return true
-    }
-    if ((NO_COLOR ?? '0') != '0') {
-      return false
-    }
-    if (CLICOLOR == '0' || CLICOLOR_FORCE == '0') {
-      return false
-    }
-    if (isCI) {
-      // this is what charm’s lipgloss does, we copy their lead
-      // however surely nobody wants `tea foo > bar` to contain color codes?
-      // the thing is otherwise we have no color in CI since it is not a TTY
-      return true
-    }
-  }
-
-  return color_on() ? colorMethod(x) : x
+  return useConfig().logger.color ? colorMethod(x) : x
 }
 
 export const teal = (x: string) => colorIfTTY(x, (x) => colors.rgb8(x, 86))
@@ -74,13 +53,15 @@ export class Logger {
   readonly verbosity: Verbosity
   readonly prefix: string
   readonly globalPrefix?: string
+  readonly sequences_ok: boolean
   lines = 0
   last_line = ''
   tty = tty({ stdout: Deno.stderr })
   prefix_length: number
 
-  constructor(verbosity: Verbosity, prefix?: string, globalPrefix?: string) {
+  constructor(verbosity: Verbosity, prefix: string | undefined, globalPrefix: string | undefined, sequences_ok: boolean) {
     this.verbosity = verbosity
+    this.sequences_ok = sequences_ok
 
     prefix = prefix?.chuzzle()
     this.prefix_length = prefix?.length ?? 0
@@ -95,7 +76,7 @@ export class Logger {
 
   //TODO don’t erase whole lines, just erase the part that is different
   replace(line: string, {prefix: wprefix}: {prefix: boolean} = {prefix: true}) {
-    if (this.verbosity < 0) return
+    if (this.verbosity < -1) return
 
     if (line == this.last_line) {
       return  //noop
@@ -103,7 +84,7 @@ export class Logger {
 
     if (this.lines) {
       const n = ln(this.last_line, this.prefix_length)
-      if (this.verbosity < 1) {
+      if (this.sequences_ok) {
         this.tty.cursorLeft.cursorUp(n).eraseDown()
       }
       this.lines -= n
@@ -119,7 +100,7 @@ export class Logger {
   }
 
   clear() {
-    if (this.lines && this.verbosity >= 0) {
+    if (this.sequences_ok && this.lines && this.verbosity >= 0) {
       this.tty.cursorLeft.cursorUp(this.lines).eraseDown(this.lines)
       this.lines = 0
     }

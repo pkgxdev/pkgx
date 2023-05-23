@@ -1,8 +1,8 @@
+import { strip_ansi_escapes } from "../../src/hooks/useLogger.ts"
 import { assertEquals } from "deno/testing/asserts.ts"
-import { strip_ansi_escapes } from "hooks/useLogger.ts"
 import suite from "../integration.suite.ts"
 import { it } from "deno/testing/bdd.ts"
-import { undent } from "utils"
+import undent from "outdent"
 
 it(suite, "tea --magic in a script. zsh", async function() {
   const script = this.sandbox.join("magic-zsh").write({ text: undent`

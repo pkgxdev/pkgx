@@ -1,11 +1,11 @@
-import { useConfig, usePrint } from "hooks"
-import { undent } from "utils"
+import { Verbosity } from "./hooks/useConfig.ts"
+import { usePrint } from "hooks"
+import undent from "outdent"
 
-export default async function help() {
-  const { verbose } = useConfig()
+export default async function help(verbosity = Verbosity.normal) {
   const { print } = usePrint()
 
-  if (!verbose) {
+  if (verbosity < Verbosity.loud) {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     await print(undent`
       usage:
@@ -42,6 +42,7 @@ export default async function help() {
         --dry-run,-n             don’t do anything, just print
         --keep-going,-k          keep going as much as possible after errors
         --verbose,-v             print version and then increase verbosity †
+        --quiet,-q               status messages are more concise
         --silent,-s              no chat, no errors: only output the requested data
         --cd,-C,--chdir <dir>    change directory first
         --chaste                 abstain from networking, installing packages, etc.

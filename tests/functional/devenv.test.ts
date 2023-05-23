@@ -1,8 +1,9 @@
-import { createTestHarness } from "./testUtils.ts"
 import { assert, assertEquals } from "deno/testing/asserts.ts"
-import { flatmap } from "utils"
+import { createTestHarness } from "./testUtils.ts"
+import { Path, utils } from "tea"
+const { flatmap } = utils
 
-const fixturesDir = new URL(import.meta.url).path().parent().parent().join('fixtures')
+const fixturesDir = new Path(new URL(import.meta.url).pathname).parent().parent().join('fixtures')
 
 Deno.test("dev env interactions with HOME", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const tests = [
@@ -54,14 +55,14 @@ Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false
 
   for (const shell of ["/bin/bash", "/bin/fish", "/bin/elvish"]) {
     for (const envFile of envFiles) {
-      await test.step(`${shell}-${envFile}`, async () => {
-        const {run, teaDir } = await createTestHarness()
+      await test.step(`${shell} & ${envFile}`, async () => {
+        const { run, teaDir } = await createTestHarness()
 
         fixturesDir.join(envFile).cp({into: teaDir})
 
         const TEA_REWIND = JSON.stringify({revert: {VAL: "REVERTED"}, unset: ["BAZ"]})
 
-        const config = { env: { SHELL: shell, TEA_REWIND } }
+        const config = { env: { SHELL: shell, TEA_REWIND, obj: {} } }
         const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config)
 
         const envVar = (key: string) => getEnvVar(shell, stdout, key)
@@ -69,7 +70,7 @@ Deno.test("should enter dev env", { sanitizeResources: false, sanitizeOps: false
 
         assert(getTeaPackages(shell, stdout).includes("zlib.net^1.2"), "should include zlib dep")
 
-        assertEquals(envVar("FOO"), "BAR", "should set virtual env var")
+        assertEquals(envVar("FOO"), "BAR", "should set virtual env var FOO")
         assertEquals(envVar("VAL"), "REVERTED", "should revert previous env")
         assert(isUnset("BAZ"), "should unset previous env")
         assertEquals(envVar("SRCROOT"), teaDir.string, "should set virtual env SRCROOT")
@@ -90,7 +91,7 @@ Deno.test("should leave dev env", { sanitizeResources: false, sanitizeOps: false
 
       const TEA_REWIND = JSON.stringify({revert: {VAL: "REVERTED"}, unset: ["BAZ"]})
 
-      const config = { env: { SHELL: shell, TEA_REWIND } }
+      const config = { env: { SHELL: shell, TEA_REWIND, obj: {} } }
       const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], config)
 
       const envVar = (key: string) => getEnvVar(shell, stdout, key)
@@ -117,7 +118,7 @@ Deno.test("should provide packages in dev env", { sanitizeResources: false, sani
       const {run, teaDir } = await createTestHarness()
 
       fixturesDir.join(file).cp({into: teaDir})
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, obj: {} } })
 
       assert(getTeaPackages(SHELL, stdout).includes(pkg), "should include nodejs dep")
     })
@@ -136,7 +137,7 @@ Deno.test("should provide python in dev env", { sanitizeResources: false, saniti
       const { run, teaDir } = await createTestHarness()
 
       fixturesDir.join(file).cp({ into: teaDir })
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, obj: {} } })
 
       const output = getTeaPackages(SHELL, stdout)
       assert(output.includes(pkg), "should include python dep")
@@ -152,7 +153,7 @@ Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitize
       const {run, teaDir } = await createTestHarness()
       teaDir.join(".node-version").write({ text: `\n\n\n${spec}\n` })
 
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, obj: {} } })
 
       const pkg = `nodejs.org${interpretation}`
       assert(getTeaPackages(SHELL, stdout).includes(pkg), "should include nodejs dep")
@@ -172,13 +173,37 @@ Deno.test("should provide ruby in dev env", { sanitizeResources: false, sanitize
       const { run, teaDir } = await createTestHarness()
 
       fixturesDir.join(file).cp({ into: teaDir })
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL } })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, obj: {} } })
 
       const output = getTeaPackages(SHELL, stdout)
       assert(output.includes(pkg), "should include ruby dep")
     })
   }
 })
+
+Deno.test("TEA_DIR & TEA_PKGS", { sanitizeResources: false, sanitizeOps: false }, async test => {
+  const SHELL = "/bin/zsh"
+
+  const tests = [
+    { file: ".ruby-version", pkg: "ruby-lang.org>=3.2.1<3.2.2" }
+  ]
+
+  for (const { file, pkg } of tests) {
+    await test.step(file, async () => {
+      const { run, teaDir } = await createTestHarness()
+      const foo = teaDir.join("foo").mkdir()
+      const TEA_PKGS = "deno.land^1"
+
+      fixturesDir.join(file).cp({ into: foo })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, TEA_DIR: foo, TEA_PKGS, obj: {} } })
+
+      const output = getTeaPackages(SHELL, stdout)
+      assert(output.includes(pkg), "should include ruby dep")
+    })
+  }
+})
+
+////////////////////// utils //////////////////////
 
 function getEnvVar(shell: string, lines: string[], key: string): string | null {
   const pattern = () => {

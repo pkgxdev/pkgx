@@ -1,8 +1,9 @@
+import { assert, assertEquals } from "deno/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
 import { spy } from "deno/testing/mock.ts"
-import { assert, assertEquals } from "deno/testing/asserts.ts"
+import { Path } from "tea"
 
-const fixturesDir = new URL(import.meta.url).path().parent().parent().join('fixtures')
+const fixturesDir = new Path(new URL(import.meta.url).pathname).parent().parent().join('fixtures')
 
 Deno.test("run a python script", { sanitizeResources: false, sanitizeOps: false }, async () => {
   const { run, teaDir, useRunInternals } = await createTestHarness()

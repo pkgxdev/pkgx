@@ -1,46 +1,49 @@
-// order is important to avoid circular dependencies and thus uncaught ReferenceErrors
 
-import usePrefix from "hooks/usePrefix.ts"
-import useOffLicense from "hooks/useOffLicense.ts"
-import useDownload from "hooks/useDownload.ts"
-import useCache from "hooks/useCache.ts"
-import useCellar from "hooks/useCellar.ts"
-import useExec from "hooks/useExec.ts"
-import useFetch from "hooks/useFetch.ts"
-import useInventory from "hooks/useInventory.ts"
-import useShellEnv from "hooks/useShellEnv.ts"
-import usePantry from "hooks/usePantry.ts"
-import useVirtualEnv from "hooks/useVirtualEnv.ts"
-import usePackageYAML, { usePackageYAMLFrontMatter } from "hooks/usePackageYAML.ts"
-import useSync from "hooks/useSync.ts"
-import useVersion from "hooks/useVersion.ts"
-import useMoustaches from "hooks/useMoustaches.ts"
-import useErrorHandler from "hooks/useErrorHandler.ts"
-import usePrint from "hooks/usePrint.ts"
-import useRun from "hooks/useRun.ts"
-import useConfig, { useEnv } from "hooks/useConfig.ts"
+import useExec from "./useExec.ts"
+import useVirtualEnv from "./useVirtualEnv.ts"
+import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
+import useVersion from "./useVersion.ts"
+import useErrorHandler, { ExitError } from "./useErrorHandler.ts"
+import usePrint from "./usePrint.ts"
+import useConfig, { Verbosity } from "./useConfig.ts"
+import useLogger from "./useLogger.ts"
+import useRun, { RunError, RunOptions } from "./useRun.ts"
 
-// but we can sort these alphabetically
+function usePrefix() {
+  return useConfig().prefix
+}
+
 export {
-  useCache,
-  useCellar,
-  useDownload,
-  useErrorHandler,
   useExec,
-  useFetch,
-  useInventory,
-  useMoustaches,
-  useOffLicense,
+  useVirtualEnv,
   usePackageYAML,
   usePackageYAMLFrontMatter,
-  usePantry,
-  usePrefix,
-  useShellEnv,
-  useSync,
   useVersion,
-  useVirtualEnv,
+  useErrorHandler,
   usePrint,
-  useRun,
+  usePrefix,
   useConfig,
-  useEnv,
+  useLogger,
+  Verbosity,
+  RunError,
+  useRun,
+  ExitError
+}
+
+export type { RunOptions }
+
+declare global {
+  interface Array<T> {
+    uniq(): Array<T>
+  }
+}
+
+Array.prototype.uniq = function<T>(): Array<T> {
+  const set = new Set<T>()
+  return this.compact(x => {
+    const s = x.toString()
+    if (set.has(s)) return
+    set.add(s)
+    return x
+  })
 }

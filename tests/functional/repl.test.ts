@@ -1,7 +1,7 @@
 import { assertEquals, assertRejects } from "deno/testing/asserts.ts"
-import { stub, returnsNext } from "deno/testing/mock.ts"
-import { ExitError } from "types"
 import { createTestHarness, newMockProcess } from "./testUtils.ts"
+import { stub, returnsNext } from "deno/testing/mock.ts"
+import { ExitError } from "../../src/hooks/useErrorHandler.ts"
 
 Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const tests = [
@@ -41,7 +41,7 @@ Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: fal
       const useRunStub = stub(useRunInternals, "nativeRun", returnsNext([newMockProcess()]))
 
       try {
-        await run(["sh"], { env: { SHELL: shell } })
+        await run(["sh"], { env: { SHELL: shell, obj: {} } })
       } finally {
         useRunStub.restore()
       }

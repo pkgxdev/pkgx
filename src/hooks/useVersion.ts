@@ -1,8 +1,9 @@
 import { README } from "./useVirtualEnv.ts"
+import { Path } from "tea"
 
 const version = `${(
   await README(
-    new URL(import.meta.url).path()
+    new Path(new URL(import.meta.url).pathname)
       .parent().parent().parent()
       .join("README.md")
   ).swallow(/not-found/))?.version}+dev`

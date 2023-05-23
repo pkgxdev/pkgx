@@ -1,21 +1,39 @@
+import useConfig, { Config, ConfigDefault, Verbosity } from "./hooks/useConfig.ts"
+import { parseArgs, UsageError } from "./args.ts"
 import { useErrorHandler } from "hooks"
-import help from "./app.help.ts"
-import { UsageError } from "utils"
 import { run } from "./app.main.ts"
-import { parseArgs } from "./args.ts";
-import { init } from "./init.ts";
-import useConfig from "./hooks/useConfig.ts";
+import help from "./app.help.ts"
 
 try {
   const [args, flags] = parseArgs(Deno.args, Deno.execPath())
-  init(flags)
+
+  const config = ConfigDefault(flags)
+
+  config.logger.prefix = (!Deno.isatty(Deno.stdout.rid) || Deno.env.get("CI")) ? "tea:" : undefined
+  useConfig(config)
+  applyVerbosity(config)
+
   await run(args)
+
 } catch (err) {
   if (err instanceof UsageError) {
-    if (!useConfig().silent) await help()
+    console.error(err.message)
+    await help()
     Deno.exit(64)
   } else {
     const code = await useErrorHandler(err)
     Deno.exit(code)
+  }
+}
+
+
+function applyVerbosity(config: Config) {
+  function noop() {}
+  if (config!.modifiers.verbosity < Verbosity.debug) console.debug = noop
+  if (config!.modifiers.verbosity < Verbosity.loud) console.log = noop
+  if (config!.modifiers.verbosity < Verbosity.quiet) {
+    console.info = noop
+    console.warn = noop
+    console.error = noop
   }
 }

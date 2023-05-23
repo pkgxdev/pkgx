@@ -1,11 +1,13 @@
-import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts"
-import { useErrorHandler } from "hooks";
-import { Config, _internals } from "hooks/useConfig.ts"
-import { ExitError } from "types"
-import { TeaError } from "utils";
+import { ConfigDefault } from "../../src/hooks/useConfig.ts"
+import { useErrorHandler, Verbosity, ExitError } from "hooks"
+import { assertEquals } from "deno/testing/asserts.ts"
+import { TeaError, hooks } from "tea"
+const { useConfig } = hooks
 
-Deno.test("useErrorHandler", async test => { 
-  _internals.setConfig({silent: false, debug: true} as Config)
+Deno.test("useErrorHandler", async test => {
+  const config = ConfigDefault()
+  config.modifiers.verbosity = Verbosity.debug
+  useConfig(config)
 
   await test.step("exit error", async () => {
     const rc = await useErrorHandler(new ExitError(123))
@@ -24,8 +26,10 @@ Deno.test("useErrorHandler", async test => {
   })
 })
 
-Deno.test("useErrorHandler silent", async test => { 
-  _internals.setConfig({silent: true, debug: false} as Config)
+Deno.test("useErrorHandler silent", async test => {
+  const config = ConfigDefault()
+  config.modifiers.verbosity = Verbosity.quiet
+  useConfig(config)
 
   await test.step("normal error", async () => {
     const rc = await useErrorHandler(new Error("unit test error"))

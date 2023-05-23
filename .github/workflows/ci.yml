@@ -24,8 +24,8 @@ jobs:
           - macos-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
+      - run: deno cache $(find . -name \*.ts)
       - run: deno task test --coverage=cov_profile
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
       - uses: coverallsapp/github-action@v1
@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: teaxyz/setup@v0
-      - run: deno lint src/*/**.ts
+      - run: deno lint
 
   typecheck:
     runs-on: ubuntu-latest

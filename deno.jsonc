@@ -8,7 +8,6 @@
     "coverage" : "scripts/run_coverage.sh",
     "typecheck": "deno check --unstable ./src/app.ts",
     // runs this source checkout for testing
-    // NOTE this doesn't currently work due (our bug)
     "run": "deno run --unstable --allow-all src/app.ts",
     // compiles to ./tea
     "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output $INIT_CWD/tea src/app.ts",
@@ -23,10 +22,22 @@
       ]
     }
   },
+  "lint": {
+    "include": ["src/", "scripts/"]
+  },
   "tea": {
     "dependencies": {
-      "deno.land": "^1.31.1"
+      "deno.land": "^1.33.3"
     }
   },
-  "importMap": "import-map.json"
+  "imports": {
+    "is-what": "https://deno.land/x/is_what@v4.1.8/src/index.ts",
+    "jsonc": "https://deno.land/x/jsonc_parser@v0.0.1/mod.ts",
+    "tea": "https://raw.github.com/teaxyz/lib/v0.1.3/mod.ts",
+    "tea/": "https://raw.github.com/teaxyz/lib/v0.1.3/src/",
+    "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
+    "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
+    "deno/": "https://deno.land/std@0.187.0/",
+    "hooks": "./src/hooks/index.ts"
+  }
 }
