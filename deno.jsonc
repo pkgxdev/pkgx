@@ -31,10 +31,10 @@
     }
   },
   "imports": {
-    "tea": "https://raw.github.com/teaxyz/lib/v0.1.2/mod.ts",
-    "tea/": "https://raw.github.com/teaxyz/lib/v0.1.2/src/",
+    "tea": "https://raw.github.com/teaxyz/lib/v0.1.3/mod.ts",
+    "tea/": "https://raw.github.com/teaxyz/lib/v0.1.3/src/",
     "hooks": "./src/hooks/index.ts",
-    "deno/": "https://deno.land/std@0.182.0/",
+    "deno/": "https://deno.land/std@0.187.0/",
     "is-what": "https://deno.land/x/is_what@v4.1.8/src/index.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",

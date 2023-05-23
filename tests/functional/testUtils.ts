@@ -1,11 +1,12 @@
-import { Config, ConfigDefault } from "../../src/hooks/useConfig.ts"
+import useConfig, { Config, ConfigDefault } from "../../src/hooks/useConfig.ts"
 import { _internals as usePrintInternals } from "../../src/hooks/usePrint.ts"
 import { _internals as useRunInternals } from "../../src/hooks/useRun.ts"
-import { spy } from "deno/testing/mock.ts"
+import { _internals as useConfigInternals } from "tea/hooks/useConfig.ts"
 import { parseArgs } from "../../src/args.ts"
 import { run } from "../../src/app.main.ts"
-import { Path, hooks } from "tea"
-const { useConfig } = hooks
+import { spy } from "deno/testing/mock.ts"
+import { Path, utils } from "tea"
+const { panic } = utils
 
 export interface TestConfig {
   // run tea sync during test setup.  Default: true
@@ -22,12 +23,11 @@ export const createTestHarness = async (config?: TestConfig) => {
   const teaDir = tmpDir.join(dir).mkdir('p')
 
   const TEA_PREFIX = tmpDir.join('opt').mkdir()
+  let TEA_PANTRY_PATH: string | undefined
+  let TEA_CACHE_DIR = Path.home().join(".tea/tea.xyz/var/www").isDirectory()?.string
 
   if (sync) {
-    const [syncArgs, flags] = parseArgs(["--sync", "--silent"], teaDir.string)
-    const config = ConfigDefault(flags, teaDir.string, { NO_COLOR: '1', TEA_PREFIX: TEA_PREFIX.string })
-    useConfig(config)
-    await run(syncArgs)
+    TEA_PANTRY_PATH = Path.home().join(".tea/tea.xyz/var/pantry").isDirectory()?.string ?? panic("setup tea before running these tests, k?")
   }
 
   const runTea = async (args: string[], configOverrides: Partial<Config> = {}) => {
@@ -39,14 +39,27 @@ export const createTestHarness = async (config?: TestConfig) => {
     try {
       const [appArgs, flags] = parseArgs(args, teaDir.string)
 
-      const config = ConfigDefault(flags, teaDir.string, { NO_COLOR: '1', PATH: "/usr/bin:/bin", TEA_PREFIX: TEA_PREFIX.string, VERBOSE: '-1' })
+      const env: Record<string, string> = {
+        NO_COLOR: '1',
+        PATH: "/usr/bin:/bin",
+        VERBOSE: '-1',
+        TEA_PREFIX: TEA_PREFIX.string,
+      }
+      if (TEA_CACHE_DIR) env['TEA_CACHE_DIR'] = TEA_CACHE_DIR
+      if (TEA_PANTRY_PATH) env['TEA_PANTRY_PATH'] = TEA_PANTRY_PATH
 
+      const config = ConfigDefault(flags, teaDir.string, env)
+
+      useConfigInternals.reset()
       useConfig({
         ...config,
         ...configOverrides,
       })
 
       await run(appArgs)
+
+      // ensure subsequent tests aren't polluted
+      useConfigInternals.reset()
 
     } finally {
       usePrintSpy.restore()

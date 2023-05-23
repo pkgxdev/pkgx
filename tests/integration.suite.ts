@@ -6,6 +6,8 @@ interface This {
   tea: Path
   sandbox: Path
   TEA_PREFIX: Path
+  TEA_PANTRY_PATH: Path
+  TEA_CACHE_DIR: Path
   run: (opts: RunOptions) => Promise<number> & Enhancements
 }
 
@@ -16,7 +18,6 @@ type RunOptions = ({
 }) & {
   env?: Record<string, string>
   throws?: boolean
-  sync?: boolean
 }
 
 interface Enhancements {
@@ -27,53 +28,68 @@ interface Enhancements {
 const existing_tea_prefix = Deno.env.get("CI") ? undefined : Path.home().join(".tea").isDirectory()
 
 const suite = describe({
-  name: "integration tests",
-  async beforeEach(this: This) {
-    const tmp = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
-    const cwd = new Path(new URL(import.meta.url).pathname).parent().parent().string
-    const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt').mkdir()
-    const bin = tmp.join('bin').mkpath()
 
+  name: "integration tests",
+
+  async beforeAll(this: This) {
+    const tmp = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
+    const cwd = new Path(new URL(import.meta.url).pathname).parent().parent()
+
+    //TODO use deno task compile, however seems to be a bug where we cannot control the output location
     const proc = Deno.run({
       cmd: [
         "deno",
         "compile",
         "--quiet",
-        "--allow-read",    // restricting reads would be nice but Deno.symlink requires read permission to ALL
-        "--allow-write",   // restricting writes would be nice but Deno.symlink requires write permission to ALL
-        "--allow-net",
-        "--allow-run",
-        "--allow-env",
+        "-A",
         "--unstable",
-        "--output", bin.join("tea").string,
+        "--output", tmp.join("tea").string,
         "src/app.ts"
-      ], cwd
+      ], cwd: cwd.string
     })
 
     assert((await proc.status()).success)
     proc.close()
 
-    this.tea = bin.join("tea")
+    this.tea = tmp.join("tea")
     assert(this.tea.isExecutableFile())
+
+    this.TEA_PANTRY_PATH = (existing_tea_prefix ?? await (async () => {
+      const proc = Deno.run({
+        cmd: [this.tea.string, "--sync", "--silent"],
+        cwd: tmp.string,
+        env: { TEA_PREFIX: tmp.string },
+        clearEnv: true
+      })
+      assert((await proc.status()).success)
+      return tmp
+    })()).join("tea.xyz/var/pantry")
+
+    this.TEA_CACHE_DIR = (existing_tea_prefix ?? tmp).join("tea.xyz/var/www")
+  },
+
+  async beforeEach(this: This) {
+    const tmp = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
+    const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt').mkdir()
 
     this.TEA_PREFIX = TEA_PREFIX
     assert(this.TEA_PREFIX.isDirectory())
 
     this.sandbox = tmp.join("box").mkdir()
 
-    const teafile = bin.join('tea')
     const { sandbox } = this
 
-    this.run = ({env, throws, sync, ...opts}: RunOptions) => {
-      sync ??= true
+    this.run = ({env, throws, ...opts}: RunOptions) => {
       env ??= {}
       for (const key of ['HOME', 'CI', 'RUNNER_DEBUG', 'GITHUB_ACTIONS']) {
         const value = Deno.env.get(key)
         if (value) env[key] = value
       }
-      env['PATH'] = `${bin}:/usr/bin:/bin`  // these systems are full of junk so we prune PATH
+      env['PATH'] = `${this.tea.parent()}:/usr/bin:/bin`  // these systems are full of junk so we prune PATH
       env['TEA_PREFIX'] ??= TEA_PREFIX.string
-      env['CLICOLOR_FORCE'] = '1'
+      env['CLICOLOR_FORCE'] = '0'
+      env['TEA_PANTRY_PATH'] ??= this.TEA_PANTRY_PATH.string
+      env['TEA_CACHE_DIR'] ??= this.TEA_CACHE_DIR.string
 
       let stdout: "piped" | undefined
       let stderr: "piped" | undefined
@@ -85,19 +101,8 @@ const suite = describe({
           ? [...opts.args]
           : [...opts.cmd]
 
-
-        //TODO we typically don’t want silent, we just want ERRORS-ONLY
-        if ("args" in opts) {
-          if (!existing_tea_prefix && sync) {
-            cmd.unshift("--sync")
-          }
-          cmd.unshift(teafile.string)
-        } else if (cmd[0] != 'tea') {
-          // we need to do an initial --sync
-          const arg = sync ? "-Ss" : "-s"
-          const proc = Deno.run({ cmd: [teafile.string, arg], cwd: sandbox.string, env, clearEnv: true })
-          assertEquals((await proc.status()).code, 0)
-          proc.close()
+        if (cmd[0] != "tea") {
+          cmd.unshift(this.tea.string)
         }
 
         const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
@@ -150,9 +155,14 @@ const suite = describe({
       return p
     }
   },
+
   afterEach() {
-    // this.TEA_PREFIX.parent().rm({ recursive: true })
+    this.sandbox.parent().rm({ recursive: true })
   },
+
+  afterAll() {
+    this.tea.parent().rm({ recursive: true })
+  }
 })
 
 export default suite

@@ -1,4 +1,4 @@
-import { prefab, utils, hooks, PackageSpecification, Installation, PackageRequirement, Path, semver, TeaError, Package } from "tea"
+import { prefab, utils, hooks, PackageSpecification, Installation, PackageRequirement, Path, semver, TeaError } from "tea"
 import { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import install from "./useExec.install.ts"

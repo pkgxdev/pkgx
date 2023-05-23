@@ -5,7 +5,8 @@ import { TeaError, SemVer } from "tea"
 
 Deno.test("suggestions", { sanitizeResources: false, sanitizeOps: false }, async test => {
   // suggestions need a sync to occur first
-  await createTestHarness({sync: true})
+  const { run } = await createTestHarness({sync: true})
+  run(["-Sh"]) // or test fails due to lack of config being set
 
   await test.step("suggest package name", async () => {
     const err = new TeaError("not-found: pantry: package.yml", { project: "node" })

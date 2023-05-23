@@ -26,7 +26,6 @@ it(suite, "runtime.env tildes", async function() {
         TEA_PANTRY_PATH: this.sandbox.string,
         TEA_PREFIX: this.sandbox.string
       },
-      sync: false
     }).stdout()
 
     assertEquals(out.trim(), FOO.replaceAll("{{home}}", Path.home().string))
