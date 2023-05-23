@@ -43,15 +43,37 @@ export default function(self: Path, shell?: string) {
         export PATH="${d}:$PATH"
       fi
 
+      _has_tea_magic() {
+        [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]
+      }
+
       function command_not_found_handler {
-        if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
+        if _has_tea_magic; then
           TEA_MAGIC="abracadabra:$TEA_MAGIC" "${d}"/tea -- $*
         else
           echo "zsh: command not found: $*" >&2
           exit 127
         fi
       }
-      `
+
+      _tea_completion() {
+        local completions
+
+        if _has_tea_magic; then
+          # Call \`tea --autocomplete\` with the current word as the prefix
+          completions=($(tea --autocomplete \${words[CURRENT]}))
+          compadd "$completions[@]"
+        fi
+
+        # Run the default completions no matter what
+        _complete
+      }
+
+      autoload -Uz compinit
+      compinit
+
+      zstyle ':completion:*' completer _tea_completion
+      `;
   case "elvish":
     // eval ($MAGIC | slurp)
     return undent`

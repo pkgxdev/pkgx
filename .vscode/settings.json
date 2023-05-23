@@ -5,5 +5,6 @@
   "deno.config": "deno.jsonc",
   "markdownlint.config": {
     "extends": "./.github/markdownlint.yml"
-  }
+  },
+  "editor.formatOnSaveMode": "modificationsIfAvailable"
 }
