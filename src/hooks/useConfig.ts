@@ -40,7 +40,7 @@ export interface Config extends ConfigBase {
 
 export default function(input?: Config): Config {
   if (!_internals.initialized()) {
-    const rv = useConfig(input ?? panic("useConfig() not initialized")) as Config
+    const rv = useConfig(input ?? ConfigDefault()) as Config
     return rv
   } else {
     if (input) console.warn("useConfig() already initialized, new parameters ignored")
