@@ -172,11 +172,13 @@ all the same we recommend our installer:
 
 ```sh
 sh <(curl https://tea.xyz)
+# ^^ prompts you before doing **anything**!
 ```
 
 Our one-liner sets up in `~/.tea` and enables magic but it actually can do a
-whole bunch more. For all the deets and other ways to install (including [our
-GitHub Action]) check out the manual [docs.tea.xyz/getting-started].
+whole bunch more. For all the deets and other ways to install (including
+`brew install` and [our GitHub Action]) check out the manual
+[docs.tea.xyz/getting-started].
 
 &nbsp;
 
