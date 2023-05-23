@@ -62,6 +62,7 @@ const suite = describe({
         clearEnv: true
       })
       assert((await proc.status()).success)
+      proc.close()
       return tmp
     })()).join("tea.xyz/var/pantry")
 
