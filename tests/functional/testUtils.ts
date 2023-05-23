@@ -5,7 +5,8 @@ import { _internals as useConfigInternals } from "tea/hooks/useConfig.ts"
 import { parseArgs } from "../../src/args.ts"
 import { run } from "../../src/app.main.ts"
 import { spy } from "deno/testing/mock.ts"
-import { Path, utils } from "tea"
+import { Path, utils, hooks } from "tea"
+const { useSync } = hooks
 const { panic } = utils
 
 export interface TestConfig {
@@ -27,7 +28,7 @@ export const createTestHarness = async (config?: TestConfig) => {
   let TEA_CACHE_DIR = Path.home().join(".tea/tea.xyz/var/www").isDirectory()?.string
 
   if (sync) {
-    TEA_PANTRY_PATH = Path.home().join(".tea/tea.xyz/var/pantry").isDirectory()?.string ?? panic("setup tea before running these tests, k?")
+    TEA_PANTRY_PATH = (Path.home().join(".tea/tea.xyz/var/pantry").isDirectory() ?? await mkpantry()).string
   }
 
   const runTea = async (args: string[], configOverrides: Partial<Config> = {}) => {
@@ -98,4 +99,15 @@ export function newMockProcess(status?: () => Promise<Deno.CommandStatus>): Deno
       unref: () => {}
     })
   }
+}
+
+let __pantry: Path | undefined
+async function mkpantry() {
+  if (__pantry) return __pantry
+  const tmp = new Path(await Deno.makeTempDir({ prefix: "tea.functional-tests." }))
+  useConfigInternals.reset()
+  useConfig(ConfigDefault(undefined, tmp.join('tea').string, { TEA_PREFIX: tmp.string }))
+  await useSync()
+  useConfigInternals.reset()
+  return __pantry = tmp.join("tea.xyz/var/pantry")
 }
