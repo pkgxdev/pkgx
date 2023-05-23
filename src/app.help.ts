@@ -42,6 +42,7 @@ export default async function help(verbosity = Verbosity.normal) {
         --dry-run,-n             don’t do anything, just print
         --keep-going,-k          keep going as much as possible after errors
         --verbose,-v             print version and then increase verbosity †
+        --quiet,-q               status messages are more concise
         --silent,-s              no chat, no errors: only output the requested data
         --cd,-C,--chdir <dir>    change directory first
         --chaste                 abstain from networking, installing packages, etc.

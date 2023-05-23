@@ -1,4 +1,4 @@
-import { usePrefix, useExec, useVirtualEnv, useVersion, usePrint, useConfig } from "hooks"
+import { usePrefix, useExec, useVirtualEnv, useVersion, usePrint, useConfig, useLogger } from "hooks"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { Verbosity } from "./hooks/useConfig.ts"
 import { Path, utils, semver, hooks } from "tea"
@@ -23,7 +23,20 @@ export async function run(args: Args) {
   }
 
   if (args.sync) {
-    await useSync()
+    const logger = (({ new: make, logJSON }) => {
+      if (!json) {
+        const logger = make()
+        return {
+          syncing: () => logger.replace("syncing pantries…"),
+          syncd: () => logger.replace("]pantries sync’d ⎷")
+        }
+      } else return {
+        syncing: () => logJSON({status: "syncing"}),
+        syncd: () => logJSON({status: "syncd"})
+      }
+    })(useLogger())
+
+    await useSync(logger)
   }
 
   switch (args.mode) {
