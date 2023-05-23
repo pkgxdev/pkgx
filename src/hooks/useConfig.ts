@@ -3,7 +3,7 @@ import { parseBool } from "../args.ts"
 import { Flags } from "../args.ts"
 import { isNumber } from "is-what"
 import { utils, Path } from "tea"
-const { flatmap, panic } = utils
+const { flatmap } = utils
 
 import useConfig, { Config as ConfigBase, ConfigDefault as ConfigBaseDefault, _internals } from "tea/hooks/useConfig.ts"
 
