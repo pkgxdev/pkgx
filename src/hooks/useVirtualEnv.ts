@@ -17,9 +17,9 @@ export interface VirtualEnv {
 // we call into useVirtualEnv a bunch of times
 const cache: Record<string, VirtualEnv> = {}
 
-export default async function(cwd?: Path): Promise<VirtualEnv> {
+export default async function(cwd: Path): Promise<VirtualEnv> {
   const { TEA_DIR } = useConfig().env
-  cwd = TEA_DIR ?? cwd ?? Path.cwd()
+  cwd = TEA_DIR ?? cwd
 
   if (cache[cwd.string]) return cache[cwd.string]
 

@@ -181,7 +181,7 @@ Deno.test("should provide ruby in dev env", { sanitizeResources: false, sanitize
   }
 })
 
-Deno.test("TEA_DIR", { sanitizeResources: false, sanitizeOps: false }, async test => {
+Deno.test("TEA_DIR & TEA_PKGS", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const SHELL = "/bin/zsh"
 
   const tests = [
@@ -192,9 +192,10 @@ Deno.test("TEA_DIR", { sanitizeResources: false, sanitizeOps: false }, async tes
     await test.step(file, async () => {
       const { run, teaDir } = await createTestHarness()
       const foo = teaDir.join("foo").mkdir()
+      const TEA_PKGS = "deno.land^1"
 
       fixturesDir.join(file).cp({ into: foo })
-      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, TEA_DIR: foo, obj: {} } })
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, TEA_DIR: foo, TEA_PKGS, obj: {} } })
 
       const output = getTeaPackages(SHELL, stdout)
       assert(output.includes(pkg), "should include ruby dep")

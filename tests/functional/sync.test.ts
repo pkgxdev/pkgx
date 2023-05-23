@@ -52,7 +52,7 @@ Deno.test("sync without git then update with git", { sanitizeResources: false, s
 Deno.test("sync with git then update without", { sanitizeResources: false, sanitizeOps: false }, async () => {
   const {run, TEA_PREFIX } = await createTestHarness({sync: false})
 
-  await run(["-S", "+zlib.net"])
+  await run(["-S", "--json", "+zlib.net"])
 
   const expected = TEA_PREFIX.join("zlib.net")
   assert(expected.exists(), "zlib.net should exist")
