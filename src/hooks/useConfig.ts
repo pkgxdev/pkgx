@@ -49,6 +49,18 @@ export default function(input?: Config): Config {
 }
 
 export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.env.toObject()): Config {
+  if (!env['TEA_PREFIX']) {
+    const shelf = new Path(arg0)
+      .readlink() // resolves the leaf symlink (if any)
+      .parent()
+      .parent()
+      .parent()
+
+    if (shelf.basename() == 'tea.xyz') {
+      env['TEA_PREFIX'] = shelf.parent().string
+    }
+  }
+
   const defaults = ConfigBaseDefault(env)
 
   const {
