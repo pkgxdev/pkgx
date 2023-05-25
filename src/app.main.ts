@@ -28,7 +28,7 @@ export async function run(args: Args) {
         const logger = make()
         return {
           syncing: () => logger.replace("syncing pantries…"),
-          syncd: () => logger.replace("]pantries sync’d ⎷")
+          syncd: () => logger.replace("pantries sync’d ⎷")
         }
       } else return {
         syncing: () => logJSON({status: "syncing"}),
