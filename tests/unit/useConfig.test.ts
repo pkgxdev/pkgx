@@ -1,7 +1,8 @@
 import useConfig, { ConfigDefault } from "../../src/hooks/useConfig.ts"
 import { assertEquals } from "deno/testing/asserts.ts"
 import { _internals } from "tea/hooks/useConfig.ts"
-import { Path } from "tea"
+import { Path, hooks } from "tea"
+const { usePantry } = hooks
 
 Deno.test("prefix discovery", async () => {
   const tmp = new Path(await Deno.makeTempDir())
@@ -36,4 +37,19 @@ Deno.test("prefix discovery defaults to ~/.tea", async () => {
 
   const config = ConfigDefault(undefined, tea.string, {})
   assertEquals(config.prefix, Path.home().join(".tea"))
+})
+
+Deno.test("useConfig global state is shared across import styles", async () => {
+  // testing for a bug where imports of `"tea"` and `"tea/hooks/useConfig.ts"` would
+  // load their own copies of the global config object
+
+  const tmp = new Path(await Deno.makeTempDir())
+  const tea = tmp.join('tea.xyz/v0.33.2/bin').mkdir('p').join('tea').touch()
+
+  _internals.reset()
+  const defaults = ConfigDefault(undefined, tea.string, {})
+  const config = useConfig(defaults)
+
+  assertEquals(config.prefix, tmp)
+  assertEquals(usePantry().prefix, tmp.join("tea.xyz/var/pantry/projects"))
 })
