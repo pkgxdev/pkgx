@@ -40,12 +40,12 @@ export interface Config extends ConfigBase {
 
 export default function(input?: Config): Config {
   if (!_internals.initialized()) {
-    const rv = useConfig(input ?? ConfigDefault()) as Config
-    return rv
+    input ??= ConfigDefault()
   } else {
     if (input) console.warn("useConfig() already initialized, new parameters ignored")
-    return useConfig() as Config
+    input = undefined
   }
+  return useConfig(input) as Config
 }
 
 export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.env.toObject()): Config {
