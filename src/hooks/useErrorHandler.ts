@@ -91,7 +91,7 @@ function msg(err: TeaError): string {
   const { ctx } = err
 
   switch (err.code()) {
-  case 'spilt-tea-009':
+  case 'spilt-tea-007':
     if (ctx.filename instanceof Path && !ctx.filename.string.startsWith(useConfig().prefix.string)) {
       // this yaml is being worked on by the user
       msg = `${ctx.filename.prettyLocalString()}: ${ctx.cause?.message ?? 'unknown cause'}`
