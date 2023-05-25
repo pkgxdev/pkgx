@@ -16,7 +16,7 @@ type RunOptions = ({
 } | {
   cmd: string[]
 }) & {
-  env?: Record<string, string>
+  env?: Record<string, string | null>
   throws?: boolean
 }
 
@@ -34,6 +34,8 @@ const suite = describe({
   async beforeAll(this: This) {
     const tmp = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
     const cwd = new Path(new URL(import.meta.url).pathname).parent().parent()
+
+    assert(cwd.join("deno.jsonc").isFile())
 
     //TODO use deno task compile, however seems to be a bug where we cannot control the output location
     const proc = Deno.run({
@@ -71,7 +73,7 @@ const suite = describe({
 
   async beforeEach(this: This) {
     const tmp = new Path(await Deno.makeTempDir({ prefix: "tea-" }))
-    const TEA_PREFIX = existing_tea_prefix ?? tmp.join('opt').mkdir()
+    const TEA_PREFIX = tmp.join('opt').mkdir()
 
     this.TEA_PREFIX = TEA_PREFIX
     assert(this.TEA_PREFIX.isDirectory())
@@ -87,10 +89,15 @@ const suite = describe({
         if (value) env[key] = value
       }
       env['PATH'] = `${this.tea.parent()}:/usr/bin:/bin`  // these systems are full of junk so we prune PATH
-      env['TEA_PREFIX'] ??= TEA_PREFIX.string
+      if (env['TEA_PREFIX'] === undefined) env['TEA_PREFIX'] = TEA_PREFIX.string
+      if (env['TEA_PANTRY_PATH'] === undefined) env['TEA_PANTRY_PATH'] = this.TEA_PANTRY_PATH.string
+      if (env['TEA_CACHE_DIR'] === undefined) env['TEA_CACHE_DIR'] = this.TEA_CACHE_DIR.string
+
       env['CLICOLOR_FORCE'] = '0'
-      env['TEA_PANTRY_PATH'] ??= this.TEA_PANTRY_PATH.string
-      env['TEA_CACHE_DIR'] ??= this.TEA_CACHE_DIR.string
+
+      for (const [key, value] of Object.entries(env)) {
+        if (value === null) delete env[key]
+      }
 
       let stdout: "piped" | undefined
       let stderr: "piped" | undefined
@@ -106,7 +113,7 @@ const suite = describe({
           cmd.unshift(this.tea.string)
         }
 
-        const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env, clearEnv: true})
+        const proc = Deno.run({ cmd, cwd: sandbox.string, stdout, stderr, env: env as any, clearEnv: true})
         try {
           const status = await proc.status()
           if ((throws === undefined || throws) && !status.success) {
