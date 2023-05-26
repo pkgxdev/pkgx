@@ -58,6 +58,7 @@ export default async function(err: Error) {
     return code
   } else if (json) {
     logJSON({ error: true, message: err.message })
+    return 1
   } else if (!silent) {
     const { stack, message } = err ?? {}
 
