@@ -46,7 +46,6 @@ export default async function help(verbosity = Verbosity.normal) {
         --silent,-s              no chat, no errors: only output the requested data
         --cd,-C,--chdir <dir>    change directory first
         --chaste                 abstain from networking, installing packages, etc.
-        --dry-run,-n             don’t execute, just print
 
         • repetitions override previous values
         • long form boolean flags can be assigned, eg. --env=no
