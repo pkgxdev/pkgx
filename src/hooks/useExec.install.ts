@@ -51,7 +51,7 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
   }
 
   //TODO json mode
-  if (dryrun) {
+  if (!dryrun) {
     const mlogger = json ? JSONLogger() : new MultiLogger(pending, logger)
     const ops = pending
       .map(pkg => install(pkg, mlogger)
