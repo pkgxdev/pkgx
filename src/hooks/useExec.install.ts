@@ -10,7 +10,7 @@ import undent from "outdent"
 // TEA_PREFIX until all their deps are moved in
 
 export default async function(pkgs: PackageSpecification[], update: boolean) {
-  const { modifiers: { json, dryrun }, env } = useConfig()
+  const { modifiers: { json, dryrun }, env, prefix } = useConfig()
   const logger = useLogger().new()
   const { logJSON } = useLogger()
 
@@ -51,15 +51,38 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
   }
 
   //TODO json mode
-  const mlogger = new MultiLogger(pending, logger)
-  const ops = pending
-    .map(pkg => install(pkg, mlogger)
-      .then(async i => { await link(i); return i }))
-  installed.push(...await Promise.all(ops))
-
-  logger.clear()
+  if (dryrun) {
+    const mlogger = json ? JSONLogger() : new MultiLogger(pending, logger)
+    const ops = pending
+      .map(pkg => install(pkg, mlogger)
+        .then(async i => { await link(i); return i }))
+    installed.push(...await Promise.all(ops))
+    logger.clear()  // clears install progress
+  } else for (const pkg of pending) {
+    const installation = { pkg, path: prefix.join(pkg.project, `v${pkg.version}`) }
+    log_installed_msg(pkg, 'imagined', logger)
+    installed.push(installation)
+  }
 
   return { installed, dry }
+}
+
+const log_installed_msg = (pkg: Package, title: string, logger: Logger) => {
+  const { prefix, modifiers: { json } } = useConfig()
+  const { gray, logJSON } = useLogger()
+
+  const pkg_prefix_str = (pkg: Package) => [
+    gray(prefix.prettyString()),
+    pkg.project,
+    `${gray('v')}${pkg.version}`
+  ].join(gray('/'))
+
+  if (json) {
+    logJSON({status: title, pkg: utils.pkg.str(pkg)})
+  } else {
+    const str = pkg_prefix_str(pkg)
+    logger!.replace(`${title}: ${str}`, { prefix: false })
+  }
 }
 
 
@@ -115,18 +138,7 @@ class MultiLogger implements InstallLogger {
   unlocking(_pkg: Package): void {}
 
   installed(installation: Installation): void {
-    const { prefix } = useConfig()
-    const { gray } = useLogger()
-
-    const pkg_prefix_str = (pkg: Package) => [
-      gray(prefix.prettyString()),
-      pkg.project,
-      `${gray('v')}${pkg.version}`
-    ].join(gray('/'))
-
-    const pkgstr = pkg_prefix_str(installation.pkg)
-    const str = `installed: ${pkgstr}`
-    this.logger.replace(str)
+    log_installed_msg(installation.pkg, 'installed', this.logger)
     this.logger.reset()
     this.update()
   }
@@ -171,5 +183,27 @@ class MultiLogger implements InstallLogger {
     }
 
     this.logger.replace(`${teal(prefix)} ${str}`)
+  }
+}
+
+function JSONLogger(): InstallLogger {
+  const { logJSON } = useLogger()
+  return {
+    locking(pkg: Package): void {
+      logJSON({status: "locking", pkg: utils.pkg.str(pkg) })
+    },
+    /// raw http info
+    downloading({pkg, src, dst, rcvd, total}: {pkg: Package, src?: URL, dst?: Path, rcvd?: number, total?: number}): void {
+      logJSON({status: "downloading", "received": rcvd, "content-size": total, pkg, src, dst })
+    },
+    installing({pkg, progress}: {pkg: Package, progress: number | undefined}): void {
+      logJSON({status: "installing", pkg, progress })
+    },
+    unlocking(pkg: Package): void {
+      logJSON({status: "unlocking", pkg: utils.pkg.str(pkg) })
+    },
+    installed(installation: Installation): void {
+      logJSON({status: "installed", pkg: utils.pkg.str(installation.pkg), path: installation.path})
+    }
   }
 }
