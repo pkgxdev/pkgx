@@ -1,14 +1,18 @@
-import { PackageSpecification, Package, utils, Installation, prefab } from "tea"
+import { PackageSpecification, Package, utils, Installation, prefab, Path } from "tea"
+import { Logger as InstallLogger } from "tea/prefab/install.ts"
 const { hydrate, link, resolve, install } = prefab
 import useLogger, { Logger } from "./useLogger.ts"
 import { ExitError } from "./useErrorHandler.ts"
 import useConfig from "./useConfig.ts"
 import undent from "outdent"
 
+//TODO we should use even more plumbing to ensure pkgs aren’t moved into
+// TEA_PREFIX until all their deps are moved in
+
 export default async function(pkgs: PackageSpecification[], update: boolean) {
   const { modifiers: { json, dryrun }, env, prefix } = useConfig()
   const logger = useLogger().new()
-  const { logJSON, gray } = useLogger()
+  const { logJSON } = useLogger()
 
   if (!json) {
     logger.replace("resolving package graph")
@@ -46,103 +50,21 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
     } while (true)
   }
 
-  for (const pkg of pending) {
-    let installation: Installation
-    const logger = useLogger().new(gray(utils.pkg.str(pkg)))
-
-    if (dryrun) {
-      installation = { pkg, path: prefix.join(pkg.project, `v${pkg.version}`) }
-      log_installed_msg(pkg, 'imagined', logger)
-    } else {
-      installation = await i(pkg, logger)
-      await link(installation)
-    }
-
+  //TODO json mode
+  if (!dryrun) {
+    const mlogger = json ? JSONLogger() : new MultiLogger(pending, logger)
+    const ops = pending
+      .map(pkg => install(pkg, mlogger)
+        .then(async i => { await link(i); return i }))
+    installed.push(...await Promise.all(ops))
+    logger.clear()  // clears install progress
+  } else for (const pkg of pending) {
+    const installation = { pkg, path: prefix.join(pkg.project, `v${pkg.version}`) }
+    log_installed_msg(pkg, 'imagined', logger)
     installed.push(installation)
   }
 
   return { installed, dry }
-}
-
-async function i(pkg: Package, logger: Logger) {
-  const { modifiers: { json, verbosity } } = useConfig()
-  const { logJSON, teal, gray } = useLogger()
-
-  let bytes = 0
-  let content_size: number | undefined
-  const timestamp = Date.now()
-
-  return await install(pkg, {
-    locking: () => {
-      if (!json) {
-        logger.replace(teal("locking"))
-      } else {
-        logJSON({status: "locking", pkg: utils.pkg.str(pkg) })
-      }
-    },
-    /// raw http info
-    downloading: ({pkg, src, dst, rcvd, total}) => {
-      if (json) {
-        logJSON({status: "downloading", "received": rcvd, "content-size": total, pkg, src, dst })
-      } else if (verbosity >= 0) {
-        bytes = rcvd ?? 0
-        content_size = total
-      } else if (total) {
-        content_size = total
-        logger.replace(`${teal('installing')} ${gray(pretty_size(total))}`)
-      } else {
-        logger.replace(`${teal('installing')}`)
-      }
-    },
-    installing: ({pkg, progress}) => {
-      if (json) {
-        logJSON({status: "installing", pkg, progress })
-      } else if (verbosity >= 0) {
-        let s = teal("installing")
-
-        let pc = (progress ?? 0) * 100;
-        pc = pc < 1 ? Math.round(pc) : Math.floor(pc);  // don’t say 100% at 99.5%
-
-        s += ` ${pc}%`.padEnd(4, ' ')
-
-        const duration = Date.now() - timestamp
-        if (duration > 0) {
-          const speed = bytes / duration * 1000
-          let dl = pretty_size(speed)
-          dl += "/s"
-          s += ` ${gray(dl)}`
-        }
-
-        if (content_size) {
-          const a = pretty_size(bytes)
-          const b = pretty_size(content_size)
-          s += ` ${gray(`${a}/${b}`)}`
-        }
-
-        logger.replace(s)
-      }
-    },
-    unlocking: (pkg: Package) => {
-      if (json) logJSON({status: "unlocking", pkg: utils.pkg.str(pkg) })
-    },
-    installed: (installation: Installation) => {
-      log_installed_msg(installation.pkg, 'installed', logger)
-    }
-  })
-}
-
-
-////////////////// utils //////////////////
-
-function pretty_size(n: number) {
-  const units = ["B", "KiB", "MiB", "GiB", "TiB"]
-  let i = 0
-  while (n > 1024 && i < units.length - 1) {
-    n /= 1024
-    i++
-  }
-  const precision = n < 10 ? 2 : n < 100 ? 1 : 0
-  return `${n.toFixed(precision)} ${units[i]}`
 }
 
 const log_installed_msg = (pkg: Package, title: string, logger: Logger) => {
@@ -160,5 +82,128 @@ const log_installed_msg = (pkg: Package, title: string, logger: Logger) => {
   } else {
     const str = pkg_prefix_str(pkg)
     logger!.replace(`${title}: ${str}`, { prefix: false })
+  }
+}
+
+
+////////////////// utils //////////////////
+
+function pretty_size(n: number, fixed?: number): [string, number] {
+  const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
+  let i = 0
+  let divisor = 1
+  while (n > 1024) {
+    n /= 1024
+    i++
+    divisor *= 1024
+  }
+  return [`${n.toFixed(fixed ?? precision(n))} ${units[i]}`, divisor]
+}
+
+function precision(n: number) {
+  return n < 10 ? 2 : n < 100 ? 1 : 0
+}
+
+class MultiLogger implements InstallLogger {
+  projects: string[]
+  rcvd: Record<string, number> = {}
+  totals: Record<string, number> = {}
+  progress: Record<string, number> = {}
+  logger: Logger
+  start = Date.now()
+
+  constructor(pkgs: Package[], logger: Logger) {
+    this.projects = pkgs.map(x => x.project)
+    for (const project in this.projects) {
+      this.rcvd[project] = 0
+      this.totals[project] = 0
+    }
+    this.logger = logger
+  }
+
+  downloading({ pkg: { project }, rcvd, total }: { pkg: Package; src?: URL|undefined; dst?: Path|undefined; rcvd?: number|undefined; total?: number|undefined; }): void {
+    if (!rcvd || !total) return
+    this.rcvd[project] = rcvd
+    this.totals[project] = total
+    this.update()
+  }
+
+  installing({ pkg: { project }, progress }: { pkg: Package; progress: number|undefined; }): void {
+    if (!progress) return
+    this.progress[project] = progress
+    this.update()
+  }
+
+  locking(_pkg: Package): void {}
+  unlocking(_pkg: Package): void {}
+
+  installed(installation: Installation): void {
+    log_installed_msg(installation.pkg, 'installed', this.logger)
+    this.logger.reset()
+    this.update()
+  }
+
+  private total_rcvd(): number {
+    return Object.values(this.rcvd).reduce((a, b) => a + b, 0)
+  }
+
+  private total_progress(): number {
+    let total_untard_bytes = 0
+    for (const project of this.projects) {
+      const bytes = this.progress[project] * this.totals[project]
+      total_untard_bytes += bytes
+    }
+    return total_untard_bytes / Object.values(this.totals).reduce((a, b) => a + b, 0)
+  }
+
+  private update() {
+    const { teal, gray } = useLogger()
+    let str = ''
+
+    const pc = this.total_progress()
+    let prefix: string
+    if (!isNaN(pc)) {
+      str = `${(pc * 100).toFixed()}% `
+      prefix = 'installing'
+    } else {
+      prefix = 'downloading'
+    }
+
+    const rcvd = this.total_rcvd()
+    const total = Object.values(this.totals).reduce((a, b) => a + b, 0)
+
+    const speed = this.total_rcvd() / (Date.now() - this.start) * 1000
+    str += gray(`${pretty_size(speed)[0]}/s`)
+
+    if (rcvd && total) {
+      const [pretty_total, divisor] = pretty_size(total, 0)
+      const n = rcvd / divisor
+      const pretty_rcvd = n.toFixed(precision(n))
+      str += gray(` ${pretty_rcvd}/${pretty_total}`)
+    }
+
+    this.logger.replace(`${teal(prefix)} ${str}`)
+  }
+}
+
+function JSONLogger(): InstallLogger {
+  const { logJSON } = useLogger()
+  return {
+    locking(pkg: Package): void {
+      logJSON({status: "locking", pkg: utils.pkg.str(pkg) })
+    },
+    /// raw http info
+    downloading({pkg, src, dst, rcvd, total}: {pkg: Package, src?: URL, dst?: Path, rcvd?: number, total?: number}): void {
+      logJSON({status: "downloading", "received": rcvd, "content-size": total, pkg, src, dst })
+    },
+    installing({pkg, progress}: {pkg: Package, progress: number | undefined}): void {
+      logJSON({status: "installing", pkg, progress })
+    },
+    unlocking(pkg: Package): void {
+      logJSON({status: "unlocking", pkg: utils.pkg.str(pkg) })
+    },
+    installed(installation: Installation): void {
+      logJSON({status: "installed", pkg: utils.pkg.str(installation.pkg), path: installation.path})
+    }
   }
 }
