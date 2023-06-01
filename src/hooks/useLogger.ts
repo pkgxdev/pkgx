@@ -105,6 +105,10 @@ export class Logger {
       this.lines = 0
     }
   }
+
+  reset() {
+    this.lines = 0
+  }
 }
 
 export function logJSON(data: Record<string, unknown>) {
