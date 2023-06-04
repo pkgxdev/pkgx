@@ -1,11 +1,11 @@
-import { prefab, utils, hooks, PackageSpecification, Installation, PackageRequirement, Path, semver, TeaError } from "tea"
+import { plumbing, utils, hooks, PackageSpecification, Installation, PackageRequirement, Path, semver, TeaError } from "tea"
 import { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
 import { VirtualEnv } from "./useVirtualEnv.ts"
 import install from "./useExec.install.ts"
 import useConfig from "./useConfig.ts"
 
 const { usePantry, useCellar, useDownload, useShellEnv } = hooks
-const { hydrate } = prefab
+const { hydrate } = plumbing
 
 interface Parameters {
   args: string[]

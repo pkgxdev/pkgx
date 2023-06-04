@@ -41,8 +41,8 @@ export interface Config extends ConfigBase {
 export default function(input?: Config): Config {
   if (!_internals.initialized()) {
     input ??= ConfigDefault()
-  } else {
-    if (input) console.warn("useConfig() already initialized, new parameters ignored")
+  } else if (input) {
+    console.warn("useConfig() already initialized, new parameters ignored")
     input = undefined
   }
   return useConfig(input) as Config
@@ -50,12 +50,12 @@ export default function(input?: Config): Config {
 
 export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.env.toObject()): Config {
   if (!env['TEA_PREFIX']) {
+    // if we’re installed in a prefix, adopt that prefix
     const shelf = new Path(arg0)
       .readlink() // resolves the leaf symlink (if any)
       .parent()
       .parent()
       .parent()
-
     if (shelf.basename() == 'tea.xyz') {
       env['TEA_PREFIX'] = shelf.parent().string
     }

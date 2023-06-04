@@ -1,6 +1,6 @@
-import { PackageSpecification, Package, utils, Installation, prefab, Path } from "tea"
-import { Logger as InstallLogger } from "tea/prefab/install.ts"
-const { hydrate, link, resolve, install } = prefab
+import { PackageSpecification, Package, utils, Installation, plumbing, Path } from "tea"
+import { Logger as InstallLogger } from "tea/plumbing/install.ts"
+const { hydrate, link, resolve, install } = plumbing
 import useLogger, { Logger } from "./useLogger.ts"
 import { ExitError } from "./useErrorHandler.ts"
 import useConfig from "./useConfig.ts"
