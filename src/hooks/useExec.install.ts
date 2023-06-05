@@ -5,19 +5,22 @@ import useLogger, { Logger } from "./useLogger.ts"
 import { ExitError } from "./useErrorHandler.ts"
 import useConfig from "./useConfig.ts"
 import undent from "outdent"
+import { Verbosity } from "./index.ts"
 
 //TODO we should use even more plumbing to ensure pkgs aren’t moved into
 // TEA_PREFIX until all their deps are moved in
 
 export default async function(pkgs: PackageSpecification[], update: boolean) {
-  const { modifiers: { json, dryrun }, env, prefix } = useConfig()
+  const { modifiers: { json, dryrun, verbosity }, env, prefix } = useConfig()
   const logger = useLogger().new()
-  const { logJSON } = useLogger()
+  const { logJSON, teal } = useLogger()
 
-  if (!json) {
+  if (json) {
+    logJSON({ status: "resolving" })
+  } else if (verbosity > Verbosity.quiet) {
     logger.replace("resolving package graph")
   } else {
-    logJSON({ status: "resolving" })
+    logger.replace(`${teal("installing")} ${pkgs.map(utils.pkg.str).join(", ")}`)
   }
 
   const { pkgs: wet, dry } = await hydrate(pkgs)
@@ -204,6 +207,14 @@ function JSONLogger(): InstallLogger {
     },
     installed(installation: Installation): void {
       logJSON({status: "installed", pkg: utils.pkg.str(installation.pkg), path: installation.path})
+    }
+  }
+}
+
+function QuietLogger(logger: Logger): InstallLogger {
+  return {
+    installed(installation: Installation): void {
+      log_installed_msg(installation.pkg, 'installed', logger)
     }
   }
 }
