@@ -55,7 +55,11 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
 
   //TODO json mode
   if (!dryrun) {
-    const mlogger = json ? JSONLogger() : new MultiLogger(pending, logger)
+    const mlogger = json
+      ? JSONLogger()
+      : verbosity > Verbosity.quiet
+        ? new MultiLogger(pending, logger)
+        : QuietLogger(logger)
     const ops = pending
       .map(pkg => install(pkg, mlogger)
         .then(async i => { await link(i); return i }))
