@@ -33,8 +33,8 @@
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.8/src/index.ts",
     "jsonc": "https://deno.land/x/jsonc_parser@v0.0.1/mod.ts",
-    "tea": "https://raw.github.com/teaxyz/lib/v0.3.0/mod.ts",
-    "tea/": "https://raw.github.com/teaxyz/lib/v0.3.0/src/",
+    "tea": "https://raw.github.com/teaxyz/lib/v0.3.1/mod.ts",
+    "tea/": "https://raw.github.com/teaxyz/lib/v0.3.1/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
     "deno/": "https://deno.land/std@0.187.0/",
