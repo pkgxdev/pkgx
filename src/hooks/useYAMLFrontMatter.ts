@@ -4,12 +4,26 @@ const { validatePackageRequirement } = hacks
 const { useMoustaches, useConfig } = hooks
 const { validate } = utils
 
+export interface FrontMatter {
+  args: string[]
+  pkgs: PackageRequirement[]
+  env: Record<string, string>
+}
+
+export default async function(script: Path, srcroot?: Path): Promise<FrontMatter | undefined> {
+  const yaml = await readYAMLFrontMatter(script)
+  if (!yaml) return
+  return refineFrontMatter(yaml, srcroot)
+}
+
+
+
 interface Return1 {
   getDeps: (wbuild: boolean) => PackageRequirement[]
   yaml: PlainObject
 }
 
-export default function usePackageYAML(yaml: unknown): Return1 {
+function parseYAMLFrontMatter(yaml: unknown): Return1 {
   //TODO do magic: if (err == "no-front-matter")
 
   if (!isPlainObject(yaml)) throw new Error("bad-yaml")
@@ -28,14 +42,8 @@ export default function usePackageYAML(yaml: unknown): Return1 {
   return { getDeps, yaml }
 }
 
-export interface FrontMatter {
-  args: string[]
-  pkgs: PackageRequirement[]
-  env: Record<string, string>
-}
-
 export function refineFrontMatter(obj: unknown, srcroot?: Path): FrontMatter {
-  const rv = usePackageYAML(obj)
+  const rv = parseYAMLFrontMatter(obj)
 
   const getArgs = () => {
     const fn1 = () => {
@@ -78,14 +86,7 @@ export function refineFrontMatter(obj: unknown, srcroot?: Path): FrontMatter {
   }
 }
 
-export async function usePackageYAMLFrontMatter(script: Path, srcroot?: Path): Promise<FrontMatter | undefined> {
-  const yaml = await readYAMLFrontMatter(script)
-  if (!yaml) return
-  return refineFrontMatter(yaml, srcroot)
-}
-
-
-import { parse as parseYaml } from "https://deno.land/std@0.182.0/encoding/yaml.ts"
+import { parse as parseYaml } from "https://deno.land/std@0.190.0/yaml/parse.ts"
 import { readLines } from "deno/io/read_lines.ts"
 
 async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined> {

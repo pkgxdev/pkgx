@@ -69,3 +69,11 @@ it(suite, "hardlinks work", async function() {
   const out = await run(['node', "--eval", "console.log('hello')"], node.parent(), this.TEA_PREFIX)
   assertEquals(out, "hello\n", out)
 })
+
+it(suite, "auto-symlinks in ~/.tea/local work", async function() {
+  /// this functionality only works for properly installed tea/cli installations
+  this.tea = this.tea.cp({ into: this.TEA_PREFIX.join("tea.xyz/v*/bin").mkdir('p') })
+  await this.run({args: ["perl", "--version"]})
+
+  assert(this.TEA_PREFIX.join("local/bin/perl").isExecutableFile())
+})

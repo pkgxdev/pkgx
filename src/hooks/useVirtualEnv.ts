@@ -1,4 +1,4 @@
-import { usePackageYAMLFrontMatter, refineFrontMatter, FrontMatter } from "./usePackageYAML.ts"
+import usePackageYAMLFrontMatter, { refineFrontMatter, FrontMatter } from "./useYAMLFrontMatter.ts"
 import { PackageRequirement, Path, SemVer, utils, TeaError, hooks, semver } from "tea"
 const { flatmap, pkg, validate } = utils
 import { isPlainObject } from "is-what"

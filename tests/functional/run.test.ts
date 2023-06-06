@@ -88,3 +88,8 @@ Deno.test("usage error", async () => {
   const { run } = await createTestHarness()
   assertRejects(() => run(["--invalid-option"]))
 })
+
+Deno.test("tea commands", async () => {
+  const { run } = await createTestHarness()
+  await run(["pkg", "query", "--prefix", "zlib.net=1"])
+})

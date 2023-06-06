@@ -1,11 +1,11 @@
 import { PackageSpecification, Package, utils, Installation, plumbing, Path } from "tea"
 import { Logger as InstallLogger } from "tea/plumbing/install.ts"
-const { hydrate, link, resolve, install } = plumbing
-import useLogger, { Logger } from "./useLogger.ts"
-import { ExitError } from "./useErrorHandler.ts"
-import useConfig from "./useConfig.ts"
+import useConfig, { Verbosity } from "../hooks/useConfig.ts"
+import useLogger, { Logger } from "../hooks/useLogger.ts"
+import { ExitError } from "../hooks/useErrorHandler.ts"
+const { hydrate, link: base_link, resolve, install } = plumbing
 import undent from "outdent"
-import { Verbosity } from "./index.ts"
+import usePantry from "https://raw.githubusercontent.com/teaxyz/lib/v0.3.1/src/hooks/usePantry.ts"
 
 //TODO we should use even more plumbing to ensure pkgs aren’t moved into
 // TEA_PREFIX until all their deps are moved in
@@ -62,7 +62,7 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
         : QuietLogger(logger)
     const ops = pending
       .map(pkg => install(pkg, mlogger)
-        .then(async i => { await link(i); return i }))
+        .then(link))
     installed.push(...await Promise.all(ops))
     logger.clear()  // clears install progress
   } else for (const pkg of pending) {
@@ -76,7 +76,9 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
 
 const log_installed_msg = (pkg: Package, title: string, logger: Logger) => {
   const { prefix, modifiers: { json } } = useConfig()
-  const { gray, logJSON } = useLogger()
+  const { gray } = useLogger()
+
+  console.assert(!json)
 
   const pkg_prefix_str = (pkg: Package) => [
     gray(prefix.prettyString()),
@@ -84,12 +86,8 @@ const log_installed_msg = (pkg: Package, title: string, logger: Logger) => {
     `${gray('v')}${pkg.version}`
   ].join(gray('/'))
 
-  if (json) {
-    logJSON({status: title, pkg: utils.pkg.str(pkg)})
-  } else {
-    const str = pkg_prefix_str(pkg)
-    logger!.replace(`${title}: ${str}`, { prefix: false })
-  }
+  const str = pkg_prefix_str(pkg)
+  logger!.replace(`${title}: ${str}`, { prefix: false })
 }
 
 
@@ -221,4 +219,24 @@ function QuietLogger(logger: Logger): InstallLogger {
       log_installed_msg(installation.pkg, 'installed', logger)
     }
   }
+}
+
+async function link(installation: Installation) {
+  const pp: Promise<void>[] = [base_link(installation)]
+
+  const bin = useConfig().prefix.join("local/bin")
+  const tea = useConfig().prefix.join("tea.xyz/v*/bin/tea").isExecutableFile()?.relative({ to: bin })
+
+  /// we only do auto-POSIX symlinking if tea is installed properly
+  if (tea) for (const provides of await usePantry().project(installation.pkg).provides()) {
+    const target = bin.mkdir('p').join(provides)
+    if (!target.exists()) {
+      const p = Deno.symlink(tea, target.string)
+      pp.push(p)
+    }
+  }
+
+  await Promise.all(pp)
+
+  return installation
 }
