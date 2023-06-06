@@ -1,3 +1,5 @@
+//NOTE we statically replace this file at deployment
+
 import { README } from "./useVirtualEnv.ts"
 import { Path } from "tea"
 
@@ -11,5 +13,3 @@ const version = `${(
 export default function() {
   return version
 }
-
-// we statically replace this file at deployment

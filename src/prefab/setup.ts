@@ -1,8 +1,7 @@
-import { plumbing, utils, hooks, PackageSpecification, Installation, PackageRequirement, Path, semver, TeaError } from "tea"
-import { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
-import { VirtualEnv } from "./useVirtualEnv.ts"
-import install from "./useExec.install.ts"
-import useConfig from "./useConfig.ts"
+import { plumbing, utils, hooks, PackageSpecification, Installation, Path, semver, TeaError } from "tea"
+import { useYAMLFrontMatter, VirtualEnv, useConfig } from "hooks"
+import base_which from "tea/plumbing/which.ts"
+import install from "../prefab/install.ts"
 
 const { usePantry, useCellar, useDownload, useShellEnv } = hooks
 const { hydrate } = plumbing
@@ -35,7 +34,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
 
     const precmd: string[] = []
 
-    const yaml = await usePackageYAMLFrontMatter(arg0, inject?.srcroot)
+    const yaml = await useYAMLFrontMatter(arg0, inject?.srcroot)
     if (yaml) {
       precmd.unshift(...yaml.args)
       Object.assign(env, yaml.env)  //FIXME should override env from pkgs
@@ -183,96 +182,23 @@ function urlify(arg0: string) {
   }
 }
 
-type WhichResult = PackageRequirement & {
-  shebang?: string
-}
-
 export async function which(arg0: string | undefined) {
-  if (!arg0?.trim() || arg0.includes("/")) {
-    // no shell we know allows searching for subdirectories off PATH
-    return false
-  }
-
-  const { TEA_PKGS, TEA_MAGIC } = useConfig().env
-  const pantry = usePantry()
-  let found: { project: string, constraint: semver.Range, shebang: string[] } | undefined
-  const promises: Promise<void>[] = []
+  if (!arg0) return
+  const { TEA_MAGIC } = useConfig().env
   const abracadabra = TEA_MAGIC?.split(":").includes("abracadabra")
-
-  for await (const entry of pantry.ls()) {
-    if (found) break
-    const p = pantry.project(entry).provides().then(providers => {
-      for (const provider of providers) {
-        if (found) {
-          return
-        } else if (provider == arg0 || (!abracadabra && provider == `tea-${arg0}`)) {
-          const inenv = TEA_PKGS?.split(":")
-            .map(utils.pkg.parse)
-            .find(x => x.project == entry.project)
-          if (inenv) {
-            // we are being executed via the command not found handler inside a dev-env
-            // so let’s use the version that was already calculated for this dev-env
-            if ("version" in inenv) {
-              found = {...inenv, constraint: new semver.Range(`=${inenv.version}`), shebang: [provider] }
-            } else {
-              found = {...inenv, shebang: [provider] }
-            }
-          } else {
-            const constraint = new semver.Range("*")
-            found = {...entry, constraint, shebang: [provider] }
-          }
-        } else if (arg0.startsWith(provider)) {
-          // eg. `node^16` symlink
-          try {
-            const constraint = new semver.Range(arg0.substring(provider.length))
-            found = {...entry, constraint, shebang: [provider] }
-          } catch {
-            // not a valid semver range; fallthrough
-          }
-        } else {
-          //TODO more efficient to check the prefix fits arg0 first
-          // eg. if python3 then check if the provides starts with python before
-          // doing all the regex shit. Matters because there's a *lot* of YAMLs
-
-          let rx = /({{\s*version\.(marketing|major)\s*}})/
-          let match = provider.match(rx)
-          if (!match?.index) continue
-          const regx = match[2] == 'major' ? '\\d+' : '\\d+\\.\\d+'
-          const foo = subst(match.index, match.index + match[1].length, provider, `(${regx})`)
-          rx = new RegExp(`^${foo}$`)
-          match = arg0.match(rx)
-          if (match) {
-            const constraint = new semver.Range(`~${match[1]}`)
-            found = {...entry, constraint, shebang: [arg0] }
-          }
-        }
-      }
-    }).swallow(/^parser: pantry: package.yml/)
-    promises.push(p)
-
-    const pp = pantry.project(entry).provider().then(f => {
-      if (!f) return
-      const rv = f(arg0)
-      if (rv) found = {
-        ...entry,
-        constraint: new semver.Range('*'),
-        shebang: [...rv, arg0]
-      }
-    })
-    promises.push(pp)
+  ///FIXME is slow to scan all package.ymls twice :/
+  if (!abracadabra) {
+    const found = await base_which(`tea-${arg0}`, { providers: false })
+    if (found) return found
   }
 
-  if (!found) {
-    // if we didn’t find anything yet then we have to wait on the promises
-    // otherwise we can ignore them
-    await Promise.all(promises)
+  const found = await base_which(arg0, { providers: true })
+  if (!found) return
+
+  const inenv = useConfig().env.TEA_PKGS?.split(":").map(utils.pkg.parse).find(x => x.project == found?.project)
+  if (inenv) {
+    found.constraint = inenv.constraint
   }
 
-  if (found) {
-    return found
-  }
-}
-
-const subst = function(start: number, end: number, input: string, what: string) {
-  return input.substring(0, start) + what + input.substring(end)
+  return found
 }

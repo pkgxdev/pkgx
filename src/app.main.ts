@@ -1,10 +1,11 @@
-import { usePrefix, useExec, useVirtualEnv, useVersion, usePrint, useConfig, useLogger } from "hooks"
+import { usePrefix, useVirtualEnv, useVersion, usePrint, useConfig, useLogger } from "hooks"
 import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { Verbosity } from "./hooks/useConfig.ts"
 import { Path, utils, semver, hooks } from "tea"
 import { basename } from "deno/path/mod.ts"
 import exec, { repl } from "./app.exec.ts"
 import provides from "./app.provides.ts"
+import setup from "./prefab/setup.ts"
 import magic from "./app.magic.ts"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
@@ -46,7 +47,7 @@ export async function run(args: Args) {
     const wut_ = wut(args)
 
     const venv = await injection(args)
-    const {cmd, env, pkgs, installations} = await useExec({...args, inject: venv})
+    const {cmd, env, pkgs, installations} = await setup({...args, inject: venv})
 
     const full_path = () => [...env["PATH"]?.split(':') ?? [], ...PATH?.split(':') ?? []].uniq()
 

@@ -1,5 +1,5 @@
 import { ExitError } from "./hooks/useErrorHandler.ts"
-import { which } from "./hooks/useExec.ts"
+import which from "tea/plumbing/which.ts"
 
 export default async function provides(args: string[]) {
   let status = 0;

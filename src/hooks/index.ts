@@ -1,7 +1,5 @@
-
-import useExec from "./useExec.ts"
-import useVirtualEnv from "./useVirtualEnv.ts"
-import usePackageYAML, { usePackageYAMLFrontMatter } from "./usePackageYAML.ts"
+import useVirtualEnv, { VirtualEnv } from "./useVirtualEnv.ts"
+import useYAMLFrontMatter from "./useYAMLFrontMatter.ts"
 import useVersion from "./useVersion.ts"
 import useErrorHandler, { ExitError } from "./useErrorHandler.ts"
 import usePrint from "./usePrint.ts"
@@ -14,10 +12,8 @@ function usePrefix() {
 }
 
 export {
-  useExec,
   useVirtualEnv,
-  usePackageYAML,
-  usePackageYAMLFrontMatter,
+  useYAMLFrontMatter,
   useVersion,
   useErrorHandler,
   usePrint,
@@ -30,7 +26,7 @@ export {
   ExitError
 }
 
-export type { RunOptions }
+export type { RunOptions, VirtualEnv }
 
 declare global {
   interface Array<T> {
