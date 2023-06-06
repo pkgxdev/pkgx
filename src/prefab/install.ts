@@ -6,6 +6,7 @@ import { ExitError } from "../hooks/useErrorHandler.ts"
 const { hydrate, link: base_link, resolve, install } = plumbing
 import undent from "outdent"
 import usePantry from "https://raw.githubusercontent.com/teaxyz/lib/v0.3.1/src/hooks/usePantry.ts"
+import { DenoStdInternalError } from "https://deno.land/std@0.190.0/_util/asserts.ts"
 
 //TODO we should use even more plumbing to ensure pkgs aren’t moved into
 // TEA_PREFIX until all their deps are moved in
@@ -223,16 +224,25 @@ function QuietLogger(logger: Logger): InstallLogger {
 
 async function link(installation: Installation) {
   const pp: Promise<void>[] = [base_link(installation)]
+  const { prefix: TEA_PREFIX } = useConfig()
 
-  const bin = useConfig().prefix.join("local/bin")
-  const tea = useConfig().prefix.join("tea.xyz/v*/bin/tea").isExecutableFile()?.relative({ to: bin })
+  const bin = TEA_PREFIX.join(".local/bin")
+  const tea = TEA_PREFIX.join("tea.xyz/v*/bin/tea").isExecutableFile()
+  const provides = await usePantry().project(installation.pkg).provides()
 
   /// we only do auto-POSIX symlinking if tea is installed properly
-  if (tea) for (const provides of await usePantry().project(installation.pkg).provides()) {
-    const target = bin.mkdir('p').join(provides)
-    if (!target.exists()) {
-      const p = Deno.symlink(tea, target.string)
+  if (tea && provides.length) {
+    const tealink = bin.mkdir('p').join("tea")
+    if (!tealink.exists()) {
+      const p = Deno.symlink(tea.relative({ to: bin }), tealink.string)
       pp.push(p)
+    }
+    for (const exename of provides) {
+      const target = bin.join(exename)
+      if (!target.exists()) {
+        const p = Deno.symlink("tea", target.string)
+        pp.push(p)
+      }
     }
   }
 
