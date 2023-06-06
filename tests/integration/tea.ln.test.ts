@@ -75,5 +75,5 @@ it(suite, "auto-symlinks in ~/.tea/local work", async function() {
   this.tea = this.tea.cp({ into: this.TEA_PREFIX.join("tea.xyz/v*/bin").mkdir('p') })
   await this.run({args: ["perl", "--version"]})
 
-  assert(this.TEA_PREFIX.join("local/bin/perl").isExecutableFile())
+  assert(this.TEA_PREFIX.join(".local/bin/perl").isExecutableFile())
 })
