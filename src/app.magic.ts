@@ -17,8 +17,8 @@ export default function(self: Path, shell?: string) {
         fi
       }
 
-      if test "$TERM_PROGRAM" = WarpTerminal -o "$TERM_PROGRAM" = vscode; then
-        # warp.dev & vscode integrated terminal don’t call the hook on startup
+      if test "$TERM_PROGRAM" != Apple_Terminal; then
+        # Apple’s app calls this hook itself, but nothing else seems to
         _tea_chpwd_hook
       fi
 
@@ -28,11 +28,18 @@ export default function(self: Path, shell?: string) {
         chpwd_functions=( _tea_chpwd_hook \${chpwd_functions[@]} )
       fi
 
+      # add our shims to the PATH
+      TEA_PREFIX="\${TEA_PREFIX:-$HOME/.tea}"
+      if [[ "$PATH" != *"$TEA_PREFIX/.local/bin"* ]]; then
+        export PATH="$TEA_PREFIX/.local/bin:$PATH"
+      fi
+
+      # we configure eg. \`npm i -g\`, cargo, etc. to install here
       if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
         export PATH="$HOME/.local/bin:$PATH"
       fi
 
-      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
+      if ! command -v tea 2>&1 >/dev/null; then
         export PATH="${d}:$PATH"
       fi
 
@@ -113,6 +120,12 @@ export default function(self: Path, shell?: string) {
         builtin cd "$@" || return
         source /dev/stdin <<<"$("${d}"/tea +tea.xyz/magic -Esk --chaste env)"
       }
+
+      # add our shims to the PATH
+      TEA_PREFIX="\${TEA_PREFIX:-$HOME/.tea}"
+      if [[ "$PATH" != *"$TEA_PREFIX/.local/bin"* ]]; then
+        export PATH="$TEA_PREFIX/.local/bin:$PATH"
+      fi
 
       if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
         export PATH="$HOME/.local/bin:$PATH"

@@ -1,9 +1,9 @@
 #!/usr/bin/env -S deno run -A
 
-import { hooks, semver, Installation, prefab } from "tea"
+import { hooks, semver, Installation, plumbing } from "tea"
 import { useConfig } from "hooks"
 const { useCellar } = hooks
-const { link } = prefab
+const { link } = plumbing
 
 if (import.meta.main) {
   useConfig()
