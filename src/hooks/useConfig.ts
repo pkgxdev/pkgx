@@ -76,17 +76,20 @@ export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.
     PATH
   } = env
 
+  // we only output color & control sequences to stderr
+  const isTTY = () => Deno.isatty(Deno.stderr.rid)
+
   return {
     ...defaults,
     arg0: new Path(arg0),
     UserAgent: `tea.cli/${useVersion()}`,
     logger: {
       prefix: undefined,
-      color: getColor(env)
+      color: getColor(env, isTTY)
     },
     modifiers: {
       dryrun: flags?.dryrun ?? false,
-      verbosity: flags?.verbosity ?? getVerbosity(env),
+      verbosity: flags?.verbosity ?? getVerbosity(env, isTTY()),
       json: flags?.json ?? false,
       keepGoing: flags?.keepGoing ?? false,
     },
@@ -115,7 +118,7 @@ export enum Verbosity {
   trace = 3
 }
 
-function getVerbosity(env: Record<string, string>): Verbosity {
+function getVerbosity(env: Record<string, string>, sequences_ok: boolean): Verbosity {
   const { DEBUG, GITHUB_ACTIONS, RUNNER_DEBUG, VERBOSE, CI } = env
 
   if (DEBUG == '1') return Verbosity.debug
@@ -124,7 +127,7 @@ function getVerbosity(env: Record<string, string>): Verbosity {
   const verbosity = flatmap(VERBOSE, parseInt)
   if (isNumber(verbosity)) {
     return verbosity
-  } else if (parseBool(CI)) {
+  } else if (parseBool(CI) || !sequences_ok) {
     // prevents dumping 100s of lines of download progress
     return Verbosity.quiet
   } else {
@@ -132,9 +135,7 @@ function getVerbosity(env: Record<string, string>): Verbosity {
   }
 }
 
-function getColor(env: Record<string, string>) {
-  const isTTY = () => Deno.isatty(Deno.stdout.rid) && Deno.isatty(Deno.stdout.rid)
-
+function getColor(env: Record<string, string>, isTTY: () => boolean) {
   if ((env.CLICOLOR ?? '1') != '0' && isTTY()){
     //https://bixense.com/clicolors/
     return true
