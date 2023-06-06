@@ -1,12 +1,11 @@
 import { PackageSpecification, Package, utils, Installation, plumbing, Path } from "tea"
 import { Logger as InstallLogger } from "tea/plumbing/install.ts"
+const { hydrate, link: base_link, resolve, install } = plumbing
 import useConfig, { Verbosity } from "../hooks/useConfig.ts"
 import useLogger, { Logger } from "../hooks/useLogger.ts"
 import { ExitError } from "../hooks/useErrorHandler.ts"
-const { hydrate, link: base_link, resolve, install } = plumbing
+import usePantry from "tea/hooks/usePantry.ts"
 import undent from "outdent"
-import usePantry from "https://raw.githubusercontent.com/teaxyz/lib/v0.3.1/src/hooks/usePantry.ts"
-import { DenoStdInternalError } from "https://deno.land/std@0.190.0/_util/asserts.ts"
 
 //TODO we should use even more plumbing to ensure pkgs aren’t moved into
 // TEA_PREFIX until all their deps are moved in
