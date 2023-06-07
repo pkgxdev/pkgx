@@ -20,7 +20,7 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
   } else if (verbosity > Verbosity.quiet) {
     logger.replace("resolving package graph")
   } else {
-    logger.replace(`${teal("installing")} ${pkgs.map(utils.pkg.str).join(", ")}`)
+    logger.replace(`${teal("resolving")} ${pkgs.map(utils.pkg.str).join(", ")}`)
   }
 
   const { pkgs: wet, dry } = await hydrate(pkgs)
@@ -29,8 +29,12 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
   if (json) {
     logJSON({ status: "resolved", pkgs: pending.map(utils.pkg.str) })
   } else {
-    logger.clear()
     console.debug({hydrating: pkgs})
+    if (verbosity <= Verbosity.quiet) {
+      logger.replace(`${teal("installing")} ${pending.map(utils.pkg.str).join(", ")}`)
+    } else {
+      logger.clear()
+    }
   }
 
   if (!dryrun && env.TEA_MAGIC?.split(':').includes("prompt")) {
