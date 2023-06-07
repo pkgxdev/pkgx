@@ -60,8 +60,8 @@ export default function(self: Path, shell?: string) {
         local completions
 
         if _has_tea_magic; then
-          # Call \`tea --autocomplete\` with the current word as the prefix
-          completions=($(tea --autocomplete \${words[CURRENT]}))
+          # Call \`tea --complete\` with the current word as the prefix
+          completions=($(tea --complete \${words[CURRENT]}))
           compadd "$completions[@]"
         fi
 
