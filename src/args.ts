@@ -34,7 +34,15 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
       : link.basename()
     const match = base.match(/^tea[_+]([^\/]+)$/)
     if (link.basename() == "deno" && !link.isSymlink()) return  // deno is literally executing our source code
-    args = [match?.[1] ?? base, ...args]
+
+    // we are toLowerCase() here to prevent fork bombing
+    // https://github.com/teaxyz/cli/issues/463
+    // this is not ideal, but we can't figure out how else to get macOS to
+    // tell us the true case of the file which is necessary to fix this properly
+    // this works well enough considering we don’t yet have a tool with any capitals in it
+    const newarg0 = (match?.[1] ?? base).toLowerCase()
+
+    args = [newarg0, ...args]
   })()
 
   const rv: Args = {
