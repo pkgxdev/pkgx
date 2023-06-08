@@ -6,6 +6,7 @@ import useLogger, { Logger } from "../hooks/useLogger.ts"
 import { ExitError } from "../hooks/useErrorHandler.ts"
 import usePantry from "tea/hooks/usePantry.ts"
 import undent from "outdent"
+import host from "https://raw.githubusercontent.com/teaxyz/lib/v0.4.2/src/utils/host.ts"
 
 //TODO we should use even more plumbing to ensure pkgs aren’t moved into
 // TEA_PREFIX until all their deps are moved in
@@ -226,25 +227,34 @@ function QuietLogger(logger: Logger): InstallLogger {
 }
 
 async function link(installation: Installation) {
-  const pp: Promise<void>[] = [base_link(installation)]
-  const { prefix: TEA_PREFIX } = useConfig()
+  const pp: Promise<void>[] = []
 
+  pp.push(base_link(installation))
+
+  const { prefix: TEA_PREFIX } = useConfig()
   const bin = TEA_PREFIX.join(".local/bin")
   const tea = TEA_PREFIX.join("tea.xyz/v*/bin/tea").isExecutableFile()
-  const provides = await usePantry().project(installation.pkg).provides()
 
-  /// we only do auto-POSIX symlinking if tea is installed properly
-  if (tea && provides.length) {
-    const tealink = bin.mkdir('p').join("tea")
-    if (!tealink.exists()) {
-      const p = Deno.symlink(tea.relative({ to: bin }), tealink.string)
-      pp.push(p)
-    }
-    for (const exename of provides) {
-      const target = bin.join(exename)
-      if (!target.exists()) {
-        const p = Deno.symlink("tea", target.string)
+  if (host().platform == 'darwin') {
+    // currently we only do this on macOS because Linux will not
+    // provide the symlink as arg0 to the executable
+    // we can work around this using shim shell scripts but that’s more work
+
+    const provides = await usePantry().project(installation.pkg).provides()
+
+    /// we only do auto-POSIX symlinking if tea is installed properly
+    if (tea && provides.length) {
+      const tealink = bin.mkdir('p').join("tea")
+      if (!tealink.exists()) {
+        const p = Deno.symlink(tea.relative({ to: bin }), tealink.string)
         pp.push(p)
+      }
+      for (const exename of provides) {
+        const target = bin.join(exename)
+        if (!target.exists()) {
+          const p = Deno.symlink("tea", target.string)
+          pp.push(p)
+        }
       }
     }
   }
