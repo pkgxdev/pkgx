@@ -30,12 +30,12 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
   if (json) {
     logJSON({ status: "resolved", pkgs: pending.map(utils.pkg.str) })
   } else {
-    console.debug({hydrating: pkgs})
-    if (verbosity <= Verbosity.quiet) {
-      logger.replace(`${teal("installing")} ${pending.map(utils.pkg.str).join(", ")}`)
-    } else {
+    if (verbosity > Verbosity.quiet) {
       logger.clear()
+    } else if (pending.length) {
+      logger.replace(`${teal("installing")} ${pending.map(utils.pkg.str).join(", ")}`)
     }
+    console.debug({hydrating: pkgs})
   }
 
   if (!dryrun && env.TEA_MAGIC?.split(':').includes("prompt")) {
