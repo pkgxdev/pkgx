@@ -127,8 +127,12 @@ function getVerbosity(env: Record<string, string>, sequences_ok: boolean): Verbo
   const verbosity = flatmap(VERBOSE, parseInt)
   if (isNumber(verbosity)) {
     return verbosity
-  } else if (parseBool(CI) || !sequences_ok) {
+  } else if (parseBool(CI)) {
     // prevents dumping 100s of lines of download progress
+    return Verbosity.quiet
+  } else if (!Deno.isatty(Deno.stderr.rid)) {
+    return Verbosity.silent
+  } else if (!sequences_ok) {
     return Verbosity.quiet
   } else {
     return Verbosity.normal
