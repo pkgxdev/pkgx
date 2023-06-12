@@ -221,6 +221,12 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
         srcroot = f!.parent()
       }
     }
+    if (_if(".yarnrc")) {
+      pkgs.push({ project: "classic.yarnpkg.com", constraint })
+    }
+    if (_if(".yarnrc.yml")) {
+      pkgs.push({ project: "yarnpkg.com", constraint })
+    }
     if (_if("tea.yml", "tea.yaml")) {
       insert(refineFrontMatter(await f!.readYAML()))
     }
