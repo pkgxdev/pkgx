@@ -7,6 +7,13 @@ import help from "./app.help.ts"
 try {
   const [args, flags] = parseArgs(Deno.args, Deno.execPath())
 
+  // this effects useConfig and other args so needs to be done as soon as possible
+  if (args.cd) {
+    const chdir = args.cd
+    console.log({ chdir })
+    Deno.chdir(chdir.string)
+  }
+
   const config = ConfigDefault(flags)
 
   config.logger.prefix = (!Deno.isatty(Deno.stdout.rid) || Deno.env.get("CI")) ? "tea:" : undefined
