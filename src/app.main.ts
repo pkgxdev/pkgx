@@ -17,12 +17,6 @@ export async function run(args: Args) {
   const { print } = usePrint()
   const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity, json } } = useConfig()
 
-  if (args.cd) {
-    const chdir = args.cd
-    console.log({ chdir })
-    Deno.chdir(chdir.string)
-  }
-
   if (args.sync) {
     const logger = (({ new: make, logJSON }) => {
       if (!json) {
