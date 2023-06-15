@@ -1,10 +1,10 @@
 import usePackageYAMLFrontMatter, { refineFrontMatter, FrontMatter } from "./useYAMLFrontMatter.ts"
 import { PackageRequirement, Path, SemVer, utils, TeaError, hooks, semver } from "tea"
+import * as JSONC from "deno/jsonc/mod.ts"
 const { flatmap, pkg, validate } = utils
 import { isPlainObject } from "is-what"
 import useConfig from "./useConfig.ts"
 const { useMoustaches } = hooks
-import { JSONC } from "jsonc"
 
 export interface VirtualEnv {
   pkgs: PackageRequirement[]
@@ -124,8 +124,10 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
     if (_if("deno.json", "deno.jsonc")) {
       pkgs.push({project: "deno.land", constraint})
       const json = JSONC.parse(await f!.read())
-      if (isPlainObject(json?.tea)) {
-        insert(refineFrontMatter(json?.tea, srcroot))
+      // deno-lint-ignore no-explicit-any
+      const tea = (json as any)?.tea
+      if (isPlainObject(tea)) {
+        insert(refineFrontMatter(tea, srcroot))
       }
     }
     if (_if(".node-version")) {
