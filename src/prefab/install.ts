@@ -144,7 +144,12 @@ class MultiLogger implements InstallLogger {
     this.update()
   }
 
-  locking(_pkg: Package): void {}
+  locking(pkg: Package): void {
+    if (!this.total_progress()) {
+      const { teal } = useLogger()
+      this.logger.replace(`${teal("locking")} ${utils.pkg.str(pkg)}`)  //TODO
+    }
+  }
   unlocking(_pkg: Package): void {}
 
   installed(installation: Installation): void {
