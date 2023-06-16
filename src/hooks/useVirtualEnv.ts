@@ -223,7 +223,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
         srcroot = f!.parent()
       }
     }
-    if (_if(".yarnrc")) {
+    if (_if(".yarnrc") && dir.neq(Path.home())) {
       pkgs.push({ project: "classic.yarnpkg.com", constraint })
     }
     if (_if(".yarnrc.yml")) {
@@ -235,11 +235,11 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
     if (_if("VERSION")) {
       flatmap(semver.parse(await f!.read()), v => version = v)
     }
-    if (_if_d(".git") && Deno.build.os != "darwin") {
+    if (_if_d(".git") && Deno.build.os != "darwin" && dir.neq(Path.home())) {
       // pkgs.push({project: "git-scm.org", constraint})
       srcroot ??= f
     }
-    if (_if_d(".hg", ".svn")) {
+    if (_if_d(".hg", ".svn") && dir.neq(Path.home())) {
       srcroot ??= f
     }
   }
