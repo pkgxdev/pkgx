@@ -44,11 +44,11 @@ jobs:
           - [self-hosted, linux, ARM64]
           - [self-hosted, macOS, X64]
           - [self-hosted, linux, X64]
-      steps:
-        - uses: actions/checkout@v3
-        - uses: denoland/setup-deno@v1
-        - run: deno cache $(find . -name \*.ts)
-        - run: deno task test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: denoland/setup-deno@v1
+      - run: deno cache $(find . -name \*.ts)
+      - run: deno task test
 
   upload-coverage:
     needs: tests
