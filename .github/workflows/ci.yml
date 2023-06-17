@@ -39,10 +39,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        - [self-hosted, macOS, ARM64]
-        - [self-hosted, linux, ARM64]
-        - [self-hosted, macOS, X64]
-        - [self-hosted, linux, X64]
+        os:
+          - [self-hosted, macOS, ARM64]
+          - [self-hosted, linux, ARM64]
+          - [self-hosted, macOS, X64]
+          - [self-hosted, linux, X64]
       steps:
         - uses: actions/checkout@v3
         - uses: denoland/setup-deno@v1
