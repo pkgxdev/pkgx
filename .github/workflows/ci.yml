@@ -46,7 +46,7 @@ jobs:
           - [self-hosted, linux, X64]
     steps:
       - uses: actions/checkout@v3
-      - uses: denoland/setup-deno@v1
+      - uses: teaxyz/setup@v0
       - run: deno cache $(find . -name \*.ts)
       - run: deno task test
 
