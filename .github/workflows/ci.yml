@@ -22,10 +22,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-          - [self-hosted, macOS, ARM64]
-          - [self-hosted, linux, ARM64]
-          - [self-hosted, macOS, X64]
-          - [self-hosted, linux, X64]
     steps:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
@@ -37,6 +33,21 @@ jobs:
           path-to-lcov: cov_profile.lcov
           parallel: true
           flag-name: ${{ matrix.os }}
+
+  thorough:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        - [self-hosted, macOS, ARM64]
+        - [self-hosted, linux, ARM64]
+        - [self-hosted, macOS, X64]
+        - [self-hosted, linux, X64]
+      steps:
+        - uses: actions/checkout@v3
+        - uses: denoland/setup-deno@v1
+        - run: deno cache $(find . -name \*.ts)
+        - run: deno task test
 
   upload-coverage:
     needs: tests
