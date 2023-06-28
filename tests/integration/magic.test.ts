@@ -81,7 +81,7 @@ it(suite, "tea --magic in a script. fish", async function() {
     # we write a file because currently there's a bug where
     # fish cannot redirect from the command not found handler
 
-    node^18 --eval "require('fs').writeFileSync('node.out', 'xyz.tea.hi')"
+    node@18 --eval "require('fs').writeFileSync('node.out', 'xyz.tea.hi')"
 
     if test "$(cat node.out)" != xyz.tea.hi
       exit 3
