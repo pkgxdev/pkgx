@@ -6,8 +6,13 @@ import { parseArgs } from "../../src/args.ts"
 import { run } from "../../src/app.main.ts"
 import { spy } from "deno/testing/mock.ts"
 import { Path, utils, hooks } from "tea"
+import { ExitError } from "../../src/hooks/index.ts"
 const { useSync } = hooks
 const { panic } = utils
+
+/// we can’t exec in the tests or they immediately end!
+useRunInternals.nativeRun = runWithoutExec
+
 
 export interface TestConfig {
   // run tea sync during test setup.  Default: true
@@ -98,6 +103,14 @@ export function newMockProcess(status?: () => Promise<Deno.CommandStatus>): Deno
       ref: () => {},
       unref: () => {}
     })
+  }
+}
+
+async function runWithoutExec({cmd: [cmd, ...args], env}: {cmd: string[], env: Record<string, string>}) {
+  const proc = new Deno.Command(cmd, {args, env}).spawn()
+  const { code, success } = await proc.status
+  if (!success) {
+    throw new ExitError(code)
   }
 }
 

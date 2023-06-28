@@ -17,7 +17,7 @@ Deno.test("run a python script", { sanitizeResources: false, sanitizeOps: false 
     useRunSpy.restore()
   }
 
-  const [python, script] = [useRunSpy.calls[0].args[0], ...useRunSpy.calls[0].args[1].args!]
+  const [python, script] = [useRunSpy.calls[0].args[0], ...useRunSpy.calls[0].args[0].cmd]
 
   assert(python.toString().startsWith("python3."))
   assertEquals(script, scriptFile)

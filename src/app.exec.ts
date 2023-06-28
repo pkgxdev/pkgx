@@ -2,6 +2,7 @@ import { useConfig, useRun, useLogger, RunError, Verbosity, ExitError } from "ho
 import { Installation, Path, utils, TeaError } from "tea"
 import { basename } from "deno/path/mod.ts"
 import { isNumber } from "is-what"
+import execle from "./utils/execle.ts"
 
 export default async function(cmd: string[], env: Record<string, string>) {
   const { TEA_FORK_BOMB_PROTECTOR } = useConfig().env
@@ -81,13 +82,5 @@ export async function repl(installations: Installation[], env: Record<string, st
       )
   }
 
-  try {
-    await useRun({cmd, env})
-  } catch (err) {
-    if (err instanceof RunError) {
-      throw new ExitError(err.code)
-    } else {
-      throw err
-    }
-  }
+  execle(cmd[0], cmd, env)
 }

@@ -4,18 +4,18 @@
     "strict": true
   },
   "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --unstable",
+    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --allow-ffi --unstable",
     "coverage" : "scripts/run_coverage.sh",
     "typecheck": "deno check --unstable ./src/app.ts",
     // runs this source checkout for testing
     "run": "deno run --unstable -A src/app.ts",
     // compiles to ./tea
-    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output $INIT_CWD/tea src/app.ts",
+    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/tea src/app.ts",
     // installs this source checkout as a tea stowed package
     "install": "deno compile --unstable -Ao $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
   },
   "lint": {
-    "include": ["src/", "scripts/"]
+    "include": ["src/"]
   },
   "tea": {
     "dependencies": {
