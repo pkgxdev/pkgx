@@ -114,10 +114,24 @@ function announce(self: Path) {
 
   switch (useConfig().modifiers.verbosity) {
   case Verbosity.debug:
+  case Verbosity.trace:
     if (self.basename() == "deno") {
-      console.debug({ deno: self.string, prefix, import: import.meta, tea: version })
+      const { deno: vDeno, ...deno } = Deno.version
+      console.debug({
+        tea: {
+          version,
+          prefix
+        },
+        deno: {
+          version: vDeno,
+          ...deno
+        }
+      })
     } else {
-      console.debug(`${prefix}/tea.xyz/v${version}/bin/tea`)
+      console.debug({
+        tea: `${prefix}/tea.xyz/v${version}/bin/tea`,
+        ...Deno.version
+      })
     }
     break
   case Verbosity.loud:

@@ -79,6 +79,8 @@ export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.
   // we only output color & control sequences to stderr
   const isTTY = () => Deno.isatty(Deno.stderr.rid)
 
+  const verbosity = Math.min(flags?.verbosity ?? getVerbosity(env, isTTY()), Verbosity.trace)
+
   return {
     ...defaults,
     arg0: new Path(arg0),
@@ -89,7 +91,7 @@ export function ConfigDefault(flags?: Flags, arg0 = Deno.execPath(), env = Deno.
     },
     modifiers: {
       dryrun: flags?.dryrun ?? false,
-      verbosity: flags?.verbosity ?? getVerbosity(env, isTTY()),
+      verbosity,
       json: flags?.json ?? false,
       keepGoing: flags?.keepGoing ?? false,
     },
