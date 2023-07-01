@@ -15,7 +15,7 @@ export default async function help(verbosity = Verbosity.normal) {
   05    $ tea node^19 --eval 'console.log("tea.xyz")'
         $ tea +nodejs.org man node
         $ tea +bun.sh sh
-        # ^^ try out bun in an containerized shell
+        # ^^ try out bun in a containerized shell
 
   10  flags:
         --sync,-S       sync and update environment packages
