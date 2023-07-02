@@ -1,4 +1,3 @@
-import { CStringArray, cstr } from "https://raw.githubusercontent.com/aapoalas/libclang_deno/1.0.0-beta.8/lib/utils.ts"
 import { utils, Path, TeaError } from "tea"
 const { host } = utils
 
@@ -25,10 +24,14 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
 
   find_in_PATH(args, env.PATH)
 
-  const path = Deno.UnsafePointer.of(cstr(args[0]))
-  const argv = arr_to_c(args)
-  const envp = arr_to_c(Object.entries(env).map(([key, value]) => `${key}=${value}`))
-  libc.symbols.execve(path, argv, envp)
+  const path = cstr(args[0])
+  const argv = new CStringArray(args)
+  const envp = new CStringArray(Object.entries(env).map(([key, value]) => `${key}=${value}`))
+
+  libc.symbols.execve(
+    Deno.UnsafePointer.of(path),
+    Deno.UnsafePointer.of(argv),
+    Deno.UnsafePointer.of(envp))
 
   switch (libc.symbols.errno) {
     case 2:  //ENOENT:
@@ -52,11 +55,7 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
       throw new TeaError(`execve (${libc.symbols.errno})`)
   }
 
-  throw new Error("unexpected error")
-}
-
-function arr_to_c(arr: string[]): Deno.PointerValue {
-  return Deno.UnsafePointer.of(new CStringArray([...arr, ""]))
+  throw new Error(`execve (${libc.symbols.errno})`)
 }
 
 function find_in_PATH(cmd: string[], PATH?: string) {
@@ -78,3 +77,52 @@ function find_in_PATH(cmd: string[], PATH?: string) {
     }
   }
 }
+
+
+////// COPY PASTA
+// actually minor mods to add trailing null
+// https://github.com/aapoalas/libclang_deno/blob/main/lib/utils.ts
+
+const ENCODER = new TextEncoder();
+
+export class CStringArray extends Uint8Array {
+  constructor(strings?: string[]) {
+    if (!strings || strings.length === 0) {
+      super();
+      return;
+    }
+    let stringsLength = 0;
+    for (const string of strings) {
+      // Byte length of a UTF-8 string is never bigger than 3 times its length.
+      // 2 times the length would be a fairly safe guess. For command line arguments,
+      // we expect that all characters should be single-byte UTF-8 characters.
+      // Add one byte for the null byte.
+      stringsLength += string.length + 1;
+    }
+    super(8 * (strings.length + 1) + stringsLength);
+    const pointerBuffer = new BigUint64Array(this.buffer, 0, strings.length + 1);
+    const stringsBuffer = new Uint8Array(this.buffer).subarray(
+      (strings.length + 1) * 8,
+    );
+    const basePointer = BigInt(
+      Deno.UnsafePointer.value(Deno.UnsafePointer.of(stringsBuffer)),
+    );
+    let index = 0;
+    let offset = 0;
+    for (const string of strings) {
+      const start = offset;
+      const result = ENCODER.encodeInto(
+        string,
+        stringsBuffer.subarray(start),
+      );
+      if (result.read !== result.written) {
+        throw new Error("Not a single byte UTF-8 string");
+      }
+      offset = start + result.written + 1; // Leave null byte
+      pointerBuffer[index++] = basePointer + BigInt(start);
+    }
+  }
+}
+
+export const cstr = (string: string): Uint8Array =>
+  ENCODER.encode(`${string}\0`);
