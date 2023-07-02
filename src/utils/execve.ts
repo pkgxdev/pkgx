@@ -1,7 +1,8 @@
+import { CStringArray, cstr } from "https://raw.githubusercontent.com/aapoalas/libclang_deno/1.0.0-beta.8/lib/utils.ts"
 import { utils, Path, TeaError } from "tea"
 const { host } = utils
 
-export default function({cmd: argv, env}: {cmd: string[], env: Record<string, string>}): Deno.Command {
+export default function({cmd: args, env}: {cmd: string[], env: Record<string, string>}): Deno.Command {
   const filename = host().platform == 'darwin' ? '/usr/lib/libSystem.dylib' : 'libc.so.6'
 
   const libc = Deno.dlopen(
@@ -18,24 +19,21 @@ export default function({cmd: argv, env}: {cmd: string[], env: Record<string, st
 
   /// we need to forward any other env, some vars like HOME are super important
   /// but otherwise the user has set stuff so we should use it
-  const openv = Deno.env.toObject()
-  for (const key in openv) {
-    if (!(key in env)) {
-      env[key] = openv[key]
-    }
+  for (const [key, value] of Object.entries(Deno.env.toObject())) {
+    env[key] ??= value
   }
 
-  find_in_PATH(argv, env.PATH)
+  find_in_PATH(args, env.PATH)
 
-  const command = Deno.UnsafePointer.of(new TextEncoder().encode(`${argv[0]}\0`))
-  const env_ = Object.entries(env).map(([key, value]) => `${key}=${value}\0`)
-
-  libc.symbols.execve(command, arr_to_c(argv), arr_to_c(env_))
+  const path = Deno.UnsafePointer.of(cstr(args[0]))
+  const argv = arr_to_c(args)
+  const envp = arr_to_c(Object.entries(env).map(([key, value]) => `${key}=${value}`))
+  libc.symbols.execve(path, argv, envp)
 
   switch (libc.symbols.errno) {
     case 2:  //ENOENT:
       // yes: strange behavior from execve here indeed
-      if (new Path(argv[0]).exists()) {
+      if (new Path(args[0]).exists()) {
         throw new Deno.errors.PermissionDenied()
       } else {
         throw new Deno.errors.NotFound()
@@ -51,24 +49,14 @@ export default function({cmd: argv, env}: {cmd: string[], env: Record<string, st
     case 12: //ENOMEM:
     case 20: //ENOTDIR:
     case 26: //ETXTBSY:
-      throw new TeaError(`execve failed (${libc.symbols.errno})`)
+      throw new TeaError(`execve (${libc.symbols.errno})`)
   }
 
   throw new Error("unexpected error")
 }
 
 function arr_to_c(arr: string[]): Deno.PointerValue {
-  //TODO word size may not be 4 bytes!
-  const argv_ = new BigUint64Array((arr.length + 1) * 4)
-  for (let i = 0; i < arr.length; i++) {
-    const a = new TextEncoder().encode(`${arr[i]}\0`)
-    const b = Deno.UnsafePointer.of(a)
-    const c = Deno.UnsafePointer.value(b)
-
-    argv_.set([BigInt(c)], i)
-  }
-  argv_[arr.length] = 0n
-  return Deno.UnsafePointer.of(argv_)
+  return Deno.UnsafePointer.of(new CStringArray([...arr, ""]))
 }
 
 function find_in_PATH(cmd: string[], PATH?: string) {
