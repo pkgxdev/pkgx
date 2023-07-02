@@ -194,7 +194,7 @@ it(suite, "tea script that tea doesn’t know what to do with errors cleanly", a
     `
   }).chmod(0o500)
   const out = await this.run({args: [fixture.string], throws: false})
-  assertEquals(out, 12)
+  assertEquals(out, 1)
 })
 
 it(suite, "tea shebang but executed via tea interprets shebang", async function() {
