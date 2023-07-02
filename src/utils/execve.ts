@@ -116,7 +116,7 @@ export class CStringArray extends Uint8Array {
         stringsBuffer.subarray(start),
       );
       if (result.read !== result.written) {
-        throw new Error("Not a single byte UTF-8 string");
+        throw new Error(`not single byte UTF-8 string: ${string}`);
       }
       offset = start + result.written + 1; // Leave null byte
       pointerBuffer[index++] = basePointer + BigInt(start);
