@@ -62,7 +62,7 @@ export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
         if (arg0.extname() == '.sh') {
           precmd.unshift("sh")
         } else {
-          throw new TeaError("confused: interpreter", {arg0})
+          throw new TeaError(`confused: interpreter: ${arg0}`)
         }
       }
     } else {
@@ -125,7 +125,7 @@ async function read_shebang(path: Path): Promise<string[]> {
   if (shebang) {
     const args = shebang.split(/\s+/).filter(x => x)
     const arg0 = Path.abs(args.shift() ?? '')?.basename()
-    if (!arg0) throw new Error(`couldn’t figure out shebang: ${line} for ${path}`)
+    if (!arg0) throw new TeaError(`couldn’t figure out shebang: ${path}`, {line, path})
     return [arg0, ...args]
   }
 

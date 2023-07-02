@@ -2,6 +2,7 @@ import { assertEquals, assertRejects } from "deno/testing/asserts.ts"
 import { createTestHarness, newMockProcess } from "./testUtils.ts"
 import { stub, returnsNext } from "deno/testing/mock.ts"
 import { ExitError } from "../../src/hooks/useErrorHandler.ts"
+import { RunError } from "../../src/hooks/useRun.ts";
 
 Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const tests = [
@@ -46,10 +47,9 @@ Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: fal
         useRunStub.restore()
       }
 
-      const foo = [useRunStub.calls[0].args[0], ...useRunStub.calls[0].args[1].args!]
-      assertEquals(foo, expectedCmd)
+      assertEquals(useRunStub.calls[0].args[0].cmd, expectedCmd)
 
-      const { env } = useRunStub.calls[0].args[1]
+      const { env } = useRunStub.calls[0].args[0]
       assertEquals(env?.["TEA_PREFIX"], TEA_PREFIX.string)
       Object.entries(expectedEnv).forEach(([key, value]) => {
         assertEquals(env?.[key], value)

@@ -5,7 +5,7 @@ import useErrorHandler, { ExitError } from "./useErrorHandler.ts"
 import usePrint from "./usePrint.ts"
 import useConfig, { Verbosity } from "./useConfig.ts"
 import useLogger from "./useLogger.ts"
-import useRun, { RunError, RunOptions } from "./useRun.ts"
+import useRun from "./useRun.ts"
 
 function usePrefix() {
   return useConfig().prefix
@@ -21,12 +21,11 @@ export {
   useConfig,
   useLogger,
   Verbosity,
-  RunError,
   useRun,
   ExitError
 }
 
-export type { RunOptions, VirtualEnv }
+export type { VirtualEnv }
 
 declare global {
   interface Array<T> {

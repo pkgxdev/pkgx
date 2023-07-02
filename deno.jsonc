@@ -4,18 +4,18 @@
     "strict": true
   },
   "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --unstable",
+    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --allow-ffi --unstable",
     "coverage" : "scripts/run_coverage.sh",
     "typecheck": "deno check --unstable ./src/app.ts",
     // runs this source checkout for testing
     "run": "deno run --unstable -A src/app.ts",
     // compiles to ./tea
-    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --unstable --output $INIT_CWD/tea src/app.ts",
+    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/tea src/app.ts",
     // installs this source checkout as a tea stowed package
     "install": "deno compile --unstable -Ao $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
   },
   "lint": {
-    "include": ["src/", "scripts/"]
+    "include": ["src/"]
   },
   "tea": {
     "dependencies": {
@@ -24,11 +24,11 @@
   },
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
-    "tea": "https://deno.land/x/libtea@v0.7.0/mod.ts",
-    "tea/": "https://deno.land/x/libtea@v0.7.0/src/",
+    "tea": "https://deno.land/x/libtea@v0.8.0/mod.ts",
+    "tea/": "https://deno.land/x/libtea@v0.8.0/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
-    "deno/": "https://deno.land/std@0.191.0/",
+    "deno/": "https://deno.land/std@0.192.0/",
     "hooks": "./src/hooks/index.ts"
   }
 }

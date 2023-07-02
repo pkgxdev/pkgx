@@ -1,7 +1,7 @@
 import { basename } from "deno/path/mod.ts"
+import { Path, TeaError } from "tea"
 import { useConfig } from "hooks"
 import undent from "outdent"
-import { Path } from "tea"
 
 export default function(self: Path, shell?: string) {
   const { SHELL } = useConfig().env
@@ -140,6 +140,6 @@ export default function(self: Path, shell?: string) {
       }
       `
     default:
-      throw new Error("unsupported shell")
+      throw new TeaError("unsupported shell", {shell})
   }
 }

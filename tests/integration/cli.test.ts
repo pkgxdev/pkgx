@@ -20,7 +20,7 @@ it(suite, "tea +zlib.net --json", async function() {
 
 it(suite, "`tea +foo.com --json` errors neatly", async function() {
   const code = await this.run({ args: ["--json", "+foo.com", "true"], throws: false })
-  assertEquals(code, 7)
+  assertEquals(code, 1)
 })
 
 it(suite, "tea --version", async function() {

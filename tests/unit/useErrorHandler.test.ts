@@ -17,7 +17,7 @@ Deno.test("useErrorHandler", async test => {
   await test.step("tea error", async () => {
     const err = new TeaError("not-found: pantry", { project: "foo.com", cause: { message: "error" } })
     const rc = await useErrorHandler(err)
-    assertEquals(rc, 9)
+    assertEquals(rc, 1)
   })
 
   await test.step("normal error", async () => {
@@ -33,6 +33,6 @@ Deno.test("useErrorHandler silent", async test => {
 
   await test.step("normal error", async () => {
     const rc = await useErrorHandler(new Error("unit test error"))
-    assertEquals(rc, 1)
+    assertEquals(rc, 128)
   })
 })

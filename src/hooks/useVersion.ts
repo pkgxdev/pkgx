@@ -8,7 +8,7 @@ const version = `${(
     new Path(new URL(import.meta.url).pathname)
       .parent().parent().parent()
       .join("README.md")
-  ).swallow(/not-found/))?.version}+dev`
+  ).swallow())?.version ?? '0.0.0'}+dev`
 
 export default function() {
   return version

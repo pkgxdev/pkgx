@@ -1,5 +1,6 @@
-import { useConfig, useRun, useLogger, RunError, Verbosity, ExitError } from "hooks"
-import { Installation, Path, utils, TeaError } from "tea"
+import { useConfig, useLogger, ExitError, useRun } from "hooks"
+import { Installation, Path, utils } from "tea"
+import { RunError } from "./hooks/useRun.ts"
 import { basename } from "deno/path/mod.ts"
 import { isNumber } from "is-what"
 
@@ -15,14 +16,9 @@ export default async function(cmd: string[], env: Record<string, string>) {
   try {
     await useRun({cmd, env})
   } catch (err) {
-    const debug = useConfig().modifiers.verbosity >= Verbosity.debug
     const arg0 = cmd?.[0]
 
-    if (err instanceof TeaError) {
-      throw err
-    } else if (debug) {
-      console.error(err)
-    } else if (err instanceof Deno.errors.NotFound) {
+    if (err instanceof Deno.errors.NotFound) {
       console.error("tea: command not found:", teal(arg0))
       throw new ExitError(127)  // 127 is used for command not found
     } else if (err instanceof Deno.errors.PermissionDenied) {

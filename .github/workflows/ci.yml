@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
-      - run: deno cache $(find . -name \*.ts)
+      - run: deno cache $(find . -name \*.ts -a ! -path ./scripts/repair.ts)
       - run: deno task test --coverage=cov_profile
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
       - uses: coverallsapp/github-action@v1

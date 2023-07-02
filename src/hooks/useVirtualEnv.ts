@@ -14,6 +14,24 @@ export interface VirtualEnv {
   env: Record<string, string>
 }
 
+export class VirtualEnvError extends TeaError {
+  constructor(msg: string, ctx: {cwd: Path, TEA_DIR?: Path}) {
+    super(msg, ctx)
+  }
+}
+
+class VirtualEnvNotFoundError extends VirtualEnvError {
+  constructor(cwd: Path, TEA_DIR?: Path) {
+    super("not-found: pkg-env", {cwd, TEA_DIR})
+  }
+}
+
+class VirtualEnvParseError extends VirtualEnvError {
+  constructor({teafile, ...ctx}: {teafile: Path, cwd: Path, TEA_DIR?: Path}) {
+    super(`parse error: ${teafile}`, ctx)
+  }
+}
+
 // we call into useVirtualEnv a bunch of times
 const cache: Record<string, VirtualEnv> = {}
 
@@ -62,7 +80,9 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
     srcroot = lastd
   }
 
-  if (!srcroot) throw new TeaError("not-found: dev-env", {cwd, TEA_DIR})
+  if (!srcroot) {
+    throw new VirtualEnvNotFoundError(cwd)
+  }
 
   for (const [key, value] of Object.entries(env)) {
     if (key != 'TEA_PREFIX') {
@@ -102,7 +122,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
   }
 
   async function supp(dir: Path) {
-    if (!dir.isDirectory()) throw new Error()
+    if (!dir.isDirectory()) throw new Error("unexpected error")
 
     const _if = (...names: string[]) => {
       for (const name of names) {
@@ -138,7 +158,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
       try {
         pkgs.push(pkg.parse(s))
       } catch {
-        throw new Error('couldn’t parse: .node-version')
+        throw new VirtualEnvParseError({teafile: f!, cwd, TEA_DIR})
       }
     }
     if (_if(".ruby-version")) {
@@ -148,7 +168,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
       try {
         pkgs.push(pkg.parse(s))
       } catch {
-        throw new Error('couldn’t parse: .ruby-version')
+        throw new VirtualEnvParseError({teafile: f!, cwd, TEA_DIR})
       }
     }
     if (_if(".python-version")) {
