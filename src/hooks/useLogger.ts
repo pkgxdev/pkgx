@@ -88,7 +88,7 @@ export class Logger {
         this.tty.cursorLeft.cursorUp(n).eraseDown()
       }
       this.lines -= n
-      if (this.lines < 0) throw new Error(`${n}`)  //assertion error
+      if (this.lines < 0) throw new Error(`progammer error: ${n}`)  //assertion error
     }
 
     const prefix = wprefix
@@ -112,5 +112,5 @@ export class Logger {
 }
 
 export function logJSON(data: Record<string, unknown>) {
-  console.error(JSON.stringify(data));
+  console.error(JSON.stringify(data))
 }

@@ -1,5 +1,5 @@
 import { usePrefix, useVirtualEnv, useVersion, usePrint, useConfig, useLogger } from "hooks"
-import { VirtualEnv } from "./hooks/useVirtualEnv.ts"
+import { VirtualEnvError, VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { Verbosity } from "./hooks/useConfig.ts"
 import { Path, utils, semver, hooks } from "tea"
 import { basename } from "deno/path/mod.ts"
@@ -63,7 +63,7 @@ export async function run(args: Args) {
     } break
     case 'repl':
       env['PATH'] = full_path().join(':')
-      await repl(installations, env)
+      repl(installations, env)
       break
     case 'env':
       if (pkgs.length == 0) {
@@ -157,7 +157,7 @@ function injection({ args, inject }: Args) {
     }
 
     if (useConfig().modifiers.keepGoing) {
-      return useVirtualEnv(cwd).swallow(/^not-found/)
+      return useVirtualEnv(cwd).swallow(VirtualEnvError)
     } else if (teaPkgs) {
       /// if an env is defined then we still are going to try to read it
       /// because `-E` was explicitly stated, however if we fail then

@@ -1,4 +1,4 @@
-import { PackageSpecification, Package, utils, Installation, plumbing, Path } from "tea"
+import { PackageSpecification, Package, utils, Installation, plumbing, Path, TeaError } from "tea"
 import { Logger as InstallLogger } from "tea/plumbing/install.ts"
 const { hydrate, link: base_link, resolve, install } = plumbing
 import useConfig, { Verbosity } from "../hooks/useConfig.ts"
@@ -40,7 +40,7 @@ export default async function(pkgs: PackageSpecification[], update: boolean) {
 
   if (!dryrun && env.TEA_MAGIC?.split(':').includes("prompt")) {
     if (!Deno.isatty(Deno.stdin.rid)) {
-      throw new Error("TEA_MAGIC=prompt but stdin is not a tty")
+      throw new TeaError("TEA_MAGIC=prompt but stdin is not a tty")
     }
 
     do {

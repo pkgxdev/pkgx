@@ -1,5 +1,5 @@
-import { isPlainObject, isString, isArray, PlainObject } from "is-what"
-import { PackageRequirement, Path, hacks, utils, hooks } from "tea"
+import { isPlainObject, isString, isArray, PlainObject, isNumber } from "is-what"
+import { PackageRequirement, Path, hacks, utils, hooks, TeaError } from "tea"
 const { validatePackageRequirement } = hacks
 const { useMoustaches, useConfig } = hooks
 const { validate } = utils
@@ -16,6 +16,10 @@ export default async function(script: Path, srcroot?: Path): Promise<FrontMatter
   return refineFrontMatter(yaml, srcroot)
 }
 
+class YAMLFMParseError extends TeaError {
+
+}
+
 
 
 interface Return1 {
@@ -26,7 +30,7 @@ interface Return1 {
 function parseYAMLFrontMatter(yaml: unknown): Return1 {
   //TODO do magic: if (err == "no-front-matter")
 
-  if (!isPlainObject(yaml)) throw new Error("bad-yaml")
+  if (!isPlainObject(yaml)) throw new YAMLFMParseError("yaml front matter must be a dictionary")
 
   const getDeps = (wbuild: boolean) => {
     return [...go(yaml.dependencies), ...go(wbuild && yaml.build?.dependencies)]
@@ -50,15 +54,16 @@ export function refineFrontMatter(obj: unknown, srcroot?: Path): FrontMatter {
       if (rv.yaml.args === undefined) return []
       if (isString(rv.yaml.args)) return rv.yaml.args.split(/\s+/)
       if (isArray(rv.yaml.args)) return rv.yaml.args.map(x => `${x}`)
-      throw new Error("bad-yaml")
+      throw new YAMLFMParseError("yaml front matter args badly formed")
     }
     return fn1().map(fix)
   }
 
   const env: Record<string, string> = {}
   if (isPlainObject(rv.yaml.env)) {
-    for (const [k, v] of Object.entries(rv.yaml.env)) {
-      if (!isString(v)) throw new Error()
+    for (let [k, v] of Object.entries(rv.yaml.env)) {
+      if (isNumber(v)) v = v.toString()
+      if (!isString(v)) throw new YAMLFMParseError("yaml front matter env badly formed")
       env[k] = fix(v)
     }
   }
@@ -86,7 +91,7 @@ export function refineFrontMatter(obj: unknown, srcroot?: Path): FrontMatter {
   }
 }
 
-import { parse as parseYaml } from "https://deno.land/std@0.190.0/yaml/parse.ts"
+import { parse as parseYaml } from "deno/yaml/parse.ts"
 import { readLines } from "deno/io/read_lines.ts"
 
 async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined> {
@@ -105,7 +110,7 @@ async function readYAMLFrontMatter(path: Path): Promise<PlainObject | undefined>
       if (yaml !== undefined) {
         if (/^((#|\/\/)\s*)?---(\s*\*\/)?$/.test(line.trim())) {
           const rv = await parseYaml(yaml)
-          if (!isPlainObject(rv)) throw new Error("yaml is not dictionary")
+          if (!isPlainObject(rv)) throw new YAMLFMParseError("yaml front matter must be a dictionary")
           return rv
         }
         yaml += line?.replace(/^(#|\/\/)/, '')

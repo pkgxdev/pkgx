@@ -1,7 +1,7 @@
 import { utils, Path, TeaError } from "tea"
 const { host } = utils
 
-export default function({cmd: argv, env}: {cmd: string[], env: Record<string, string>}) {
+export default function({cmd: argv, env}: {cmd: string[], env: Record<string, string>}): Deno.Command {
   const filename = host().platform == 'darwin' ? '/usr/lib/libSystem.dylib' : 'libc.so.6'
 
   const libc = Deno.dlopen(
@@ -53,6 +53,8 @@ export default function({cmd: argv, env}: {cmd: string[], env: Record<string, st
     case 26: //ETXTBSY:
       throw new TeaError(`execve failed (${libc.symbols.errno})`)
   }
+
+  throw new Error("unexpected error")
 }
 
 function arr_to_c(arr: string[]): Deno.PointerValue {
