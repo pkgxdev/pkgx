@@ -63,7 +63,7 @@ export async function run(args: Args) {
     } break
     case 'repl':
       env['PATH'] = full_path().join(':')
-      repl(installations, env)
+      await repl(installations, env)
       break
     case 'env':
       if (pkgs.length == 0) {

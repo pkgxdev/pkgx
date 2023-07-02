@@ -2,6 +2,7 @@ import { assertEquals, assertRejects } from "deno/testing/asserts.ts"
 import { createTestHarness, newMockProcess } from "./testUtils.ts"
 import { stub, returnsNext } from "deno/testing/mock.ts"
 import { ExitError } from "../../src/hooks/useErrorHandler.ts"
+import { RunError } from "../../src/hooks/useRun.ts";
 
 Deno.test("should enter repl - sh", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const tests = [

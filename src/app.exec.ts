@@ -77,5 +77,13 @@ export async function repl(installations: Installation[], env: Record<string, st
       )
   }
 
-  await useRun({cmd, env})
+  try {
+    await useRun({cmd, env})
+  } catch (err) {
+    if (err instanceof RunError) {
+      throw new ExitError(err.code)
+    } else {
+      throw err
+    }
+  }
 }

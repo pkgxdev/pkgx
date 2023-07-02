@@ -9,10 +9,6 @@ import { Path, utils, hooks } from "tea"
 const { useSync } = hooks
 
 
-/// we can’t exec in the tests or they immediately end!
-useRunInternals.nativeRun = ({cmd: [cmd, ...args], env}) => new Deno.Command(cmd, {args, env})
-
-
 export interface TestConfig {
   // run tea sync during test setup.  Default: true
   sync?: boolean
@@ -75,6 +71,9 @@ export const createTestHarness = async (config?: TestConfig) => {
       stdout: usePrintSpy.calls.map(c => c.args[0])
     }
   }
+
+  /// we can’t exec in the tests or they immediately end!
+  useRunInternals.nativeRun = ({cmd: [cmd, ...args], env}) => new Deno.Command(cmd, {args, env})
 
   return {
     run: runTea,
