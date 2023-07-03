@@ -13,7 +13,8 @@ export default async function complete(prefix: string | undefined) {
   for await (const project of pantry.ls()) {
     const provides = await pantry.project(project).provides()
     for (const bin of provides) {
-      if (bin.startsWith(prefix)) completions.add(bin)
+      // Exclude matching moustaches for sanity
+      if (bin.startsWith(prefix) && !bin.match(/{{.*}}/)) completions.add(bin)
     }
   }
 

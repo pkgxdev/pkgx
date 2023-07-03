@@ -56,23 +56,30 @@ export default function(self: Path, shell?: string) {
         fi
       }
 
-      _tea_completion() {
+      function _tea_completion {
         local completions
 
         if _has_tea_magic; then
           # Call \`tea --complete\` with the current word as the prefix
           completions=($(tea --complete \${words[CURRENT]}))
-          compadd "$completions[@]"
+          if [[ -n "\${completions}" ]]; then
+            _describe "tea" completions
+          fi
         fi
+      }
 
-        # Run the default completions no matter what
-        _complete
+      function _tea_command_names {
+        _tea_completion "$@"
+        _command_names
+      }
+
+      function _tea_completion_wrapper {
+        _tea_command_names "$@"
       }
 
       autoload -Uz compinit
       compinit
-
-      zstyle ':completion:*' completer _tea_completion
+      compdef _tea_completion_wrapper -command-
       `;
   case "elvish":
     // eval ($MAGIC | slurp)
