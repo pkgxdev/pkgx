@@ -11,7 +11,7 @@ export default function(self: Path, shell?: string) {
   switch (shell) {
   case "zsh":
     return undent`
-      _tea_chpwd_hook() {
+      _xyz_tea_chpwd_hook() {
         if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
           source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
         fi
@@ -19,13 +19,13 @@ export default function(self: Path, shell?: string) {
 
       if test "$TERM_PROGRAM" != Apple_Terminal; then
         # Apple’s app calls this hook itself, but nothing else seems to
-        _tea_chpwd_hook
+        _xyz_tea_chpwd_hook
       fi
 
       typeset -ag chpwd_functions
 
       if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
-        chpwd_functions=( _tea_chpwd_hook \${chpwd_functions[@]} )
+        chpwd_functions=( _xyz_tea_chpwd_hook \${chpwd_functions[@]} )
       fi
 
       # add our shims to the PATH
@@ -116,9 +116,13 @@ export default function(self: Path, shell?: string) {
       `
   case "bash":
     return undent`
+      _xyz_tea_chpwd_hook() {
+        source /dev/stdin <<<"$("${d}"/tea +tea.xyz/magic -Esk --chaste env)"
+      }
+
       cd() {
         builtin cd "$@" || return
-        source /dev/stdin <<<"$("${d}"/tea +tea.xyz/magic -Esk --chaste env)"
+        _xyz_tea_chpwd_hook()
       }
 
       # add our shims to the PATH
