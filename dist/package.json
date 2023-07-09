@@ -1,0 +1,14 @@
+{
+  "version": "{{version}}",
+  "name": "@teaxyz/cli",
+  "description": "the next generation package manager from the creator of `brew`",
+  "repository": "teaxyz/cli",
+  "main": "./index.mjs",
+  "bin": {
+    "tea": "./index.mjs"
+  },
+  "dependencies": {
+    "@teaxyz/lib": "^0.9.1"
+  },
+  "license": "Apache-2.0"
+}

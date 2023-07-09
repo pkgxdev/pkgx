@@ -1,0 +1,4 @@
+/node_modules
+
+# ignoring this until v1
+/package-lock.json
