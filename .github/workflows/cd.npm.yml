@@ -1,0 +1,35 @@
+name: CD·npm
+
+on:
+  release:
+    types:
+      - created
+
+concurrency:
+  group: cd/npm/${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  npm-publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dist
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v2
+        with:
+          registry-url: https://registry.npmjs.org
+
+      # publish with the same version as that of tea/cli proper
+      - run: sed -i "s/{{version}}/${V#v}/g" *
+        env:
+          V: ${{ github.event.release.tag_name }}
+
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
