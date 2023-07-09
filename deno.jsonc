@@ -5,7 +5,7 @@
   },
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --allow-ffi --unstable",
-    "coverage" : "scripts/run_coverage.sh",
+    "coverage" : "scripts/run-coverage.sh",
     "typecheck": "deno check --unstable ./src/app.ts",
     // runs this source checkout for testing
     "run": "deno run --unstable -A src/app.ts",
