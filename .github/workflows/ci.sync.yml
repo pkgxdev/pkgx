@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - import-map.json
-      - src/hooks/app.sync.ts
       - src/prefab/install.ts
       - .github/workflows/ci.sync.yml
 
