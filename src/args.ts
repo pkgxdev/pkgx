@@ -3,12 +3,13 @@ const { pkg, validate } = utils
 
 export type Args = {
   cd?: Path
-  mode: 'std' | 'help' | 'version' | 'prefix' | ['magic', string | undefined] | 'provides'
+  mode: 'std' | 'help' | 'version' | 'prefix' | ['magic', string | undefined] | 'provides' | 'complete'
   sync: boolean
   args: string[]
   pkgs: PackageSpecification[]
   inject?: boolean
   chaste: boolean
+  complete?: string
 }
 
 export interface Flags {
@@ -120,6 +121,10 @@ export function parseArgs(args: string[], arg0: string): [Args, Flags, Error?] {
       case 'provides':
         nonovalue()
         rv.mode = 'provides'
+        break
+      case 'complete':
+        rv.complete = value ?? it.next().value ?? barf()
+        rv.mode = key
         break
       case 'keep-going':
         flags.keepGoing = parseBool(value ?? "yes") ?? barf()

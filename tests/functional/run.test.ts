@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertRejects } from "deno/testing/asserts.ts"
+import { assert, assertEquals, assertRejects, assertArrayIncludes } from "deno/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
 
 Deno.test("env", { sanitizeResources: false, sanitizeOps: false }, async () => {
@@ -39,6 +39,32 @@ Deno.test("version", { sanitizeResources: false, sanitizeOps: false }, async () 
 
   assert(stdout.length > 0, "lines should have printed")
   assert(stdout[0].startsWith("tea"))
+})
+
+Deno.test("complete node", { sanitizeResources: false, sanitizeOps: false }, async () => {
+  const {run } = await createTestHarness()
+
+  const { stdout } = await run(["--complete", "node"])
+
+  assert(stdout.length > 0, "lines should have printed")
+  assertArrayIncludes(stdout[0].split("\n"), ["node"])
+})
+
+Deno.test("complete no", { sanitizeResources: false, sanitizeOps: false }, async () => {
+  const {run } = await createTestHarness()
+
+  const { stdout } = await run(["--complete", "no"])
+
+  assert(stdout.length > 0, "lines should have printed")
+  assertArrayIncludes(stdout[0].split("\n"), ["node", "nohup"])
+})
+
+Deno.test("complete brazzorsks", { sanitizeResources: false, sanitizeOps: false }, async () => {
+  const {run } = await createTestHarness()
+
+  const { stdout } = await run(["--complete", "brazzorsks"])
+
+  assert(stdout.length == 0, "no lines should have printed")
 })
 
 Deno.test("help", { sanitizeResources: false, sanitizeOps: false }, async () => {

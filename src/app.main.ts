@@ -4,6 +4,7 @@ import { Verbosity } from "./hooks/useConfig.ts"
 import { Path, utils, semver, hooks } from "tea"
 import { basename } from "deno/path/mod.ts"
 import exec, { repl } from "./app.exec.ts"
+import complete from "./app.complete.ts"
 import provides from "./app.provides.ts"
 import setup from "./prefab/setup.ts"
 import magic from "./app.magic.ts"
@@ -102,6 +103,9 @@ export async function run(args: Args) {
     break
   case "provides":
     await provides(args.args)
+    break
+  case "complete":
+    await complete(args.complete)
     break
   default:
     await print(magic(execPath, args.mode[1]))
