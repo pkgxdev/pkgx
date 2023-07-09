@@ -24,11 +24,11 @@
   },
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
-    "tea": "https://deno.land/x/libtea@v0.8.0/mod.ts",
-    "tea/": "https://deno.land/x/libtea@v0.8.0/src/",
+    "tea": "https://deno.land/x/libtea@v0.9.0/mod.ts",
+    "tea/": "https://deno.land/x/libtea@v0.9.0/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
-    "deno/": "https://deno.land/std@0.192.0/",
+    "deno/": "https://deno.land/std@0.193.0/",
     "hooks": "./src/hooks/index.ts"
   }
 }

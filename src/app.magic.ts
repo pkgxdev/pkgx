@@ -122,7 +122,7 @@ export default function(self: Path, shell?: string) {
 
       cd() {
         builtin cd "$@" || return
-        _xyz_tea_chpwd_hook()
+        _xyz_tea_chpwd_hook
       }
 
       # add our shims to the PATH
