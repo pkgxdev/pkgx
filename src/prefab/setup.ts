@@ -2,6 +2,7 @@ import { plumbing, utils, hooks, PackageSpecification, Installation, Path, semve
 import { useYAMLFrontMatter, VirtualEnv, useConfig } from "hooks"
 import base_which from "tea/plumbing/which.ts"
 import install from "../prefab/install.ts"
+import undent from "outdent"
 
 const { usePantry, useCellar, useDownload, useShellEnv } = hooks
 const { hydrate } = plumbing
@@ -12,6 +13,19 @@ interface Parameters {
   inject?: VirtualEnv
   sync: boolean
   chaste: boolean
+}
+
+class AmbiguityError extends TeaError {
+  projects: string[]
+
+  constructor(arg0: string, projects: string[]) {
+    super(undent`
+      multiple projects provide \`${arg0}\`. please be more specific:
+
+      ${projects.map(p => `    tea +${p} ${Deno.args.join(' ')}`).join('\n')}
+      `)
+    this.projects = projects
+  }
 }
 
 export default async function({ pkgs, inject, sync, ...opts }: Parameters) {
@@ -192,10 +206,16 @@ export async function which(arg0: string | undefined) {
     if (found) return found
   }
 
-  const found = await base_which(arg0, { providers: true })
-  if (!found) return
+  const pkgopts = await base_which(arg0, { providers: true, all: true })
+  if (!pkgopts) return
 
-  const inenv = useConfig().env.TEA_PKGS?.split(":").map(utils.pkg.parse).find(x => x.project == found?.project)
+  if (pkgopts.length > 1) {
+    throw new AmbiguityError(arg0, pkgopts.map(x => x.project))
+  }
+
+  const [found] = pkgopts
+
+  const inenv = useConfig().env.TEA_PKGS?.split(":").map(utils.pkg.parse).find(x => x.project == found.project)
   if (inenv) {
     found.constraint = inenv.constraint
   }
