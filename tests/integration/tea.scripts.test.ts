@@ -209,3 +209,20 @@ it(suite, "tea shebang but executed via tea interprets shebang", async function(
   const out = await this.run({args: [fixture.string]}).stdout()
   assertEquals(out.trim(), fuzz)
 })
+
+it(suite, "tea shebang handles UTF-8 args", async function() {
+  const fixture = this.sandbox.join("fixture.sh").write({ text: undent`
+    #!/usr/bin/env -S tea -E
+
+    /*---
+    args:
+      - deno
+      - run
+    ---*/
+
+    console.log(Deno.args)
+    `
+  }).chmod(0o500)
+  const out = await this.run({args: [fixture.string, '2∕2']}).stdout()
+  assertEquals(out.trim(), '[ "2∕2" ]')
+})
