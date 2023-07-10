@@ -104,7 +104,8 @@ jobs:
           APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
       - name: sanity check
         run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
-      - name: GPG sign binary
+      - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
+      - name: GPG sign archive
         run: |
           tea gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
@@ -113,15 +114,16 @@ jobs:
           tea gpg \
             --detach-sign --armor \
             --local-user $GPG_KEY_ID \
-            ./tea
+            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
         env:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-      - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea tea.asc
       - uses: actions/upload-artifact@v3
         with:
           name: binaries
-          path: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+          path: |
+            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz.asc
           if-no-files-found: error
 
   bundle-src:
