@@ -94,10 +94,10 @@ export class CStringArray extends Uint8Array {
     let stringsLength = 0;
     for (const string of strings) {
       // Byte length of a UTF-8 string is never bigger than 3 times its length.
-      // 2 times the length would be a fairly safe guess. For command line arguments,
-      // we expect that all characters should be single-byte UTF-8 characters.
-      // Add one byte for the null byte.
-      stringsLength += string.length + 1;
+      // 2 times the length would be a fairly safe guess.
+      // This is slower than that, but should be safe, since it allocates the
+      // exact amount of memory needed.
+      stringsLength += ENCODER.encode(string).length + 1;
     }
     super(8 * (strings.length + 1) + stringsLength);
     const pointerBuffer = new BigUint64Array(this.buffer, 0, strings.length + 1);
