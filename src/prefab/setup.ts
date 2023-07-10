@@ -207,17 +207,20 @@ export async function which(arg0: string | undefined) {
   }
 
   const pkgopts = await base_which(arg0, { providers: true, all: true })
-  if (!pkgopts) return
+  if (!pkgopts.length) return
 
   let found: WhichResult
   if (pkgopts.length > 1) {
     const { has } = useCellar()
-    const installed = (await Promise.all(pkgopts.map(has))).compact() as Installation[]
+    const installed = (await Promise.all(pkgopts.map(has))).compact(x => x)
+
     if (installed.length !== 1) {
       throw new AmbiguityError(arg0, pkgopts.map(x => x.project))
     }
+
     // there's one that is installed, so let’s use that
     found = pkgopts.find(x => x.project == installed[0].pkg.project)!
+
   } else {
     found = pkgopts[0]
   }
