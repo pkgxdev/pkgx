@@ -207,10 +207,12 @@ export async function which(arg0: string | undefined) {
   }
 
   const pkgopts = await base_which(arg0, { providers: true, all: true })
-  if (!pkgopts.length) return
 
   let found: WhichResult
-  if (pkgopts.length > 1) {
+
+  if (pkgopts.length <= 0) {
+    return
+  } else if (pkgopts.length > 1) {
     const { has } = useCellar()
     const installed = (await Promise.all(pkgopts.map(has))).compact(x => x)
 

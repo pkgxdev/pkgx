@@ -36,7 +36,7 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
   switch (libc.symbols.errno) {
     case 2:  //ENOENT:
       // yes: strange behavior from execve here indeed
-      if (new Path(args[0]).exists()) {
+      if (parse_PATH(args[0])?.exists()) {
         throw new Deno.errors.PermissionDenied()
       } else {
         throw new Deno.errors.NotFound()
@@ -56,6 +56,16 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
   }
 
   throw new Error(`execve (${libc.symbols.errno})`)
+}
+
+function parse_PATH(input: string) {
+  const p = Path.abs(input)
+  if (p) return p
+  try {
+    return Path.cwd().join(input)
+  } catch {
+    return
+  }
 }
 
 function find_in_PATH(cmd: string[], PATH?: string) {
