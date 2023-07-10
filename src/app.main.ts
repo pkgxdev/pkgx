@@ -44,7 +44,10 @@ export async function run(args: Args) {
     const venv = await injection(args)
     const {cmd, env, pkgs, installations} = await setup({...args, inject: venv})
 
-    const full_path = () => [...env["PATH"]?.split(':') ?? [], ...PATH?.split(':') ?? []].uniq()
+    const full_path = () => [
+      ...env["PATH"]?.split(':') ?? [],
+      ...PATH?.split(':') ?? ['/usr/bin', '/bin']  // an empty PATH should be interpreted this way says GNU
+    ].uniq()
 
     switch (wut_) {
     case 'exec':
