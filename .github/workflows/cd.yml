@@ -105,10 +105,25 @@ jobs:
       - name: sanity check
         run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
       - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
+      - name: GPG sign archive
+        run: |
+          tea gpg-agent --daemon || true
+          echo $GPG_PRIVATE_KEY | \
+            base64 -d | \
+            tea gpg --import --batch --yes
+          tea gpg \
+            --detach-sign --armor \
+            --local-user $GPG_KEY_ID \
+            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       - uses: actions/upload-artifact@v3
         with:
           name: binaries
-          path: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+          path: |
+            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz.asc
           if-no-files-found: error
 
   bundle-src:
@@ -124,6 +139,10 @@ jobs:
         run: rm -rf ${{ env.FILENAME }}/.github .gitpod.yml
       - name: Stamp Version
         run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > $FILENAME/src/hooks/useVersion.ts
+      - name: Include GPG pubkey
+        run: echo $PUBKEY | base64 -d > $FILENAME/tea.xyz.pub.asc
+        env:
+          PUBKEY: ${{ secrets.GPG_PUBLIC_KEY }}
       - run: tar cJf $FILENAME.tar.xz $FILENAME
       - uses: actions/upload-artifact@v3
         with:
