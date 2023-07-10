@@ -1,6 +1,6 @@
 import { plumbing, utils, hooks, PackageSpecification, Installation, Path, semver, TeaError } from "tea"
 import { useYAMLFrontMatter, VirtualEnv, useConfig } from "hooks"
-import base_which from "tea/plumbing/which.ts"
+import base_which, { WhichResult } from "tea/plumbing/which.ts"
 import install from "../prefab/install.ts"
 import undent from "outdent"
 
@@ -209,11 +209,18 @@ export async function which(arg0: string | undefined) {
   const pkgopts = await base_which(arg0, { providers: true, all: true })
   if (!pkgopts) return
 
+  let found: WhichResult
   if (pkgopts.length > 1) {
-    throw new AmbiguityError(arg0, pkgopts.map(x => x.project))
+    const { has } = useCellar()
+    const installed = (await Promise.all(pkgopts.map(has))).compact() as Installation[]
+    if (installed.length !== 1) {
+      throw new AmbiguityError(arg0, pkgopts.map(x => x.project))
+    }
+    // there's one that is installed, so let’s use that
+    found = pkgopts.find(x => x.project == installed[0].pkg.project)!
+  } else {
+    found = pkgopts[0]
   }
-
-  const [found] = pkgopts
 
   const inenv = useConfig().env.TEA_PKGS?.split(":").map(utils.pkg.parse).find(x => x.project == found.project)
   if (inenv) {
