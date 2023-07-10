@@ -225,7 +225,14 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
       insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("pyproject.toml")) {
-      pkgs.push({project: "python-poetry.org", constraint})
+      //TODO read the TOML (we are not yet because it requires a dep etc.)
+      const content = await f!.read()
+      if (content.includes("poetry.core.masonry.api")) {
+        pkgs.push({project: "python-poetry.org", constraint})
+      } else {
+        //TODO other pkging systems…?
+        pkgs.push({project: "python.org", constraint})
+      }
       insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("Gemfile")) {
