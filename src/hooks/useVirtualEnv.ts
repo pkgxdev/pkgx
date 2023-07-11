@@ -221,7 +221,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
       insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("requirements.txt", "pipfile", "pipfile.lock", "setup.py")) {
-      pkgs.push({project: "python.org", constraint})
+      pkgs.push({project: "pip.pypa.io", constraint})
       insert(await usePackageYAMLFrontMatter(f!))
     }
     if (_if("pyproject.toml")) {
@@ -231,7 +231,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
         pkgs.push({project: "python-poetry.org", constraint})
       } else {
         //TODO other pkging systems…?
-        pkgs.push({project: "python.org", constraint})
+        pkgs.push({project: "pip.pypa.io", constraint})
       }
       insert(await usePackageYAMLFrontMatter(f!))
     }
