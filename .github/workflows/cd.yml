@@ -166,6 +166,7 @@ jobs:
             srcs/*
           fail_on_unmatched_files: true
           generate_release_notes: true
+          token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}  # using our own PAT so other workflows run
 
   bump-tap:
     needs: [release]
@@ -238,17 +239,3 @@ jobs:
         ref: main
         token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
         wait-for-completion: false
-
-  vx-tagger:
-    needs: [upload-binaries, check]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
-      - name: fetch all tags
-        run: git fetch --prune --unshallow --tags
-      - uses: fischerscode/tagger@v0
-        with:
-          tag: v${{ needs.check.outputs.version }}
-          prefix: v
