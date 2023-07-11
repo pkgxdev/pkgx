@@ -250,7 +250,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
         srcroot = f!.parent()
       }
     }
-    if (_if(".yarnrc") && dir.neq(Path.home())) {
+    if (dir.neq(Path.home()) && _if(".yarnrc")) {
       pkgs.push({ project: "classic.yarnpkg.com", constraint })
     }
     if (_if(".yarnrc.yml")) {
