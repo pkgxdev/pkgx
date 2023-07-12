@@ -29,8 +29,8 @@ jobs:
       - name: log in to docker hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USER_NAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USER_NAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - uses: docker/metadata-action@v4
         id: meta
