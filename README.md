@@ -18,95 +18,57 @@
 
 # tea/cli 0.38.3
 
-`tea` puts the whole open source ecosystem at your fingertips:
+`tea` is [`npx`] for *everything*.
 
 ```sh
 $ node
 command not found: node
 
-$ sh <(curl tea.xyz)
-installing ~/.tea…
+$ tea node --version
+v19.7.0
 
 $ node
-tea: installing ~/.tea/nodejs.org/v19.7.0 and 9 other pkgs…
-
-Welcome to Node.js v19.7.0.
->
+command not found: node
+# ^^ tea is not a package manager; keep installing shit w/`brew`
 ```
 
-Nobody wakes up in the morning and thinks:
-
-> I *can’t wait* to manage my packages today!
-
-It’s *tedious*. It’s *busy work*.
-With `tea` just type what you want and let us handle the rest.
+[`npx`]: https://www.npmjs.com/package/npx
 
 &nbsp;
 
-Scripting is powerful—*once you’ve done all that frustrating setup*. `tea`
-abstracts away all the boring bits so you can focus on the fun stuff:
+
+
+`tea` is [`nvm`] for *everything*:
 
 ```sh
-$ tea ./script.py
-tea: installing ~/.tea/python.org/v3.11.1
-# ^^ local scripts: nps
-
-$ tea https://examples.deno.land/color-logging.ts
-tea: installing ~/.tea/deno.land/v1.31.2
-# ^^ remote scripts: also fine
-
-$ tea ./favicon-generator input.png
-tea: installing image-magick, optipng, guetzli and 3 other packages…
-favicon-generator: favicon-128.png
-# ^^ any package from anywhere: check
-
-$ cat favicon-generator
-#!/usr/bin/env ruby
-# ^^ tea reads the shebang and automatically installs ruby
-#---
-# dependencies:
-#   imagemagick.org: 4
-#   optipng.sourceforge.net: 1
-#---
-# ^^ tea reads the YAML Front Matter and installs everything else too!
-```
-
-&nbsp;
-
-You need *specific versions of tools* not just whatever the package manager
-happens to have today.
-
-```sh
-$ node^16 --version
-tea: installing node^16
-v16.19.0
-```
-
-Projects require a range of tools and versions.
-`tea` provides lightweight containers that we call “developer environments”:
-
-```sh
-$ rustc --version
-tea: installing rust-lang.org
-v1.68.0
-
-$ echo <<EoYAML >> my-project/cargo.toml
-#---
-# dependencies:
-#   rust-lang.org: ~1.67
-#---
-EoYAML
-
 $ cd my-project
-$ rustc --version
-tea: installing ~/.tea/rust-lang.org/v1.67.1
-v1.67.1
+
+$ cat .node-version
+16
+
+$ tea --env node --version
+v16.20.1
+
+$ source <(tea -E)
+# adds `my-projects` deps to your shell environment
+
+$ node --version
+v16.20.1
+
+$ which node
+~/.tea/nodejs.org/v16.20.1/bin/node
+# ^^ everything goes in ~/.tea
+
+# use any version of anything
+$ tea node@19 --version
+v19.7.0
+
+# we package as far back as we can
+$ tea python=2.7.18 --version
+2.7.18
 ```
 
-Every package has uniquely named project configuration files.
-With other package managers pinning a version can be impossible but with
-`tea` add some YAML Front Matter and we can fetch the specific version
-you need (and anything else you might desire too).
+[`nvm`]: https://github.com/nvm-sh/nvm
 
 > <details><summary><i>PSA:</i> Stop using Docker</summary><br>
 >
@@ -131,8 +93,48 @@ you need (and anything else you might desire too).
 
 &nbsp;
 
-The open source ecosystem is a treasure trove of tools and libraries but
-trying new things out can be intimidating… Not any more:
+
+
+`tea` knows how to interpret *anything*:
+
+```sh
+$ tea ./script.py
+tea: installing ~/.tea/python.org/v3.11.1
+# ^^ local scripts: nps
+
+$ tea https://examples.deno.land/color-logging.ts
+tea: installing ~/.tea/deno.land/v1.31.2
+# ^^ remote scripts: also fine
+```
+
+Go further; tap the entire open source ecosystem via YAML front matter:
+
+```sh
+$ cat favicon-generator.sh
+#!/usr/bin/ruby
+# ^^ tea reads the shebang and automatically installs ruby
+#---
+# dependencies:
+#   imagemagick.org: 4
+#   optipng.sourceforge.net: 1
+#---
+# …
+
+$ tea favicon-generator.sh input.png
+tea: installing image-magick, optipng, guetzli and 3 other packages…
+
+$ file *.png
+favicon-128.png: PNG image data, 128 x 128
+favicon-32.png: …
+```
+
+Setting the shebang to `#!/usr/bin/env -S tea node` is also fine.
+
+&nbsp;
+
+
+
+Try out anything open source offers in an encapsulated sandbox:
 
 ```sh
 $ tea +rust-lang.org sh
@@ -144,14 +146,14 @@ rustc 1.65.0
 
 tea $ exit
 
-$ which rustc
+$ rustc
 command not found: rustc
 ```
 
-`tea`’s `+pkg` syntax adds packages to an environment and then executes commands
-within it. This can make trying out seemingly complex projects trivial, eg.
-setting up your environment for the [stable-diffusion-webui] project can be
-quite tricky, but not so with `tea`:
+`tea`’s `+pkg` syntax adds packages to an environment and then executes
+commands within it. This can make trying out seemingly complex projects
+trivial, eg. setting up your environment for the [stable-diffusion-webui]
+project can be quite tricky, but not so with `tea`:
 
 ```sh
 $ git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
@@ -165,20 +167,79 @@ $ tea \
 
 
 
-# Getting Started
-
-tea is a standalone, cross-platform binary ([releases]);
-all the same we recommend our installer:
+If you’re cool and you love cool stuff then `tea` can optionally make command
+not found errors a thing of the past:
 
 ```sh
-sh <(curl https://tea.xyz)
-# ^^ prompts you before doing **anything**!
+$ which node
+command not found: node
+
+$ source <(tea --magic)
+
+$ node --version
+tea: installing nodejs.org…
+v19
+
+$ node@16 --version
+v16
+
+$ node --version
+v19   # the most recent is default
 ```
 
-Our one-liner sets up in `~/.tea` and enables magic but it actually can do a
-whole bunch more. For all the deets and other ways to install (including
-`brew install` and [our GitHub Action]) check out the manual
-[docs.tea.xyz/getting-started].
+Our magic also loads project deps into the environment when you step inside:
+
+```sh
+$ cd my-project
+
+my-project $ cat .node-version
+14
+
+my-project $ node --version
+tea: installing nodejs.org@14…
+v14
+
+my-project $ cd ..
+
+$ node --version
+v19
+
+$ source <(tea --magic=unload)
+
+$ node
+command not found: node
+```
+
+&nbsp;
+
+
+
+# Getting Started
+
+```sh
+brew install teaxyz/pkgs/tea-cli
+```
+
+If you prefer, tea is a standalone, cross-platform binary that you can install
+anywhere you want ([releases]). Here’s a handy one-liner:
+
+```sh
+sudo install -m 755 \
+  <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) \
+  /usr/local/bin/tea
+```
+
+## Setting up Magic
+
+By itself tea works well, it’s just a little manual, but we’re all magic
+addicts and recommend it:
+
+```sh
+echo 'source <(tea --magic)' >> ~/.zshrc
+```
+
+With magic stepping into directories ensures the packages those projects need
+are installed on demand and available to the tools you’re using.
 
 &nbsp;
 
