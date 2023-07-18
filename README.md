@@ -24,6 +24,9 @@
 $ node
 command not found: node
 
+$ brew install teaxyz/pkgs/tea-cli
+# …
+
 $ tea node --version
 v19.7.0
 
@@ -50,7 +53,7 @@ $ tea --env node --version
 v16.20.1
 
 $ source <(tea -E)
-# adds `my-projects` deps to your shell environment
+# temporarily adds `my-project`’s deps to your current shell
 
 $ node --version
 v16.20.1
@@ -65,8 +68,11 @@ v19.7.0
 
 # we package as far back as we can
 $ tea python=2.7.18 --version
-2.7.18
+Python 2.7.18
 ```
+
+> this works for every dev-ecosystem, not just node, eg. we read
+> `pyproject.toml`, `.ruby-version`, etc.
 
 [`nvm`]: https://github.com/nvm-sh/nvm
 

@@ -7,18 +7,19 @@ import exec, { repl } from "./app.exec.ts"
 import complete from "./app.complete.ts"
 import provides from "./app.provides.ts"
 import setup from "./prefab/setup.ts"
+const { useSync, usePantry } = hooks
 import magic from "./app.magic.ts"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
 import { Args } from "./args.ts"
 const { flatmap } = utils
-const { useSync } = hooks
 
 export async function run(args: Args) {
   const { print } = usePrint()
   const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity, json } } = useConfig()
 
-  if (args.sync) {
+  /// project name hack because we decided to have “dump” mode be separate and that's a FIXME
+  if (args.sync || args.pkgs[0]?.project != "tea.xyz/magic" && args.mode == 'std' && usePantry().missing()) {
     const logger = (({ new: make, logJSON }) => {
       if (!json) {
         const logger = make()
