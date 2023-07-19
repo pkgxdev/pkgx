@@ -301,7 +301,6 @@ $ deno task compile && ./tea
 
 
 [docs.tea.xyz]: https://docs.tea.xyz
-[docs.tea.xyz/getting-started]: https://docs.tea.xyz/getting-started/install-tea
 [deno]: https://deno.land
 [TypeScript]: https://www.typescriptlang.org
 [discussion]: https://github.com/orgs/teaxyz/discussions
