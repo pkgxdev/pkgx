@@ -306,5 +306,4 @@ $ deno task compile && ./tea
 [discussion]: https://github.com/orgs/teaxyz/discussions
 [stable-diffusion-webui]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 [releases]: ../../releases
-[our GitHub Action]: https://github.com/teaxyz/setup
 [pantry README]: https://github.com/teaxyz/pantry#contributing
