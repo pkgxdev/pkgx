@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertRejects, assertArrayIncludes } from "deno/testing/asserts.ts"
 import { createTestHarness } from "./testUtils.ts"
 
-Deno.test("env", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("env", async () => {
   const {run, TEA_PREFIX } = await createTestHarness()
 
   const { stdout } = await run(["+kubernetes.io/kubectl"])
@@ -12,7 +12,7 @@ Deno.test("env", { sanitizeResources: false, sanitizeOps: false }, async () => {
   assert(expected.exists(), "kubernetes.io should exist")
 })
 
-Deno.test("dry-run", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("dry-run", async () => {
   const {run, TEA_PREFIX } = await createTestHarness()
 
   await run(["--dry-run", "+kubernetes.io/kubectl", "foo", "bar"])
@@ -23,7 +23,7 @@ Deno.test("dry-run", { sanitizeResources: false, sanitizeOps: false }, async () 
   assert(!expected.exists(), "kubernetes.io should not exist for dry run")
 })
 
-Deno.test("prefix", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("prefix", async () => {
   const {run, TEA_PREFIX } = await createTestHarness()
 
   const { stdout } = await run(["--prefix"])
@@ -32,7 +32,7 @@ Deno.test("prefix", { sanitizeResources: false, sanitizeOps: false }, async () =
   assertEquals(stdout[0], TEA_PREFIX.string)
 })
 
-Deno.test("version", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("version", async () => {
   const { run } = await createTestHarness()
 
   const { stdout } = await run(["--version"])
@@ -41,7 +41,7 @@ Deno.test("version", { sanitizeResources: false, sanitizeOps: false }, async () 
   assert(stdout[0].startsWith("tea"))
 })
 
-Deno.test("complete node", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("complete node", async () => {
   const {run } = await createTestHarness()
 
   const { stdout } = await run(["--complete", "node"])
@@ -50,7 +50,7 @@ Deno.test("complete node", { sanitizeResources: false, sanitizeOps: false }, asy
   assertArrayIncludes(stdout[0].split("\n"), ["node"])
 })
 
-Deno.test("complete no", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("complete no", async () => {
   const {run } = await createTestHarness()
 
   const { stdout } = await run(["--complete", "no"])
@@ -59,7 +59,7 @@ Deno.test("complete no", { sanitizeResources: false, sanitizeOps: false }, async
   assertArrayIncludes(stdout[0].split("\n"), ["node", "nohup"])
 })
 
-Deno.test("complete brazzorsks", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("complete brazzorsks", async () => {
   const {run } = await createTestHarness()
 
   const { stdout } = await run(["--complete", "brazzorsks"])
@@ -67,7 +67,7 @@ Deno.test("complete brazzorsks", { sanitizeResources: false, sanitizeOps: false 
   assert(stdout.length == 0, "no lines should have printed")
 })
 
-Deno.test("help", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("help", async () => {
   const { run } = await createTestHarness()
   const { stdout } = await run(["--help"])
 
@@ -76,7 +76,7 @@ Deno.test("help", { sanitizeResources: false, sanitizeOps: false }, async () => 
   assert(!stdout[0].includes("ideology:"))
 })
 
-Deno.test("help verbose", { sanitizeResources: false, sanitizeOps: false }, async () => {
+Deno.test("help verbose", async () => {
   const { run } = await createTestHarness()
   const { stdout } = await run(["--verbose", "--help"])
 
