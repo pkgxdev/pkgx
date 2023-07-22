@@ -222,6 +222,14 @@ command not found: node
 
 # Getting Started
 
+The easiest way to install tea is with our installer:
+
+```sh
+sh <(curl https://tea.xyz)
+```
+
+You could also use Homebrew:
+
 ```sh
 brew install teaxyz/pkgs/tea-cli
 ```
@@ -230,7 +238,9 @@ If you prefer, tea is a standalone, cross-platform binary that you can install
 anywhere you want ([releases]). Here’s a handy one-liner:
 
 ```sh
-sh <(curl https://tea.xyz)
+sudo install -m 755 \\
+  <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) \\
+  /usr/local/bin/tea
 ```
 
 ## Setting up Magic
