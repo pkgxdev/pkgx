@@ -230,9 +230,7 @@ If you prefer, tea is a standalone, cross-platform binary that you can install
 anywhere you want ([releases]). Here’s a handy one-liner:
 
 ```sh
-sudo install -m 755 \
-  <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) \
-  /usr/local/bin/tea
+sh <(curl https://tea.xyz)
 ```
 
 ## Setting up Magic
