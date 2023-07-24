@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.38.3
+# tea/cli 0.38.4
 
 `tea` is [`npx`] for *everything*.
 
@@ -32,7 +32,7 @@ v19.7.0
 
 $ node
 command not found: node
-# ^^ tea is not a package manager; keep installing shit w/`brew`
+# ^^ tea is not a package manager; keep installing shit w/brew
 ```
 
 [`npx`]: https://www.npmjs.com/package/npx
@@ -52,7 +52,7 @@ $ cat .node-version
 $ tea --env node --version
 v16.20.1
 
-$ source <(tea -E)
+$ source <(tea --env)
 # temporarily adds `my-project`’s deps to your current shell
 
 $ node --version
@@ -67,12 +67,11 @@ $ tea node@19 --version
 v19.7.0
 
 # we package as far back as we can
-$ tea python=2.7.18 --version
+$ tea python@2.7.18 --version
 Python 2.7.18
 ```
 
-> this works for every dev-ecosystem, not just node, eg. we read
-> `pyproject.toml`, `.ruby-version`, etc.
+This works for everything. eg. `pyproject.toml`, `.ruby-version`, etc.
 
 [`nvm`]: https://github.com/nvm-sh/nvm
 
@@ -116,7 +115,7 @@ tea: installing ~/.tea/deno.land/v1.31.2
 Go further; tap the entire open source ecosystem via YAML front matter:
 
 ```sh
-$ cat favicon-generator.sh
+$ cat ./favicon-generator
 #!/usr/bin/ruby
 # ^^ tea reads the shebang and automatically installs ruby
 #---
@@ -126,7 +125,7 @@ $ cat favicon-generator.sh
 #---
 # …
 
-$ tea favicon-generator.sh input.png
+$ tea ./favicon-generator input.png
 tea: installing image-magick, optipng, guetzli and 3 other packages…
 
 $ file *.png
@@ -134,7 +133,7 @@ favicon-128.png: PNG image data, 128 x 128
 favicon-32.png: …
 ```
 
-Setting the shebang to `#!/usr/bin/env -S tea node` is also fine.
+> Setting the shebang to eg. `#!/usr/bin/env -S tea node` is another option.
 
 &nbsp;
 
@@ -172,6 +171,7 @@ $ tea \
 &nbsp;
 
 
+## Shell Magic
 
 If you’re cool and you love cool stuff then `tea` can optionally make command
 not found errors a thing of the past:
@@ -237,7 +237,7 @@ sudo install -m 755 \
 
 ## Setting up Magic
 
-By itself tea works well, it’s just a little manual, but we’re all magic
+By itself tea works well, it’s just somewhat manual, but we’re all magic
 addicts and recommend it:
 
 ```sh
