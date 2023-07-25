@@ -80,7 +80,13 @@ function find_in_PATH(cmd: string[], PATH?: string) {
   PATH ??= "/usr/bin:/bin"  // see manpage for execvp(3)
 
   for (const part of PATH.split(':')) {
-    const path = (part == '' || part == '.' ? Path.cwd() : new Path(part)).join(cmd[0])
+    const path = (() => {
+      if (part == '' || part == '.') return Path.cwd()
+      if (part == '~') return Path.home()
+      if (part.startsWith('~/')) return Path.home().join(part.slice(2))
+      //FIXME: not handled: ~user/...
+      return new Path(part)
+    })().join(cmd[0])
     if (path.isExecutableFile()) {
       cmd[0] = path.string
       return
