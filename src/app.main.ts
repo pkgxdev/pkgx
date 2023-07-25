@@ -8,7 +8,7 @@ import complete from "./app.complete.ts"
 import provides from "./app.provides.ts"
 import setup from "./prefab/setup.ts"
 const { useSync, usePantry } = hooks
-import magic from "./app.magic.ts"
+import magic, { install_magic } from "./app.magic.ts"
 import dump from "./app.dump.ts"
 import help from "./app.help.ts"
 import { Args } from "./args.ts"
@@ -112,7 +112,14 @@ export async function run(args: Args) {
     await complete(args.complete)
     break
   default:
-    await print(magic(execPath, args.mode[1]))
+    switch (args.mode[1]) {
+    case 'install':
+    case 'uninstall':
+      install_magic(args.mode[1])
+      break
+    default:
+      await print(magic(execPath, args.mode[1]))
+    }
   }
 }
 

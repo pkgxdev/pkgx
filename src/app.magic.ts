@@ -176,3 +176,89 @@ export default function(self: Path, shell?: string) {
       throw new TeaError("unsupported shell", {shell})
   }
 }
+
+import { readLines } from "deno/io/read_lines.ts"
+import { readAll } from "deno/streams/read_all.ts"
+import { writeAll } from "deno/streams/write_all.ts"
+import { flatmap } from "tea/utils/misc.ts";
+
+
+//TODO could be a fun efficiency excercise to maintain a separate write file-pointer
+//TODO assumes unix line-endings
+export async function install_magic(op: 'install' | 'uninstall') {
+  let opd_at_least_once = false
+  const encode = (() => { const e = new TextEncoder(); return e.encode.bind(e) })()
+
+  here: for (const [file, line] of shells()) {
+    const fd = await Deno.open(file.string, {read: true, write: true})
+    try {
+      let pos = 0
+      for await (const readline of readLines(fd)) {
+        if (readline.trim() == line) {
+          if (op == 'install') {
+            console.info("magic already installed:", file)
+            continue here
+          } else if (op == 'uninstall') {
+            // we have to seek because readLines is buffered and thus the seek pos is probs already at the file end
+            fd.seek(pos + readline.length + 1, Deno.SeekMode.Start)
+            const rest = await readAll(fd)
+
+            await fd.truncate(pos)  // deno has no way I can find to truncate from the current seek position
+            fd.seek(pos, Deno.SeekMode.Start)
+            await writeAll(fd, rest)
+
+            opd_at_least_once = true
+            console.info("removed magic:", file)
+
+            continue here
+          }
+        }
+
+        pos += readline.length + 1  // the +1 is because readLines() truncates it
+      }
+
+      if (op == 'install') {
+        const byte = new Uint8Array(1)
+        fd.seek(0, Deno.SeekMode.End)  // potentially the above didn't reach the end
+        while (true) {
+          fd.seek(-1, Deno.SeekMode.Current)
+          await fd.read(byte)
+          if (byte[0] != 10) break
+          fd.seek(-1, Deno.SeekMode.Current)
+        }
+
+        await writeAll(fd, encode(`\n\n${line}\n`))
+
+        console.info("magic installed:", file)
+      }
+    } finally {
+      fd.close()
+    }
+  }
+
+  if (op == 'uninstall' && !opd_at_least_once) {
+    console.info("magic already not installed")
+  }
+}
+
+function shells(): [Path, string][] {
+  const zdotdir = flatmap(Deno.env.get("ZDOTDIR"), Path.abs) ?? Path.home()
+  const xdg_dir = flatmap(Deno.env.get("XDG_CONFIG_HOME"), Path.abs) ?? Path.home().join(".config")
+
+  const std = (shell: string) => `source <(tea --magic=${shell})  #docs.tea.xyz/magic`
+
+  const candidates: [Path, string][] = [
+    [zdotdir.join(".zshrc"), std("zsh")],
+    [Path.home().join(".bashrc"), 'source /dev/stdin <<<"$(tea --magic=bash)  #docs.tea.xyz/magic'],
+    [xdg_dir.join("elvish/rc.elv"), std("elvish")],
+    [xdg_dir.join("fish/config.fish"), "tea --magic=fish | source  #docs.tea.xyz/magic"],
+  ]
+
+  const viable_candidates = candidates.filter(([file]) => file.exists())
+
+  if (viable_candidates.length == 0) {
+    throw new TeaError("no shell rc files found to install magic into")
+  }
+
+  return viable_candidates
+}

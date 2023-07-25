@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.38.4
+# tea/cli 0.39.0
 
 `tea` is [`npx`] for *everything*.
 
@@ -30,9 +30,12 @@ $ brew install teaxyz/pkgs/tea-cli
 $ tea node --version
 v19.7.0
 
+$ tea node@16 --version
+v16.20.1
+
 $ node
 command not found: node
-# ^^ tea is not a package manager; keep installing shit w/brew
+# ^^ tea is not a package manager; if you need installs, keep using brew
 ```
 
 [`npx`]: https://www.npmjs.com/package/npx
@@ -54,6 +57,7 @@ v16.20.1
 
 $ source <(tea --env)
 # temporarily adds `my-project`’s deps to your current shell
+# install our “shell magic” to do this automatically (read on for docs)
 
 $ node --version
 v16.20.1
@@ -77,7 +81,8 @@ This works for everything. eg. `pyproject.toml`, `.ruby-version`, etc.
 
 > <details><summary><i>PSA:</i> Stop using Docker</summary><br>
 >
-> Docker is great for deployment and cross compilation, but… let’s face it: it
+> Look, don’t *stop* using Docker—that’s not what we mean.
+> Docker is great for deployment, but… let’s face it: it
 > sucks for dev.
 >
 > *Docker stifles builders*.
@@ -173,8 +178,9 @@ $ tea \
 
 ## Shell Magic
 
-If you’re cool and you love cool stuff then `tea` can optionally make command
-not found errors a thing of the past:
+Every README for every project has 10 pages of “how to install x” commands.
+With `tea`’s magic you can just copy and paste the usage instructions and skip
+the install instructions.
 
 ```sh
 $ which node
@@ -216,6 +222,18 @@ $ node
 command not found: node
 ```
 
+### Installing Shell Magic
+
+If you want shell magic when your terminal loads, install it:
+
+```sh
+$ tea --magic=install
+# installs a one-liner to your ~/.shellrc
+
+$ tea --magic=uninstall
+# nps if you change your mind
+```
+
 &nbsp;
 
 
@@ -235,17 +253,15 @@ sudo install -m 755 \
   /usr/local/bin/tea
 ```
 
-## Setting up Magic
-
-By itself tea works well, it’s just somewhat manual, but we’re all magic
-addicts and recommend it:
+Once installed you can install our shell magic:
 
 ```sh
-echo 'source <(tea --magic)' >> ~/.zshrc
+tea --magic=install
 ```
 
-With magic stepping into directories ensures the packages those projects need
+* Stepping into directories ensures the packages those projects need
 are installed on demand and available to the tools you’re using.
+* Commands you type just work without package management nonsense.
 
 &nbsp;
 
