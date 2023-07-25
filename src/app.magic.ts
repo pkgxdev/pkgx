@@ -243,15 +243,15 @@ export async function install_magic(op: 'install' | 'uninstall') {
 
 function shells(): [Path, string][] {
   const zdotdir = flatmap(Deno.env.get("ZDOTDIR"), Path.abs) ?? Path.home()
-  const fishdir = flatmap(Deno.env.get("XDG_CONFIG_HOME"), Path.abs) ?? Path.home().join(".config")
+  const xdg_dir = flatmap(Deno.env.get("XDG_CONFIG_HOME"), Path.abs) ?? Path.home().join(".config")
 
   const std = (shell: string) => `source <(tea --magic=${shell})  #docs.tea.xyz/magic`
 
   const candidates: [Path, string][] = [
     [zdotdir.join(".zshrc"), std("zsh")],
     [Path.home().join(".bashrc"), 'source /dev/stdin <<<"$(tea --magic=bash)  #docs.tea.xyz/magic'],
-    [Path.home().join(".config/elvish/rc.elv"), std("elvish")],
-    [fishdir.join("fish/config.fish"), "tea --magic=fish | source  #docs.tea.xyz/magic"],
+    [xdg_dir.join("elvish/rc.elv"), std("elvish")],
+    [xdg_dir.join("fish/config.fish"), "tea --magic=fish | source  #docs.tea.xyz/magic"],
   ]
 
   const viable_candidates = candidates.filter(([file]) => file.exists())
