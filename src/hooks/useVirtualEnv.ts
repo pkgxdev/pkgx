@@ -256,7 +256,7 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
     if (_if(".yarnrc.yml")) {
       pkgs.push({ project: "yarnpkg.com", constraint })
     }
-    if (_if("tea.yml", "tea.yaml")) {
+    if (_if("tea.yml", "tea.yaml", ".tea.yaml", ".tea.yml")) {
       insert(refineFrontMatter(await f!.readYAML()))
     }
     if (_if("VERSION")) {
