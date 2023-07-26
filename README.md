@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.39.0
+# tea/cli 0.39.1
 
 `tea` is [`npx`] for *everything*.
 
@@ -249,7 +249,7 @@ anywhere you want ([releases]). Here’s a handy one-liner:
 
 ```sh
 sudo install -m 755 \
-  <(curl --compressed -LSsf https://tea.xyz/$(uname)/$(uname -m)) \
+  <(curl --compressed -LSsf --proto '=https' https://tea.xyz/$(uname)/$(uname -m)) \
   /usr/local/bin/tea
 ```
 
