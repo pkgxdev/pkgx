@@ -15,5 +15,6 @@ tasks:
       (
         set -e
         .deno/bin/deno task compile
+        ./tea --sync
         echo "./tea is hot"
       )

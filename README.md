@@ -312,7 +312,8 @@ deno task run foo
 $ deno task install
 # ^^ deploys the local checkout into your `~/.tea`
 
-$ deno task compile && ./tea
+$ deno task compile && ./tea --sync
+# compile and run tea to sync package definitions
 ```
 
 
