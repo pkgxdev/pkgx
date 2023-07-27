@@ -207,16 +207,20 @@ jobs:
           done
 
       - name: Upload to S3
-        run:
-          aws s3 sync binaries s3://www.tea.xyz/
-            --metadata-directive REPLACE
-            --cache-control no-cache,must-revalidate
+        run: |
+          aws s3 cp binaries/tea-darwin+aarch64 s3://www.tea.xyz/Darwin/arm64 $FLAGS
+          aws s3 cp binaries/tea-darwin+x86-64 s3://www.tea.xyz/Darwin/x86_64 $FLAGS
+
+          # Both because, iirc, some linuxen are inconsistent
+          aws s3 cp binaries/tea-linux+aarch64 s3://www.tea.xyz/Linux/arm64 $FLAGS
+          aws s3 cp binaries/tea-linux+aarch64 s3://www.tea.xyz/Linux/aarch64 $FLAGS
+
+          aws s3 cp binaries/tea-linux+x86-64 s3://www.tea.xyz/Linux/x86_64 $FLAGS
+        env:
+          FLAGS: --metadata-directive REPLACE --cache-control no-cache,must-revalidate
 
       - name: Invalidate CloudFront
         run:
-          find . -name tea-\* |
-          sed 's_^./binaries__' |
-          xargs
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
             --paths $STATIC_PATHS
