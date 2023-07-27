@@ -266,7 +266,7 @@ function shells(): [Path, string][] {
 
   const candidates: [Path, string][] = [
     [zdotdir.join(".zshrc"), std("zsh")],
-    [Path.home().join(".bashrc"), 'source /dev/stdin <<<"$(tea --magic=bash)  #docs.tea.xyz/magic'],
+    [Path.home().join(".bash_profile"), 'source /dev/stdin <<<"$(tea --magic=bash)  #docs.tea.xyz/magic'],
     [xdg_dir.join("elvish/rc.elv"), std("elvish")],
     [xdg_dir.join("fish/config.fish"), "tea --magic=fish | source  #docs.tea.xyz/magic"],
   ]
