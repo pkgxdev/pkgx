@@ -59,16 +59,21 @@ export default function(self: Path, shell?: string) {
         "${d}"/tea --env --keep-going --silent --dry-run=w/trace | source
       end
 
+      if not string match -q -r "^$TEA_PREFIX/.local/bin(:|\\$)" $PATH
+        fish_add_path -Ua "$TEA_PREFIX/.local/bin"
+      end
+
       if not string match -q -r "^$HOME/.local/bin(:|\\$)" $PATH
-        export PATH="$HOME/.local/bin:$PATH"
+        fish_add_path -Ua "$HOME/.local/bin"
       end
 
       if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null
-        export PATH="${d}:$PATH"
+        fish_add_path -Ua "${d}"
       end
 
       function fish_command_not_found
-        TEA_MAGIC="abracadabra:$TEA_MAGIC" "${d}"/tea -- $argv
+        set -lx TEA_MAGIC "abracadabra:$TEA_MAGIC"
+        "${d}"/tea -- $argv
       end
 
       "${d}"/tea --env --keep-going --silent --dry-run=w/trace | source
