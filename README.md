@@ -186,7 +186,7 @@ the install instructions.
 $ which node
 command not found: node
 
-$ source <(tea --magic)
+$ source <(tea --magic=bash)
 
 $ node --version
 tea: installing nodejs.org…
