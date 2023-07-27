@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.39.2
+# tea/cli 0.39.3
 
 `tea` is [`npx`] for *everything*.
 
@@ -275,11 +275,12 @@ You want all the docs? We got all the docs. [docs.tea.xyz]
 
 
 
-# Support
+# Whatcha Think?
 
-We appreciate your using `tea` and would love to help you solve any problems
-you may be having.
+We’d love to hear your thoughts on this project.
+Feel free to drop us a note.
 
+* [twitter.com/teaxyz](https://twitter.com/teaxyz)
 * [github.com/orgs/teaxyz/discussions](https://github.com/orgs/teaxyz/discussions)
 * [discord.tea.xyz](https://discord.tea.xyz)
 

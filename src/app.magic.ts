@@ -10,77 +10,7 @@ export default function(self: Path, shell?: string) {
 
   switch (shell) {
   case "zsh":
-    return undent`
-      _xyz_tea_chpwd_hook() {
-        if [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]; then
-          source <("${d}"/tea +tea.xyz/magic -Esk --chaste env)
-        fi
-      }
-
-      if test "$TERM_PROGRAM" != Apple_Terminal; then
-        # Apple’s app calls this hook itself, but nothing else seems to
-        _xyz_tea_chpwd_hook
-      fi
-
-      typeset -ag chpwd_functions
-
-      if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
-        chpwd_functions=( _xyz_tea_chpwd_hook \${chpwd_functions[@]} )
-      fi
-
-      # add our shims to the PATH
-      TEA_PREFIX="\${TEA_PREFIX:-$HOME/.tea}"
-      if [[ "$PATH" != *"$TEA_PREFIX/.local/bin"* ]]; then
-        export PATH="$TEA_PREFIX/.local/bin:$PATH"
-      fi
-
-      # we configure eg. \`npm i -g\`, cargo, etc. to install here
-      if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
-        export PATH="$HOME/.local/bin:$PATH"
-      fi
-
-      if ! command -v tea 2>&1 >/dev/null; then
-        export PATH="${d}:$PATH"
-      fi
-
-      _has_tea_magic() {
-        [ "\${TEA_MAGIC:-}" != 0 -a -x "${d}"/tea ]
-      }
-
-      function command_not_found_handler {
-        if _has_tea_magic; then
-          TEA_MAGIC="abracadabra:$TEA_MAGIC" "${d}"/tea -- $*
-        else
-          echo "zsh: command not found: $*" >&2
-          exit 127
-        fi
-      }
-
-      function _tea_completion {
-        local completions
-
-        if _has_tea_magic; then
-          # Call \`tea --complete\` with the current word as the prefix
-          completions=($(tea --complete \${words[CURRENT]}))
-          if [[ -n "\${completions}" ]]; then
-            _describe "tea" completions
-          fi
-        fi
-      }
-
-      function _tea_command_names {
-        _tea_completion "$@"
-        _command_names
-      }
-
-      function _tea_completion_wrapper {
-        _tea_command_names "$@"
-      }
-
-      autoload -Uz compinit
-      compinit
-      compdef _tea_completion_wrapper -command-
-      `;
+    return zsh(d)
   case "elvish":
     // eval ($MAGIC | slurp)
     return undent`
@@ -144,37 +74,124 @@ export default function(self: Path, shell?: string) {
       "${d}"/tea --env --keep-going --silent --dry-run=w/trace | source
       `
   case "bash":
+    return bash(d)
+  default:
     return undent`
-      _xyz_tea_chpwd_hook() {
-        source /dev/stdin <<<"$("${d}"/tea +tea.xyz/magic -Esk --chaste env)"
-      }
-
-      cd() {
-        builtin cd "$@" || return
-        _xyz_tea_chpwd_hook
-      }
-
-      # add our shims to the PATH
-      TEA_PREFIX="\${TEA_PREFIX:-$HOME/.tea}"
-      if [[ "$PATH" != *"$TEA_PREFIX/.local/bin"* ]]; then
-        export PATH="$TEA_PREFIX/.local/bin:$PATH"
+      if test -n "$BASH_VERSION"; then
+        ${bash(d)}
+      elif test -n "$ZSH_VERSION"; then
+        ${zsh(d)}
+      else
+        echo "tea: error: unknown shell" >&2
+        exit 1
       fi
-
-      if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
-        export PATH="$HOME/.local/bin:$PATH"
-      fi
-
-      if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
-        export PATH="${d}:$PATH"
-      fi
-
-      function command_not_found_handle {
-        TEA_MAGIC="abracadabra:$TEA_MAGIC" "${d}"/tea -- $*
-      }
       `
-    default:
-      throw new TeaError("unsupported shell", {shell})
   }
+}
+
+function zsh(bindir: Path) {
+  return undent`
+    _xyz_tea_chpwd_hook() {
+      if [ "\${TEA_MAGIC:-}" != 0 -a -x "${bindir}"/tea ]; then
+        source <("${bindir}"/tea +tea.xyz/magic -Esk --chaste env)
+      fi
+    }
+
+    if test "$TERM_PROGRAM" != Apple_Terminal; then
+      # Apple’s app calls this hook itself, but nothing else seems to
+      _xyz_tea_chpwd_hook
+    fi
+
+    typeset -ag chpwd_functions
+
+    if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
+      chpwd_functions=( _xyz_tea_chpwd_hook \${chpwd_functions[@]} )
+    fi
+
+    # add our shims to the PATH
+    TEA_PREFIX="\${TEA_PREFIX:-$HOME/.tea}"
+    if [[ "$PATH" != *"$TEA_PREFIX/.local/bin"* ]]; then
+      export PATH="$TEA_PREFIX/.local/bin:$PATH"
+    fi
+
+    # we configure eg. \`npm i -g\`, cargo, etc. to install here
+    if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
+      export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    if ! command -v tea 2>&1 >/dev/null; then
+      export PATH="${bindir}:$PATH"
+    fi
+
+    _has_tea_magic() {
+      [ "\${TEA_MAGIC:-}" != 0 -a -x "${bindir}"/tea ]
+    }
+
+    function command_not_found_handler {
+      if _has_tea_magic; then
+        TEA_MAGIC="abracadabra:$TEA_MAGIC" "${bindir}"/tea -- $*
+      else
+        echo "zsh: command not found: $*" >&2
+        exit 127
+      fi
+    }
+
+    function _tea_completion {
+      local completions
+
+      if _has_tea_magic; then
+        # Call \`tea --complete\` with the current word as the prefix
+        completions=($(tea --complete \${words[CURRENT]}))
+        if [[ -n "\${completions}" ]]; then
+          _describe "tea" completions
+        fi
+      fi
+    }
+
+    function _tea_command_names {
+      _tea_completion "$@"
+      _command_names
+    }
+
+    function _tea_completion_wrapper {
+      _tea_command_names "$@"
+    }
+
+    autoload -Uz compinit
+    compinit
+    compdef _tea_completion_wrapper -command-
+    `
+}
+
+function bash(bindir: Path) {
+  return undent`
+    _xyz_tea_chpwd_hook() {
+      source /dev/stdin <<<"$("${bindir}"/tea +tea.xyz/magic -Esk --chaste env)"
+    }
+
+    cd() {
+      builtin cd "$@" || return
+      _xyz_tea_chpwd_hook
+    }
+
+    # add our shims to the PATH
+    TEA_PREFIX="\${TEA_PREFIX:-$HOME/.tea}"
+    if [[ "$PATH" != *"$TEA_PREFIX/.local/bin"* ]]; then
+      export PATH="$TEA_PREFIX/.local/bin:$PATH"
+    fi
+
+    if [[ "$PATH" != *"$HOME/.local/bin"* ]]; then
+      export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    if ! command -v tea 2>&1 >/dev/null || ! tea --prefix 2>&1 >/dev/null; then
+      export PATH="${bindir}:$PATH"
+    fi
+
+    function command_not_found_handle {
+      TEA_MAGIC="abracadabra:$TEA_MAGIC" "${bindir}"/tea -- $*
+    }
+    `
 }
 
 import { readLines } from "deno/io/read_lines.ts"
