@@ -264,9 +264,12 @@ function shells(): [Path, string][] {
 
   const std = (shell: string) => `source <(tea --magic=${shell})  #docs.tea.xyz/magic`
 
+  const bash = 'test -z "$TEA_HAS_RUN" && source /dev/stdin <<<"$(tea --magic=bash) && export TEA_HAS_RUN=1  #docs.tea.xyz/magic'
+
   const candidates: [Path, string][] = [
     [zdotdir.join(".zshrc"), std("zsh")],
-    [Path.home().join(".bashrc"), 'source /dev/stdin <<<"$(tea --magic=bash)  #docs.tea.xyz/magic'],
+    [Path.home().join(".bashrc"), bash],
+    [Path.home().join(".bash_profile"), bash],
     [xdg_dir.join("elvish/rc.elv"), std("elvish")],
     [xdg_dir.join("fish/config.fish"), "tea --magic=fish | source  #docs.tea.xyz/magic"],
   ]
