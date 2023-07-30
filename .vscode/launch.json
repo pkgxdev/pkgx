@@ -1,20 +1,44 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "request": "launch",
-            "name": "Debug Test",
-            "type": "node",
-            "cwd": "${workspaceFolder}",
-            "runtimeExecutable": "deno",
-            "runtimeArgs": [
-                "test",
-                "--unstable",
-                "--inspect-brk",
-                "--allow-all",
-                "${file}",
-            ],
-            "attachSimplePort": 9229
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "request": "launch",
+      "name": "Debug Test",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "--unstable",
+        "--inspect-brk",
+        "--allow-all",
+        "${file}"
+      ],
+      "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+      "name": "Debug Tea with args",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--unstable",
+        "--inspect-brk",
+        "--allow-all",
+        "src/app.ts"
+      ],
+      "args": "${input:args}",
+      "attachSimplePort": 9229
+    }
+  ],
+  "inputs": [
+    {
+      "id": "args",
+      "type": "promptString",
+      "default": "",
+      "description": "The arguments for tea"
+    }
+  ]
 }
