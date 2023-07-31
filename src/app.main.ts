@@ -1,7 +1,7 @@
 import { usePrefix, useVirtualEnv, useVersion, usePrint, useConfig, useLogger } from "hooks"
 import { VirtualEnvError, VirtualEnv } from "./hooks/useVirtualEnv.ts"
 import { Verbosity } from "./hooks/useConfig.ts"
-import { Path, utils, semver, hooks } from "tea"
+import { Path, utils, semver, hooks, PantryNotFoundError } from "tea"
 import { basename } from "deno/path/mod.ts"
 import exec, { repl } from "./app.exec.ts"
 import complete from "./app.complete.ts"
@@ -18,8 +18,25 @@ export async function run(args: Args) {
   const { print } = usePrint()
   const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity, json } } = useConfig()
 
-  /// project name hack because we decided to have “dump” mode be separate and that's a FIXME
-  if (args.sync || args.pkgs[0]?.project != "tea.xyz/magic" && args.mode == 'std' && usePantry().missing()) {
+  let shouldSync = args.sync
+  try {
+    /// project name hack because we decided to have “dump” mode be separate and that's a FIXME
+    if (
+      args.pkgs[0]?.project != "tea.xyz/magic" &&
+      args.mode == "std" &&
+      usePantry().missing()
+    ) {
+      shouldSync = true;
+    }
+  } catch (e) {
+    if (e instanceof PantryNotFoundError) {
+      shouldSync = true
+    } else {
+      throw e
+    }
+  }
+
+  if (shouldSync) {
     const logger = (({ new: make, logJSON }) => {
       if (!json) {
         const logger = make()
