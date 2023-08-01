@@ -65,3 +65,7 @@ it(suite, "tea determines its own prefix and pantry works", async function() {
 
   await this.run({ args: ["--provides", "foo"], env: { TEA_PREFIX: null, TEA_PANTRY_PATH: null } })
 })
+
+it(suite, "node@2000 fails", async function() {
+  assertRejects(() => this.run({ args: ["node@2000", "--version"] }))
+})
