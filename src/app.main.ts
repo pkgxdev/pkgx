@@ -19,7 +19,7 @@ export async function run(args: Args) {
   const { arg0: execPath, env: { PATH, SHELL }, modifiers: { verbosity, json } } = useConfig()
 
   /// project name hack because we decided to have “dump” mode be separate and that's a FIXME
-  if (args.sync || !args.chaste && usePantry().missing()) {
+  if (args.sync || (!args.chaste && usePantry().missing() && args.mode == 'std')) {
     const logger = (({ new: make, logJSON }) => {
       if (!json) {
         const logger = make()
@@ -33,7 +33,7 @@ export async function run(args: Args) {
       }
     })(useLogger())
 
-    await useSync(logger)
+      await useSync(logger)
   }
 
   switch (args.mode) {
