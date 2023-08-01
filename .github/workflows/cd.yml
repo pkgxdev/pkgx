@@ -75,9 +75,9 @@ jobs:
       matrix:
         platform:
         - os: macos-latest
-          build-id: darwin+x86-64
+          build-id: darwin+x86_64
         - os: ubuntu-latest
-          build-id: linux+x86-64
+          build-id: linux+x86_64
         - os: [self-hosted, macOS, ARM64]
           build-id: darwin+aarch64
         - os: [self-hosted, linux, ARM64]
@@ -209,13 +209,13 @@ jobs:
       - name: Upload to S3
         run: |
           aws s3 cp binaries/tea-darwin+aarch64 s3://www.tea.xyz/Darwin/arm64 $FLAGS
-          aws s3 cp binaries/tea-darwin+x86-64 s3://www.tea.xyz/Darwin/x86_64 $FLAGS
+          aws s3 cp binaries/tea-darwin+x86_64 s3://www.tea.xyz/Darwin/x86_64 $FLAGS
 
           # Both because, iirc, some linuxen are inconsistent
           aws s3 cp binaries/tea-linux+aarch64 s3://www.tea.xyz/Linux/arm64 $FLAGS
           aws s3 cp binaries/tea-linux+aarch64 s3://www.tea.xyz/Linux/aarch64 $FLAGS
 
-          aws s3 cp binaries/tea-linux+x86-64 s3://www.tea.xyz/Linux/x86_64 $FLAGS
+          aws s3 cp binaries/tea-linux+x86_64 s3://www.tea.xyz/Linux/x86_64 $FLAGS
         env:
           FLAGS: --metadata-directive REPLACE --cache-control no-cache,must-revalidate
 
