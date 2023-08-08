@@ -16,7 +16,7 @@
 </p>
 
 
-# tea/cli 0.39.5
+# tea/cli 0.39.6
 
 `tea` is [`npx`] for *everything*.
 

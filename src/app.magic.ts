@@ -269,7 +269,7 @@ function shells(): [Path, string][] {
 
   const std = (shell: string) => `source <(tea --magic=${shell})  #docs.tea.xyz/magic`
 
-  const bash = 'test -z "$TEA_HAS_RUN" && source /dev/stdin <<<"$(tea --magic=bash) && export TEA_HAS_RUN=1  #docs.tea.xyz/magic'
+  const bash = 'test -z "$TEA_HAS_RUN" && source /dev/stdin <<<"$(tea --magic=bash)" && export TEA_HAS_RUN=1  #docs.tea.xyz/magic'
 
   const candidates: [Path, string][] = [
     [zdotdir.join(".zshrc"), std("zsh")],
