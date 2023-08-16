@@ -46,7 +46,7 @@ export async function repl(installations: Installation[], env: Record<string, st
   // python etc. have the same behavior
   console.error('this is a temporary shell containing the following packages:')
   console.error(pkgs_str())
-  console.error("when done type: `exit'")
+  console.error("when done type: `exit`")
 
   const shell = SHELL?.trim() || "/bin/sh"
   const cmd = [shell, '-i'] // interactive
