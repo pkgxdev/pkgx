@@ -205,11 +205,13 @@ export default async function(cwd: Path): Promise<VirtualEnv> {
     }
     if (_if("action.yml", "action.yaml")) {
       const yaml = validate.obj(await f!.readYAML())
-      const [,v] = yaml.runs?.using.match(/node(\d+)/) ?? []
-      pkgs.push({
-        project: "nodejs.org",
-        constraint: new semver.Range(`^${v}`)
-      })
+      const match = yaml.runs?.using.match(/node(\d+)/)
+      if(match) {
+        pkgs.push({
+          project: "nodejs.org",
+          constraint: new semver.Range(`^${match[1]}`)
+        })
+      }
     }
     if (_if("cargo.toml")) {
       pkgs.push({project: "rust-lang.org", constraint})

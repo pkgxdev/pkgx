@@ -145,6 +145,25 @@ Deno.test("should provide python in dev env", { sanitizeResources: false, saniti
   }
 })
 
+Deno.test("tolerant package parsing", { sanitizeResources: false, sanitizeOps: false }, async test => {
+  const SHELL = "/bin/zsh"
+
+  const tests = [
+    { file: "no-version/action.yml", pkg: [] },
+  ]
+
+  for (const {file, pkg} of tests) {
+    await test.step(file, async () => {
+      const {run, teaDir } = await createTestHarness()
+
+      fixturesDir.join(file).cp({into: teaDir})
+      const { stdout } = await run(["+tea.xyz/magic", "-Esk", "--chaste", "env"], { env: { SHELL, obj: {} } })
+
+      assertEquals(getTeaPackages(SHELL, stdout), pkg, "should match expected packages")
+    })
+  }
+})
+
 Deno.test("tolerant .node-version parsing", { sanitizeResources: false, sanitizeOps: false }, async test => {
   const SHELL = "/bin/zsh"
 
