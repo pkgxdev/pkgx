@@ -1,11 +1,10 @@
-name: CI
+name: ci
 
 on:
   pull_request:
     paths:
       - deno.jsonc
       - '**/*.ts'
-      - import-map.json
       - .github/workflows/ci.yml
   workflow_call:
 
@@ -23,9 +22,12 @@ jobs:
           - ubuntu-latest
           - macos-latest
     steps:
+      - run: echo 'TMPDIR=/tmp' >> $GITHUB_ENV
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
-      - run: deno cache $(find . -name \*.ts -a ! -path ./scripts/repair.ts)
+      - run: deno cache ./entrypoint.ts
       - run: deno task test --coverage=cov_profile
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
       - uses: coverallsapp/github-action@v1
@@ -39,21 +41,6 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-    - uses: coverallsapp/github-action@v1
-      with:
-        parallel-finished: true
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-      - run: deno lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/cache  # avoids sporadic 500s from deno’s CDN
-      - uses: teaxyz/setup@v0
-      - run: deno task typecheck
+      - uses: coverallsapp/github-action@v1
+        with:
+          parallel-finished: true

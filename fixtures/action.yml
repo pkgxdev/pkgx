@@ -1,0 +1,9 @@
+runs:
+  using: 'node16'
+  main: 'main.js'
+
+tea:
+  dependencies:
+    zlib.net^1.2
+  env:
+    FOO: BAR

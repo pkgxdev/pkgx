@@ -1,0 +1,15 @@
+root:
+  ./docs/
+redirects:
+  pantry: pantry.md
+  shell-integration: shell-integration.md
+  shellcode: shell-integration.md
+  getting-started: run/anywhere/terminals.md
+  quickstart: run/anywhere/terminals.md
+  installing-w/out-brew: run/anywhere/terminals.md
+  docker: run/anywhere/docker.md
+  ci-cd: run/anywhere/ci-cd.md
+  scripts: run/anywhere/scripts.md
+  editors: run/anywhere/editors.md
+  tea-install: tea-install.md
+  support: support.md
