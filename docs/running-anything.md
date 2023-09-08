@@ -22,6 +22,7 @@ $ deno --version
 deno 1.36.1
 # ^^ deno is added to the environment for the session duration
 ```
+
 {% endhint %}
 
 {% hint style="tip" %}
@@ -35,6 +36,7 @@ $ npx kill-port 8080
 $ t
 tea +npx && npx kill-port 8080
 ```
+
 {% endhint %}
 
 
@@ -60,6 +62,7 @@ postgres (PostgreSQL) 13.11
 $ tea deno=1.35.3 --version
 deno 1.35.3
 ```
+
 {% endhint %}
 
 ### Running the Latest Version

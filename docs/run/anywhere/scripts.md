@@ -68,7 +68,7 @@ If you like you can use our cURL-installer in your scripts. If `tea` is
 installed then the script just exits and uses that `tea`, if it’s not
 installed, it installs tea to a **temporary directory** first.
 
-```
+```sh
 #!/bin/sh
 
 eval "$(curl -Ssf https://tea.xyz)"

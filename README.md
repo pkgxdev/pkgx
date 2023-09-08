@@ -244,7 +244,6 @@ If you have questions or feedback:
 [docs.tea.xyz/scripts]: https://docs.tea.xyz/scripts
 [docs.tea.xyz/editors]: https://docs.tea.xyz/editors
 [docs.tea.xyz/docker]: https://docs.tea.xyz/docker
-[docs.tea.xyz/getting-started]: https://docs.tea.xyz/getting-started
 [docs.tea.xyz/installing-w/out-brew]: https://docs.tea.xyz/installing-w/out-brew
 [docs.tea.xyz/shell-integration]: https://docs.tea.xyz/shell-integration
 [dev]: https://docs.tea.xyz/dev
