@@ -1,5 +1,8 @@
 #!/usr/bin/env -S tea +git +gh +jq +gum +npx +deno bash -eo pipefail
 
+# the back and forth here is because draft releases cannot trigger
+# GitHub Actions 😒
+
 if ! git diff-index --quiet HEAD --; then
   echo "error: dirty working tree" >&2
   exit 1
@@ -56,7 +59,7 @@ gh release create \
 
 gh workflow run cd.yml -f version="$v_new"
 
-run_id=$(gh -R teaxyz/pantry run list --json databaseId --workflow cd | jq '.[0].databaseId')
+run_id=$(gh run list --json databaseId --workflow cd | jq '.[0].databaseId')
 
 gh workflow view --web $run_id
 
