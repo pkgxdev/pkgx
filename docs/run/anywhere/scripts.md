@@ -78,6 +78,7 @@ echo $PATH  #=> /tmp/tea.xyz:$PATH
 
 tea +node@16 which node  #=> /tmp/tea.xyz/nodejs.org/v16/bin/node
 ```
+
 {% endhint %}
 
 
