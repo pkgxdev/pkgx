@@ -53,4 +53,5 @@ across platforms.
 ```sh
 tea +gnu.org/coreutils ls
 ```
+
 {% endhint %}

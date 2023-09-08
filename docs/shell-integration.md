@@ -93,6 +93,7 @@ If for some reason you need a session without this integration you can unload:
 ```sh
 tea unload
 ```
+
 {% endhint %}
 
 {% hint style="info" %}

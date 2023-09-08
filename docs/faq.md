@@ -162,6 +162,7 @@ This will uninstall tea, all package caches and deintegrate your
 
 
 {% hint style="warning" %}
+
 ### Caveats
 
 Though not a problem unique to `tea` you should note that tools installed

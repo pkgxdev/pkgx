@@ -251,6 +251,3 @@ If you have questions or feedback:
 
 [coverage]: https://coveralls.io/repos/github/pkgxsh/cli/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/pkgxsh/cli?branch=main
-[docs-badge]: https://img.shields.io/badge/-docs-2675f5?logoColor=fff&color=4156e1&logo=gitbook
-[x-badge]: https://img.shields.io/badge/-teaxyz-2675f5?logo=x&color=000&logoColor=fff
-[x]: https://x.com/teaxyz
