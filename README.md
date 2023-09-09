@@ -48,7 +48,7 @@ Python 2.7.18
 * <details><summary>macOS</summary><br>
 
   * macOS >= 11
-  * `x86_64` & `arm64`
+  * x86-64 & Apple Silicon
 
   </details>
 * <details><summary>Linux</summary><br>
@@ -59,7 +59,7 @@ Python 2.7.18
   </details>
 * <details><summary>Windows</summary><br>
 
-  WSL2. *Native windows is planned.*
+  WSL2; x86-64. *Native windows is planned.*
 
   </details>
 * <details><summary>Docker</summary><br>
@@ -88,7 +88,7 @@ Python 2.7.18
   RUN tea python@3.10 -m http.server 8000
   ```
 
-  [docs.tea.xyz/docker]
+  > [docs.tea.xyz/docker]
 
   </details>
 * <details><summary>CI/CD</summary><br>
@@ -105,7 +105,7 @@ Python 2.7.18
   $ tea shellcheck
   ```
 
-  [docs.tea.xyz/ci-cd]
+  > [docs.tea.xyz/ci-cd]
 
   </details>
 * <details><summary>Shebangs</summary><br>
@@ -114,7 +114,7 @@ Python 2.7.18
   #!/usr/bin/env -S tea python@3.10
   ```
 
-  [docs.tea.xyz/scripts]
+  > [docs.tea.xyz/scripts]
 
   </details>
 * <details><summary>Editors</summary><br>
@@ -143,7 +143,7 @@ Python 2.7.18
   (+cargo+rust) my-rust-project $ code .
   ```
 
-  [docs.tea.xyz/editors]
+  > [docs.tea.xyz/editors]
 
   </details>
 
