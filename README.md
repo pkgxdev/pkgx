@@ -254,4 +254,4 @@ If you have questions or feedback:
 [coverage]: https://coveralls.io/repos/github/teaxyz/cli/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/teaxyz/cli?branch=main
 
-[release-badge]: https://img.shields.io/github/downloads-pre/teaxyz/cli/latest/total
+[release-badge]: https://img.shields.io/github/v/release/teaxyz/cli?include_prereleases&label=latest%20release
