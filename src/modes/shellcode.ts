@@ -47,6 +47,9 @@ export default function() {
       *)
         for arg in "$@"; do
           case $arg in
+          --*)
+            command tea "$@"
+            return;;
           -*);;
           +*);;
           *)
