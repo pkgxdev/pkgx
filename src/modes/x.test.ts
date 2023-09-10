@@ -69,8 +69,13 @@ Deno.test("x.ts", async runner => {
       assertEquals(stub1.calls[0].args[0].cmd, args)
 
       await runner.step("@latest", async runner => {
+        const stub5 = mock.stub(_internals, "getenv", () => undefined)
         const new_args = [`${args[0]}@latest`, ...args.slice(1)]
-        await runner.step("std", () => specimen(new_args, opts))
+        try {
+          await runner.step("std", () => specimen(new_args, opts))
+        } finally {
+          stub5.restore()
+        }
 
         assertEquals(stub1.calls.length, 2)
         assertEquals(stub1.calls[1].args[0].cmd, args)
