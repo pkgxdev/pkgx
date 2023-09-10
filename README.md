@@ -1,238 +1,203 @@
 ![tea](https://tea.xyz/banner.png)
 
-<p align="center">
-  <a href="https://twitter.com/teaxyz">
-    <img src="https://img.shields.io/badge/-teaxyz-2675f5?logo=twitter&logoColor=fff" alt="Twitter" />
-  </a>
-  <a href="https://discord.tea.xyz">
-    <img src="https://img.shields.io/discord/906608167901876256?label=discord&color=1bcf6f&logo=discord&logoColor=fff" alt="Discord" />
-  </a>
-  <a href='https://coveralls.io/github/teaxyz/cli?branch=main'>
-    <img src='https://coveralls.io/repos/github/teaxyz/cli/badge.svg?branch=main' alt='Coverage Status' />
-  </a>
-  <a href="https://docs.tea.xyz">
-    <img src="https://img.shields.io/badge/-docs-2675f5?logoColor=fff&color=ff00ff&logo=gitbook" alt="Documentation & Manual" />
-  </a>
-</p>
-
-
-# tea/cli 0.39.6
-
-`tea` is [`npx`] for *everything*.
-
-```sh
-$ node
-command not found: node
-
-$ brew install teaxyz/pkgs/tea-cli
-# …
-
-$ tea node --version
-v19.7.0
-
-$ tea node@16 --version
-v16.20.1
-
-$ node
-command not found: node
-# ^^ tea is not a package manager; if you need installs, keep using brew
-```
-
-[`npx`]: https://www.npmjs.com/package/npx
+`tea` is a single, *standalone binary* that can *run anything*.&nbsp;&nbsp;[![coverage][]][coveralls]
 
 &nbsp;
 
 
-
-`tea` is [`nvm`] for *everything*:
+### Quickstart
 
 ```sh
-$ cd my-project
+brew install teaxyz/pkgs/tea-cli
+```
 
-$ cat .node-version
-16
+> * [docs.tea.xyz/installing-w/out-brew]
+> * [Migrating from tea v0](https://slack-files.com/T02MTUY60NS-F05NRQ8CT51-a881910f74)
 
-$ tea --env node --version
-v16.20.1
+&nbsp;
 
-$ source <(tea --env)
-# temporarily adds `my-project`’s deps to your current shell
-# install our “shell magic” to do this automatically (read on for docs)
 
-$ node --version
-v16.20.1
+# Run Anything
 
-$ which node
-~/.tea/nodejs.org/v16.20.1/bin/node
-# ^^ everything goes in ~/.tea
+```sh
+$ deno
+command not found: deno
 
-# use any version of anything
-$ tea node@19 --version
-v19.7.0
+$ tea deno
+Deno 1.36.3
+> ^D
 
-# we package as far back as we can
-$ tea python@2.7.18 --version
+$ deno
+command not found: deno
+# ^^ nothing was installed; your system remains untouched
+```
+
+
+## Run *Any Version* of Anything
+
+```sh
+$ tea node@14 --version
+Node.js v14.21.3
+
+$ tea python@2 --version
 Python 2.7.18
 ```
 
-This works for everything. eg. `pyproject.toml`, `.ruby-version`, etc.
 
-[`nvm`]: https://github.com/nvm-sh/nvm
+## Run Anywhere
 
-> <details><summary><i>PSA:</i> Stop using Docker</summary><br>
->
-> Look, don’t *stop* using Docker—that’s not what we mean.
-> Docker is great for deployment, but… let’s face it: it
-> sucks for dev.
->
-> *Docker stifles builders*.
-> It constricts you; you’re immalleable; tech marches onwards but your docker
-> container remains immobile. *Nobody knows how to use `docker`*. Once that
-> `Dockerfile` is set up, nobody dares touch it.
->
-> And let’s face it, getting your personal dev and debug tools working inside
-> that image is incredibly frustrating. Why limit your potential?
->
-> Keep deploying with Docker, but use tea to develop.
->
-> Then when you do deploy you may as well install those deps with tea.
->
-> Frankly, tea is properly versioned (unlike system packagers) so with tea your
-> deployments actually remain *more* stable.
-> </details>
+* <details><summary>macOS</summary><br>
+
+  * macOS >= 11
+  * x86-64 & Apple Silicon
+
+  </details>
+* <details><summary>Linux</summary><br>
+
+  * glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
+  * `x86_64` & `arm64`
+
+  </details>
+* <details><summary>Windows</summary><br>
+
+  WSL2; x86-64. *Native windows is planned.*
+
+  </details>
+* <details><summary>Docker</summary><br>
+
+  ```sh
+  $ tea docker run -it teaxyz/cli
+
+  (docker) $ tea node@16
+  Welcome to Node.js v16.20.1.
+  Type ".help" for more information.
+  >
+  ```
+
+  Or in a `Dockerfile`:
+
+  ```Dockerfile
+  FROM teaxyz/cli
+  RUN tea deno@1.35 task start
+  ```
+
+  Or in any image:
+
+  ```Dockerfile
+  FROM ubuntu
+  RUN curl https://tea.xyz | sh
+  RUN tea python@3.10 -m http.server 8000
+  ```
+
+  > [docs.tea.xyz/docker]
+
+  </details>
+* <details><summary>CI/CD</summary><br>
+
+  ```yaml
+  - uses: teaxyz/setup@v0
+  - run: tea shellcheck
+  ```
+
+  Or in other CI/CD providers:
+
+  ```sh
+  $ curl https://tea.xyz | sh
+  $ tea shellcheck
+  ```
+
+  > [docs.tea.xyz/ci-cd]
+
+  </details>
+* <details><summary>Shebangs</summary><br>
+
+  ```sh
+  #!/usr/bin/env -S tea python@3.10
+  ```
+
+  > [docs.tea.xyz/scripts]
+
+  </details>
+* <details><summary>Editors</summary><br>
+
+  ```sh
+  $ cd myproj
+
+  myproj $ tea use cargo
+  (+cargo) myproj $ code .
+  ```
+
+  Or use [`dev`][dev]; a separate tool that uses tea primitives to
+  automatically determine and utilize your dependencies based on your
+  project’s keyfiles.
+
+  ```sh
+  $ cd myproj
+
+  myproj $ dev
+  ^^ type `tea` to run that
+
+  myproj $ tea
+  tea +dev && dev
+  dev: found cargo.toml; adding ~/.tea/cargo/v* to environment
+
+  (+cargo+rust) my-rust-project $ code .
+  ```
+
+  > [docs.tea.xyz/editors]
+
+  </details>
 
 &nbsp;
 
 
+# Shell Integration
 
-`tea` knows how to interpret *anything*:
-
-```sh
-$ tea ./script.py
-tea: installing ~/.tea/python.org/v3.11.1
-# ^^ local scripts: nps
-
-$ tea https://examples.deno.land/color-logging.ts
-tea: installing ~/.tea/deno.land/v1.31.2
-# ^^ remote scripts: also fine
-```
-
-Go further; tap the entire open source ecosystem via YAML front matter:
+`tea` puts the whole open source ecosystem at your fingertips and its
+***optional*** shell integration makes workflows with that open source
+even more seamless.
 
 ```sh
-$ cat ./favicon-generator
-#!/usr/bin/ruby
-# ^^ tea reads the shebang and automatically installs ruby
-#---
-# dependencies:
-#   imagemagick.org: 4
-#   optipng.sourceforge.net: 1
-#---
-# …
+$ tea +go@1.16
+added ~/.tea/go.dev/v1.16 to environment
 
-$ tea ./favicon-generator input.png
-tea: installing image-magick, optipng, guetzli and 3 other packages…
+(+go) $ go
+Go is a tool for managing Go source code.
+#…
 
-$ file *.png
-favicon-128.png: PNG image data, 128 x 128
-favicon-32.png: …
+(+go) $ env | grep go
+PATH=~/.tea/go.dev/v1.16.15/bin:$PATH
+LIBRARY_PATH=~/.tea/go.dev/v1.16.15/lib
+
+(+go) $ tea -go
+removed ~/.tea/go.dev/v1.16 from environment
+
+$ go
+command not found: go
 ```
 
-> Setting the shebang to eg. `#!/usr/bin/env -S tea node` is another option.
+Tools are available for the duration of your terminal session.
+If you need them for longer, `tea install`.
 
-&nbsp;
+> [docs.tea.xyz/shell-integration] \
+> [docs.tea.xyz/tea-install]
 
+## `dev`
 
-
-Try out anything open source offers in an encapsulated sandbox:
+`dev` is a separate tool that leverages tea's core
+features to auto-detect and install project dependencies, seamlessly
+integrating them into your shell and editor.
 
 ```sh
-$ tea +rust-lang.org sh
-tea: this is a temporary shell containing rust-lang.org and 3 other pkgs
-tea: type `exit` when done
+my-rust-proj $ dev
+dev: found cargo.toml; tea +cargo
 
-tea $ rustc --version
-rustc 1.65.0
-
-tea $ exit
-
-$ rustc
-command not found: rustc
+(+cargo+rust) my-rust-proj $ cargo build
+Compiling my-rust-proj v0.1.0
+#…
 ```
 
-`tea`’s `+pkg` syntax adds packages to an environment and then executes
-commands within it. This can make trying out seemingly complex projects
-trivial, eg. setting up your environment for the [stable-diffusion-webui]
-project can be quite tricky, but not so with `tea`:
-
-```sh
-$ git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
-$ tea \
-  --cd stable-diffusion-webui \
-  +python.org~3.10 +pip.pypa.io +gnu.org/wget +protobuf.dev +rust-lang.org \
-  ./webui.sh
-```
-
-&nbsp;
-
-
-## Shell Magic
-
-Every README for every project has 10 pages of “how to install x” commands.
-With `tea`’s magic you can just copy and paste the usage instructions and skip
-the install instructions.
-
-```sh
-$ which node
-command not found: node
-
-$ source <(tea --magic)
-
-$ node --version
-tea: installing nodejs.org…
-v19
-
-$ node@16 --version
-v16
-
-$ node --version
-v19   # the most recent is default
-```
-
-Our magic also loads project deps into the environment when you step inside:
-
-```sh
-$ cd my-project
-
-my-project $ cat .node-version
-14
-
-my-project $ node --version
-tea: installing nodejs.org@14…
-v14
-
-my-project $ cd ..
-
-$ node --version
-v19
-
-$ source <(tea --magic=unload)
-
-$ node
-command not found: node
-```
-
-### Installing Shell Magic
-
-If you want shell magic when your terminal loads, install it:
-
-```sh
-$ tea --magic=install
-# installs a one-liner to your ~/.shellrc
-
-$ tea --magic=uninstall
-# nps if you change your mind
-```
+> [docs.tea.xyz/dev][dev]
 
 &nbsp;
 
@@ -244,83 +209,45 @@ $ tea --magic=uninstall
 brew install teaxyz/pkgs/tea-cli
 ```
 
-If you prefer, tea is a standalone, cross-platform binary that you can install
-anywhere you want ([releases]). Here’s a handy one-liner:
+> no `brew`? [docs.tea.xyz/installing-w/out-brew]
+
+### Integrating with your Shell
 
 ```sh
-sudo install -m 755 \
-  <(curl --compressed -LSsf --proto '=https' https://tea.xyz/$(uname)/$(uname -m)) \
-  /usr/local/bin/tea
+tea integrate --dry-run   # docs.tea.xyz/shell-integration
 ```
 
-Once installed you can install our shell magic:
+## Further Reading
 
-```sh
-tea --magic=install
-```
-
-* Stepping into directories ensures the packages those projects need
-are installed on demand and available to the tools you’re using.
-* Commands you type just work without package management nonsense.
+[docs.tea.xyz][docs] is a comprehensive manual and user guide for `tea`.
 
 &nbsp;
 
 
 
-# Documentation & Manual
+# Contributing
 
-You want all the docs? We got all the docs. [docs.tea.xyz]
+* To add packages see the [pantry README]
+* To hack on `tea` itself; clone it and then `tea deno task` to list
+  entrypoints for hackers
 
-&nbsp;
+If you have questions or feedback:
 
-
-
-# Whatcha Think?
-
-We’d love to hear your thoughts on this project.
-Feel free to drop us a note.
-
-* [twitter.com/teaxyz](https://twitter.com/teaxyz)
-* [github.com/orgs/teaxyz/discussions](https://github.com/orgs/teaxyz/discussions)
-* [discord.tea.xyz](https://discord.tea.xyz)
-
-&nbsp;
+* [github.com/orgs/teaxyz/discussions][discussions]
+* [x.com/teaxyz](https://x.com/teaxyz) (DMs are open)
 
 
+[docs]: https://docs.tea.xyz
+[pantry README]: ../../../pantry#contributing
+[discussions]: ../../../discussions
+[docs.tea.xyz/tea-install]: https://docs.tea.xyz/tea-install
+[docs.tea.xyz/ci-cd]: https://docs.tea.xyz/ci-cd
+[docs.tea.xyz/scripts]: https://docs.tea.xyz/scripts
+[docs.tea.xyz/editors]: https://docs.tea.xyz/editors
+[docs.tea.xyz/docker]: https://docs.tea.xyz/docker
+[docs.tea.xyz/installing-w/out-brew]: https://docs.tea.xyz/installing-w/out-brew
+[docs.tea.xyz/shell-integration]: https://docs.tea.xyz/shell-integration
+[dev]: https://docs.tea.xyz/dev
 
-# Adding New Packages
-
-Check out the [pantry README].
-
-
-# Contributing to tea/cli
-
-If you have suggestions or ideas, start a [discussion].
-If we agree, we’ll move it to an issue.
-Bug fixes straight to pull request or issue please!
-
-## Hacking on tea/cli
-
-`tea` is written in [TypeScript] using [deno].
-
-```sh
-$ git clone https://github.com/teaxyz/cli tea
-$ cd tea
-
-deno task run foo
-# ^^ runs the local checkout passing `foo` as an argument
-
-$ deno task install
-# ^^ deploys the local checkout into your `~/.tea`
-
-$ deno task compile && ./tea
-```
-
-
-[docs.tea.xyz]: https://docs.tea.xyz
-[deno]: https://deno.land
-[TypeScript]: https://www.typescriptlang.org
-[discussion]: https://github.com/orgs/teaxyz/discussions
-[stable-diffusion-webui]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
-[releases]: ../../releases
-[pantry README]: https://github.com/teaxyz/pantry#contributing
+[coverage]: https://coveralls.io/repos/github/teaxyz/cli/badge.svg?branch=main
+[coveralls]: https://coveralls.io/github/teaxyz/cli?branch=main

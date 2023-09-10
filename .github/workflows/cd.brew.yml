@@ -1,0 +1,21 @@
+name: cd·brew
+
+on:
+  release:
+    types:
+      - published
+
+concurrency:
+  group: cd/docker/${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+jobs:
+  bump-tap:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: aurelien-baudet/workflow-dispatch@v2
+      with:
+        workflow: bump.yml
+        repo: teaxyz/homebrew-pkgs
+        ref: main
+        token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}

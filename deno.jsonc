@@ -4,18 +4,20 @@
     "strict": true
   },
   "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-env --allow-run --allow-write --allow-ffi --unstable",
+    // runs this source checkout, args will be passed
+    "run": "deno run --unstable -A ./entrypoint.ts",
+
+    // you can specify paths to specific tests if you need
+    "test": "deno test --allow-read=$PWD,$TMPDIR,$HOME,/ --allow-env --allow-write=$TMPDIR --allow-ffi --unstable",
+    // ^^ ffi & unstable needed for execve.ts
+
+    // installs to ~/.local/bin/tea
+    "install": "deno task compile && ./tea +gnu.org/coreutils /usr/bin/sudo install -D ./tea /usr/local/bin/tea",
+
+    //--------------------------------------- ci/cd/admin
     "coverage" : "scripts/run-coverage.sh",
-    "typecheck": "deno check --unstable ./src/app.ts",
-    // runs this source checkout for testing
-    "run": "deno run --unstable -A src/app.ts",
-    // compiles to ./tea
-    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/tea src/app.ts",
-    // installs this source checkout as a tea stowed package
-    "install": "deno compile --unstable -Ao $TEA_PREFIX/tea.xyz/v$VERSION/bin/tea src/app.ts && scripts/repair.ts tea.xyz"
-  },
-  "lint": {
-    "include": ["src/"]
+    "typecheck": "deno check --unstable ./entrypoint.ts",
+    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/tea ./entrypoint.ts"
   },
   "tea": {
     "dependencies": {
@@ -24,11 +26,10 @@
   },
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
-    "tea": "https://deno.land/x/libtea@v0.10.7/mod.ts",
-    "tea/": "https://deno.land/x/libtea@v0.10.7/src/",
+    "tea": "https://deno.land/x/libtea@v0.13.0/mod.ts",
+    "tea/": "https://deno.land/x/libtea@v0.13.0/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
-    "deno/": "https://deno.land/std@0.196.0/",
-    "hooks": "./src/hooks/index.ts"
+    "deno/": "https://deno.land/std@0.201.0/"
   }
 }

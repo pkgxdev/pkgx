@@ -1,0 +1,22 @@
+name: cd·vx
+
+on:
+  release:
+    types:
+      - published
+
+concurrency:
+  group: cd/vx/${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  retag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: fischerscode/tagger@v0
+        with:
+          prefix: v
