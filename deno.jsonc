@@ -29,7 +29,7 @@
     "tea": "https://deno.land/x/libtea@v0.13.0/mod.ts",
     "tea/": "https://deno.land/x/libtea@v0.13.0/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
-    "cliffy/": "https://deno.land/x/cliffy@v0.25.7/",
+    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.3/",
     "deno/": "https://deno.land/std@0.201.0/"
   }
 }

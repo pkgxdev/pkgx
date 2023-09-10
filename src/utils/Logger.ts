@@ -20,7 +20,7 @@ export default class Logger {
       line = `${gray(this.prefix)}${line}`
     }
 
-    Deno.stderr.writeSync(this._clear().text(line).toBuffer())
+    Deno.stderr.writeSync(this._clear().text(line).bytes())
     this.lines += ln(line)
   }
 
@@ -37,7 +37,7 @@ export default class Logger {
   }
 
   clear() {
-    Deno.stderr.writeSync(this._clear().toBuffer())
+    Deno.stderr.writeSync(this._clear().bytes())
     this.lines = 0
   }
 
