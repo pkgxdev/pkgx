@@ -2,7 +2,7 @@
 
 `tea` is a single, *standalone binary* that can *run anything*.
 &nbsp;&nbsp;[![coverage][]][coveralls]
-[![release-badge][](../../releases)
+[![release-badge][]](../../releases)
 
 &nbsp;
 
