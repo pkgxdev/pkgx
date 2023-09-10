@@ -1,6 +1,8 @@
 ![tea](https://tea.xyz/banner.png)
 
-`tea` is a single, *standalone binary* that can *run anything*.&nbsp;&nbsp;[![coverage][]][coveralls]
+`tea` is a single, *standalone binary* that can *run anything*.
+&nbsp;&nbsp;[![coverage][]][coveralls]
+[![release-badge][](../../releases)
 
 &nbsp;
 
@@ -251,3 +253,5 @@ If you have questions or feedback:
 
 [coverage]: https://coveralls.io/repos/github/teaxyz/cli/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/teaxyz/cli?branch=main
+
+[release-badge]: https://img.shields.io/github/downloads-pre/teaxyz/cli/latest/total
