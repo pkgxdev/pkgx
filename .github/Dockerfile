@@ -1,5 +1,5 @@
 FROM debian:buster-slim as stage0
-COPY ./products/* /tea
+COPY ./products/* /tea/
 RUN cp /tea/$(uname)+$(uname -m) /usr/local/bin/tea
 RUN tea integrate
 
