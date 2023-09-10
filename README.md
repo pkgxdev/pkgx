@@ -239,7 +239,7 @@ If you have questions or feedback:
 
 [docs]: https://docs.tea.xyz
 [pantry README]: ../../../pantry#contributing
-[discussions]: ../../../discussions
+[discussions]: ../../discussions
 [docs.tea.xyz/tea-install]: https://docs.tea.xyz/tea-install
 [docs.tea.xyz/ci-cd]: https://docs.tea.xyz/ci-cd
 [docs.tea.xyz/scripts]: https://docs.tea.xyz/scripts
