@@ -24,3 +24,6 @@ MD013: false
 
 # some titles end in 'etc.'
 MD026: false
+
+# gitbook provides its own top-level heading so we use `#` as `##`
+MD025: false

@@ -1,75 +1,53 @@
-name: CD
+name: cd
+
+# creates a draft release with srcs and binary products attached
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - README.md
   workflow_dispatch:
+    inputs:
+      version:
+        required: true
 
 concurrency:
-  group: distribute
+  group: cd/${{ github.event.inputs.version }}
   cancel-in-progress: true
 
 jobs:
-  check:
-    permissions:
-      actions: write  # for cancel-action
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.tea.outputs.version }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-        id: tea
-
-      - name: sanity check
-        run: |
-          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f1 -d.)"
-          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f2 -d.)"
-          test -n "$(echo ${{ steps.tea.outputs.version }} | cut -f3 -d.)"
-
-      - id: rev-parse
-        name: did we already publish this version?
-        run: |
-          # fetch tags since actions/checkout is a shallow checkout
-          git fetch --prune --unshallow --tags
-
-          if git show-ref --tags v${{ steps.tea.outputs.version }} --quiet; then
-            echo "result=cancel" >> $GITHUB_OUTPUT
-          else
-            echo "result=commence" >> $GITHUB_OUTPUT
-          fi
-
-      - uses: andymckay/cancel-action@0.2
-        if: ${{ steps.rev-parse.outputs.result == 'cancel' }}
-
   qa:
-    # run tests on all our runners since we’ve had issues in the past where
-    # subtle differences weren’t caught and pantry builds started failing :/
-    needs: [check]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-          - [self-hosted, macOS, ARM64]
-          - [self-hosted, linux, ARM64]
-          - [self-hosted, macOS, X64]
-          - [self-hosted, linux, X64]
+    uses: ./.github/workflows/ci.yml
+
+  integration-tests:
+    uses: ./.github/workflows/ci.shellcode.yml
+
+  attach-srcs:
+    runs-on: ubuntu-latest
+    needs: [qa, integration-tests]
+    env:
+      FILENAME: tea-${{ github.event.inputs.version }}
     steps:
       - uses: actions/checkout@v3
-      - uses: teaxyz/setup@v0
-      - run: deno task test
+        with:
+          path: ${{ env.FILENAME }}
+      - name: clean
+        run: rm -rf ${{ env.FILENAME }}/.github .gitbook.yml
+      - name: stamp version.ts
+        run: echo "export default function() { return '$v' }" >> $FILENAME/src/modes/version.ts
+      - name: include GPG pubkey
+        run: echo ${{ secrets.GPG_PUBLIC_KEY }} | base64 -d > $FILENAME/tea.xyz.pub.asc
+      - run: tar cJf $FILENAME.tar.xz $FILENAME
+      - name: attach srcs to release
+        run: gh release upload
+          ${{ github.event.inputs.version }}
+          $FILENAME.tar.xz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: srcs
+          path: ${{ env.FILENAME }}.tar.xz
+          if-no-files-found: error
 
-  # we compile here so we can attach binaries to the release itself
-  # we do this because people expect that, and will be confused otherwise
-  # and we want people to be able to just grab the single binaries as
-  # they wish
-  compile:
-    needs: [qa, check, bundle-src]
+  attach-binary-products:
+    needs: attach-srcs
     permissions:
-      contents: read
       actions: write
     strategy:
       matrix:
@@ -84,162 +62,49 @@ jobs:
           build-id: linux+aarch64
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
+    env:
+      FILENAME: tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
     steps:
       - uses: actions/download-artifact@v3
         with:
           name: srcs
-      - run: tar xJf tea-${{ needs.check.outputs.version }}.tar.xz --strip-components=1
-      - uses: teaxyz/cli/.github/actions/cache@v0  # avoids sporadic 500s from deno’s CDN
-      - uses: teaxyz/setup@v0
+
+      - run: tar xJf tea-${{ github.event.inputs.version }}.tar.xz --strip-components=1
+      - run: teaxyz/setup@v0
       - run: deno task compile
+
       - uses: teaxyz/brewkit/actions/setup-codesign@v0
         if: startsWith(matrix.platform.build-id, 'darwin+')
         with:
             p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
             p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
+
       # codesign always fails for deno binaries, even though it
       # signs fine. See https://github.com/denoland/deno/issues/575
       - run: codesign --sign "$APPLE_IDENTITY" --force --preserve-metadata=entitlements,requirements,flags,runtime ./tea || true
         env:
           APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+
       - name: sanity check
-        run: test "$(./tea --version)" = "tea ${{ needs.check.outputs.version }}"
-      - run: tar cJf tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz tea
+        run: test "$(./tea --version)" = "tea ${{ github.event.inputs.version }}"
+
+      - run: tar cJf $FILENAME tea
+
       - name: GPG sign archive
         run: |
-          tea gpg-agent --daemon || true
+          ./tea gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
             base64 -d | \
-            tea gpg --import --batch --yes
-          tea gpg \
+            ./tea gpg --import --batch --yes
+          ./tea gpg \
             --detach-sign --armor \
             --local-user $GPG_KEY_ID \
-            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+            $FILENAME
         env:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: binaries
-          path: |
-            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz
-            tea-${{ needs.check.outputs.version }}+${{ matrix.platform.build-id }}.tar.xz.asc
-          if-no-files-found: error
 
-  bundle-src:
-    runs-on: ubuntu-latest
-    needs: [qa, check]
-    env:
-      FILENAME: tea-${{ needs.check.outputs.version }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          path: ${{ env.FILENAME }}
-      - name: Clean
-        run: rm -rf ${{ env.FILENAME }}/.github .gitpod.yml
-      - name: Stamp Version
-        run: echo "export default function() { return '${{ needs.check.outputs.version }}' }" > $FILENAME/src/hooks/useVersion.ts
-      - name: Include GPG pubkey
-        run: echo $PUBKEY | base64 -d > $FILENAME/tea.xyz.pub.asc
-        env:
-          PUBKEY: ${{ secrets.GPG_PUBLIC_KEY }}
-      - run: tar cJf $FILENAME.tar.xz $FILENAME
-      - uses: actions/upload-artifact@v3
-        with:
-          name: srcs
-          path: ${{ env.FILENAME }}.tar.xz
-          if-no-files-found: error
-
-  release:
-    permissions:
-      contents: write
-    needs: [check, compile, bundle-src]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
-      - uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ needs.check.outputs.version }}
-          files: |
-            binaries/*
-            srcs/*
-          fail_on_unmatched_files: true
-          generate_release_notes: true
-          token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}  # using our own PAT so other workflows run
-
-  bump-tap:
-    needs: [release]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: aurelien-baudet/workflow-dispatch@v2
-      with:
-        workflow: bump.yml
-        repo: teaxyz/homebrew-pkgs
-        ref: main
-        token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
-
-  # these are the binaries that curl https://tea.xyz/platform/arch/ download
-  upload-binaries:
-    needs: [release]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: binaries
-          path: binaries
-
-      - uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Unpack Binaries
-        working-directory: binaries
-        run: |
-          for filename in *.tar.xz; do
-            tar xJf $filename
-            result="${filename#*+}"
-            result="${result%.tar.xz}"
-            mv tea tea-$result
-            rm $filename
-          done
-
-      - name: Upload to S3
-        run: |
-          aws s3 cp binaries/tea-darwin+aarch64 s3://www.tea.xyz/Darwin/arm64 $FLAGS
-          aws s3 cp binaries/tea-darwin+x86-64 s3://www.tea.xyz/Darwin/x86_64 $FLAGS
-
-          # Both because, iirc, some linuxen are inconsistent
-          aws s3 cp binaries/tea-linux+aarch64 s3://www.tea.xyz/Linux/arm64 $FLAGS
-          aws s3 cp binaries/tea-linux+aarch64 s3://www.tea.xyz/Linux/aarch64 $FLAGS
-
-          aws s3 cp binaries/tea-linux+x86-64 s3://www.tea.xyz/Linux/x86_64 $FLAGS
-        env:
-          FLAGS: --metadata-directive REPLACE --cache-control no-cache,must-revalidate
-
-      - name: Invalidate CloudFront
-        run:
-          aws cloudfront create-invalidation
-            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
-            --paths $STATIC_PATHS
-        env:
-          STATIC_PATHS: >-
-            /Darwin/arm64
-            /Darwin/x86_64
-            /Linux/arm64
-            /Linux/aarch64
-            /Linux/x86_64
-
-  smoke-teaxyz-setup-github-action:
-    needs: [upload-binaries]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: aurelien-baudet/workflow-dispatch@v2
-      with:
-        workflow: smoke-test.yml
-        repo: teaxyz/setup
-        ref: main
-        token: ${{secrets.TEMP_JACOBS_GITHUB_PAT}}
-        wait-for-completion: false
+      - name: attach product to release
+        run: gh release upload
+          ${{ github.event.inputs.version }}
+          $FILENAME $FILENAME.asc

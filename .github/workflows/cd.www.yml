@@ -1,0 +1,59 @@
+name: cd·www
+
+# the binaries for curl tea.xyz/$(uname)/$(uname -m)
+
+on:
+  release:
+    types:
+      - published
+
+concurrency:
+  group: cd/www/${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+jobs:
+  www-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: robinraju/release-downloader@v1
+        with:
+          releaseId: ${{ github.event.release.id }}
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Unpack Binaries
+        run: |
+          for filename in tea-*+*+*.tar.xz; do
+            tar xJf $filename
+            result="${filename#*+}"
+            result="${result%.tar.xz}"
+            mv tea tea-$result
+            rm $filename
+          done
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp tea-darwin+aarch64 s3://www.tea.xyz/Darwin/arm64 $FLAGS
+          aws s3 cp tea-darwin+x86-64 s3://www.tea.xyz/Darwin/x86_64 $FLAGS
+          aws s3 cp tea-linux+aarch64 s3://www.tea.xyz/Linux/arm64 $FLAGS
+          aws s3 cp tea-linux+aarch64 s3://www.tea.xyz/Linux/aarch64 $FLAGS   # some linuxen say this instead
+          aws s3 cp tea-linux+x86-64 s3://www.tea.xyz/Linux/x86_64 $FLAGS
+        env:
+          FLAGS: --metadata-directive REPLACE --cache-control "max-age=3600, must-revalidate"
+
+      - name: Invalidate CloudFront
+        run:
+          aws cloudfront create-invalidation
+            --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
+            --paths $STATIC_PATHS
+        env:
+          STATIC_PATHS: >-
+            /Darwin/arm64
+            /Darwin/x86_64
+            /Linux/arm64
+            /Linux/aarch64
+            /Linux/x86_64

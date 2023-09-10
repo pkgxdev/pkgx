@@ -1,0 +1,10 @@
+# ---
+# dependencies:
+#   zlib.net: ^1.2
+# env:
+#   FOO: BAR
+# ---
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

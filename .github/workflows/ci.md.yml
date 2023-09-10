@@ -1,4 +1,4 @@
-name: CI·markdown-lint
+name: ci·markdown-lint
 
 on:
   pull_request:

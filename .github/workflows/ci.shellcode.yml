@@ -1,0 +1,331 @@
+name: ci·shellcode
+
+on:
+  pull_request:
+    paths:
+      - src/modes/shellcode.ts
+      - .github/workflows/ci.shellcode.yml
+
+  workflow_call:
+
+concurrency:
+  group: ${{ github.ref }}/shellcode
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@v3
+      - run: deno task compile
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tea
+          path: tea
+
+  #NOTE bash/zsh/POSIX jobs are duplicated because `shell` cannot be set by a matrix :-/
+  bash:
+    needs: compile
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    defaults:
+      run:
+        shell: bash -exo pipefail {0}
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+
+      - name: prep
+        run: |
+            apt-get update && apt-get --yes install unzip bash libatomic1
+            chmod u+x /usr/local/bin/tea
+
+      - run: |
+          test -n "$BASH_VERSION"
+          echo $PATH
+
+      - name: ensure test specimens are not installed on the runners
+        run: |
+          if which duf node; then
+            exit 1
+          fi
+
+      - name: tea +duf doesn’t add duf until the shellcode is loaded
+        run: |
+          tea +duf
+          if which duf node; then
+            exit 1
+          fi
+
+      - name: test `tea use` shellcode
+        run: |
+          eval "$(tea --shellcode)"
+
+          tea +duf
+          duf --version
+          tea -duf
+
+          # check deactivate has worked
+          if which duf; then
+            exit 3
+          fi
+
+      - name: test `dev` shellcode
+        run: |
+          eval "$(tea --shellcode)"
+
+          echo '{}' > package.json
+          dev
+          node --version
+
+          cd ..
+          if which node; then
+            exit 4
+          fi
+          cd -
+          node --version
+
+      - name: tea@latest
+        run: |
+          eval "$(tea --shellcode)"
+          tea@latest --version
+
+      - name: ~/.local/bin in PATH
+        run: |
+          mkdir -p ~/.local/bin
+          echo '#!/bin/sh' > ~/.local/bin/foo
+          echo 'echo hi' >> ~/.local/bin/foo
+          chmod u+x ~/.local/bin/foo
+
+          if foo; then
+            exit 1
+          fi
+
+          eval "$(tea --shellcode)"
+          test $(foo) = hi
+
+  zsh:
+    needs: compile
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    defaults:
+      run:
+        shell: zsh -eo pipefail {0}
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+
+      - name: prep
+        run: |
+          apt-get update && apt-get --yes install unzip zsh libatomic1
+          chmod u+x /usr/local/bin/tea
+        shell: sh  # ∵ cannot be zsh until zsh is installed
+
+      # NOTE matrix does not work for the shell key :-/
+      - run: |
+          test -n "$ZSH_VERSION"
+          echo $PATH
+
+      - run: |
+          if which duf node optipng; then
+            exit 1
+          fi
+        name: ensure test specimens are not installed on the runners
+
+      - name: tea +duf doesn’t add duf until the shellcode is loaded
+        run: |
+          tea +duf
+          if which duf; then
+            exit 1
+          fi
+
+      - name: test `tea use` shellcode
+        run: |
+          eval "$(tea --shellcode)"
+
+          tea +duf
+          duf --version
+          tea +optipng
+          optipng --version
+          tea -duf -optipng
+
+          # check deactivate has worked
+          if which duf optipng >/dev/null; then
+            exit 3
+          fi
+
+      - name: test `tea activate` shellcode
+        run: |
+          eval "$(tea --shellcode)"
+
+          echo '{}' > package.json
+          dev
+          node --version
+
+          cd ..
+          if which node >/dev/null; then
+            exit 4
+          fi
+
+          cd -
+          node --version
+
+          dev off
+
+          if which node >/dev/null; then
+            exit 5
+          fi
+
+      - name: tea@latest
+        run: |
+          eval "$(tea --shellcode)"
+          tea@latest --version
+
+      - name: ~/.local/bin in PATH
+        run: |
+          mkdir -p ~/.local/bin
+          echo '#!/bin/sh' > ~/.local/bin/foo
+          echo 'echo hi' >> ~/.local/bin/foo
+          chmod u+x ~/.local/bin/foo
+
+          if foo; then
+            exit 1
+          fi
+
+          eval "$(tea --shellcode)"
+          test $(foo) = hi
+
+  POSIX:
+    needs: compile
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+
+      - name: prep
+        run: |
+          apt-get update && apt-get --yes install unzip libatomic1
+          chmod u+x /usr/local/bin/tea
+
+      # NOTE matrix does not work for the shell key :-/
+      - name: test `use` shellcode
+        run: |
+          # ensure test specimens are not installed on the runners
+          if which duf node; then
+            exit 1
+          fi
+
+          # tea use should not work until the shellcode is evaluated
+          tea +duf
+          if which duf node; then
+            exit 1
+          fi
+
+          eval "$(tea --shellcode)"
+
+          tea +duf
+          duf --version
+          tea +optipng
+          optipng --version
+          tea -duf -optipng
+
+          # check env is now empty again
+          if which duf >/dev/null; then
+            exit 3
+          fi
+
+      - name: test `dev` shellcode
+        run: |
+          eval "$(tea --shellcode)"
+
+          echo '{}' > package.json
+          dev
+          node --version
+      # ^^ POSIX mode cannot persist or deactivate activations
+
+  # verifies tea install installs the version being used
+  test-install:
+    needs: compile
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+
+      - name: prep
+        run: |
+          apt-get update && apt-get --yes install bash libatomic1
+          chmod u+x /usr/local/bin/tea
+
+      - run: |
+          eval "$(tea --shellcode)"
+
+          tea +node^16
+          tea install
+
+          #TODO
+          #if tea -node; then
+          #  exit 3
+          #fi
+
+          node --version | grep v16
+        shell: bash
+
+  test-shebangs:
+    runs-on: ubuntu-latest
+    needs: compile
+    container: debian:buster-slim
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+
+      - name: prep
+        run: |
+          apt-get update && apt-get --yes install bash libatomic1
+          chmod u+x /usr/local/bin/tea
+
+      - run: |
+          echo '#!/usr/bin/env -S tea node' > foo
+          echo 'console.log("xyz.tea")' >> foo
+          chmod u+x foo
+
+      - run: test $(./foo) = 'xyz.tea'
+      - run: if tea ./foo; then exit 1; fi
+      - run: if tea foo; then exit 1; fi
+
+      - run: |
+          echo '#!/usr/bin/env node' > foo
+          echo 'console.log("xyz.tea")' >> foo
+
+      - run: test $(tea ./foo) = 'xyz.tea'
+      - run: test $(tea foo) = 'xyz.tea'
+      - run: if ./foo; then exit 1; fi
+
+  fork-bomb-protector-check:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+      - run: |
+          echo '#!/bin/sh' > foo
+          echo 'tea -- /bin/sh "$0"' >> foo
+          chmod u+x foo
+      - run: |
+          if ./foo; then
+            exit 1
+          fi
