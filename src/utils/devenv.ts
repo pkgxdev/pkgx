@@ -8,7 +8,6 @@ import * as JSONC from "deno/jsonc/mod.ts"
 
 const { validatePackageRequirement } = hacks
 const { useMoustaches, useConfig } = hooks
-const { validate } = utils
 
 export default async function(dir: Path) {
   if (!dir.isDirectory()) {
@@ -150,7 +149,8 @@ export default async function(dir: Path) {
   }
 
   async function github_actions(path: Path) {
-    const yaml = validate.obj(await path.readYAML())
+    const yaml = await path.readYAML()
+    if (!isPlainObject(yaml)) return
     const [,v] = yaml.runs?.using.match(/node(\d+)/)
     if (v) {
       pkgs.push({

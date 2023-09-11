@@ -28,7 +28,7 @@ Deno.test("devenv.ts", async runner => {
         ["requirements.txt", "pip.pypa.io"],
         [".yarnrc", "classic.yarnpkg.com"],
         ["pixi.toml", "prefix.dev"],
-        ["action.yml", "nodejs.org^16"]
+        ["action.yml/std/action.yml", "nodejs.org^16"]
       ]
 
       for (const [keyfile, dep] of keyfiles) {
@@ -92,6 +92,11 @@ Deno.test("devenv.ts", async runner => {
           assertEquals(utils.pkg.str(pkgs[0]), dep)
         })
       }
+    })
+
+    await runner.step("empty action.yml has no deps", async () => {
+      const { pkgs } = await specimen(fixturesd.join("action.yml/empty"))
+      assertEquals(pkgs.length, 0)
     })
 
     await runner.step("no dir error", async () => {
