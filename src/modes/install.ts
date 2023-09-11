@@ -23,7 +23,7 @@ export default async function(pkgs: PackageRequirement[]) {
         const f = dst.join(program)
         f.write({ text: undent`
           #!/bin/sh
-          exec tea +${utils.pkg.str(pkg)} -- ${program} "$@"
+          exec tea --silent +${utils.pkg.str(pkg)} -- ${program} "$@"
           `}).chmod(0o755)
         console.error('tea: installed:', f)
         n++
