@@ -32,7 +32,7 @@ jobs:
       - run: deno cache ./entrypoint.ts
       - run: deno task test --coverage=cov_profile
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
-      - uses: coverallsapp/github-action@v1
+      - uses: coverallsapp/github-action@v2
         with:
           path-to-lcov: cov_profile.lcov
           parallel: true
@@ -43,6 +43,6 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-      - uses: coverallsapp/github-action@v1
+      - uses: coverallsapp/github-action@v2
         with:
           parallel-finished: true
