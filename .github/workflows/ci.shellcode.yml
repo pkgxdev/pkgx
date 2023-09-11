@@ -348,7 +348,7 @@ jobs:
 
       - name: prep
         run: |
-          apt-get update && apt-get --yes install bash libatomic1
+          apt-get update && apt-get --yes install bash libatomic1 libudev-dev libc-dev libstdc++-8-dev libgcc-8-dev netbase
           chmod u+x /usr/local/bin/tea
 
       - run: tea install git
