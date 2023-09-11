@@ -15,7 +15,7 @@ chmod +x ./tea
 ./tea --help
 ```
 
-### One Liner
+<details><summary>a one-liner for that…</summary>
 
 Here’s a one-liner to install `/usr/local/bin/tea`:
 
@@ -25,7 +25,9 @@ sudo install -m 755 \
   /usr/local/bin/tea
 ```
 
-### Via GitHub
+</details>
+
+### Via GitHub Releases
 
 Or you can download it from [GitHub Releases].
 
