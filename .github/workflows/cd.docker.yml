@@ -38,7 +38,7 @@ jobs:
           mv products/linux+x86-64 products/Linux+x86_64
           mv products/linux+aarch64 products/Linux+arm64
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: src
 

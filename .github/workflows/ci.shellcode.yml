@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: denoland/setup-deno@v1
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: deno task compile
       - uses: actions/upload-artifact@v3
         with:

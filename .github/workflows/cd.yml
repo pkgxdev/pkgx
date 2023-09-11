@@ -25,7 +25,7 @@ jobs:
     env:
       FILENAME: tea-${{ github.event.inputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: ${{ env.FILENAME }}
       - name: clean
