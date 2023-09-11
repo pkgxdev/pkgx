@@ -339,7 +339,7 @@ jobs:
   no-shell-output-if-no-tty:
     needs: compile
     runs-on: ubuntu-latest
-    container: archlinux:latest  # lazygit fails for different reasons
+    container: archlinux:latest  # lazygit fails for reasons that are mysterious
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -351,6 +351,6 @@ jobs:
           chmod u+x /usr/local/bin/tea
 
       - run: tea install git
-      - run: which git
+
       - run: git init
       - run: tea lazygit
