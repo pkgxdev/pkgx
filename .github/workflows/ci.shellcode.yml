@@ -326,6 +326,7 @@ jobs:
         with:
           path: /usr/local/bin
           name: tea
+      # create a fork bomb, but since it’s via tea we prevent it
       - run: |
           echo '#!/bin/sh' > foo
           echo 'tea -- /bin/sh "$0"' >> foo
@@ -334,3 +335,18 @@ jobs:
           if ./foo; then
             exit 1
           fi
+
+  no-shell-output-if-no-tty:
+    needs: compile
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+
+      - run: tea install git
+      - run: which git
+      - run: git init
+      - run: tea lazygit
