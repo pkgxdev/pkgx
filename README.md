@@ -125,7 +125,7 @@ Python 2.7.18
   ```sh
   $ cd myproj
 
-  myproj $ tea use cargo
+  myproj $ tea +cargo
   (+cargo) myproj $ code .
   ```
 

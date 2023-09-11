@@ -43,7 +43,7 @@ eval "$(curl https://tea.xyz)"
 guidelines, eg:
 
 ```sh
-tea use node@16
+tea +node@16
 ```
 
 {% hint style="info" %}

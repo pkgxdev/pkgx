@@ -45,7 +45,7 @@ Deno.dlopen("libssl.dylib")
 eval "$(tea --shellcode)"
 # ^^ integrates `tea` during this script execution
 
-tea use openai-python
+tea +openai-python
 # ^^ requires integration
 
 openai --version

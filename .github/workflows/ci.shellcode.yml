@@ -60,7 +60,7 @@ jobs:
             exit 1
           fi
 
-      - name: test `tea use` shellcode
+      - name: test `tea +foo` shellcode
         run: |
           eval "$(tea --shellcode)"
 
@@ -144,7 +144,7 @@ jobs:
             exit 1
           fi
 
-      - name: test `tea use` shellcode
+      - name: test `tea +foo` shellcode
         run: |
           eval "$(tea --shellcode)"
 
@@ -223,7 +223,7 @@ jobs:
             exit 1
           fi
 
-          # tea use should not work until the shellcode is evaluated
+          # tea +foo should not work until the shellcode is evaluated
           tea +duf
           if which duf node; then
             exit 1

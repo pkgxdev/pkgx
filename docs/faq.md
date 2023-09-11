@@ -24,10 +24,10 @@ tea deno@latest
 ## How do I install pkgs?
 
 To make pkgs available to the wider system use
-[`tea commit`](tea-commit.md).
+[`tea install`](tea-install.md).
 
 {% hint style="info" %}
-You can update committed pkgs by `tea use pkg@latest && tea commit`
+You can update committed pkgs by `tea +pkg@latest && tea install`
 {% endhint %}
 
 

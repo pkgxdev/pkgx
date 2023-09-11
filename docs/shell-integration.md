@@ -20,7 +20,7 @@ that require it will tell you that so don’t worry about doing it until you
 need it.
 {% endhint %}
 
-Package environments created with `tea use` do not persist beyond the current
+Package environments created with `tea +pkg` do not persist beyond the current
 terminal session. All the same if you need to remove the pkgenv from your
 current session type `tea deactivate`.
 
