@@ -28,7 +28,8 @@ Deno.test("devenv.ts", async runner => {
         ["requirements.txt", "pip.pypa.io"],
         [".yarnrc", "classic.yarnpkg.com"],
         ["pixi.toml", "prefix.dev"],
-        ["action.yml/std/action.yml", "nodejs.org^16"]
+        ["action.yml/std/action.yml", "nodejs.org^16"],
+        [".yarnrc.yml", "yarnpkg.com"],
       ]
 
       for (const [keyfile, dep] of keyfiles) {

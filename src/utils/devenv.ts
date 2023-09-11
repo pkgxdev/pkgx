@@ -70,6 +70,10 @@ export default async function(dir: Path) {
         pkgs.push({ project: "classic.yarnpkg.com", constraint })
         await read_YAML_FM(path)
         break
+      case ".yarnrc.yml":
+        pkgs.push({ project: "yarnpkg.com", constraint })
+        await read_YAML_FM(path)
+        break
       case "pixi.toml":
         pkgs.push({ project: 'prefix.dev', constraint })
         await read_YAML_FM(path)
