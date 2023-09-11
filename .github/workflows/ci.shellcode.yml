@@ -346,7 +346,11 @@ jobs:
           path: /usr/local/bin
           name: tea
 
-      - run: chmod +x /usr/local/bin/tea
+      - name: prep
+        run: |
+          apt-get update && apt-get --yes install bash libatomic1
+          chmod u+x /usr/local/bin/tea
+
       - run: tea install git
       - run: which git
       - run: git init
