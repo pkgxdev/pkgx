@@ -27,7 +27,7 @@ jobs:
       - run: echo 'TMPDIR=/tmp' >> $GITHUB_ENV
         if: ${{ matrix.os == 'ubuntu-latest' }}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
       - run: deno cache ./entrypoint.ts
       - run: deno task test --coverage=cov_profile
