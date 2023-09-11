@@ -24,6 +24,9 @@
       "deno.land": "^1.33.3"
     }
   },
+  "fmt": {
+		"semiColons": false
+  },
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
     "tea": "https://deno.land/x/libtea@v0.13.0/mod.ts",

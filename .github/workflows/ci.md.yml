@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '**.md'
+      - .github/workflows/ci.md.yml
 
 concurrency:
   group: ${{ github.ref }}/md
