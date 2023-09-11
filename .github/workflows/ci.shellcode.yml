@@ -175,6 +175,11 @@ jobs:
           cd -
           node --version
 
+          # subfolders are still considered “in-env”
+          mkdir foo
+          cd foo
+          node --version
+
           dev off
 
           if which node >/dev/null; then
