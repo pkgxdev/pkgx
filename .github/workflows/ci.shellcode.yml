@@ -346,6 +346,7 @@ jobs:
           path: /usr/local/bin
           name: tea
 
+      - run: chmod +x /usr/local/bin/tea
       - run: tea install git
       - run: which git
       - run: git init
