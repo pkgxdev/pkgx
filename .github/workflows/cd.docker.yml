@@ -68,7 +68,7 @@ jobs:
             type=semver,pattern=v{{major}}
             type=raw,value=latest
 
-      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v1
 
       - name: docker/buildx
