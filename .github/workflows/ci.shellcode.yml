@@ -352,7 +352,9 @@ jobs:
         run: |
           chmod u+x /usr/local/bin/tea
 
-      - run: tea git 2>&1 | tee
+      - run: tea install git
 
       - run: git init
-      - run: tea lazygit
+
+      # using script -e -c to emulate a TTY
+      - run:  script -e -c tea lazygit
