@@ -119,6 +119,9 @@ export default function() {
         dir="$PWD"
         while [ "$dir" != "/" ]; do
           if [ -f "${prefix}/var/devenv/$dir/xyz.tea.activated" ]; then
+            if type _tea_reset >/dev/null 2>&1; then
+              _tea_reset
+            fi
             eval "$(command tea --internal.activate "$dir")"
             break
           fi
