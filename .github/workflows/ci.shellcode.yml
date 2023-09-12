@@ -339,9 +339,6 @@ jobs:
   no-shell-output-if-no-tty:
     needs: compile
     runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest  # lazygit fails for reasons that are mysterious
-      options: -t
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -349,8 +346,7 @@ jobs:
           name: tea
 
       - name: prep
-        run: |
-          chmod u+x /usr/local/bin/tea
+        run: chmod u+x /usr/local/bin/tea
 
       #TODO ideally we'd test something that uses another tool in tea and
       # is poorly written so it reads both stdout and stderr eg `lazygit`
@@ -361,6 +357,29 @@ jobs:
           tea echo 2> >(tee temp_file) >/dev/null
           if [[ -s temp_file ]]; then
             echo
-            echo 'tea output logging info when no tty present'
+            echo 'tea output logging info when no tty present' >&2
+            exit 1
+          fi
+
+  cannot-multi-dev:
+    needs: compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: tea
+      - name: prep
+        run: chmod u+x /usr/local/bin/tea
+
+      - run: echo '{}' > package.json
+
+      - run: |
+          eval "$(tea --shellcode)"
+
+          dev
+
+          if dev; then
+            echo 'dev did not fail when already activated' >&2
             exit 1
           fi
