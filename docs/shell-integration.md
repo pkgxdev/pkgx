@@ -21,8 +21,8 @@ need it.
 {% endhint %}
 
 Package environments created with `tea +pkg` do not persist beyond the current
-terminal session. All the same if you need to remove the pkgenv from your
-current session type `tea deactivate`.
+terminal session. All the same if you need to remove pkgs from your
+current session use `tea -pkg`.
 
 
 ## Creating Environments for Specific Versions
