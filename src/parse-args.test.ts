@@ -66,9 +66,7 @@ Deno.test("parse_args.ts", async runner => {
     })
     await runner.step("--dry-run with other modes throws", () => {
       const args = faker_args()
-      const rv = parse_args(['--dry-run', '--help', ...args])
-      if (rv.mode !== 'integrate') fail()
-      assertEquals(rv.dryrun, false)
+      assertThrows(() => parse_args(['--dry-run', '--help', ...args]))
     })
   })
 

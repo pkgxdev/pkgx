@@ -124,8 +124,8 @@ export default function(input: string[]): Args {
     }
   }
 
-  if (dryrun !== undefined && mode != 'integrate' && mode != 'deintegrate') {
-    throw new UsageError({msg: '--dry-run is only valid with --shellcode'})
+  if (dryrun !== undefined && !(mode == 'integrate' || mode == 'deintegrate')) {
+    throw new UsageError({msg: '--dry-run cannot be specified with this mode'})
   }
 
   switch (mode) {

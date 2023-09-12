@@ -1,5 +1,6 @@
+// deno-lint-ignore-file no-explicit-any
 import { afterEach, beforeEach, describe, afterAll, it } from "deno/testing/bdd.ts"
-import specimen, { _internals } from "./integrate.ts"
+import specimen0, { _internals } from "./integrate.ts"
 import { assertRejects } from "deno/assert/mod.ts"
 import * as mock from "deno/testing/mock.ts"
 import { isString } from "is-what"
@@ -8,6 +9,11 @@ import { Path } from "tea"
 describe("integrate.ts", () => {
   let file: Path
   let stub1: mock.Stub<typeof _internals>
+
+  const specimen = async (op: any) => {
+    await specimen0(op, {dryrun: false})
+    await specimen0(op, {dryrun: true})
+  }
 
   const stub2 = mock.stub(_internals, "stderr", () => {})
   const stub3 = mock.stub(_internals, "stdout", x => isString(x))

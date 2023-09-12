@@ -127,6 +127,7 @@ export const _internals = {
 
 
 export function render(title: string, subtitle: string | undefined, body: (string[])[], help: string | undefined) {
+  const console = { error: _internals.stderr }
   if (subtitle) {
     console.error('%c┐ %s %c%s', 'color: #00FFD0', title, 'color: initial', subtitle)
   } else {
