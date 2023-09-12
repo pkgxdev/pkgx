@@ -79,6 +79,9 @@ export default function() {
     dev() {
       if [ "$1" = 'off' ]; then
         _tea_deactivate
+      elif type _tea_deactivate >/dev/null 2>&1; then
+        echo 'dev: environment already active' >&2
+        return 1
       else
         eval "$(command tea --internal.activate "$PWD" "$@")"
       fi
