@@ -6,7 +6,7 @@ import { teal } from "../utils/color.ts"
 import devenv from "../utils/devenv.ts"
 import undent from "outdent"
 
-export default async function(dir: Path, opts: { logger: Logger }) {
+export default async function(dir: Path, { powder, ...opts }: { powder: PackageRequirement[], logger: Logger }) {
   const { install, construct_env, prefix, getenv } = _internals
 
   if (!dir.isDirectory()) {
@@ -19,10 +19,7 @@ export default async function(dir: Path, opts: { logger: Logger }) {
   const { pkgs, env: userenv } = await devenv(dir)
 
   const devenv_pkgs = [...pkgs]
-  const powder = getenv("TEA_POWDER")
-  if (powder) {
-    pkgs.push(...powder.split(/\s+/).map(utils.pkg.parse))
-  }
+  pkgs.push(...powder)
 
   if (pkgs.length <= 0 && Object.keys(userenv).length <= 0) {
     throw new TeaError("no env")
@@ -33,6 +30,12 @@ export default async function(dir: Path, opts: { logger: Logger }) {
 
   const installations = await install(pkgs, { update: false, ...opts })
   const env = await construct_env(installations)
+
+  /// we only want to tell the user about NEW packages added to the env
+  const rv_pkgenv = (installed => {
+    const set = new Set(devenv_pkgs.map(({project}) => project))
+    return installed.filter(x => set.has(x.project))
+  })(installations.pkgenv)
 
   let rv = ''
 
@@ -82,8 +85,8 @@ export default async function(dir: Path, opts: { logger: Logger }) {
 
   rv += "\n"
 
-  const raw_off_string = installations.pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')
-  const off_string = installations.pkgenv.map(x => `-${escape_if_necessary(utils.pkg.str(x))}`).join(' ')
+  const raw_off_string = rv_pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')
+  const off_string = rv_pkgenv.map(x => `-${escape_if_necessary(utils.pkg.str(x))}`).join(' ')
 
   rv += undent`
     _tea_should_deactivate_devenv() {
@@ -115,7 +118,7 @@ export default async function(dir: Path, opts: { logger: Logger }) {
 
   rv += "}"
 
-  return [rv, installations.pkgenv] as [string, PackageRequirement[]]
+  return [rv, rv_pkgenv] as [string, PackageRequirement[]]
 }
 
 export const _internals = {

@@ -8,7 +8,7 @@ import { SemVer, Path, utils, semver } from "tea"
 
 Deno.test("internal.activate.ts", async runner => {
 
-  const specimen = (path: Path) => specimen0(path, { logger })
+  const specimen = (path: Path) => specimen0(path, { logger, powder: [] })
 
   const stub1 = mock.stub(_internals, "install", async () => {
     const installations = [{

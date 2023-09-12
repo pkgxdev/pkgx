@@ -56,7 +56,8 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
   } break
   case 'internal.activate': {
     await ensure_pantry()
-    const [shellcode, pkgs] = await internal_activate(opts.dir, { logger })
+    const powder = flatmap(Deno.env.get("TEA_POWDER"), x => x.split(/\s+/).map(utils.pkg.parse)) ?? []
+    const [shellcode, pkgs] = await internal_activate(opts.dir, { powder, logger })
     console.error(`%ctea %c%s`, 'color: #00FFD0', 'color: initial', pkgs.map(x => `+${utils.pkg.str(x)}`).join(' '))
     console.log(shellcode)
     if (Deno.env.get("TERM_PROGRAM") == "vscode") {
