@@ -34,7 +34,7 @@ export default function() {
         if type _tea_reset >/dev/null 2>&1; then
           _tea_reset
         fi
-        unset -f _tea_chpwd_hook _tea_should_deactivate_devenv _tea_activate_devenv_if_desired tea t command_not_found_handler tea@latest _tea_commit _tea_deactivate >&2 2>/dev/null
+        unset -f _tea_chpwd_hook _tea_should_deactivate_devenv tea t command_not_found_handler tea@latest _tea_commit _tea_dev_off >/dev/null 2>&1
         echo "tea: shellcode unloaded" >&2;;
       "")
         if [ -f "${prefix}/tmp/shellcode/x.$$" ]; then
@@ -78,11 +78,14 @@ export default function() {
 
     dev() {
       if [ "$1" = 'off' ]; then
-        _tea_deactivate
-      elif type _tea_deactivate >/dev/null 2>&1; then
+        _tea_dev_off
+      elif type _tea_dev_off >/dev/null 2>&1; then
         echo 'dev: environment already active' >&2
         return 1
       else
+        if type _tea_reset >/dev/null 2>&1; then
+          _tea_reset
+        fi
         eval "$(command tea --internal.activate "$PWD" "$@")"
       fi
     }
@@ -109,27 +112,19 @@ export default function() {
     }
 
     _tea_chpwd_hook() {
-      if _tea_should_deactivate_devenv; then
-        _tea_deactivate --shy
+      if _tea_should_deactivate_devenv >/dev/null 2>&1; then
+        _tea_dev_off --shy
       fi
-      if ! type _tea_deactivate >/dev/null 2>&1; then
-        _tea_activate_devenv_if_desired
+      if ! type _tea_dev_off >/dev/null 2>&1; then
+        dir="$PWD"
+        while [ "$dir" != "/" ]; do
+          if [ -f "${prefix}/var/devenv/$dir/xyz.tea.activated" ]; then
+            eval "$(command tea --internal.activate "$dir")"
+            break
+          fi
+          dir="$(dirname "$dir")"
+        done
       fi
-    }
-
-    _tea_should_deactivate_devenv() {
-      return 1
-    }
-
-    _tea_activate_devenv_if_desired() {
-      dir="$PWD"
-      while [ "$dir" != "/" ]; do
-        if [ -f "${prefix}/var/devenv/$dir/xyz.tea.activated" ]; then
-          eval "$(command tea --internal.activate "$dir")"
-          break
-        fi
-        dir="$(dirname "$dir")"
-      done
     }
 
     if test -n "$ZSH_VERSION"; then

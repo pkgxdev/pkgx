@@ -1,5 +1,5 @@
+import { dim } from "../utils/color.ts"
 import undent from "outdent"
-import { gray } from "../utils/Logger.ts"
 
 export default function(verbosity = 0) {
 
@@ -18,7 +18,7 @@ export default function(verbosity = 0) {
   10  more:
         $ tea --help --verbose
         $ open https://docs.tea.xyz
-      `.replaceAll('$', gray('$')).replaceAll(/#.*/g, gray)
+      `.replaceAll('$', dim('$')).replaceAll(/#.*/g, dim)
   } else {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     return undent`
@@ -61,6 +61,6 @@ export default function(verbosity = 0) {
       environmental influencers:
         CI        #defaults verbosity to -1 (--quiet)
         CLICOLOR  #see https://bixense.com/clicolors
-    `.replaceAll(/#(.*)/g, (_,x) => gray(` ${x}`))
+    `.replaceAll(/#(.*)/g, (_,x) => dim(` ${x}`))
   }
 }

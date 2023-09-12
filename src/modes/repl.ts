@@ -2,7 +2,7 @@ import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
 import { PackageRequirement, Path, TeaError, utils } from "tea"
 import { basename } from "deno/path/mod.ts"
-import { gray } from "../utils/Logger.ts"
+import { dim } from "../utils/color.ts"
 import exec from "../utils/execve.ts"
 
 export default async function(args: string[], { pkgs, ...opts }: { pkgs: PackageRequirement[], update: boolean | Set<string>, logger: Logger }): Promise<never> {
@@ -10,7 +10,7 @@ export default async function(args: string[], { pkgs, ...opts }: { pkgs: Package
 
   const pkgenv = await install(pkgs, opts)
   const env = await construct_env(pkgenv)
-  const pkgs_str = () => pkgenv.installations.map(({pkg}) => gray(utils.pkg.str(pkg))).join(", ")
+  const pkgs_str = () => pkgenv.installations.map(({pkg}) => dim(utils.pkg.str(pkg))).join(", ")
 
   console.error('this is a temporary shell containing the following packages:')
   console.error(pkgs_str())

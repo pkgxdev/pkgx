@@ -1,4 +1,4 @@
-// deno-lint-ignore-file require-await
+// deno-lint-ignore-file require-await no-explicit-any
 import { fixturesd, null_logger as logger } from "../utils/test-utils.ts"
 import { _internals as _devenv_internals } from "../utils/devenv.ts"
 import specimen0, { _internals } from "./internal.activate.ts"
@@ -43,7 +43,7 @@ Deno.test("internal.activate.ts", async runner => {
 
     await runner.step("existing env matches", async () => {
       const stub = mock.stub(_internals, "getenv", key => {
-        if (key == 'FOO') {
+        if (key == 'FOO' || key == 'PS1') {
           return 'BAR'
         } else {
           return Deno.env.get(key)

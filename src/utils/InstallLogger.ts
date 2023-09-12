@@ -1,6 +1,7 @@
 import { PackageSpecification, Package, utils, Path, Installation } from "tea"
 import { Logger as BaseInstallLogger } from "tea/plumbing/install.ts"
-import Logger, { teal,inverse_teal,gray } from "./Logger.ts"
+import { teal, inverse_teal, dim } from "./color.ts"
+import Logger from "./Logger.ts"
 import useConfig from "tea/hooks/useConfig.ts"
 
 export default class implements BaseInstallLogger {
@@ -82,13 +83,13 @@ export default class implements BaseInstallLogger {
     const total = Object.values(this.totals).reduce((a, b) => a + b, 0)
 
     const speed = this.total_rcvd() / (Date.now() - this.start) * 1000
-    str += gray(`${pretty_size(speed)[0]}/s`)
+    str += dim(`${pretty_size(speed)[0]}/s`)
 
     if (rcvd && total) {
       const [pretty_total, divisor] = pretty_size(total, 0)
       const n = rcvd / divisor
       const pretty_rcvd = n.toFixed(precision(n))
-      str += gray(` ${pretty_rcvd}/${pretty_total}`)
+      str += dim(` ${pretty_rcvd}/${pretty_total}`)
     }
 
     this.logger.replace(`${prefix} ${str}`)
@@ -116,10 +117,10 @@ function precision(n: number) {
 const log_installed_msg = (pkg: Package, title: string, logger: Logger) => {
   const { prefix } = useConfig()
   const pkg_prefix_str = (pkg: Package) => [
-    gray(prefix.prettyString()),
+    dim(prefix.prettyString()),
     pkg.project,
-    `${gray('v')}${pkg.version}`
-  ].join(gray('/'))
+    `${dim('v')}${pkg.version}`
+  ].join(dim('/'))
 
   const str = pkg_prefix_str(pkg)
   logger!.replace(`${title} ${str}`, { prefix: false })
