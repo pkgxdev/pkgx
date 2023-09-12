@@ -28,7 +28,7 @@ EoTS
 
 case $1 in
 major|minor|patch|prerelease)
-  v_new=$(npx semver bump $v_latest $1)
+  v_new=$(npx -- semver bump $v_latest --increment $1)
   ;;
 "")
   echo "usage $0 <major|minor|patch|prerelease|VERSION>" >&2
