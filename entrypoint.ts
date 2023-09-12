@@ -13,7 +13,7 @@ const argstr = Deno.args.join(' ')
 
 if (/--hook(=[a-z]+)?/.test(argstr) || argstr == '--env --keep-going --silent --dry-run=w/trace' || argstr == '-Eds' || argstr == "+tea.xyz/magic -Esk --chaste env") {
   perror('deprecated', 'tea magic', [
-    ['type `tea integrate` to use our new integrations']
+    ['type `tea integrate --dry-run` to use our new integrations']
   ], 'https://help.tea.xyz/v0-migration-guide')
 }
 if (parseInt(Deno.env.get("TEA_LVL")!) >= 10) {

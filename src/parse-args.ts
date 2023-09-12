@@ -24,7 +24,10 @@ export type Args = {
       minus: string[]
     }
   } | {
-    mode: 'shellcode' | 'integrate' | 'deintegrate' | 'version' | 'help'
+    mode: 'shellcode' | 'version' | 'help'
+  } | {
+    mode: 'integrate' | 'deintegrate'
+    dryrun: boolean
   } | {
     mode: 'which' | 'shell-completion'
     args: string[]
@@ -52,6 +55,7 @@ export default function(input: string[]): Args {
     update: false
   }
   let mode: string | undefined
+  let dryrun: boolean | undefined
 
   switch (input[0]) {
   case 'deintegrate':
@@ -97,6 +101,9 @@ export default function(input: string[]): Args {
       case 'quiet':
         flags.verbosity = -1
         break
+      case 'dry-run':
+        dryrun = true
+        break
       case '':
         // empty the main loop iterator
         for (const arg of it) args.push(arg)
@@ -117,6 +124,10 @@ export default function(input: string[]): Args {
     }
   }
 
+  if (dryrun !== undefined && !(mode == 'integrate' || mode == 'deintegrate')) {
+    throw new UsageError({msg: '--dry-run cannot be specified with this mode'})
+  }
+
   switch (mode) {
   case undefined:
     if (args.length) {
@@ -135,6 +146,10 @@ export default function(input: string[]): Args {
     return { mode, flags, dir: new Path(args[0]) }
   case 'install':
     return { mode, flags, args }
+  case 'integrate':
+  case 'deintegrate':
+    dryrun ??= false
+    return { mode, dryrun, flags }
   default:
     return { mode: mode as any, flags }
   }

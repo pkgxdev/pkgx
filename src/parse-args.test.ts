@@ -51,10 +51,23 @@ Deno.test("parse_args.ts", async runner => {
     assertEquals(rv.pkgs.plus, args)
   })
 
-  await runner.step("--shellcode", () => {
-    const args = faker_args()
-    const rv = parse_args(['--shellcode', ...args])
-    assertEquals(rv.mode, 'shellcode')
+  await runner.step("integrate", async runner => {
+    await runner.step("--dry-run", () => {
+      const args = faker_args()
+      const rv = parse_args(['integrate', '--dry-run', ...args])
+      if (rv.mode !== 'integrate') fail()
+      assertEquals(rv.dryrun, true)
+    })
+    await runner.step("w/o --dry-run", () => {
+      const args = faker_args()
+      const rv = parse_args(['integrate', ...args])
+      if (rv.mode !== 'integrate') fail()
+      assertEquals(rv.dryrun, false)
+    })
+    await runner.step("--dry-run with other modes throws", () => {
+      const args = faker_args()
+      assertThrows(() => parse_args(['--dry-run', '--help', ...args]))
+    })
   })
 
   await runner.step("run", () => {
