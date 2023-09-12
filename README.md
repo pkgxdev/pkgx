@@ -14,7 +14,7 @@ brew install teaxyz/pkgs/tea-cli
 ```
 
 > * [docs.tea.xyz/installing-w/out-brew]
-> * [Migrating from tea v0](https://slack-files.com/T02MTUY60NS-F05NRQ8CT51-a881910f74)
+> * [Migrating from tea v0](https://tea.xyz/blog/tea-1-0-0-alpha-1/)
 
 &nbsp;
 

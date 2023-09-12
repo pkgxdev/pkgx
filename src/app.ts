@@ -64,6 +64,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     }
   } break
   case 'install':
+    await ensure_pantry()
     await install(await Promise.all(opts.args.map(x => parse_pkg_str(x, {latest: 'ok'}))))
     break
   case 'deintegrate':
@@ -108,7 +109,7 @@ async function ensure_pantry() {
 
 function make_logger(verbosity: number, logger_prefix?: string): IInstallLogger {
   const logger = new Logger(logger_prefix)
-  if (verbosity <= -2) {
+  if (verbosity <= -2 || !Deno.isatty(Deno.stderr.rid)) {
     return {
       replace: () => {},
       clear: () => {},
