@@ -365,7 +365,6 @@ jobs:
     needs: compile
     runs-on: ubuntu-latest
     steps:
-    steps:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
