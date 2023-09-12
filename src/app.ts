@@ -44,7 +44,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     }
   } break
   case 'integrate':
-    await integrate('install')
+    await integrate('install', opts)
     break
   case 'internal.use': {
     await ensure_pantry()
@@ -69,7 +69,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     await install(await Promise.all(opts.args.map(x => parse_pkg_str(x, {latest: 'ok'}))))
     break
   case 'deintegrate':
-    await integrate('uninstall')
+    await integrate('uninstall', opts)
     break
   case 'shellcode':
     console.log(shellcode())

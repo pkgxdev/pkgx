@@ -54,7 +54,7 @@ will let you know:
 ```sh
 $ tea +node
 tea: error: shellcode not loaded
-tea: ^^run: source <(tea integrate)
+tea: ^^run: eval "$(tea integrate)"
 ```
 
 Integration is minimal. We write one line to your `.shellrc` that adds a few
@@ -73,7 +73,7 @@ tea integrate --dry-run
 And then finally integrate:
 
 ```sh
-$ source <(tea integrate)
+$ eval "$(tea integrate)"
 
 $ tea +node
 (+node) $ node --version

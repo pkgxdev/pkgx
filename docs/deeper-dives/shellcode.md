@@ -34,7 +34,7 @@ tea integrate --dry-run
 Then integrate:
 
 ```sh
-tea integrate
+eval "$(tea integrate)"
 ```
 
 
