@@ -6,11 +6,12 @@ import parse_pkg_str from "./prefab/parse-pkg-str.ts"
 import InstallLogger from "./utils/InstallLogger.ts"
 import internal_use from "./modes/internal.use.ts"
 import { Args as BaseArgs } from "./parse-args.ts"
-import Logger, { teal } from "./utils/Logger.ts"
 import integrate from "./modes/integrate.ts"
 import shellcode from "./modes/shellcode.ts"
+import install from "./modes/install.ts"
 import version from "./modes/version.ts"
-import install from './modes/install.ts'
+import { teal } from "./utils/color.ts"
+import Logger from "./utils/Logger.ts"
 import which from "./modes/which.ts"
 import help from "./modes/help.ts"
 import repl from "./modes/repl.ts"
@@ -51,7 +52,6 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     const rv = await internal_use({ ...xopts, logger })
     if (rv) {
       console.log(rv.shellcode)
-      console.error('tea:', rv.pkgenv.map(x => `+${utils.pkg.str(x)}`).join(' '))
     }
   } break
   case 'internal.activate': {

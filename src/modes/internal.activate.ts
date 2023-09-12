@@ -2,6 +2,7 @@ import { PackageRequirement, Path, TeaError, hooks, utils } from "tea"
 import escape_if_necessary from "../utils/sh-escape.ts"
 import construct_env  from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
+import { teal } from "../utils/color.ts"
 import devenv from "../utils/devenv.ts"
 import undent from "outdent"
 
@@ -49,11 +50,34 @@ export default async function(dir: Path, opts: { logger: Logger }) {
     rv += `export ${key}=${escape_if_necessary(value)}\n`
   }
 
-  //FIXME doesn't work with warp.dev for fuck knows why reasons
-  // https://github.com/warpdotdev/Warp/issues/3492
-  rv += `export PS1="(tea) $PS1"\n\n`
+  if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
+    //FIXME doesn't work with warp.dev for fuck knows why reasons
+    // https://github.com/warpdotdev/Warp/issues/3492
+    rv += `export PS1="(tea) $PS1"\n`
+  }
 
-  const off_string = installations.pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')
+  rv += `export TEA_POWDER="${installations.pkgenv.map(utils.pkg.str).join(' ')}"\n`
+  rv += `export TEA_PKGENV="${installations.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"\n\n`
+
+  rv += "_tea_reset() {\n"
+  for (const key in env) {
+    const old = getenv(key)
+    if (old !== undefined) {
+      //TODO don’t export if not currently exported!
+      rv += `  export ${key}=${escape_if_necessary(old)}\n`
+    } else {
+      rv += `  unset ${key}\n`
+    }
+  }
+  const ps1 = getenv('PS1')
+  rv += ps1 ? `  export PS1="${ps1}"\n` : "  unset PS1\n"
+  rv += "  unset -f _tea_reset\n"
+  rv += "}\n"
+
+  rv += "\n"
+
+  const raw_off_string = installations.pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')
+  const off_string = installations.pkgenv.map(x => `-${escape_if_necessary(utils.pkg.str(x))}`).join(' ')
 
   rv += undent`
     _tea_should_deactivate_devenv() {
@@ -61,33 +85,29 @@ export default async function(dir: Path, opts: { logger: Logger }) {
       test "$PWD" != "${dir}$suffix"
     }
 
-    _tea_deactivate() {
-      echo 'tea ${off_string}' >&2
+    _tea_dev_off() {
+      echo '${teal('tea')} ${raw_off_string}' >&2
 
-      export PS1="${getenv('PS1')}"
+      tea ${off_string}
 
-      if test "$1" != --shy; then
+      if [ "$1" != --shy ]; then
         rm "${persistence}"
       fi
 
-      unset -f _tea_deactivate
+      unset -f _tea_dev_off _tea_should_deactivate_devenv
 
     `
 
-  for (const key in env) {
+  for (const key in userenv) {
     const value = getenv(key)
-    if (value !== undefined) {
+    if (value) {
       rv += `  export ${key}=${escape_if_necessary(value)}\n`
     } else {
       rv += `  unset ${key}\n`
     }
   }
 
-  rv += "\n"
-  rv += "  _tea_should_deactivate_devenv() {\n"
-  rv += "    return 1\n"
-  rv += "  }\n"
-  rv += "}\n"
+  rv += "}"
 
   return [rv, installations.pkgenv] as [string, PackageRequirement[]]
 }

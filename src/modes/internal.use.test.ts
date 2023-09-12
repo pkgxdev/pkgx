@@ -1,10 +1,7 @@
 // deno-lint-ignore-file require-await
-import { AmbiguityError, ProvidesError } from "../utils/error.ts"
-import { assertRejects, assertThrows } from "deno/assert/mod.ts"
 import { semver, SemVer, Path, Installation, utils } from "tea"
 import { null_logger as logger } from "../utils/test-utils.ts"
 import specimen0, { _internals } from "./internal.use.ts"
-import usePantry from "tea/hooks/usePantry.ts"
 import * as mock from "deno/testing/mock.ts"
 
 Deno.test("internal.use.ts", async runner => {
@@ -54,7 +51,7 @@ Deno.test("internal.use.ts", async runner => {
 
     await runner.step("existing env matches", async () => {
       const stub4 = mock.stub(_internals, "getenv", key => {
-        if (key == 'FOO') {
+        if (key == 'FOO' || key == 'PS1') {
           return 'BAR'
         } else {
           return Deno.env.get(key)

@@ -1,9 +1,7 @@
 import escape_if_necessary from "../utils/sh-escape.ts"
 import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
-import { hooks, PackageRequirement, utils } from "tea"
-
-const { usePantry } = hooks
+import { PackageRequirement, utils } from "tea"
 
 interface Pkgs {
   plus: PackageRequirement[]
@@ -16,12 +14,15 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
 
   const pkgs = consolidate(opts.pkgs)
 
-  let rv = ''
-  const print = (x: string) => rv += x + '\n'
-
   if (pkgs.length == 0) {
-    print('unset TEA_POWDER TEA_PKGENV _tea_reset')
+    return {
+      shellcode: 'unset TEA_POWDER TEA_PKGENV',
+      pkgenv: []
+    }
   } else {
+    let rv = ''
+    const print = (x: string) => rv += x + '\n'
+
     const pkgenv = await install(pkgs, opts)
     const env = await construct_env(pkgenv)
 
@@ -50,7 +51,8 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
         print(`  unset ${key}`)
       }
     }
-    print(`  export PS1="${getenv("PS1")}"`)
+    const ps1 = getenv('PS1')
+    print(ps1 ? `  export PS1="${ps1}"` : '  unset PS1')
     print('  unset -f _tea_reset _tea_install')
     print('}')
 

@@ -1,10 +1,6 @@
-import { dim as gray, rgb8, bgRgb8, stripColor } from "deno/fmt/colors.ts"
+import { stripAnsiCode } from "deno/fmt/colors.ts"
 import { ansi } from "cliffy/ansi/ansi.ts"
-
-export const teal = (x: string) => rgb8(x, 86)
-export { gray }
-
-export const inverse_teal = (x: string) => bgRgb8(x, 86)
+import { dim } from "./color.ts"
 
 export default class Logger {
   lines = 0
@@ -17,7 +13,7 @@ export default class Logger {
   //TODO don’t erase whole lines, just erase the part that is different
   replace(line: string, opts: { prefix: boolean } = {prefix: true}) {
     if (opts.prefix && this.prefix) {
-      line = `${gray(this.prefix)}${line}`
+      line = `${dim(this.prefix)}${line}`
     }
 
     Deno.stderr.writeSync(this._clear().text(line).bytes())
@@ -52,7 +48,7 @@ function ln(s: string) {
     const { columns } = Deno.consoleSize()
     if (columns == 0) return 0
     // remove ansi escapes to get actual length
-    const n = stripColor(s).length
+    const n = stripAnsiCode(s).length
     return Math.floor(n / columns)
   } catch {
     // consoleSize() throws if not a tty
