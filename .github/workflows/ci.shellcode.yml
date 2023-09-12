@@ -360,6 +360,7 @@ jobs:
       - run: |
           tea echo 2> >(tee temp_file) >/dev/null
           if [[ -s temp_file ]]; then
+            echo
             echo 'tea output logging info when no tty present'
             exit 1
           fi
