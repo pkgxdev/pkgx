@@ -352,9 +352,11 @@ jobs:
         run: |
           chmod u+x /usr/local/bin/tea
 
-      - run: tea install git
+      - run: tea echo 2&>1 > file
 
-      - run: git init
-
-      # using script -e -c to emulate a TTY
-      - run:  script -e -c tea lazygit
+      #TODO ideally we'd test something that uses another tool in tea and
+      # is poorly written so it reads both stdout and stderr eg `lazygit`
+      # but CI doesn't have ttys and I couldn't figure out another way
+      - run: if [ wc -l file -gt  0 ]; then
+               exit 1;
+             fi
