@@ -18,6 +18,12 @@ export default async function(dir: Path, opts: { logger: Logger }) {
 
   const { pkgs, env: userenv } = await devenv(dir)
 
+  const devenv_pkgs = [...pkgs]
+  const powder = getenv("TEA_POWDER")
+  if (powder) {
+    pkgs.push(...powder.split(/\s+/).map(utils.pkg.parse))
+  }
+
   if (pkgs.length <= 0 && Object.keys(userenv).length <= 0) {
     throw new TeaError("no env")
   }
