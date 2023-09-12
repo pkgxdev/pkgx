@@ -1,44 +1,52 @@
 # Getting Started
 
+Installing with `brew` is most straight forward:
+
 ```sh
 brew install teaxyz/pkgs/tea-cli
 ```
 
-## Without `brew`
+# Other Ways to Install
 
-If you don’t use [`brew`] or are on a platform `brew` doesn’t support  then
-`tea` is a single standalone binary you can download yourself.
+1. After `brew` our installer is easiest:
 
-### The Installer Script
+   &nbsp;
 
-If you are comfortable with it and don’t use `brew` then the installer is
-easiest:
+   ```sh
+   curl -fsS https://tea.xyz | sh
+   ```
 
-```sh
-curl -fsS https://tea.xyz | sh
-```
+   &nbsp;
 
-### Downloading Directly
+   {% hint style='info' %}
+   Wanna read that script before you execute it? [github.com/teaxyz/setup/install.sh][installer]
+   {% endhint %}
 
-This is all the installer does.
+2. `tea` is a standalone binary, so (if you want) you can also download it directly:
 
-```sh
-# download it to `./tea`
-curl -o ./tea --compressed -f --proto '=https' https://tea.xyz/$(uname)/$(uname -m)
+   &nbsp;
 
-# install it to `/usr/local/bin/tea`
-sudo install -m 755 tea /usr/local/bin
+   ```sh
+   # download it to `./tea`
+   curl -o ./tea --compressed -f --proto '=https' https://tea.xyz/$(uname)/$(uname -m)
 
-# check it works
-tea --help
-```
+   # install it to `/usr/local/bin/tea`
+   sudo install -m 755 tea /usr/local/bin
 
-</details>
+   # check it works
+   tea --help
+   ```
 
-### Via GitHub Releases
+   &nbsp;
 
-Or download from [GitHub Releases].
+3. You can also download straight from [GitHub Releases].
+
+   {% hint style='warning' %}
+   If you download manually you’ll need to move the binary somewhere in
+   your `PATH`.
+   {% endhint %}
 
 
 [`brew`]: https://brew.sh
 [GitHub Releases]: https://github.com/teaxyz/cli/releases
+[installer]: https://github.com/teaxyz/setup/blob/main/install.sh
