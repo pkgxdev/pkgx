@@ -372,10 +372,10 @@ jobs:
       - name: prep
         run: chmod u+x /usr/local/bin/tea
 
-      - run: touch package.json
+      - run: echo '{}' > package.json
 
       - run: |
-          eval "$(tea --shellcode)
+          eval "$(tea --shellcode)"
 
           dev
 
