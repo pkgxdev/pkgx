@@ -40,7 +40,7 @@ jobs:
 
       - name: prep
         run: |
-            apt-get update && apt-get --yes install unzip bash libatomic1
+            apt-get update && apt-get --yes install bash libatomic1
             chmod u+x /usr/local/bin/tea
 
       - run: |
@@ -107,6 +107,13 @@ jobs:
           eval "$(tea --shellcode)"
           test $(foo) = hi
 
+      - name: POSIXLY_CORRECT
+        run: |
+          eval "$(tea --shellcode)"
+          tea +duf
+          duf --version
+        shell: bash -eo posix {0}
+
   zsh:
     needs: compile
     runs-on: ubuntu-latest
@@ -122,7 +129,7 @@ jobs:
 
       - name: prep
         run: |
-          apt-get update && apt-get --yes install unzip zsh libatomic1
+          apt-get update && apt-get --yes install zsh libatomic1
           chmod u+x /usr/local/bin/tea
         shell: sh  # ∵ cannot be zsh until zsh is installed
 
@@ -205,6 +212,13 @@ jobs:
           eval "$(tea --shellcode)"
           test $(foo) = hi
 
+      - name: emulate -L sh
+        run: |
+          emulate -L sh
+          eval "$(tea --shellcode)"
+          tea +duf
+          duf --version
+
   POSIX:
     needs: compile
     runs-on: ubuntu-latest
@@ -217,7 +231,7 @@ jobs:
 
       - name: prep
         run: |
-          apt-get update && apt-get --yes install unzip libatomic1
+          apt-get update && apt-get --yes install libatomic1
           chmod u+x /usr/local/bin/tea
 
       # NOTE matrix does not work for the shell key :-/
@@ -245,6 +259,15 @@ jobs:
           # check env is now empty again
           if which duf >/dev/null; then
             exit 3
+          fi
+
+      # verifies our assumption that we are running in “POSIX mode”
+      - name: tea@latest fails
+        run: |
+          eval "$(tea --shellcode)"
+
+          if tea@latest --version; then
+            exit 1
           fi
 
       - name: test `dev` shellcode

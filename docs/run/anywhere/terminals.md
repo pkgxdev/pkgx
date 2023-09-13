@@ -1,6 +1,6 @@
 # Getting Started
 
-Installing with `brew` is most straight forward:
+Installing with [`brew`] is most straight forward:
 
 ```sh
 brew install teaxyz/pkgs/tea-cli
@@ -19,7 +19,7 @@ brew install teaxyz/pkgs/tea-cli
    &nbsp;
 
    {% hint style='info' %}
-   Wanna read that script before you execute it? [github.com/teaxyz/setup/install.sh][installer]
+   Wanna read that script before you execute it? [github.com/teaxyz/setup/installer.sh][installer]
    {% endhint %}
 
 2. `tea` is a standalone binary, so (if you want) you can also download it directly:
@@ -49,4 +49,4 @@ brew install teaxyz/pkgs/tea-cli
 
 [`brew`]: https://brew.sh
 [GitHub Releases]: https://github.com/teaxyz/cli/releases
-[installer]: https://github.com/teaxyz/setup/blob/main/install.sh
+[installer]: https://github.com/teaxyz/setup/blob/main/installer.sh
