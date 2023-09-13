@@ -107,6 +107,13 @@ jobs:
           eval "$(tea --shellcode)"
           test $(foo) = hi
 
+      - name: POSIXLY_CORRECT
+        run: |
+          eval "$(tea --shellcode)"
+          tea +duf
+          duf --version
+        shell: bash -eo POSIX {0}
+
   zsh:
     needs: compile
     runs-on: ubuntu-latest
@@ -204,6 +211,13 @@ jobs:
 
           eval "$(tea --shellcode)"
           test $(foo) = hi
+
+      - name: emulate -L sh
+        run: |
+          emulate -L sh
+          eval "$(tea --shellcode)"
+          tea +duf
+          duf --version
 
   POSIX:
     needs: compile

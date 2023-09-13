@@ -130,7 +130,7 @@ export default function() {
       fi
     }
 
-    if test -n "$ZSH_VERSION"; then
+    if [ -n "$ZSH_VERSION" ] && [ $(emulate) = zsh ]; then
       eval 'typeset -ag chpwd_functions
 
             if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
@@ -145,7 +145,7 @@ export default function() {
               reply=($words)
             }
             compctl -K _tea tea'
-    elif test -n "$BASH_VERSION"; then
+    elif [ -n "$BASH_VERSION" ] && [ "$POSIXLY_CORRECT" != y ] ; then
       eval 'cd() {
               builtin cd "$@" || return
               _tea_chpwd_hook
@@ -153,10 +153,11 @@ export default function() {
 
             _tea_chpwd_hook'
     else
+      POSIXLY_CORRECT=y
       echo "tea: warning: unsupported shell" >&2
     fi
 
-    if test -n "$BASH_VERSION$ZSH_VERSION"; then
+    if [ "$POSIXLY_CORRECT" != y ]; then
       eval 'tea@latest() {
               command tea tea@latest "$@"
             }'
