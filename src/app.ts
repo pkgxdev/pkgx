@@ -34,9 +34,9 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
   switch (opts.mode) {
   case 'x': {
     const { args } = opts
+    await ensure_pantry()
     const {update, ...xopts} = await parse_xopts(opts.pkgs, flags.update)
     const pkgs = consolidate(xopts.pkgs)
-    await ensure_pantry()
     if (args[0] == 'sh') {
       await repl(args.slice(1), { update, pkgs, logger })
     } else {
