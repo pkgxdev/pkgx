@@ -37,6 +37,12 @@ brew install teaxyz/pkgs/tea-cli
    tea --help
    ```
 
+   For your convenience we provide a `.tgz` so you can one-liner that:
+
+   ```sh
+   curl -#f https://tea.xyz/$(uname)/$(uname -m).tgz | sudo tar xz -C /usr/local/bin
+   ```
+
    &nbsp;
 
 3. You can also download straight from [GitHub Releases].

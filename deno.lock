@@ -215,7 +215,8 @@
     "https://deno.land/x/libtea@v0.13.0/src/utils/pkg.ts": "5ef9cc1955a5067489ac4d2af8615652505cb17a48745e811cb786ab89377547",
     "https://deno.land/x/libtea@v0.13.0/src/utils/semver.ts": "b4706e2343d48501cf552659e6f6f76f73ec6a59607ce4f8800b60d7769c12d9",
     "https://deno.land/x/outdent@v0.8.0/mod.ts": "72630e680dcc36d5ae556fbff6900b12706c81a6fd592345fc98bcc0878fb3ca",
-    "https://deno.land/x/outdent@v0.8.0/src/index.ts": "6dc3df4108d5d6fedcdb974844d321037ca81eaaa16be6073235ff3268841a22"
+    "https://deno.land/x/outdent@v0.8.0/src/index.ts": "6dc3df4108d5d6fedcdb974844d321037ca81eaaa16be6073235ff3268841a22",
+    "https://deno.land/x/semver@v1.4.1/mod.ts": "0b79c87562eb8a1f008ab0d98f8bb60076dd65bc06f1f8fdfac2d2dab162c27b"
   },
   "npm": {
     "specifiers": {

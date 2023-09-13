@@ -27,26 +27,32 @@ jobs:
 
       - name: Unpack Binaries
         run: |
+          go() {
+            tar xJf $1
+            mkdir -p out/$2
+            tar czf out/$2/$3.tgz tea
+            mv tea out/$2/$3
+          }
+
           for filename in tea-*+*+*.tar.xz; do
-            tar xJf $filename
-            result="${filename#*+}"
-            result="${result%.tar.xz}"
-            mv tea tea-$result
-            rm $filename
+            case $filename in
+            *+darwin+aarch64.tar.xz)
+              go $filename Darwin arm64;;
+            *+darwin+x86-64.tar.xz)
+              go $filename Darwin x86_64;;
+            *+linux+aarch64.tar.xz)
+              go $filename Linux arm64
+              go $filename Linux aarch64;;
+            *+linux+x86-64.tar.xz)
+              go $filename Linux x86_64;;
+            esac
           done
 
       - name: Upload to S3
-        run: |
-          aws s3 cp tea-darwin+aarch64 s3://www.tea.xyz/Darwin/arm64 \
-            --metadata-directive REPLACE --cache-control "max-age=3600, must-revalidate"
-          aws s3 cp tea-darwin+x86-64 s3://www.tea.xyz/Darwin/x86_64 \
-            --metadata-directive REPLACE --cache-control "max-age=3600, must-revalidate"
-          aws s3 cp tea-linux+aarch64 s3://www.tea.xyz/Linux/arm64 \
-            --metadata-directive REPLACE --cache-control "max-age=3600, must-revalidate"
-          aws s3 cp tea-linux+aarch64 s3://www.tea.xyz/Linux/aarch64 \
-            --metadata-directive REPLACE --cache-control "max-age=3600, must-revalidate"
-          aws s3 cp tea-linux+x86-64 s3://www.tea.xyz/Linux/x86_64 \
-            --metadata-directive REPLACE --cache-control "max-age=3600, must-revalidate"
+        run:
+          aws s3 sync out/ s3://www.tea.xyz/
+            --metadata-directive REPLACE
+            --cache-control "max-age=3600, must-revalidate"
 
       - name: Invalidate CloudFront
         run:
@@ -60,3 +66,8 @@ jobs:
             /Linux/arm64
             /Linux/aarch64
             /Linux/x86_64
+            /Darwin/arm64.tgz
+            /Darwin/x86_64.tgz
+            /Linux/arm64.tgz
+            /Linux/aarch64.tgz
+            /Linux/x86_64.tgz

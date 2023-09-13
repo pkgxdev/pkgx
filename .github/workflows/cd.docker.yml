@@ -23,20 +23,17 @@ jobs:
 
       - name: Unpack Binaries
         run: |
-          mkdir products
-
           for filename in tea-*+*+*.tar.xz; do
             tar xJf $filename
             result="${filename#*+}"
             result="${result%.tar.xz}"
-            mv tea products/$result
+            mv tea $result
             rm $filename
           done
 
-          mv products/darwin+x86-64 products/Darwin+x86_64
-          mv products/darwin+aarch64 products/Darwin+arm64
-          mv products/linux+x86-64 products/Linux+x86_64
-          mv products/linux+aarch64 products/Linux+arm64
+          mkdir products
+          mv linux+x86-64 products/x86_64
+          mv linux+aarch64 products/aarch64
 
       - uses: actions/checkout@v4
         with:
@@ -60,6 +57,7 @@ jobs:
         with:
           images:
             ghcr.io/${{ github.repository }}
+            teaxyz/cli
           tags: |
             type=sha
             type=ref,event=branch

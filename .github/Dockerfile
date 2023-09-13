@@ -1,6 +1,7 @@
 FROM debian:buster-slim as stage0
 COPY ./products/* /tea/
-RUN cp /tea/$(uname)+$(uname -m) /usr/local/bin/tea
+RUN cp /tea/$(uname -m) /usr/local/bin/tea
+RUN touch /root/.bash_profile
 RUN tea integrate
 
 FROM debian:buster-slim as stage1
