@@ -247,6 +247,13 @@ jobs:
             exit 3
           fi
 
+      # verifies our assumption that we are running in “POSIX mode”
+      - name: tea@latest fails
+        run: |
+          if tea@latest --version; then
+            exit 1
+          fi
+
       - name: test `dev` shellcode
         run: |
           eval "$(tea --shellcode)"
