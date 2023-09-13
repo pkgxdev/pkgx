@@ -112,7 +112,7 @@ jobs:
           eval "$(tea --shellcode)"
           tea +duf
           duf --version
-        shell: bash -eo POSIX {0}
+        shell: bash -eo posix {0}
 
   zsh:
     needs: compile
