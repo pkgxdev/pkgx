@@ -1,6 +1,6 @@
 # Getting Started
 
-Installing with `brew` is most straight forward:
+Installing with [`brew`] is most straight forward:
 
 ```sh
 brew install teaxyz/pkgs/tea-cli
