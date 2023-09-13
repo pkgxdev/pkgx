@@ -250,6 +250,8 @@ jobs:
       # verifies our assumption that we are running in “POSIX mode”
       - name: tea@latest fails
         run: |
+          eval "$(tea --shellcode)"
+
           if tea@latest --version; then
             exit 1
           fi
