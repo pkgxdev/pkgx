@@ -15,15 +15,15 @@ jobs:
   www-upload:
     runs-on: ubuntu-latest
     steps:
-      - uses: robinraju/release-downloader@v1.8
-        with:
-          releaseId: ${{ github.event.release.id }}
-
       - uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - uses: robinraju/release-downloader@v1.8
+        with:
+          releaseId: ${{ github.event.release.id }}
 
       - name: Unpack Binaries
         run: |
@@ -31,7 +31,10 @@ jobs:
             tar xJf $1
             mkdir -p out/$2
             tar czf out/$2/$3.tgz tea
-            mv tea out/$2/$3
+            cp tea out/$2/$3
+            gzip tea
+            mv tea.gz out/$2/$3.gz
+            echo "INVALIDATION_PATHS=/$2/$3 /$2/$3.tgz /$2/$3.gz $INVALIDATION_PATHS" >> $GITHUB_ENV
           }
 
           for filename in tea-*+*+*.tar.xz; do
@@ -58,16 +61,4 @@ jobs:
         run:
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
-            --paths $STATIC_PATHS
-        env:
-          STATIC_PATHS: >-
-            /Darwin/arm64
-            /Darwin/x86_64
-            /Linux/arm64
-            /Linux/aarch64
-            /Linux/x86_64
-            /Darwin/arm64.tgz
-            /Darwin/x86_64.tgz
-            /Linux/arm64.tgz
-            /Linux/aarch64.tgz
-            /Linux/x86_64.tgz
+            --paths $INVALIDATION_PATHS
