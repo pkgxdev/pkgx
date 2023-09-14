@@ -10,47 +10,43 @@ brew install teaxyz/pkgs/tea-cli
 
 1. After `brew` our installer is easiest:
 
-   &nbsp;
+```sh
+curl -fsS https://tea.xyz | sh
+```
 
-   ```sh
-   curl -fsS https://tea.xyz | sh
-   ```
+{% hint style='info' %}
+Wanna read that script before you run it? [github.com/teaxyz/setup/installer.sh][installer]
+{% endhint %}
 
-   &nbsp;
+&nbsp;
 
-   {% hint style='info' %}
-   Wanna read that script before you execute it? [github.com/teaxyz/setup/installer.sh][installer]
-   {% endhint %}
+2. `tea` is a standalone binary, so (if you want) you can just download it directly:
 
-2. `tea` is a standalone binary, so (if you want) you can also download it directly:
+```sh
+# download it to `./tea`
+curl -o ./tea --compressed -f --proto '=https' https://tea.xyz/$(uname)/$(uname -m)
 
-   &nbsp;
+# install it to `/usr/local/bin/tea`
+sudo install -m 755 tea /usr/local/bin
 
-   ```sh
-   # download it to `./tea`
-   curl -o ./tea --compressed -f --proto '=https' https://tea.xyz/$(uname)/$(uname -m)
+# check it works
+tea --help
+```
 
-   # install it to `/usr/local/bin/tea`
-   sudo install -m 755 tea /usr/local/bin
+For your convenience we provide a `.tgz` so you can one-liner that:
 
-   # check it works
-   tea --help
-   ```
+```sh
+curl -Ssf https://tea.xyz/$(uname)/$(uname -m).tgz | sudo tar xz -C /usr/local/bin
+```
 
-   For your convenience we provide a `.tgz` so you can one-liner that:
-
-   ```sh
-   curl -Ssf https://tea.xyz/$(uname)/$(uname -m).tgz | sudo tar xz -C /usr/local/bin
-   ```
-
-   &nbsp;
+&nbsp;
 
 3. You can also download straight from [GitHub Releases].
 
-   {% hint style='warning' %}
-   If you download manually you’ll need to move the binary somewhere in
-   your `PATH`.
-   {% endhint %}
+{% hint style='warning' %}
+If you download manually you’ll need to move the binary somewhere in
+your `PATH`.
+{% endhint %}
 
 
 [`brew`]: https://brew.sh
