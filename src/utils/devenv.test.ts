@@ -98,6 +98,9 @@ Deno.test("devenv.ts", async runner => {
     await runner.step("empty action.yml has no deps", async () => {
       const { pkgs } = await specimen(fixturesd.join("action.yml/empty"))
       assertEquals(pkgs.length, 0)
+
+      const { pkgs: pkgs2 } = await specimen(fixturesd.join("action.yml/not-node"))
+      assertEquals(pkgs2.length, 0)
     })
 
     await runner.step("no dir error", async () => {
