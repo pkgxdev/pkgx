@@ -155,11 +155,11 @@ export default async function(dir: Path) {
   async function github_actions(path: Path) {
     const yaml = await path.readYAML()
     if (!isPlainObject(yaml)) return
-    const [,v] = yaml.runs?.using.match(/node(\d+)/)
-    if (v) {
+    const rv = yaml.runs?.using?.match(/node(\d+)/)
+    if (rv?.[1]) {
       pkgs.push({
         project: "nodejs.org",
-        constraint: new semver.Range(`^${v}`)
+        constraint: new semver.Range(`^${rv?.[1]}`)
       })
     }
     await parse_well_formatted_node(yaml.tea)

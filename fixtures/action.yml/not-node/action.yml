@@ -1,0 +1,19 @@
+name: Elixir Script
+author: Jon Lauridsen
+description: Run simple Elixir scripts
+branding:
+  color: orange
+  icon: code
+inputs:
+  script:
+    description: The script to run
+    required: true
+  debug:
+    description: Whether to tell the GitHub client to log details of its requests. true or false. Default is to run in debug mode when the GitHub Actions step debug logging is turned on.
+    default: ${{ runner.debug == '1' }}
+outputs:
+  result:
+    description: The stringified return value of the script
+runs:
+  using: docker
+  image: Dockerfile
