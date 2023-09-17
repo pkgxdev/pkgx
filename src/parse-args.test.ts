@@ -77,10 +77,10 @@ Deno.test("parse_args.ts", async runner => {
     assertEquals(rv.args, args)
   })
 
-  await runner.step("which", () => {
+  await runner.step("provider", () => {
     const args = faker_args()
-    const rv = parse_args(['--which', ...args])
-    if (rv.mode != 'which') fail()
+    const rv = parse_args(['--provider', ...args])
+    if (rv.mode != 'provider') fail()
     assertEquals(rv.args, args)
   })
 
@@ -101,7 +101,7 @@ Deno.test("parse_args.ts", async runner => {
   await runner.step("multiple modes", () => {
     assertThrows(() => parse_args(['--shellcode', '--internal.use']), UsageError, 'multiple modes specified')
     assertThrows(() => parse_args(['--internal.use', '--shellcode']), UsageError, 'multiple modes specified')
-    assertThrows(() => parse_args(['--internal.use', '--which']), UsageError, 'multiple modes specified')
+    assertThrows(() => parse_args(['--internal.use', '--provider']), UsageError, 'multiple modes specified')
     assertThrows(() => parse_args(['--shellcode', '--help']), UsageError, 'multiple modes specified')
   })
 

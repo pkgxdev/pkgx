@@ -46,13 +46,12 @@ export default function(verbosity = 0) {
        #§ silences tea, *not the executed program*
 
       alt. modes:
-        --help                       #hi mom!
-        --version                    #prints tea’s version
-        --which [programs…]          #prints fully qualified names, non-0 exit if none
-        --shell-completion [prefix]  #prints completions for /prefix.*/
+        --help                       # hi mom!
+        --version                    # prints tea’s version
+        --provider [programs…]       # prints provider(s); non-0 exit if none
+        --shell-completion [prefix]  # prints completions for /prefix.*/
 
-      environment variables:
-        TEA_DIR   #cache pkgs here, defaults to ~/.tea, eg. ~/.tea/bun.sh/v0.5.0
+      environments variableese pkgs here, defaults to ~/.tea, eg. ~/.tea/bun.sh/v0.5.0
         VERBOSE   #{-2: silent, -1: quietish, 0: default, 1: verbose, 2: debug}
         DEBUG     #alias for \`VERBOSE=2\`
 

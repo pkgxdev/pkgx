@@ -29,7 +29,7 @@ export type Args = {
     mode: 'integrate' | 'deintegrate'
     dryrun: boolean
   } | {
-    mode: 'which' | 'shell-completion'
+    mode: 'provider' | 'shell-completion'
     args: string[]
   } | {
     mode: 'internal.activate'
@@ -89,7 +89,7 @@ export default function(input: string[]): Args {
       case 'internal.activate':
       case 'help':
       case 'version':
-      case 'which':
+      case 'provider':
       case 'shell-completion':
       case 'internal.use':
         if (mode) throw new UsageError({msg: 'multiple modes specified'})
@@ -139,7 +139,7 @@ export default function(input: string[]): Args {
     return { mode, flags, pkgs }
   case 'run':
     return { mode, flags, pkgs, args }
-  case 'which':
+  case 'provider':
   case 'shell-completion':
     return { mode, flags, args }
   case 'internal.activate':

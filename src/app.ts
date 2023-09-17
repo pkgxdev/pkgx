@@ -8,11 +8,11 @@ import internal_use from "./modes/internal.use.ts"
 import { Args as BaseArgs } from "./parse-args.ts"
 import integrate from "./modes/integrate.ts"
 import shellcode from "./modes/shellcode.ts"
+import provider from "./modes/provider.ts"
 import install from "./modes/install.ts"
 import version from "./modes/version.ts"
 import { teal } from "./utils/color.ts"
 import Logger from "./utils/Logger.ts"
-import which from "./modes/which.ts"
 import help from "./modes/help.ts"
 import repl from "./modes/repl.ts"
 import env from "./modes/env.ts"
@@ -90,7 +90,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     const { update, pkgs: xopts } = await parse_xopts(opts.pkgs, flags.update)
     const pkgs = consolidate(xopts)
     console.log(await env({pkgs, update, logger}))
-    announce({
+    if (flags.verbosity >= 0) announce({
       title: 'shell not integrated',
       body: [
         [],
@@ -106,8 +106,8 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
   case 'shell-completion':
     console.log(await shell_completion(opts.args).then(x => x.join(" ")))
     break
-  case 'which': {
-    const programs = await which(opts.args)
+  case 'provider': {
+    const programs = await provider(opts.args)
     console.log(programs.join(" "))
     Deno.exit(programs.length ? 0 : 1)
   }}

@@ -94,7 +94,7 @@ export default function() {
       if [ "$1" = tea ]; then
         echo 'fatal: \`tea\` not in PATH' >&2
         return 1
-      elif command tea --silent --which "$1"; then
+      elif command tea --silent --provider "$1"; then
         echo -e '${dim('^^ type `')}tea${dim('` to run that')}' >&2
 
         d="${prefix}/tmp/shellcode"
