@@ -4,6 +4,7 @@ import { readLines } from "deno/io/read_lines.ts"
 import { Path, TeaError, utils } from "tea"
 import shellcode from "./shellcode.ts"
 import { dim } from "deno/fmt/colors.ts"
+import announce from "../utils/announce.ts";
 const { flatmap, host } = utils
 
 //TODO could be a fun efficiency excercise to maintain a separate write file-pointer
@@ -67,7 +68,12 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
   if (dryrun && opd_at_least_once) {
     const instruction = op == 'install' ? 'eval "$(tea integrate)"' : 'tea deintegrate'
     _internals.stderr()
-    render('this was a dry-run', 'to actually perform the above, run:', [[],[`  ${instruction}`],[]], 'https://docs.tea.xyz/shell-integration')
+    announce({
+      title: 'this was a dry-run',
+      subtitle: 'to actually perform the above, run:',
+      body: [[],[`  ${instruction}`],[]],
+      help: 'https://docs.tea.xyz/shell-integration'
+    })
   } else switch (op) {
   case 'uninstall':
     if (!opd_at_least_once) {
@@ -123,20 +129,4 @@ export const _internals = {
   isatty: Deno.isatty,
   stdout: console.log,
   stderr: console.error
-}
-
-
-export function render(title: string, subtitle: string | undefined, body: (string[])[], help: string | undefined) {
-  const console = { error: _internals.stderr }
-  if (subtitle) {
-    console.error('%c┐ %s %c%s', 'color: #00FFD0', title, 'color: initial', subtitle)
-  } else {
-    console.error('%c× %s', 'color: #00FFD0', title)
-  }
-  for (const [s1, ...ss] of body) {
-    console.error(`%c│%c ${s1 ?? ''}`, 'color: #00FFD0', 'color: initial', ...ss)
-  }
-  help ??= 'unknown-error'
-  const url = help.startsWith('http') ? help : `https://help.tea.xyz/${help}`
-  console.error('%c╰─➤%c %s', 'color: #00FFD0', 'color: initial', dim(url))
 }

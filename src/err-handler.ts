@@ -1,5 +1,6 @@
 import { DownloadError, InstallationNotFoundError, PantryError, PantryParseError, ResolveError, TeaError, utils } from "tea"
 import { AmbiguityError, ProgrammerError, ProvidesError } from "./utils/error.ts"
+import announce from "./utils/announce.ts";
 
 export default function(err: Error) {
   if (err instanceof InstallationNotFoundError) {
@@ -45,15 +46,5 @@ export default function(err: Error) {
 }
 
 export function render(title: string, subtitle: string | undefined, body: (string[])[], help: string | undefined) {
-  if (subtitle) {
-    console.error('%c× %s %c%s', 'color: red', title, 'color: initial', subtitle)
-  } else {
-    console.error('%c× %s', 'color: red', title)
-  }
-  for (const [s1, ...ss] of body) {
-    console.error(`%c│%c ${s1 ?? ''}`, 'color: red', 'color: initial', ...ss)
-  }
-  help ??= 'unknown-error'
-  const url = help.startsWith('http') ? help : `https://help.tea.xyz/${help}`
-  console.error('%c╰─➤%c %s', 'color: red', 'color: blue', url)
+  announce({ title, subtitle, body, help, color: 'red' })
 }

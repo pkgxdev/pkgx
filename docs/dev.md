@@ -1,8 +1,18 @@
 # Using `dev`
 
-`dev` is a tool for managing developer environments. It is built on top of
+`dev` is a tool for utilizing developer environments. It is built on top of
 `tea` and the tea pkging primitives and automatically determines the packages
 you need based on your project’s keyfiles.
+
+## Getting Started
+
+`dev` requires `tea` to be integrated with your shell.
+
+```sh
+tea integrate
+```
+
+## Activating `dev` Environments
 
 ```sh
 $ node --version

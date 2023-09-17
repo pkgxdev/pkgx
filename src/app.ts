@@ -18,6 +18,8 @@ import repl from "./modes/repl.ts"
 import env from "./modes/env.ts"
 import run from "./modes/run.ts"
 import x from "./modes/x.ts"
+import announce from "./utils/announce.ts"
+import { dim } from "deno/fmt/colors.ts"
 
 const { usePantry, useSync } = hooks
 const { flatmap } = utils
@@ -88,6 +90,15 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     const { update, pkgs: xopts } = await parse_xopts(opts.pkgs, flags.update)
     const pkgs = consolidate(xopts)
     console.log(await env({pkgs, update, logger}))
+    announce({
+      title: 'shell not integrated',
+      body: [
+        [],
+        [`  tea integrate   ${dim('# run this first')}`],
+        [],
+      ],
+      help: 'https://docs.tea.xyz/shell-integration'
+    })
   } break
   case 'version':
     console.log(`tea ${version()}`)
