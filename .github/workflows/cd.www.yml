@@ -34,7 +34,8 @@ jobs:
             cp tea out/$2/$3
             gzip tea
             mv tea.gz out/$2/$3.gz
-            echo "INVALIDATION_PATHS=/$2/$3 /$2/$3.tgz /$2/$3.gz $INVALIDATION_PATHS" >> $GITHUB_ENV
+            INVALIDATION_PATHS="$INVALIDATION_PATHS /$2/$3 /$2/$3.tgz /$2/$3.gz"
+            echo "INVALIDATION_PATHS=$INVALIDATION_PATHS" >> $GITHUB_ENV
           }
 
           for filename in tea-*+*+*.tar.xz; do
