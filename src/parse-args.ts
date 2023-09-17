@@ -84,6 +84,11 @@ export default function(input: string[]): Args {
       case 'update':
         flags.update = true
         break
+      case 'provides':
+        if (mode) throw new UsageError({msg: 'multiple modes specified'})
+        console.error("%cdeprecated: %cuse tea --provider instead", 'color: red', 'color: initial')
+        mode = 'provider'
+        break
       case 'shellcode':
       case 'integrate':
       case 'internal.activate':

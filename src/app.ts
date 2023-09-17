@@ -94,7 +94,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
       title: 'shell not integrated',
       body: [
         [],
-        [`  tea integrate   ${dim('# run this first')}`],
+        [`  eval "$(tea integrate)"   ${dim('# run this first')}`],
         [],
       ],
       help: 'https://docs.tea.xyz/shell-integration'
