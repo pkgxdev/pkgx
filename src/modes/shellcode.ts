@@ -133,11 +133,13 @@ export default function() {
     if [ -n "$ZSH_VERSION" ] && [ $(emulate) = zsh ]; then
       eval 'typeset -ag chpwd_functions
 
-            if [[ -z "\${chpwd_functions[(r)_tea_hook]+1}" ]]; then
+            if [[ -z "\${chpwd_functions[(r)_tea_chpwd_hook]+1}" ]]; then
               chpwd_functions=( _tea_chpwd_hook \${chpwd_functions[@]} )
             fi
 
-            [ "$TERM_PROGRAM" != Apple_Terminal ] && _tea_chpwd_hook
+            if [ "$TERM_PROGRAM" != Apple_Terminal ]; then
+              _tea_chpwd_hook
+            fi
 
             _tea() {
               local words
