@@ -52,7 +52,7 @@ jobs:
           username: ${{ secrets.DOCKER_USER_NAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - uses: docker/metadata-action@v4
+      - uses: docker/metadata-action@v5
         id: meta
         with:
           images:
