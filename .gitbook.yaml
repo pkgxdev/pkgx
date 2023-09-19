@@ -14,3 +14,4 @@ redirects:
   tea-install: tea-install.md
   support: support.md
   getting-started/install-tea/without-installer: run/anywhere/terminals.md
+  dev: dev.md

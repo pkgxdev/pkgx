@@ -1,6 +1,6 @@
 # `tea` & Editors
 
-For editors like Visual Studio Code, [`dev`](dev.md) is enough to have it see
+For editors like Visual Studio Code, [`dev`](/dev.md) is enough to have it see
 the tools a project may need.
 
 {% hint style="danger" %}
