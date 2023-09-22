@@ -1,4 +1,4 @@
-import { PackageRequirement, Path, hooks, utils } from "tea"
+import { PackageRequirement, Path, hooks, utils } from "pkgx"
 import undent from 'outdent'
 const { usePantry } = hooks
 
@@ -14,7 +14,7 @@ export default async function(pkgs: PackageRequirement[]) {
   }
 
   if (n == 0) {
-    console.error('tea: no programs provided by pkgs')
+    console.error('pkgx: no programs provided by pkgs')
   }
 
   async function write(dst: Path, pkgs: PackageRequirement[]) {
@@ -23,9 +23,9 @@ export default async function(pkgs: PackageRequirement[]) {
         const f = dst.mkdir('p').join(program)
         f.write({ text: undent`
           #!/bin/sh
-          exec tea +${utils.pkg.str(pkg)} -- ${program} "$@"
+          exec pkgx +${utils.pkg.str(pkg)} -- ${program} "$@"
           `}).chmod(0o755)
-        console.error('tea: installed:', f)
+        console.error('pkgx: installed:', f)
         n++
       }
     }

@@ -1,4 +1,4 @@
-import { plumbing, hooks, semver, PackageRequirement } from "tea"
+import { plumbing, hooks, semver, PackageRequirement } from "pkgx"
 import { AmbiguityError } from "../utils/error.ts"
 const { useCellar } = hooks
 const { which } = plumbing

@@ -3,7 +3,7 @@ import { assertEquals } from "deno/assert/assert_equals.ts"
 import specimen, { _internals } from "./failsafe.ts"
 import { assertRejects } from "deno/assert/mod.ts"
 import * as mock from "deno/testing/mock.ts"
-import { PackageNotFoundError } from "tea"
+import { PackageNotFoundError } from "pkgx"
 
 Deno.test("failsafe.ts", async runner => {
   const stub = mock.stub(_internals, "useSync", () => Promise.resolve())

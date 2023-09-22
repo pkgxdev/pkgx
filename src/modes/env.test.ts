@@ -2,7 +2,7 @@ import { null_logger as logger } from "../utils/test-utils.ts"
 import { assertEquals } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./env.ts"
 import * as mock from "deno/testing/mock.ts"
-import { semver } from "tea"
+import { semver } from "pkgx"
 import undent from "outdent"
 
 Deno.test("env.ts", async () => {

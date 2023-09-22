@@ -2,9 +2,9 @@
 import { assert, assertEquals, assertFalse } from "deno/assert/mod.ts"
 import { null_logger as logger  } from "../utils/test-utils.ts"
 import specimen, { _internals } from "./install.ts"
-import hydrate from "tea/plumbing/hydrate.ts"
+import hydrate from "pkgx/plumbing/hydrate.ts"
 import * as mock from "deno/testing/mock.ts"
-import { Path, SemVer, semver } from "tea"
+import { Path, SemVer, semver } from "pkgx"
 
 Deno.test("install.ts", () => {
   const gas = [

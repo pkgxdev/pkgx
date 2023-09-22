@@ -1,6 +1,6 @@
-![tea](https://tea.xyz/banner.png)
+![pkgx.dev](https://pkgx.dev/banner.png)
 
-`tea` is a single, *standalone binary* that can *run anything*.
+`pkgx` is a single, *standalone binary* that can *run anything*.
 &nbsp;&nbsp;[![coverage][]][coveralls]
 [![release-badge][]](../../releases)
 
@@ -10,11 +10,11 @@
 ### Quickstart
 
 ```sh
-brew install teaxyz/pkgs/tea-cli
+brew install pkgxdev/made/pkgx
 ```
 
-> * [docs.tea.xyz/installing-w/out-brew]
-> * [Migrating from tea v0](https://tea.xyz/blog/tea-1-0-0-alpha-1/)
+> * [docs.pkgx.sh/installing-w/out-brew]
+> * [Migrating from v0](https://blog.pkgx.dev/pkgx-1-0-0-alpha-1/)
 
 &nbsp;
 
@@ -25,7 +25,7 @@ brew install teaxyz/pkgs/tea-cli
 $ deno
 command not found: deno
 
-$ tea deno
+$ pkgx deno
 Deno 1.36.3
 > ^D
 
@@ -38,10 +38,10 @@ command not found: deno
 ## Run *Any Version* of Anything
 
 ```sh
-$ tea node@14 --version
+$ pkgx node@14 --version
 Node.js v14.21.3
 
-$ tea python@2 --version
+$ pkgx python@2 --version
 Python 2.7.18
 ```
 
@@ -68,9 +68,9 @@ Python 2.7.18
 * <details><summary>Docker</summary><br>
 
   ```sh
-  $ tea docker run -it teaxyz/cli
+  $ pkgx docker run -it pkgxdev/pkgx
 
-  (docker) $ tea node@16
+  (docker) $ pkgx node@16
   Welcome to Node.js v16.20.1.
   Type ".help" for more information.
   >
@@ -79,45 +79,45 @@ Python 2.7.18
   Or in a `Dockerfile`:
 
   ```Dockerfile
-  FROM teaxyz/cli
-  RUN tea deno@1.35 task start
+  FROM pkgxdev/pkgx
+  RUN pkgx deno@1.35 task start
   ```
 
   Or in any image:
 
   ```Dockerfile
   FROM ubuntu
-  RUN curl https://tea.xyz | sh
-  RUN tea python@3.10 -m http.server 8000
+  RUN curl https://pkgx.sh | sh
+  RUN pkgx python@3.10 -m http.server 8000
   ```
 
-  > [docs.tea.xyz/docker]
+  > [docs.pkgx.sh/docker]
 
   </details>
 * <details><summary>CI/CD</summary><br>
 
   ```yaml
-  - uses: teaxyz/setup@v0
-  - run: tea shellcheck
+  - uses: pkgxdev/setup@v0
+  - run: pkgx shellcheck
   ```
 
   Or in other CI/CD providers:
 
   ```sh
-  $ curl https://tea.xyz | sh
-  $ tea shellcheck
+  $ curl https://pkgx.sh | sh
+  $ pkgx shellcheck
   ```
 
-  > [docs.tea.xyz/ci-cd]
+  > [docs.pkgx.sh/ci-cd]
 
   </details>
 * <details><summary>Shebangs</summary><br>
 
   ```sh
-  #!/usr/bin/env -S tea python@3.10
+  #!/usr/bin/env -S pkgx python@3.10
   ```
 
-  > [docs.tea.xyz/scripts]
+  > [docs.pkgx.sh/scripts]
 
   </details>
 * <details><summary>Editors</summary><br>
@@ -125,11 +125,11 @@ Python 2.7.18
   ```sh
   $ cd myproj
 
-  myproj $ tea +cargo
+  myproj $ env +cargo
   (+cargo) myproj $ code .
   ```
 
-  Or use [`dev`][dev]; a separate tool that uses tea primitives to
+  Or use [`dev`][dev]; a separate tool that uses the pkgx primitives to
   automatically determine and utilize your dependencies based on your
   project’s keyfiles.
 
@@ -137,16 +137,12 @@ Python 2.7.18
   $ cd myproj
 
   myproj $ dev
-  ^^ type `tea` to run that
-
-  myproj $ tea
-  tea +dev && dev
-  dev: found cargo.toml; adding ~/.tea/cargo/v* to environment
+  env +cargo +rust
 
   (+cargo+rust) my-rust-project $ code .
   ```
 
-  > [docs.tea.xyz/editors]
+  > [docs.pkgx.sh/editors]
 
   </details>
 
@@ -155,51 +151,51 @@ Python 2.7.18
 
 # Shell Integration
 
-`tea` puts the whole open source ecosystem at your fingertips and its
+`pkgx` puts the whole open source ecosystem at your fingertips and its
 ***optional*** shell integration makes workflows with that open source
 even more seamless.
 
 ```sh
-$ tea +go@1.16
-added ~/.tea/go.dev/v1.16 to environment
+$ env +go@1.16
+added ~/.pkgx/go.dev/v1.16 to environment
 
 (+go) $ go
 Go is a tool for managing Go source code.
 #…
 
 (+go) $ env | grep go
-PATH=~/.tea/go.dev/v1.16.15/bin:$PATH
-LIBRARY_PATH=~/.tea/go.dev/v1.16.15/lib
+PATH=~/.pkgx/go.dev/v1.16.15/bin:$PATH
+LIBRARY_PATH=~/.pkgx/go.dev/v1.16.15/lib
 
-(+go) $ tea -go
-removed ~/.tea/go.dev/v1.16 from environment
+(+go) $ env -go
+removed ~/.pkgx/go.dev/v1.16 from environment
 
 $ go
 command not found: go
 ```
 
 Tools are available for the duration of your terminal session.
-If you need them for longer, `tea install`.
+If you need them for longer, `pkgx install`.
 
-> [docs.tea.xyz/shell-integration] \
-> [docs.tea.xyz/tea-install]
+> [docs.pkgx.sh/shell-integration] \
+> [docs.pkgx.sh/pkgx-install]
 
 ## `dev`
 
-`dev` is a separate tool that leverages tea's core
+`dev` is a separate tool that leverages pkgx's core
 features to auto-detect and install project dependencies, seamlessly
 integrating them into your shell and editor.
 
 ```sh
 my-rust-proj $ dev
-dev: found cargo.toml; tea +cargo
+dev: found cargo.toml; env +cargo +rust
 
 (+cargo+rust) my-rust-proj $ cargo build
 Compiling my-rust-proj v0.1.0
 #…
 ```
 
-> [docs.tea.xyz/dev][dev]
+> [docs.pkgx.sh/dev][dev]
 
 &nbsp;
 
@@ -208,20 +204,20 @@ Compiling my-rust-proj v0.1.0
 # Getting Started
 
 ```sh
-brew install teaxyz/pkgs/tea-cli
+brew install pkgxdev/made/pkgx
 ```
 
-> no `brew`? [docs.tea.xyz/installing-w/out-brew]
+> no `brew`? [docs.pkgx.sh/installing-w/out-brew]
 
 ### Integrating with your Shell
 
 ```sh
-tea integrate --dry-run   # docs.tea.xyz/shell-integration
+pkgx integrate --dry-run   # docs.pkgx.sh/shell-integration
 ```
 
 ## Further Reading
 
-[docs.tea.xyz][docs] is a comprehensive manual and user guide for `tea`.
+[docs.pkgx.sh][docs] is a comprehensive manual and user guide for `pkgx`.
 
 &nbsp;
 
@@ -230,28 +226,28 @@ tea integrate --dry-run   # docs.tea.xyz/shell-integration
 # Contributing
 
 * To add packages see the [pantry README]
-* To hack on `tea` itself; clone it and then `tea deno task` to list
+* To hack on `pkgx` itself; clone it and then `pkgx deno task` to list
   entrypoints for hackers
 
 If you have questions or feedback:
 
-* [github.com/orgs/teaxyz/discussions][discussions]
-* [x.com/teaxyz](https://x.com/teaxyz) (DMs are open)
+* [github.com/orgs/pkgxdev/discussions][discussions]
+* [x.com/pkgxdev](https://x.com/pkgxdev) (DMs are open)
 
 
-[docs]: https://docs.tea.xyz
+[docs]: https://docs.pkgx.sh
 [pantry README]: ../../../pantry#contributing
 [discussions]: ../../discussions
-[docs.tea.xyz/tea-install]: https://docs.tea.xyz/tea-install
-[docs.tea.xyz/ci-cd]: https://docs.tea.xyz/ci-cd
-[docs.tea.xyz/scripts]: https://docs.tea.xyz/scripts
-[docs.tea.xyz/editors]: https://docs.tea.xyz/editors
-[docs.tea.xyz/docker]: https://docs.tea.xyz/docker
-[docs.tea.xyz/installing-w/out-brew]: https://docs.tea.xyz/installing-w/out-brew
-[docs.tea.xyz/shell-integration]: https://docs.tea.xyz/shell-integration
-[dev]: https://docs.tea.xyz/dev
+[docs.pkgx.sh/pkgx-install]: https://docs.pkgx.sh/pkgx-install
+[docs.pkgx.sh/ci-cd]: https://docs.pkgx.sh/ci-cd
+[docs.pkgx.sh/scripts]: https://docs.pkgx.sh/scripts
+[docs.pkgx.sh/editors]: https://docs.pkgx.sh/editors
+[docs.pkgx.sh/docker]: https://docs.pkgx.sh/docker
+[docs.pkgx.sh/installing-w/out-brew]: https://docs.pkgx.sh/installing-w/out-brew
+[docs.pkgx.sh/shell-integration]: https://docs.pkgx.sh/shell-integration
+[dev]: https://docs.pkgx.sh/dev
 
-[coverage]: https://coveralls.io/repos/github/teaxyz/cli/badge.svg?branch=main
-[coveralls]: https://coveralls.io/github/teaxyz/cli?branch=main
+[coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
+[coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main
 
-[release-badge]: https://img.shields.io/github/v/release/teaxyz/cli?include_prereleases&label=latest%20release
+[release-badge]: https://img.shields.io/github/v/release/pkgxdev/pkgx?include_prereleases&label=latest%20release

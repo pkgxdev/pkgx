@@ -1,5 +1,5 @@
 # ---
-# tea:
+# pkgx:
 #   dependencies:
 #     - zlib.net^1.2
 #   env:
@@ -7,7 +7,7 @@
 # ---
 
 [package]
-name = "tea/cli example"
+name = "pkgx example"
 version = "0.0.1"
 authors = ["mxcl"]
 autobins = false

@@ -2,7 +2,7 @@ import { assertThrows } from "deno/assert/assert_throws.ts"
 import execve, { _internals } from "./execve.ts"
 import faker, { faker_args } from "./test-utils.ts"
 import * as mock from "deno/testing/mock.ts"
-import { Path } from "tea"
+import { Path } from "pkgx"
 
 Deno.test("execve.ts", async runner => {
 

@@ -1,33 +1,33 @@
 # FAQ
 
-## How do I run the latest version of `tea`?
+## How do I run the latest version of `pkgx`?
 
-* either `brew upgrade tea`
-* or `tea@latest`
+* either `brew upgrade pkgx`
+* or `pkgx@latest`
 
-Depending on how you installed `tea` originally
+Depending on how you installed `pkgx` originally
 
 
 ## How do I run the latest version of a specific pkg?
 
-Unless otherwise instructed, `tea` executes the latest version of pkgs that
+Unless otherwise instructed, `pkgx` executes the latest version of pkgs that
 *are installed*. The first time you run a pkg the latest version will be
 installed, but after that updates will only be fetched if requested.
 
 ```sh
-tea deno@latest
+pkgx deno@latest
 ```
 
-> If you install tea/gui we can have it automatically install updates.
+> If you install pkgx/gui we can have it automatically install updates.
 
 
 ## How do I install pkgs?
 
 To make pkgs available to the wider system use
-[`tea install`](tea-install.md).
+[`pkgx install`](pkgx-install.md).
 
 {% hint style="info" %}
-You can update committed pkgs by `tea +pkg@latest && tea install`
+You can update installed packages with `pkgx install foo@latest`
 {% endhint %}
 
 
@@ -55,7 +55,7 @@ To provide more control we support the
 given example we would use the caret (`^`):
 
 ```sh
-$ tea node^20.1.3 --version
+$ pkgx node^20.1.3 --version
 v20.1.5
 ```
 
@@ -65,7 +65,7 @@ Which will match node v20.1.3 up to but not including v21.
 ## What does `+pkg` syntax do?
 
 `+pkg` syntax is a way to include additional pkgs in your environment.
-Typing `tea +deno` dumps the environment to the terminal, if you add
+Typing `pkgx +deno` dumps the environment to the terminal, if you add
 additional commands then those commands are invoked in that environment.
 
 
@@ -74,7 +74,7 @@ additional commands then those commands are invoked in that environment.
 Coming soon.
 
 For now, all packages are encapsulated in individual, versioned folders in
-`~/.tea` just like `brew`.
+`~/.pkgx` just like `brew`.
 
 
 ## A pkg I was expecting is not available
@@ -85,14 +85,14 @@ You may need to contribute to the [pantry](pantry.md).
 
 ## Where do you put pkgs?
 
-Everything goes in `~/.tea`. eg. Deno v1.2.3 installs an independent POSIX
-prefix to `~/.tea/deno.land/v1.2.3`, thus the `deno` executable is at
-`~/.tea/deno.land/v1.2.3/bin/deno`.
+Everything goes in `~/.pkgx`. eg. Deno v1.2.3 installs an independent POSIX
+prefix to `~/.pkgx/deno.land/v1.2.3`, thus the `deno` executable is at
+`~/.pkgx/deno.land/v1.2.3/bin/deno`.
 
 We also install symlinks for majors, minors and latest:
 
 ```sh
-$ cd ~/.tea/deno.land
+$ cd ~/.pkgx/deno.land
 $ ls -la
 v*   -> v1.2.3
 v1   -> v1.2.3
@@ -103,7 +103,7 @@ Open source is vast and unregulated, thus we use fully-qualified naming scheme
 to ensure pkgs can be disambiguated.
 
 
-## Can I bundle `~/.tea` into my distributable app?
+## Can I bundle `~/.pkgx` into my distributable app?
 
 Yes! Our pkgs are relocatable.
 
@@ -114,50 +114,50 @@ We would love to support all platforms. All that is holding is back from new
 platforms is expertise. Will you help? Let’s talk [discussions].
 
 
-## How do I add my package to tea?
+## How do I add my package to pkgx?
 
 Eventually we will support describing how to build or obtain distributables
-for your package via your repo so you can just add a `tea.yaml` and users
-can use tea to use your package automatically.
+for your package via your repo so you can just add a `pkgx.yaml` and users
+can use pkgx to use your package automatically.
 
 For now see our section on the [pantry](pantry.md).
 
 
-## How should I recommend people install my pkg with tea?
+## How should I recommend people install my pkg with pkgx?
 
 ```sh
-$ tea your-package --args
+$ pkgx your-package --args
 ```
 
 You can also recommend our shell one-liner if you like:
 
 ```sh
-sh <(curl tea.xyz) +your-package sh
+sh <(curl pkgx.sh) +your-package sh
 ```
 
-Will for example install tea and your pkg then open a new shell with it
+Will for example install pkgx and your pkg then open a new shell with it
 available to the environment.
 
 
-## What happened to “tea Magic”?
+## What happened to “pkgx Magic”?
 
-We removed “magic” from tea at v1 because it had a number of unsolvable
+We removed “magic” from pkgx at v1 because it had a number of unsolvable
 issues. If you want it back however fortunately the shellcode is simple:
 
 ```sh
 function command_not_found_handle {
-  tea -- "$*"
+  pkgx -- "$*"
 }
 ```
 
 
-## How do I uninstall `tea`?
+## How do I uninstall `pkgx`?
 
 ```sh
-tea uninstall tea
+pkgx uninstall pkgx
 ```
 
-This will uninstall tea, all package caches and deintegrate your
+This will uninstall pkgx, all package caches and deintegrate your
 `~/.shellrc` files as well.
 
 
@@ -165,8 +165,8 @@ This will uninstall tea, all package caches and deintegrate your
 
 ### Caveats
 
-Though not a problem unique to `tea` you should note that tools installed
-with `tea` may have polluted your system during use. Check directories like:
+Though not a problem unique to `pkgx` you should note that tools installed
+with `pkgx` may have polluted your system during use. Check directories like:
 
 * `~/.local`
 * `~/.gem`

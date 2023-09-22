@@ -4,7 +4,7 @@ import specimen0, { _internals } from "./integrate.ts"
 import { assertRejects } from "deno/assert/mod.ts"
 import * as mock from "deno/testing/mock.ts"
 import { isString } from "is-what"
-import { Path } from "tea"
+import { Path } from "pkgx"
 
 describe("integrate.ts", () => {
   let file: Path

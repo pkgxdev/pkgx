@@ -1,5 +1,5 @@
 import { readLines } from "deno/io/read_lines.ts"
-import { Path, TeaError } from "tea"
+import { Path, PkgxError } from "pkgx"
 
 export default async function(path: Path) {
   try {
@@ -18,7 +18,7 @@ export default async function(path: Path) {
       const parts = shebang.split(' ')
 
       const cmd = Path.abs(parts[0])?.basename()
-      if (!cmd) throw new TeaError("invalid shebang")
+      if (!cmd) throw new PkgxError("invalid shebang")
 
       if (cmd == 'env') {
         return parts.slice(parts[1] == '-S' ? 2 : 1)
@@ -30,7 +30,7 @@ export default async function(path: Path) {
     }
   } catch (err) {
     if (err instanceof Deno.errors.PermissionDenied) {
-      // eg `tea sudo` will throw since it is not a readable file unless you are already root
+      // eg `pkgx sudo` will throw since it is not a readable file unless you are already root
       return
     } else {
       throw err

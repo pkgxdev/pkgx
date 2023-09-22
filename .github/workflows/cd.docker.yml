@@ -23,11 +23,11 @@ jobs:
 
       - name: Unpack Binaries
         run: |
-          for filename in tea-*+*+*.tar.xz; do
+          for filename in pkgx-*+*+*.tar.xz; do
             tar xJf $filename
             result="${filename#*+}"
             result="${result%.tar.xz}"
-            mv tea $result
+            mv pkgx $result
             rm $filename
           done
 
@@ -57,7 +57,7 @@ jobs:
         with:
           images:
             ghcr.io/${{ github.repository }}
-            teaxyz/cli
+            pkgxdev/pkgx
           tags: |
             type=sha
             type=ref,event=branch
@@ -67,7 +67,7 @@ jobs:
             type=raw,value=latest
 
       - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v2
+      - uses: docker/setup-buildx-action@v3
 
       - name: docker/buildx
         run: |

@@ -1,10 +1,11 @@
-import { PackageRequirement, Path, TeaError, hooks, semver } from "tea"
+import { PackageRequirement, Path, PkgxError, hooks, semver } from "pkgx"
 import install, { Logger } from "../prefab/install.ts"
 import construct_env from "../prefab/construct-env.ts"
 import resolve_arg0 from "../prefab/resolve-arg0.ts"
 import { ProvidesError } from "../utils/error.ts"
 import get_shebang from "../utils/get-shebang.ts"
 import execve from "../utils/execve.ts"
+import host from "pkgx/utils/host.ts"
 const { usePantry, useSync } = hooks
 
 //TODO be able to parse @latest for shebang result
@@ -40,9 +41,9 @@ export default async function(args: string[], { pkgs: dry, ...opts }: {
   }
 
   // fork bomb protection
-  const n = parseInt(getenv('TEA_LVL') ?? '0') + 1
-  if (Number.isNaN(n)) throw new TeaError("invalid `$TEA_LVL`")
-  env['TEA_LVL'] = `${n}`
+  const n = parseInt(getenv('PKGX_LVL') ?? '0') + 1
+  if (Number.isNaN(n)) throw new PkgxError("invalid `$PKGX_LVL`")
+  env['PKGX_LVL'] = `${n}`
 
   exec({ cmd: args, env })
 }
@@ -54,7 +55,7 @@ export function barf(fn: () => Error): never {
 
 async function find_it(args: string[], dry: PackageRequirement[]) {
   if (args[0].includes('/')) {
-    return await find_file(args, dry) ?? barf(() => new TeaError(`no such file: ${args[0]}`))
+    return await find_file(args, dry) ?? barf(() => new PkgxError(`no such file: ${args[0]}`))
   }
 
   // magic pkg expansion
@@ -63,7 +64,14 @@ async function find_it(args: string[], dry: PackageRequirement[]) {
     return wut
   }
 
-  /// we now check for a file `./foo` that was specified (plainly) `tea foo`
+  // white list `open` since it's commonly wanted and not cross platform
+  if (args[0] == 'open' && host().platform == 'darwin') {
+    return {
+      args: ["/usr/bin/open", ...args.slice(1)]
+    }
+  }
+
+  /// we now check for a file `./foo` that was specified (plainly) `pkgx foo`
   wut = await find_file(args, dry)
   if (wut) {
     return wut
@@ -103,13 +111,13 @@ async function find_file(args: string[], dry: PackageRequirement[]): Promise<Wut
   if (!path) return
 
   let shebang = await get_shebang(path)
-  const was_tea = shebang?.[0] == 'tea'
+  const was_pkgx = shebang?.[0] == 'pkgx'
 
-  if (was_tea) {
+  if (was_pkgx) {
     if (shebang!.length == 1) {
       shebang = undefined
     } else {
-      throw new TeaError("usage: pls invoke script directly")
+      throw new PkgxError("usage: pls invoke script directly")
     }
   }
 
@@ -124,8 +132,8 @@ async function find_file(args: string[], dry: PackageRequirement[]): Promise<Wut
       args = [...interpreter.args, ...args]
       const pkg = { project: interpreter.project, constraint: new semver.Range('*') }
       return { pkg, args }
-    } else if (was_tea) {
-      throw new TeaError("cannot infer interpreter")
+    } else if (was_pkgx) {
+      throw new PkgxError("cannot infer interpreter")
     } else {
       return { args }
     }

@@ -3,7 +3,7 @@ import { assert, assertEquals, assertRejects } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./devenv.ts"
 import * as mock from "deno/testing/mock.ts"
 import { fixturesd } from "./test-utils.ts"
-import { Path, utils } from "tea"
+import { Path, utils } from "pkgx"
 
 Deno.test("devenv.ts", async runner => {
 
@@ -13,7 +13,7 @@ Deno.test("devenv.ts", async runner => {
     await runner.step("supplementable fixtures", async test => {
       // each of the files in this list must have a zlib.net^1.2 dependency and a FOO=BAR env
       const keyfiles = [
-        ["tea.yml"],
+        ["pkgx.yml"],
         ["deno.json/std/deno.json", "deno.land"],
         ["deno.json/arr/deno.json", "deno.land"],
         ["deno.jsonc", "deno.land"],
@@ -104,7 +104,7 @@ Deno.test("devenv.ts", async runner => {
     })
 
     await runner.step("no dir error", async () => {
-      await assertRejects(() => specimen(new Path("/a/b/c/tea")))
+      await assertRejects(() => specimen(new Path("/a/b/c/pkgx")))
     })
 
     await runner.step("not error if no yaml fm", async () => {
@@ -123,7 +123,7 @@ Deno.test("devenv.ts", async runner => {
     })
 
     await runner.step("skips invalid deps node", async () => {
-      const f = Path.mktemp().join("package.json").rm().write({text: '{"tea": {"dependencies": true}}'})
+      const f = Path.mktemp().join("package.json").rm().write({text: '{"pkgx": {"dependencies": true}}'})
       const { pkgs } = await specimen(f.parent())
       assertEquals(pkgs.length, 1)
       assertEquals(pkgs[0].project, "nodejs.org")

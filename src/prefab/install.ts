@@ -1,5 +1,5 @@
-import { PackageSpecification, hooks, plumbing, Package } from "tea"
-import { Logger as BaseLogger } from "tea/plumbing/install.ts"
+import { PackageSpecification, hooks, plumbing, Package } from "pkgx"
+import { Logger as BaseLogger } from "pkgx/plumbing/install.ts"
 import failsafe from "./failsafe.ts";
 
 const { resolve, hydrate, install, link } = plumbing

@@ -1,11 +1,11 @@
-# `tea` & Scripting
+# `pkgx` & Scripting
 
 ## shebangs
 
-You can use `tea` as the [shebang] for your scripts:
+You can use `pkgx` as the [shebang] for your scripts:
 
 ```python
-#!/usr/bin/env -S tea python@3.9
+#!/usr/bin/env -S pkgx python@3.9
 
 import sys
 
@@ -19,7 +19,7 @@ $ ./my-script.py
 ```
 
 {% hint style="info" %}
-Using `env` to invoke `tea` is typical for tools that have no POSIX location.
+Using `env` to invoke `pkgx` is typical for tools that have no POSIX location.
 
 The `-S` parameter is required to pass multiple arguments.
 {% endhint %}
@@ -32,7 +32,7 @@ tools. With our `+pkg` syntax you make anything in open source available to
 your your script.
 
 ```sh
-#!/usr/bin/env -S tea +openssl deno run
+#!/usr/bin/env -S pkgx +openssl deno run
 
 Deno.dlopen("libssl.dylib")
 ```
@@ -42,10 +42,10 @@ Deno.dlopen("libssl.dylib")
 ```sh
 #!/bin/sh
 
-eval "$(tea --shellcode)"
-# ^^ integrates `tea` during this script execution
+eval "$(pkgx --shellcode)"
+# ^^ integrates `pkgx` during this script execution
 
-tea +openai
+env +openai
 # ^^ requires integration
 
 openai --version
@@ -54,9 +54,9 @@ openai --version
 Robustness requires precisely specifying your environment:
 
 ```sh
-#!/usr/bin/env -S tea bash>=4
+#!/usr/bin/env -S pkgx bash>=4
 
-source <(tea --shellcode)
+source <(pkgx --shellcode)
 # ^^ bash >=4 is required for this syntax, and eg macOS only comes with bash 3
 ```
 
@@ -64,19 +64,19 @@ source <(tea --shellcode)
 
 ### Super Portable Scripts
 
-If you like you can use our cURL-installer in your scripts. If `tea` is
-installed then the script just exits and uses that `tea`, if it’s not
-installed, it installs tea to a **temporary directory** first.
+If you like you can use our cURL-installer in your scripts. If `pkgx` is
+installed then the script just exits and uses that `pkgx`, if it’s not
+installed, it installs pkgx to a **temporary directory** first.
 
 ```sh
 #!/bin/sh
 
-eval "$(curl -Ssf https://tea.xyz)"
+eval "$(curl -Ssf https://pkgx.sh)"
 
-which tea   #=> /tmp/tea.xyz/tea
-echo $PATH  #=> /tmp/tea.xyz:$PATH
+which pkgx   #=> /tmp/pkgx.sh/pkgx
+echo $PATH  #=> /tmp/pkgx.sh:$PATH
 
-tea +node@16 which node  #=> /tmp/tea.xyz/nodejs.org/v16/bin/node
+pkgx +node@16 which node  #=> /tmp/pkgx.sh/nodejs.org/v16/bin/node
 ```
 
 {% endhint %}

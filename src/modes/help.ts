@@ -7,23 +7,23 @@ export default function(verbosity = 0) {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     return undent`
       usage:
-        tea [+pkg@x.y…] [program|path] [--] [arg…]
+        pkgx [+pkg@x.y…] [program|path] [--] [arg…]
 
       examples:
-  05    $ tea node@18 --eval 'console.log("tea.xyz")'
-        $ tea +bun        # https://docs.tea.xyz/shell-integration
-        $ tea +openssl cargo build
-        $ tea@latest npx@latest cowsay@latest 'fancy a cuppa?'
+  05    $ pkgx node@18 --eval 'console.log("pkgx.sh")'
+        $ pkgx +openssl cargo build
+        $ pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
+        $ env +bun   # https://docs.pkgx.sh/shell-integration
 
   10  more:
-        $ tea --help --verbose
-        $ open https://docs.tea.xyz
+        $ pkgx --help --verbose
+        $ open https://docs.pkgx.sh
       `.replaceAll('$', dim('$')).replaceAll(/#.*/g, dim)
   } else {
     //        10|       20|       30|       40|       50|       60|       70| |     80|
     return undent`
       usage:
-          tea [+pkg~x.y…] [program|path] [--] [arg…]
+        pkgx [+pkg~x.y…] [program|path] [--] [arg…]
 
         • assembles the requested environment, installing packages as necessary
         • automatically determines additional packages based on the args
@@ -43,15 +43,16 @@ export default function(verbosity = 0) {
         --silent  #no chat, no errors, no output; just exit code (--verbose=-2) §
         --quiet   #minimal chat, errors, & output (--verbose=-1)
 
-       #§ silences tea, *not the executed program*
+       #§ silences pkgx, *not the executed program*
 
       alt. modes:
-        --help                       # hi mom!
-        --version                    # prints tea’s version
-        --provider [programs…]       # prints provider(s); non-0 exit if none
-        --shell-completion [prefix]  # prints completions for /prefix.*/
+        --help                       #hi mom!
+        --version                    #prints pkgx’s version
+        --provider [programs…]       #prints provider(s); non-0 exit if none
+        --shell-completion [prefix]  #prints completions for /prefix.*/
 
-      environments variableese pkgs here, defaults to ~/.tea, eg. ~/.tea/bun.sh/v0.5.0
+      environments variables
+        PKGX_DIR  #cache pkgs here, defaults to ~/.pkgx
         VERBOSE   #{-2: silent, -1: quietish, 0: default, 1: verbose, 2: debug}
         DEBUG     #alias for \`VERBOSE=2\`
 

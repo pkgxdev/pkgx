@@ -1,12 +1,12 @@
 // deno-lint-ignore-file require-await no-explicit-any
 import { assertEquals, assertRejects, fail } from "deno/assert/mod.ts"
-import { Path, SemVer, TeaError, semver } from "tea"
+import { Path, SemVer, PkgxError, semver } from "pkgx"
 import { faker_args } from "../utils/test-utils.ts"
 import { ProvidesError } from "../utils/error.ts"
 import specimen, { _internals } from "./x.ts"
 import * as mock from "deno/testing/mock.ts"
 
-//TODO use a testLibTea thing (libtea provides this)
+//TODO use a testLib thing (libpkgx provides this)
 //TODO add faker methods for more of what we hardcode here
 
 
@@ -37,7 +37,7 @@ Deno.test("x.ts", async runner => {
     })
 
     try {
-      await specimen(args, opts)  //TODO shouldn't be specifying update: false, should just be mocking libtea
+      await specimen(args, opts)  //TODO shouldn't be specifying update: false, should just be mocking libpkgx
 
       assertEquals(stub1.calls.length, 1)
       assertEquals(stub1.calls[0].args[0].cmd, args)
@@ -85,7 +85,7 @@ Deno.test("x.ts", async runner => {
         assertEquals(stub1.calls.length, 3)
         assertEquals(stub1.calls[2].args[0].cmd, args)
       })
-      await runner.step("invalid TEA_LVL", async () => {
+      await runner.step("invalid PKGX_LVL", async () => {
         const stub = mock.stub(_internals, "getenv", () => "")
         try {
           await assertRejects(() => specimen(args, opts))
@@ -148,10 +148,10 @@ Deno.test("x.ts", async runner => {
 
   // await runner.step("asked to run something in active pkgenv", async () => {
   //   const env = {
-  //     "TEA_PKGENV": "foo.com^2"
+  //     "PKGX_PKGENV": "foo.com^2"
   //   }
   //   const stub1 = mock.stub(_internals, "which", async () => ({project: "foo.com", constraint: new semver.Range('*'), shebang: ["foo"] }))
-  //   const stub2 = mock.stub(_in_active_pkg_env_internals, "getenv", () => env["TEA_PKGENV"])
+  //   const stub2 = mock.stub(_in_active_pkg_env_internals, "getenv", () => env["PKGX_PKGENV"])
   //   const stub3 = mock.stub(_internals, "superenv", () => env)
   //   const stub4 = stub_execve()
   //   try {
@@ -169,7 +169,7 @@ Deno.test("x.ts", async runner => {
 
   await runner.step("asked to run something in active pkgenv, but constraint is outside of it", async () => {
     const env: Record<string, string | undefined> = {
-      "TEA_PKGENV": "foo.com=2.3.4"
+      "PKGX_PKGENV": "foo.com=2.3.4"
     }
     const pkg = { project: "foo.com", version: new SemVer("3.4.5") }
     const installations = [{ pkg, path: new Path(`/opt/${pkg.project}/v${pkg.version}`) }]
@@ -198,7 +198,7 @@ Deno.test("x.ts", async runner => {
     try {
       await assertRejects(
         () => specimen(["/foo/bar"], opts),
-        TeaError)
+        PkgxError)
     } finally {
       stub1.restore()
       stub2.restore()
@@ -321,35 +321,35 @@ Deno.test("x.ts", async runner => {
     }
   })
 
-  // we do not support being invoked `tea ./script` where script has a tea shebang
+  // we do not support being invoked `pkgx ./script` where script has a pkgx shebang
   //FIXME really this is something we should support
-  await runner.step("refuses tea-script as arg0", async () => {
+  await runner.step("refuses pkgx-script as arg0", async () => {
     const f = Path.mktemp().join('foo').touch()
-    const shebang_args = ['tea', 'bar']
+    const shebang_args = ['pkgx', 'bar']
     const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(shebang_args))
     try {
-      await assertRejects(() => specimen([f.string], opts), TeaError)
+      await assertRejects(() => specimen([f.string], opts), PkgxError)
     } finally {
       stub.restore()
     }
   })
 
-  // we do not support being invoked `./script` where script has a tea shebang that doesn’t specify any pkg
-  await runner.step("tea is not an interpreter", async () => {
+  // we do not support being invoked `./script` where script has a pkgx shebang that doesn’t specify any pkg
+  await runner.step("pkgx is not an interpreter", async () => {
     const f = Path.mktemp().join('foo').touch()
-    const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(['tea']))
+    const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(['pkgx']))
     try {
-      await assertRejects(() => specimen([f.string], opts), TeaError)
+      await assertRejects(() => specimen([f.string], opts), PkgxError)
     } finally {
       stub.restore()
     }
   })
 
-  await runner.step("tea is not an interpreter", async () => {
+  await runner.step("pkgx is not an interpreter", async () => {
     const f = Path.mktemp().join('foo').touch()
-    const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(['tea']))
+    const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(['pkgx']))
     try {
-      await assertRejects(() => specimen([f.string], opts), TeaError)
+      await assertRejects(() => specimen([f.string], opts), PkgxError)
     } finally {
       stub.restore()
     }
@@ -360,7 +360,7 @@ Deno.test("x.ts", async runner => {
     const stub1 = mock.stub(_internals, "get_shebang", () => Promise.resolve(['foo']))
     const stub2 = mock.stub(_internals, "which", () => Promise.resolve(undefined))
     try {
-      await assertRejects(() => specimen([f.string], opts), TeaError)
+      await assertRejects(() => specimen([f.string], opts), PkgxError)
     } finally {
       stub1.restore()
       stub2.restore()

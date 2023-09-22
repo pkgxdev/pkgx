@@ -1,9 +1,9 @@
-# `tea`—pkg runner
+# `pkgx`—pkg runner
 
 Run anything:
 
 ```sh
-$ tea openai --version
+$ pkgx openai --version
 openai 0.27.8
 ```
 
@@ -12,10 +12,10 @@ Command not found? Command no problem.
 
 ```sh
 $ deno run https://example.com/hello-world.ts
-^^ type `tea` to run that
+^^ type `x` to run that
 
-$ tea
-tea +deno && deno run https://example.com/hello-world.ts
+$ x
+env +deno && deno run https://example.com/hello-world.ts
 deno: hello, world!
 
 $ deno --version
@@ -25,25 +25,11 @@ deno 1.36.1
 
 {% endhint %}
 
-{% hint style="tip" %}
-We provide the alias `t` so this workflow can be as quick and convenient
-as possible:
-
-```sh
-$ npx kill-port 8080
-# ^^ type `tea` to run that
-
-$ t
-tea +npx && npx kill-port 8080
-```
-
-{% endhint %}
-
 
 ## Run Any Version
 
 ```sh
-$ tea postgres@12 --version
+$ pkgx postgres@12 --version
 postgres (PostgreSQL) 12.14
 ```
 
@@ -53,13 +39,13 @@ Generally you probably want `@` syntax, but if you need more specificity we
 fully support [SemVer]:
 
 ```sh
-$ tea postgres^12 --version
+$ pkgx postgres^12 --version
 postgres (PostgreSQL) 12.14
 
-$ tea "postgres>=12<14" --version
+$ pkgx "postgres>=12<14" --version
 postgres (PostgreSQL) 13.11
 
-$ tea deno=1.35.3 --version
+$ pkgx deno=1.35.3 --version
 deno 1.35.3
 ```
 
@@ -67,17 +53,17 @@ deno 1.35.3
 
 ### Running the Latest Version
 
-`tea foo` runs the latest “foo” that **is installed**.
+`pkgx foo` runs the latest “foo” that **is installed**.
 
 If you want to ensure the latest version of foo is installed, use
-`tea foo@latest`.
+`pkgx foo@latest`.
 
 {% hint style="info" %}
 
-Specify `tea@latest` to ensure you have the latest `tea` installed.
+Specify `pkgx@latest` to ensure you have the latest `pkgx` installed.
 
 ```sh
-$ tea@latest npx@latest cowsay@latest 'fancy a cuppa?'
+$ pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
  ________________
 < fancy a cuppa? >
  ----------------
@@ -88,7 +74,7 @@ $ tea@latest npx@latest cowsay@latest 'fancy a cuppa?'
                 ||     ||
 ```
 
-The newer tea is installed to `~/.tea` like every other pkg. If your `tea` is
+The newer pkgx is installed to `~/.pkgx` like every other pkg. If your `pkgx` is
 installed to `/usr/local/bin` then it will proxy forward to the newest version
 installed automatically; you don’t need to upgrade it.
 
@@ -98,22 +84,22 @@ installed automatically; you don’t need to upgrade it.
 ## Endpoints
 
 Some packages provide typical usages via an `endpoint` entry in their [pantry]
-entry and can be started via `tea run`.
+entry and can be started via `pkgx +brewkit run`.
 
 These are often used to do the equivalent of a project’s getting
-started steps. For example `tea run llama.cpp` downloads the model and launches a
-chat interface and `tea run stable-diffusion-webui` launches the web-ui.
+started steps. For example `pkgx +brewkit run llama.cpp` downloads the model and launches a
+chat interface and `pkgx +brewkit run stable-diffusion-webui` launches the web-ui.
 
 
 ## Adding Additional Packages to the Execution Environment
 
-With our shellcode `tea +openssl` adds OpenSSL to the shell environment.
-When using `tea` as a runner you can add additional packages to the execution
+With our shellcode `env +openssl` adds OpenSSL to the shell environment.
+When using `pkgx` as a runner you can add additional packages to the execution
 environment with the same syntax:
 
 ```sh
-$ tea +openssl cargo build
-tea: added ~/.tea/openssl.org/v1.1.1 to the execution environment
+$ pkgx +openssl cargo build
+pkgx: added ~/.pkgx/openssl.org/v1.1.1 to the execution environment
 cargo: Compiling my-rust-ssl-proj
 ```
 
@@ -135,18 +121,18 @@ program.
 
 ## Disambiguation
 
-In some cases `tea foo` may be ambiguous because multiple packages provide
+In some cases `pkgx foo` may be ambiguous because multiple packages provide
 `foo`.
 
-In such cases `tea` will error and ask you be more specific by using
+In such cases `pkgx` will error and ask you be more specific by using
 fully-qualified-names :
 
 ```sh
-$ tea yarn --version
+$ pkgx yarn --version
 error: multiple projects provide `yarn`. please be more specific:
 
-    tea +classic.yarnpkg.com yarn --version
-    tea +yarnpkg.com yarn --version
+    pkgx +classic.yarnpkg.com yarn --version
+    pkgx +yarnpkg.com yarn --version
 ```
 
 In general it's a good idea to specify fully qualified names in
@@ -159,10 +145,10 @@ It can be useful to run system commands with a package environment injected.
 To do this specify the full path of the system executable:
 
 ```sh
-tea +llvm.org /usr/bin/make
+pkgx +llvm.org /usr/bin/make
 ```
 
-> If you only specified `make` rather than `/usr/bin/make` then `tea` would
+> If you only specified `make` rather than `/usr/bin/make` then `pkgx` would
 > install make for you and use that.
 
 

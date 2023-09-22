@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./construct-env.ts"
-import { Path, SemVer, semver, hooks } from "tea"
+import { Path, SemVer, semver, hooks } from "pkgx"
 import * as mock from "deno/testing/mock.ts"
 
 Deno.test("construct_env.ts", async runner => {

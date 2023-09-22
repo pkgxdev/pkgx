@@ -1,7 +1,7 @@
 import escape_if_necessary from "../utils/sh-escape.ts"
 import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
-import { PackageRequirement, utils } from "tea"
+import { PackageRequirement, utils } from "pkgx"
 
 interface Pkgs {
   plus: PackageRequirement[]
@@ -16,7 +16,7 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
 
   if (pkgs.length == 0) {
     return {
-      shellcode: 'unset TEA_POWDER TEA_PKGENV',
+      shellcode: 'unset PKGX_POWDER PKGX_PKGENV',
       pkgenv: []
     }
   } else {
@@ -30,18 +30,18 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
       print(`export ${key}=${escape_if_necessary(value)}`)
     }
 
-    print(`export TEA_POWDER="${pkgenv.pkgenv.map(utils.pkg.str).join(' ')}"`)
-    print(`export TEA_PKGENV="${pkgenv.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"`)
+    print(`export PKGX_POWDER="${pkgenv.pkgenv.map(utils.pkg.str).join(' ')}"`)
+    print(`export PKGX_PKGENV="${pkgenv.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"`)
 
-    // if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
+    // if (/\(pkgx\)/.test(getenv("PS1") ?? '') == false) {
     //   //FIXME doesn't work with warp.dev for fuck knows why reasons
     //   // https://github.com/warpdotdev/Warp/issues/3492
-    //   print('export PS1="(tea) $PS1"')
+    //   print('export PS1="(pkgx) $PS1"')
     // }
 
     print('')
 
-    print('_tea_reset() {')
+    print('_pkgx_reset() {')
     for (const key in env) {
       const old = getenv(key)
       if (old !== undefined) {
@@ -53,9 +53,10 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
     }
 
     // const ps1 = getenv('PS1')
-    // print(ps1 ? `  export PS1="${ps1}"` : '  export PS1="$"')
-    // print('  unset -f _tea_reset _tea_install')
-    // print('}')
+    // print(ps1 ? `  export PS1="${ps1}"` : '  unset PS1')
+    // print('  unset -f _pkgx_reset _pkgx_install')
+
+    print('}')
 
     const install_set = (({pkgenv, installations}) => {
       const set = new Set(pkgenv.map(({project}) => project))
@@ -63,9 +64,9 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
     })(pkgenv)
 
     print('')
-    print('_tea_install() {')
-    print(`  command tea install ${install_set.map(utils.pkg.str).join(' ')}`)
-    print(`  tea ${pkgenv.pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')}`)
+    print('_pkgx_install() {')
+    print(`  command pkgx install ${install_set.map(utils.pkg.str).join(' ')}`)
+    print(`  pkgx ${pkgenv.pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')}`)
     print('}')
 
     return {shellcode: rv, pkgenv: install_set}

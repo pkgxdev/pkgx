@@ -2,7 +2,7 @@ runs:
   using: 'node16'
   main: 'main.js'
 
-tea:
+pkgx:
   dependencies:
     zlib.net^1.2
   env:

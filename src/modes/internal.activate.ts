@@ -1,19 +1,19 @@
-import { PackageRequirement, Path, TeaError, hooks, utils } from "tea"
+import { PackageRequirement, Path, PkgxError, hooks, utils } from "pkgx"
 import escape_if_necessary from "../utils/sh-escape.ts"
 import construct_env  from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
-import { teal } from "../utils/color.ts"
+import { blurple } from "../utils/color.ts"
 import devenv from "../utils/devenv.ts"
 import undent from "outdent"
 
 export default async function(dir: Path, { powder, ...opts }: { powder: PackageRequirement[], logger: Logger }) {
-  const { install, construct_env, prefix, getenv } = _internals
+  const { install, construct_env, datadir, getenv } = _internals
 
   if (!dir.isDirectory()) {
-    throw new TeaError(`not a directory: ${dir}`)
+    throw new PkgxError(`not a directory: ${dir}`)
   }
   if (dir.eq(Path.home()) || dir.eq(Path.root)) {
-    throw new TeaError(`refusing to activate: ${dir}`)
+    throw new PkgxError(`refusing to activate: ${dir}`)
   }
 
   const { pkgs, env: userenv } = await devenv(dir)
@@ -22,11 +22,11 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
   pkgs.push(...powder)
 
   if (pkgs.length <= 0 && Object.keys(userenv).length <= 0) {
-    throw new TeaError("no env")
+    throw new PkgxError("no env")
   }
 
   /// indicate to our shell scripts that this devenv is activated
-  const persistence = prefix().join(".local/var/devenv", dir.string.slice(1)).mkdir('p').join("xyz.tea.activated").touch()
+  const persistence = datadir().join("dev", dir.string.slice(1)).mkdir('p').join("dev.pkgx.activated").touch()
 
   const installations = await install(pkgs, { update: false, ...opts })
   const env = await construct_env(installations)
@@ -59,16 +59,16 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
     rv += `export ${key}=${escape_if_necessary(value)}\n`
   }
 
-  // if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
+  // if (/\(pkgx\)/.test(getenv("PS1") ?? '') == false) {
   //   //FIXME doesn't work with warp.dev for fuck knows why reasons
   //   // https://github.com/warpdotdev/Warp/issues/3492
-  //   rv += `export PS1="(tea) $PS1"\n`
+  //   rv += `export PS1="(pkgx) $PS1"\n`
   // }
 
-  rv += `export TEA_POWDER="${installations.pkgenv.map(utils.pkg.str).join(' ')}"\n`
-  rv += `export TEA_PKGENV="${installations.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"\n\n`
+  rv += `export PKGX_POWDER="${installations.pkgenv.map(utils.pkg.str).join(' ')}"\n`
+  rv += `export PKGX_PKGENV="${installations.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"\n\n`
 
-  rv += "_tea_reset() {\n"
+  rv += "_pkgx_reset() {\n"
   for (const key in env) {
     const old = getenv(key)
     if (old !== undefined) {
@@ -81,30 +81,30 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
 
   // const ps1 = getenv('PS1')
   // rv += ps1 ? `  export PS1="${ps1}"\n` : "  unset PS1\n"
-  // rv += "  unset -f _tea_reset\n"
-  // rv += "}\n"
+  // rv += "  unset -f _pkgx_reset\n"
 
+  rv += "}\n"
   rv += "\n"
 
   const raw_off_string = rv_pkgenv.map(x => `-${utils.pkg.str(x)}`).join(' ')
   const off_string = rv_pkgenv.map(x => `-${escape_if_necessary(utils.pkg.str(x))}`).join(' ')
 
   rv += undent`
-    _tea_should_deactivate_devenv() {
+    _pkgx_should_deactivate_devenv() {
       suffix="\${PWD#"${dir}"}"
       test "$PWD" != "${dir}$suffix"
     }
 
-    _tea_dev_off() {
-      echo '${teal('tea')} ${raw_off_string}' >&2
+    _pkgx_dev_off() {
+      echo '${blurple('env')} ${raw_off_string}' >&2
 
-      tea ${off_string}
+      env ${off_string}
 
       if [ "$1" != --shy ]; then
         rm "${persistence}"
       fi
 
-      unset -f _tea_dev_off _tea_should_deactivate_devenv
+      unset -f _pkgx_dev_off _pkgx_should_deactivate_devenv
 
     `
 
@@ -125,6 +125,6 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
 export const _internals = {
   install,
   construct_env,
-  prefix: () => hooks.useConfig().prefix,
+  datadir: () => hooks.useConfig().data,
   getenv: Deno.env.get
 }

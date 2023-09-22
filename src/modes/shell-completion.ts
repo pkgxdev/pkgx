@@ -1,4 +1,4 @@
-import { hooks } from "tea"
+import { hooks } from "pkgx"
 const { usePantry } = hooks
 
 export default async function(args: string[]) {

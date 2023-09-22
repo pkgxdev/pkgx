@@ -4,7 +4,7 @@ import { _internals as _devenv_internals } from "../utils/devenv.ts"
 import specimen0, { _internals } from "./internal.activate.ts"
 import { assertRejects } from "deno/assert/mod.ts"
 import * as mock from "deno/testing/mock.ts"
-import { SemVer, Path, utils, semver } from "tea"
+import { SemVer, Path, utils, semver } from "pkgx"
 
 Deno.test("internal.activate.ts", async runner => {
 
@@ -20,7 +20,7 @@ Deno.test("internal.activate.ts", async runner => {
     PATH: "/opt/nodejs.org/v20.1.2/bin",
     FOO: "BAR"
   }))
-  const stub3 = mock.stub(_internals, "prefix", () => Path.mktemp())
+  const stub3 = mock.stub(_internals, "datadir", () => Path.mktemp())
   const stub4 = mock.stub(_devenv_internals, "find", pkg => utils.pkg.parse(pkg) as any)
 
   try {
@@ -29,7 +29,7 @@ Deno.test("internal.activate.ts", async runner => {
     })
 
     await runner.step("no dir", async () => {
-      await assertRejects(() => specimen(new Path("/a/b/c/tea")))
+      await assertRejects(() => specimen(new Path("/a/b/c/pkgx")))
     })
 
     await runner.step("forbidden dirs", async () => {
@@ -64,6 +64,6 @@ Deno.test("internal.activate.ts", async runner => {
   }
 
   await runner.step("coverage++", () => {
-    _internals.prefix()
+    _internals.datadir()
   })
 })

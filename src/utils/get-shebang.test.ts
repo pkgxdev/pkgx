@@ -1,7 +1,7 @@
 import { assertEquals, assertRejects } from "deno/assert/mod.ts"
 import specimen from "./get-shebang.ts"
 import undent from "outdent"
-import { Path } from "tea"
+import { Path } from "pkgx"
 
 Deno.test("get-shebang.ts", async runner => {
   await runner.step("/usr/bin/python", async () => {

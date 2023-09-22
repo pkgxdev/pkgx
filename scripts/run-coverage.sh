@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea +genhtml bash
+#!/usr/bin/env -S pkgx +genhtml +deno bash
 
 # TODO use git to determine file changes and open those reports
 

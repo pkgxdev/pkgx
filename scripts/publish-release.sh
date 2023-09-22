@@ -1,4 +1,4 @@
-#!/usr/bin/env -S tea +git +gh +jq +gum +npx +deno bash -eo pipefail
+#!/usr/bin/env -S pkgx +git +gh +jq +gum +npx +deno bash -eo pipefail
 
 # the back and forth here is because draft releases cannot trigger
 # GitHub Actions 😒

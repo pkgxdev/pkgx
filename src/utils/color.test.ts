@@ -1,10 +1,10 @@
 import { assertEquals } from "deno/assert/mod.ts";
-import { teal, dim, inverse_teal } from "./color.ts";
+import { blurple, dim, inverse_blurple } from "./color.ts";
 
 Deno.test("color", async runner => {
 
-  await runner.step("teal", () => {
-    assertEquals(teal("Hello"), "\x1b[38;5;86mHello\x1b[39m")
+  await runner.step("blurple", () => {
+    assertEquals(blurple("Hello"), "\x1b[38;5;63mHello\x1b[39m")
   })
 
   await runner.step("dim", () => {
@@ -14,7 +14,7 @@ Deno.test("color", async runner => {
     assertEquals(dim(input), expected);
   })
 
-  await runner.step("inverse_teal", () => {
-    assertEquals(inverse_teal("Hello"), "\x1b[48;5;86mHello\x1b[49m");
+  await runner.step("inverse_blurple", () => {
+    assertEquals(inverse_blurple("Hello"), "\x1b[48;5;63mHello\x1b[49m");
   })
 })

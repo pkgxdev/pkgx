@@ -1,15 +1,19 @@
 # Using `dev`
 
+{% hint style="danger" %}
+`dev` requires shell integration: `pkgx integrate --dry-run`
+{ endhint %}
+
 `dev` is a tool for utilizing developer environments. It is built on top of
-`tea` and the tea pkging primitives and automatically determines the packages
+`pkgx` and the pkgx pkging primitives and automatically determines the packages
 you need based on your project’s keyfiles.
 
 ## Getting Started
 
-`dev` requires `tea` to be integrated with your shell.
+`dev` requires `pkgx` to be integrated with your shell.
 
 ```sh
-tea integrate
+pkgx integrate
 ```
 
 ## Activating `dev` Environments
@@ -65,7 +69,7 @@ We even add version control systems like `git`, `svn` and `hg`.
 {% hint style="success" %}
 Because we read the keyfiles of different project types, use of `dev` is
 entirely optional for your users and coworkers. They can either use `dev`,
-manually construct the environment with `tea` or source their deps themselves.
+manually construct the environment with `pkgx` or source their deps themselves.
 {% endhint %}
 
 
@@ -79,7 +83,7 @@ supplement the project files that indicate tooling. For example in a
 {
   "name": "my-project",
   "dependencies": […],
-  "tea": "node@16.20.1 imagemagick optipng@0"
+  "pkgx": "node@16.20.1 imagemagick optipng@0"
 }
 ```
 
@@ -89,13 +93,13 @@ In files that support comments we use YAML front matter:
 # pyproject.toml
 
 #---
-# tea:
+# pkgx:
 #   python@3.10
 #---
 ```
 
 Our preference is comments, JSON doesn’t support comments so we have to stick
-a `tea` node in there.
+a `pkgx` node in there.
 
 {% hint style="info" %}
 We read all the files in your project, but only at the root level. If you move
@@ -107,21 +111,21 @@ separately.
 ### Overriding Defaults
 
 Multiple projects can read `package.json`. If you want to use `bun` rather
-than `node` just specify that in your `package.json` (or `tea.yaml`):
+than `node` just specify that in your `package.json` (or `pkgx.yaml`):
 
 ```json
 {
   "name": "my-project",
   "dependencies": […],
-  "tea": "bun@0.5"
+  "pkgx": "bun@0.5"
   }
 }
 ```
 
-### `tea.yaml`
+### `pkgx.yaml`
 
 We supplement the existing files to be less intrusive, but if you prefer you
-can instead add a `tea.yaml` (or `.tea.yaml`) file to your repo.
+can instead add a `pkgx.yaml` (or `.pkgx.yaml`) file to your repo.
 
 ### Controlling Shell Environment Variables
 
@@ -145,9 +149,9 @@ $ dev
 ```
 
 {% hint style="info" %}
-You can either prefix the YAML with a root `tea` node as above or drop
+You can either prefix the YAML with a root `pkgx` node as above or drop
 that considering our metadata is universal this seems acceptable, but using
-a `tea` root is safer. If you use a `tea` and you only have deps you can
+a `pkgx` root is safer. If you use a `pkgx` and you only have deps you can
 specify just the deps. We support specification as strings, arrays or
 dictionaries so pick the one that feels right to you.
 { endhint %}
@@ -164,4 +168,4 @@ activated. If no, [let us know] and we’ll fix it.
 
 
 
-[let us know]: https://github.com/teaxyz/cli/issues/new
+[let us know]: https://github.com/pkgxdev/pkgx/issues/new

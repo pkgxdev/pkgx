@@ -6,7 +6,7 @@
 //   FOO: BAR
 // ---
 
-module github.com/teaxyz/go-mod-example
+module github.com/pkgxdev/go-mod-example
 
 require (
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect

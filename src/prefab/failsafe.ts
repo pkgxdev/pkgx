@@ -1,4 +1,4 @@
-import { PackageNotFoundError, hooks } from "tea"
+import { PackageNotFoundError, hooks } from "pkgx"
 const { useSync } = hooks
 
 export default async function failsafe<T>(body: () => Promise<T>): Promise<T> {

@@ -1,10 +1,9 @@
 import { writeAll } from "deno/streams/write_all.ts"
 import { readAll } from "deno/streams/read_all.ts"
 import { readLines } from "deno/io/read_lines.ts"
-import { Path, TeaError, utils } from "tea"
+import { Path, PkgxError, utils } from "pkgx"
+import announce from "../utils/announce.ts"
 import shellcode from "./shellcode.ts"
-import { dim } from "deno/fmt/colors.ts"
-import announce from "../utils/announce.ts";
 const { flatmap, host } = utils
 
 //TODO could be a fun efficiency excercise to maintain a separate write file-pointer
@@ -21,7 +20,7 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
     try {
       let pos = 0
       for await (const readline of readLines(fd)) {
-        if (readline.trim().endsWith('#docs.tea.xyz/shellcode')) {
+        if (readline.trim().endsWith('#docs.pkgx.sh/shellcode')) {
           if (op == 'install') {
             _internals.stderr("hook already integrated:", file)
             continue here
@@ -56,7 +55,7 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
             pos -= 1
           }
 
-          if (!dryrun) await writeAll(fd, encode(`\n\n${line}  #docs.tea.xyz/shellcode\n`))
+          if (!dryrun) await writeAll(fd, encode(`\n\n${line}  #docs.pkgx.sh/shellcode\n`))
         }
         opd_at_least_once = true
         _internals.stderr(`${file} << \`${line}\``)
@@ -66,13 +65,13 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
     }
   }
   if (dryrun && opd_at_least_once) {
-    const instruction = op == 'install' ? 'eval "$(tea integrate)"' : 'tea deintegrate'
+    const instruction = op == 'install' ? 'eval "$(pkgx integrate)"' : 'pkgx deintegrate'
     _internals.stderr()
     announce({
       title: 'this was a dry-run',
       subtitle: 'to actually perform the above, run:',
       body: [[],[`  ${instruction}`],[]],
-      help: 'https://docs.tea.xyz/shell-integration'
+      help: 'https://docs.pkgx.sh/shell-integration'
     })
   } else switch (op) {
   case 'uninstall':
@@ -85,7 +84,7 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
       // we're being sourced, output the hook
       _internals.stdout(shellcode())
     } else if (opd_at_least_once) {
-      _internals.stderr("%crestart your terminal%c for `tea` hooks to take effect", 'color: #00FFD0', 'color: initial')
+      _internals.stderr("%crestart your terminal%c for `pkgx` hooks to take effect", 'color: #5f5fff', 'color: initial')
     }
   }
 }
@@ -96,9 +95,9 @@ function shells(): [Path, string][] {
   const zdotdir = flatmap(Deno.env.get("ZDOTDIR"), Path.abs) ?? home()
   //const xdg_dir = flatmap(Deno.env.get("XDG_CONFIG_HOME"), Path.abs) ?? _internals.home().join(".config")
 
-  const std = (_shell: string) => `source <(tea --shellcode)`
+  const std = (_shell: string) => `source <(pkgx --shellcode)`
 
-  const bash = 'eval "$(tea --shellcode)"'
+  const bash = 'eval "$(pkgx --shellcode)"'
   const zshpair: [Path, string] = [zdotdir.join(".zshrc"), std("zsh")]
 
   const candidates: [Path, string][] = [
@@ -106,7 +105,7 @@ function shells(): [Path, string][] {
     [home().join(".bashrc"), bash],
     [home().join(".bash_profile"), bash],
     // [xdg_dir.join("elvish/rc.elv"), std("elvish")],
-    // [xdg_dir.join("fish/config.fish"), "tea --hook | source"],
+    // [xdg_dir.join("fish/config.fish"), "pkgx --hook | source"],
   ]
 
   const viable_candidates = candidates.filter(([file]) => file.exists())
@@ -116,7 +115,7 @@ function shells(): [Path, string][] {
       /// macOS has no .zshrc by default and we want mac users to get a just works experience
       return [zshpair]
     } else {
-      throw new TeaError("no `.shellrc` files found")
+      throw new PkgxError("no `.shellrc` files found")
     }
   }
 

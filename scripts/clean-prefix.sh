@@ -1,7 +1,7 @@
-for x in ~/.tea/*; do
+for x in ~/.pkgx/*; do
   case $(basename "$x") in
   deno.land);;
-  tea.xyz);;
+  pkgx.sh);;
   *)
     rm -rf "$x"
   esac

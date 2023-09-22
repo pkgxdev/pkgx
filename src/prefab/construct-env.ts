@@ -1,4 +1,4 @@
-import { Installation, Package, hooks, utils } from "tea"
+import { Installation, Package, hooks, utils } from "pkgx"
 const { usePantry } = hooks
 const { host } = utils
 
@@ -29,10 +29,10 @@ export default async function(pkgenv: { installations: Installation[] }) {
   return rv
 }
 
-///////////////////////// reworked from useShellEnv needs porting back to libtea
+///////////////////////// reworked from useShellEnv needs porting back to libpkgx
 async function mkenv({installations}: {installations: Installation[]}) {
   const projects = new Set(installations.map(x => x.pkg.project))
-  console.assert(projects.size == installations.length, "tea: env is being duped")
+  console.assert(projects.size == installations.length, "pkgx: env is being duped")
 
   const common_vars: Record<string, OrderedSet<string>> = {}
   const common_keys = new Set<string>()

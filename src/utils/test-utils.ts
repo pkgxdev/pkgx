@@ -1,6 +1,6 @@
 import { Logger } from "../prefab/install.ts"
 import { faker } from "npm:@faker-js/faker"
-import { Path } from "tea"
+import { Path } from "pkgx"
 
 export default faker
 

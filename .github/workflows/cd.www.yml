@@ -1,6 +1,6 @@
 name: cd·www
 
-# the binaries for curl tea.xyz/$(uname)/$(uname -m)
+# the binaries for curl pkgx.sh/$(uname)/$(uname -m)
 
 on:
   release:
@@ -30,15 +30,15 @@ jobs:
           go() {
             tar xJf $1
             mkdir -p out/$2
-            tar czf out/$2/$3.tgz tea
-            cp tea out/$2/$3
-            gzip tea
-            mv tea.gz out/$2/$3.gz
+            tar czf out/$2/$3.tgz pkgx
+            cp pkgx out/$2/$3
+            gzip pkgx
+            mv pkgx.gz out/$2/$3.gz
             INVALIDATION_PATHS="$INVALIDATION_PATHS /$2/$3 /$2/$3.tgz /$2/$3.gz"
             echo "INVALIDATION_PATHS=$INVALIDATION_PATHS" >> $GITHUB_ENV
           }
 
-          for filename in tea-*+*+*.tar.xz; do
+          for filename in pkgx-*+*+*.tar.xz; do
             case $filename in
             *+darwin+aarch64.tar.xz)
               go $filename Darwin arm64;;
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload to S3
         run:
-          aws s3 sync out/ s3://www.tea.xyz/
+          aws s3 sync out/ s3://www.pkgx.sh/
             --metadata-directive REPLACE
             --cache-control "max-age=3600, must-revalidate"
 

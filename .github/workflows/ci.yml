@@ -29,8 +29,8 @@ jobs:
 
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
-      - run: deno cache ./entrypoint.ts
-      - run: deno task test --coverage=cov_profile
+      - run: deno cache **/*.test.ts
+      - run: deno task test --coverage=cov_profile --no-check
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
       - uses: coverallsapp/github-action@v2
         with:
@@ -46,3 +46,17 @@ jobs:
       - uses: coverallsapp/github-action@v2
         with:
           parallel-finished: true
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+      - run: deno lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+      - run: deno task typecheck

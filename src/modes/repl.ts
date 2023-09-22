@@ -1,6 +1,6 @@
 import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
-import { PackageRequirement, Path, TeaError, utils } from "tea"
+import { PackageRequirement, Path, PkgxError, utils } from "pkgx"
 import { basename } from "deno/path/mod.ts"
 import { dim } from "../utils/color.ts"
 import exec from "../utils/execve.ts"
@@ -36,10 +36,10 @@ function shell() {
     cmd.splice(1, 0, '--norc', '--noprofile') // longopts must precede shortopts
     // fall through
   case 'sh':
-    PS1 = "\\[\\033[38;5;86m\\]tea\\[\\033[0m\\] %~ "
+    PS1 = "\\[\\033[38;5;86m\\]pkgx\\[\\033[0m\\] %~ "
     break
   case 'zsh':
-    PS1 = "%F{086}tea%F{reset} %~ "
+    PS1 = "%F{086}pkgx%F{reset} %~ "
     cmd.push('--no-rcs', '--no-globalrcs')
     break
   case 'elvish':
@@ -51,7 +51,7 @@ function shell() {
     cmd.push(
       '--no-config',
       '--init-command',
-      'function fish_prompt; set_color 5fffd7; echo -n "tea"; set_color grey; echo " %~ "; end'
+      'function fish_prompt; set_color 5fffd7; echo -n "pkgx"; set_color grey; echo " %~ "; end'
       )
   }
 
@@ -63,5 +63,5 @@ function find_shell() {
     if (new Path(shell).isExecutableFile()) {
       return shell
   }}
-  throw new TeaError("no shell found")
+  throw new PkgxError("no shell found")
 }

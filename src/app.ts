@@ -1,25 +1,24 @@
-import { hooks, Package, PackageRequirement, PackageSpecification, utils } from "tea"
+import { hooks, Package, PackageRequirement, PackageSpecification, utils } from "pkgx"
 import { Logger as IInstallLogger } from "./prefab/install.ts"
 import internal_activate from "./modes/internal.activate.ts"
 import shell_completion from "./modes/shell-completion.ts"
 import parse_pkg_str from "./prefab/parse-pkg-str.ts"
 import InstallLogger from "./utils/InstallLogger.ts"
+import { setColorEnabled } from "deno/fmt/colors.ts"
 import internal_use from "./modes/internal.use.ts"
 import { Args as BaseArgs } from "./parse-args.ts"
 import integrate from "./modes/integrate.ts"
 import shellcode from "./modes/shellcode.ts"
 import provider from "./modes/provider.ts"
+import clicolor from "./utils/clicolor.ts"
+import { blurple } from "./utils/color.ts"
 import install from "./modes/install.ts"
 import version from "./modes/version.ts"
-import { teal } from "./utils/color.ts"
 import Logger from "./utils/Logger.ts"
 import help from "./modes/help.ts"
 import repl from "./modes/repl.ts"
 import env from "./modes/env.ts"
-import run from "./modes/run.ts"
 import x from "./modes/x.ts"
-import announce from "./utils/announce.ts"
-import { dim } from "deno/fmt/colors.ts"
 
 const { usePantry, useSync } = hooks
 const { flatmap } = utils
@@ -58,12 +57,12 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
   } break
   case 'internal.activate': {
     await ensure_pantry()
-    const powder = flatmap(Deno.env.get("TEA_POWDER"), x => x.split(/\s+/).map(utils.pkg.parse)) ?? []
+    const powder = flatmap(Deno.env.get("PKGX_POWDER"), x => x.split(/\s+/).map(utils.pkg.parse)) ?? []
     const [shellcode, pkgs] = await internal_activate(opts.dir, { powder, logger })
-    console.error(`%ctea %c%s`, 'color: #00FFD0', 'color: initial', pkgs.map(x => `+${utils.pkg.str(x)}`).join(' '))
+    console.error(`%s %s`, blurple('env'), pkgs.map(x => `+${utils.pkg.str(x)}`).join(' '))
     console.log(shellcode)
     if (Deno.env.get("TERM_PROGRAM") == "vscode") {
-      console.error("tea: you may need to: ⌘⇧P workbench.action.reloadWindow")
+      console.error("pkgx: you may need to: ⌘⇧P workbench.action.reloadWindow")
     }
   } break
   case 'install':
@@ -77,31 +76,17 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     console.log(shellcode())
     break
   case 'help':
+    setColorEnabled(clicolor(Deno.stdout.rid))
     console.log(help(flags.verbosity))
     break
-  case 'run': {
-    await ensure_pantry()
-    const { update, pkgs: xopts } = await parse_xopts(opts.pkgs, flags.update)
-    const pkgs = consolidate(xopts)
-    await run(opts.args, { pkgs, update, logger })
-  } break
   case 'env': {
     await ensure_pantry()
     const { update, pkgs: xopts } = await parse_xopts(opts.pkgs, flags.update)
     const pkgs = consolidate(xopts)
     console.log(await env({pkgs, update, logger}))
-    if (flags.verbosity >= 0) announce({
-      title: 'shell not integrated',
-      body: [
-        [],
-        [`  eval "$(tea integrate)"   ${dim('# run this first')}`],
-        [],
-      ],
-      help: 'https://docs.tea.xyz/shell-integration'
-    })
   } break
   case 'version':
-    console.log(`tea ${version()}`)
+    console.log(`pkgx ${version()}`)
     break
   case 'shell-completion':
     console.log(await shell_completion(opts.args).then(x => x.join(" ")))
@@ -133,7 +118,7 @@ function make_logger(verbosity: number, logger_prefix?: string): IInstallLogger 
       clear: logger.clear.bind(logger),
       upgrade: () => ({
         installed: ({path}) => {
-          logger.replace(`${teal('cached')} ${path}`, {prefix: false})
+          logger.replace(`${blurple('cached')} ${path}`, {prefix: false})
         }
       })
     }
@@ -159,7 +144,7 @@ async function parse_xopts(input: { plus: string[], minus: string[] }, update_al
   }
 
   const minus = await Promise.all(input.minus.map(x => parse_pkg_str(x)))
-  const active = flatmap(Deno.env.get("TEA_POWDER"), x => x.split(" ").map(utils.pkg.parse)) ?? []
+  const active = flatmap(Deno.env.get("PKGX_POWDER"), x => x.split(" ").map(utils.pkg.parse)) ?? []
 
   const pkgs = { plus, minus, active }
 

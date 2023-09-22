@@ -1,5 +1,5 @@
 import { ProgrammerError } from "./error.ts"
-import { utils, Path, TeaError } from "tea"
+import { utils, Path, PkgxError } from "pkgx"
 const { host } = utils
 
 export default function({cmd: args, env}: {cmd: string[], env: Record<string, string>}): never {
@@ -40,7 +40,7 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
     case 12: //ENOMEM:
     case 20: //ENOTDIR:
     case 26: //ETXTBSY:
-      throw new TeaError(`execve (${errno})`)
+      throw new PkgxError(`execve (${errno})`)
   }
 
   throw new ProgrammerError(`execve (${errno})`)

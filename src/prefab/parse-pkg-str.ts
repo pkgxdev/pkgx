@@ -1,5 +1,5 @@
 import { ProvidesError, AmbiguityError } from "../utils/error.ts"
-import { utils, hooks, PackageRequirement } from "tea"
+import { utils, hooks, PackageRequirement } from "pkgx"
 import failsafe from "./failsafe.ts"
 
 export default async function(input: string, opts?: { latest: 'ok' }): Promise<PackageRequirement & { update?: boolean }> {
@@ -18,7 +18,7 @@ export default async function(input: string, opts?: { latest: 'ok' }): Promise<P
   if (projects.length <= 0) throw new ProvidesError(input)
   if (projects.length > 1) throw new AmbiguityError(input, projects)
 
-  const project = projects[0].project //FIXME libtea forgets to correctly assign type
+  const project = projects[0].project //FIXME libpkgx forgets to correctly assign type
   const constraint = rawpkg.constraint
 
   return { project, constraint, update }

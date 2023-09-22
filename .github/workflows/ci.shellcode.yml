@@ -21,8 +21,8 @@ jobs:
       - run: deno task compile
       - uses: actions/upload-artifact@v3
         with:
-          name: tea
-          path: tea
+          name: pkgx
+          path: pkgx
 
   #NOTE bash/zsh/POSIX jobs are duplicated because `shell` cannot be set by a matrix :-/
   bash:
@@ -31,17 +31,17 @@ jobs:
     container: debian:buster-slim
     defaults:
       run:
-        shell: bash -exo pipefail {0}
+        shell: bash -eo pipefail {0}
     steps:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
 
       - name: prep
         run: |
             apt-get update && apt-get --yes install bash libatomic1
-            chmod u+x /usr/local/bin/tea
+            chmod u+x /usr/local/bin/pkgx
 
       - run: |
           test -n "$BASH_VERSION"
@@ -53,20 +53,22 @@ jobs:
             exit 1
           fi
 
-      - name: tea +duf doesn’t add duf until the shellcode is loaded
+      - name: env +duf doesn’t add duf until the shellcode is loaded
         run: |
-          tea +duf
+          if env +duf; then
+            exit 1
+          fi
           if which duf node; then
             exit 1
           fi
 
-      - name: test `tea +foo` shellcode
+      - name: test `env +foo` shellcode
         run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
-          tea +duf
+          env +duf
           duf --version
-          tea -duf
+          env -duf
 
           # check deactivate has worked
           if which duf; then
@@ -75,7 +77,7 @@ jobs:
 
       - name: test `dev` shellcode
         run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
           echo '{}' > package.json
           dev
@@ -85,13 +87,15 @@ jobs:
           if which node; then
             exit 4
           fi
+
           cd -
           node --version
 
-      - name: tea@latest
-        run: |
-          eval "$(tea --shellcode)"
-          tea@latest --version
+      #TODO need to be in the pantry first
+      # - name: pkgx@latest
+      #   run: |
+      #     eval "$(pkgx --shellcode)"
+      #     pkgx@latest --version
 
       - name: ~/.local/bin in PATH
         run: |
@@ -104,13 +108,13 @@ jobs:
             exit 1
           fi
 
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
           test $(foo) = hi
 
       - name: POSIXLY_CORRECT
         run: |
-          eval "$(tea --shellcode)"
-          tea +duf
+          eval "$(pkgx --shellcode)"
+          env +duf
           duf --version
         shell: bash -eo posix {0}
 
@@ -125,12 +129,12 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
 
       - name: prep
         run: |
           apt-get update && apt-get --yes install zsh libatomic1
-          chmod u+x /usr/local/bin/tea
+          chmod u+x /usr/local/bin/pkgx
         shell: sh  # ∵ cannot be zsh until zsh is installed
 
       # NOTE matrix does not work for the shell key :-/
@@ -144,31 +148,33 @@ jobs:
           fi
         name: ensure test specimens are not installed on the runners
 
-      - name: tea +duf doesn’t add duf until the shellcode is loaded
+      - name: env +duf doesn’t add duf until the shellcode is loaded
         run: |
-          tea +duf
-          if which duf; then
+          if env +duf; then
+            exit 1
+          fi
+          if which duf node; then
             exit 1
           fi
 
-      - name: test `tea +foo` shellcode
+      - name: test `env +foo` shellcode
         run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
-          tea +duf
+          env +duf
           duf --version
-          tea +optipng
+          env +optipng
           optipng --version
-          tea -duf -optipng
+          env -duf -optipng
 
           # check deactivate has worked
           if which duf optipng >/dev/null; then
             exit 3
           fi
 
-      - name: test `tea activate` shellcode
+      - name: test `pkgx activate` shellcode
         run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
           echo '{}' > package.json
           dev
@@ -193,10 +199,11 @@ jobs:
             exit 5
           fi
 
-      - name: tea@latest
-        run: |
-          eval "$(tea --shellcode)"
-          tea@latest --version
+      #TODO need to be in the pantry first
+      # - name: pkgx@latest
+      #   run: |
+      #     eval "$(pkgx --shellcode)"
+      #     pkgx@latest --version
 
       - name: ~/.local/bin in PATH
         run: |
@@ -209,14 +216,14 @@ jobs:
             exit 1
           fi
 
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
           test $(foo) = hi
 
       - name: emulate -L sh
         run: |
           emulate -L sh
-          eval "$(tea --shellcode)"
-          tea +duf
+          eval "$(pkgx --shellcode)"
+          env +duf
           duf --version
 
   POSIX:
@@ -227,12 +234,12 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
 
       - name: prep
         run: |
           apt-get update && apt-get --yes install libatomic1
-          chmod u+x /usr/local/bin/tea
+          chmod u+x /usr/local/bin/pkgx
 
       # NOTE matrix does not work for the shell key :-/
       - name: test `use` shellcode
@@ -242,19 +249,21 @@ jobs:
             exit 1
           fi
 
-          # tea +foo should not work until the shellcode is evaluated
-          tea +duf
+          # env +foo should not work until the shellcode is evaluated
+          if env +duf; then
+            exit 1
+          fi
           if which duf node; then
             exit 1
           fi
 
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
-          tea +duf
+          env +duf
           duf --version
-          tea +optipng
+          env +optipng
           optipng --version
-          tea -duf -optipng
+          env -duf -optipng
 
           # check env is now empty again
           if which duf >/dev/null; then
@@ -262,24 +271,24 @@ jobs:
           fi
 
       # verifies our assumption that we are running in “POSIX mode”
-      - name: tea@latest fails
+      - name: pkgx@latest fails
         run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
-          if tea@latest --version; then
+          if pkgx@latest --version; then
             exit 1
           fi
 
       - name: test `dev` shellcode
         run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
           echo '{}' > package.json
           dev
           node --version
       # ^^ POSIX mode cannot persist or deactivate activations
 
-  # verifies tea install installs the version being used
+  # verifies pkgx install installs the version being used
   test-install:
     needs: compile
     runs-on: ubuntu-latest
@@ -288,21 +297,21 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
 
       - name: prep
         run: |
           apt-get update && apt-get --yes install bash libatomic1
-          chmod u+x /usr/local/bin/tea
+          chmod u+x /usr/local/bin/pkgx
 
       - run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
-          tea +node^16
-          tea install
+          env +node^16
+          pkgx install
 
           #TODO
-          #if tea -node; then
+          #if pkgx -node; then
           #  exit 3
           #fi
 
@@ -317,28 +326,28 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
 
       - name: prep
         run: |
           apt-get update && apt-get --yes install bash libatomic1
-          chmod u+x /usr/local/bin/tea
+          chmod u+x /usr/local/bin/pkgx
 
       - run: |
-          echo '#!/usr/bin/env -S tea node' > foo
-          echo 'console.log("xyz.tea")' >> foo
+          echo '#!/usr/bin/env -S pkgx node' > foo
+          echo 'console.log("sh.pkgx")' >> foo
           chmod u+x foo
 
-      - run: test $(./foo) = 'xyz.tea'
-      - run: if tea ./foo; then exit 1; fi
-      - run: if tea foo; then exit 1; fi
+      - run: test $(./foo) = 'sh.pkgx'
+      - run: if pkgx ./foo; then exit 1; fi
+      - run: if pkgx foo; then exit 1; fi
 
       - run: |
           echo '#!/usr/bin/env node' > foo
-          echo 'console.log("xyz.tea")' >> foo
+          echo 'console.log("sh.pkgx")' >> foo
 
-      - run: test $(tea ./foo) = 'xyz.tea'
-      - run: test $(tea foo) = 'xyz.tea'
+      - run: test $(pkgx ./foo) = 'sh.pkgx'
+      - run: test $(pkgx foo) = 'sh.pkgx'
       - run: if ./foo; then exit 1; fi
 
   fork-bomb-protector-check:
@@ -348,11 +357,11 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
-      # create a fork bomb, but since it’s via tea we prevent it
+          name: pkgx
+      # create a fork bomb, but since it’s via pkgx we prevent it
       - run: |
           echo '#!/bin/sh' > foo
-          echo 'tea -- /bin/sh "$0"' >> foo
+          echo 'pkgx -- /bin/sh "$0"' >> foo
           chmod u+x foo
       - run: |
           if ./foo; then
@@ -366,21 +375,21 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
 
       - name: prep
-        run: chmod u+x /usr/local/bin/tea
+        run: chmod u+x /usr/local/bin/pkgx
 
-      #TODO ideally we'd test something that uses another tool in tea and
+      #TODO ideally we'd test something that uses another tool in pkgx and
       # is poorly written so it reads both stdout and stderr eg `lazygit`
       # but CI doesn't have ttys and I couldn't figure out another way
       # ref https://github.com/actions/runner/issues/241
       #NOTE CI has no ttys so the opposite test is v. hard to achieve
       - run: |
-          tea echo 2> >(tee temp_file) >/dev/null
+          pkgx echo 2> >(tee temp_file) >/dev/null
           if [[ -s temp_file ]]; then
             echo
-            echo 'tea output logging info when no tty present' >&2
+            echo 'pkgx output logging info when no tty present' >&2
             exit 1
           fi
 
@@ -391,14 +400,14 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: /usr/local/bin
-          name: tea
+          name: pkgx
       - name: prep
-        run: chmod u+x /usr/local/bin/tea
+        run: chmod u+x /usr/local/bin/pkgx
 
       - run: echo '{}' > package.json
 
       - run: |
-          eval "$(tea --shellcode)"
+          eval "$(pkgx --shellcode)"
 
           dev
 

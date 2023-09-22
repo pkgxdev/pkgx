@@ -1,6 +1,6 @@
 import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
-import { PackageRequirement } from "tea"
+import { PackageRequirement } from "pkgx"
 
 export default async function({ pkgs, ...opts }: {
   pkgs: PackageRequirement[],

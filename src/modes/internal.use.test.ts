@@ -1,5 +1,5 @@
 // deno-lint-ignore-file require-await
-import { semver, SemVer, Path, Installation, utils } from "tea"
+import { semver, SemVer, Path, Installation, utils } from "pkgx"
 import { null_logger as logger } from "../utils/test-utils.ts"
 import specimen0, { _internals } from "./internal.use.ts"
 import * as mock from "deno/testing/mock.ts"

@@ -1,8 +1,8 @@
-import { PackageSpecification, Package, utils, Path, Installation } from "tea"
-import { Logger as BaseInstallLogger } from "tea/plumbing/install.ts"
-import { teal, inverse_teal, dim } from "./color.ts"
+import { PackageSpecification, Package, utils, Path, Installation } from "pkgx"
+import { Logger as BaseInstallLogger } from "pkgx/plumbing/install.ts"
+import { blurple, inverse_blurple, dim } from "./color.ts"
+import useConfig from "pkgx/hooks/useConfig.ts"
 import Logger from "./Logger.ts"
-import useConfig from "tea/hooks/useConfig.ts"
 
 export default class implements BaseInstallLogger {
   projects: string[]
@@ -40,14 +40,14 @@ export default class implements BaseInstallLogger {
 
   locking(pkg: Package): void {
     if (!this.total_progress()) {
-      this.logger.replace(`${teal("locking")} ${utils.pkg.str(pkg)}`)  //TODO
+      this.logger.replace(`${blurple("locking")} ${utils.pkg.str(pkg)}`)  //TODO
     }
   }
   unlocking(_pkg: Package): void {}
 
   installed(installation: Installation): void {
     this.installed_count++
-    log_installed_msg(installation.pkg, inverse_teal(' ✓ '), this.logger)
+    log_installed_msg(installation.pkg, inverse_blurple(' ✓ '), this.logger)
     this.logger.newln()
     this.update()
   }
@@ -72,9 +72,9 @@ export default class implements BaseInstallLogger {
     let prefix: string
     if (!isNaN(pc)) {
       str = `${(pc * 100).toFixed()}% `
-      prefix = teal('installing')
+      prefix = blurple('installing')
     } else {
-      prefix = teal('downloading')
+      prefix = blurple('downloading')
     }
 
     prefix += ` ${this.context} (${this.installed_count}⁄${this.projects.length})`

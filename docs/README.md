@@ -1,9 +1,9 @@
-# What is `tea`?
+# What is `pkgx`?
 
-`tea` is a single, *standalone binary* that can *run anything*.
+`pkgx` is a single, *standalone binary* that can *run anything*.
 
 ```sh
-$ tea deno@1.33 --version
+$ pkgx deno@1.33 --version
 deno 1.33.4
 ```
 
@@ -15,9 +15,9 @@ deno 1.33.4
 | <p>​<a href="run/anywhere/editors.md">Editors</a><br>Run anything in Editors & IDEs</p> |
 
 
-# Using `tea`
+# Using `pkgx`
 
-| <p>​<a href="running-anything.md">Run Anything</a><br>Run anything with `tea <CMD>`</p> | <p><a href="shell-integration.md">Shell Integration</a><br>Seamlessly add pkgs to your terminal sessions</p> |
+| <p>​<a href="running-anything.md">Run Anything</a><br>Run anything with `pkgx <CMD>`</p> | <p><a href="shell-integration.md">Shell Integration</a><br>Seamlessly add pkgs to your terminal sessions</p> |
 | ----- | ----- |
 
 
@@ -29,5 +29,5 @@ deno 1.33.4
 
 # Feedback & Support
 
-| <p>​<a href="support.md">Support</a><br>We appreciate you choosing tea and we're here to help with any issues you encounter</p> | |
+| <p>​<a href="support.md">Support</a><br>We appreciate you choosing pkgx and we're here to help with any issues you encounter</p> | |
 | ----- | ----- |

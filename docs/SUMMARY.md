@@ -4,18 +4,18 @@
 
 ## Run Anywhere
 
-* [`tea` & Terminals](run/anywhere/terminals.md)​
-* [`tea` & Docker](run/anywhere/docker.md)
-* [`tea` & CI/CD](run/anywhere/ci-cd.md)
-* [`tea` & Scripting](run/anywhere/scripts.md)
-* [`tea` & Editors](run/anywhere/editors.md)
+* [`pkgx` & Terminals](run/anywhere/terminals.md)​
+* [`pkgx` & Docker](run/anywhere/docker.md)
+* [`pkgx` & CI/CD](run/anywhere/ci-cd.md)
+* [`pkgx` & Scripting](run/anywhere/scripts.md)
+* [`pkgx` & Editors](run/anywhere/editors.md)
 
 
-## Using `tea`
+## Using `pkgx`
 
 * [Run Anything](running-anything.md)
 * [Shell Integration](shell-integration.md)
-* [`tea install`](tea-install.md)
+* [`pkgx install`](pkgx-install.md)
 
 
 ## Using `dev`
@@ -28,8 +28,8 @@
 * [FAQ](faq.md)
 * Deeper Dives
   * [Shellcode Mechanics and User Manual](deeper-dives/shellcode.md)
-  * [How tea Works: A Conceptual Overview](deeper-dives/conceptual-overview.md)
-  * [Using `tea` with a C/C++ Pipeline](deeper-dives/c++.md)
+  * [How `pkgx` Works: A Conceptual Overview](deeper-dives/conceptual-overview.md)
+  * [Using `pkgx` with a C/C++ Pipeline](deeper-dives/c++.md)
 * Packaging
   * [Contributing pkgs](pantry.md)
   * [API](pantry-api.md)

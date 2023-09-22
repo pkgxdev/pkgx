@@ -1,13 +1,12 @@
-import { PackageRequirement, Path, semver, hooks, utils, hacks } from "tea"
 import { PlainObject, isArray, isNumber, isPlainObject, isString } from "is-what"
+import { PackageRequirement, Path, semver, hooks, utils } from "pkgx"
+import { validatePackageRequirement } from "pkgx/hooks/usePantry.ts"
 import { parse as parseYaml } from "deno/yaml/parse.ts"
 import parse_pkg_str from "../prefab/parse-pkg-str.ts"
 import { readLines } from "deno/io/read_lines.ts"
 import { ProgrammerError } from "./error.ts"
 import * as JSONC from "deno/jsonc/mod.ts"
-
-const { validatePackageRequirement } = hacks
-const { useMoustaches, useConfig } = hooks
+const { useMoustaches } = hooks
 
 export default async function(dir: Path) {
   if (!dir.isDirectory()) {
@@ -78,10 +77,10 @@ export default async function(dir: Path) {
         pkgs.push({ project: 'prefix.dev', constraint })
         await read_YAML_FM(path)
         break
-      case "tea.yml":
-      case "tea.yaml":
-      case ".tea.yml":
-      case ".tea.yaml":
+      case "pkgx.yml":
+      case "pkgx.yaml":
+      case ".pkgx.yml":
+      case ".pkgx.yaml":
         await parse_well_formatted_node(await path.readYAML())
         break
       }
@@ -111,9 +110,9 @@ export default async function(dir: Path) {
     pkgs.push({project: "deno.land", constraint})
     const json = JSONC.parse(await path.read())
     // deno-lint-ignore no-explicit-any
-    if (isPlainObject(json) && (json as any).tea) {
+    if (isPlainObject(json) && (json as any).pkgx) {
       // deno-lint-ignore no-explicit-any
-      let node = (json as any).tea
+      let node = (json as any).pkgx
       if (isString(node) || isArray(node)) node = { dependencies: node }
       await parse_well_formatted_node(node)
     }
@@ -146,7 +145,7 @@ export default async function(dir: Path) {
   }
 
   async function package_json(path: Path) {
-    let node = JSON.parse(await path.read())?.tea
+    let node = JSON.parse(await path.read())?.pkgx
     if (isString(node) || isArray(node)) node = { dependencies: node }
     await parse_well_formatted_node(node)
     has_package_json = true
@@ -162,7 +161,7 @@ export default async function(dir: Path) {
         constraint: new semver.Range(`^${rv?.[1]}`)
       })
     }
-    await parse_well_formatted_node(yaml.tea)
+    await parse_well_formatted_node(yaml.pkgx)
   }
 
   async function pyproject(path: Path) {
@@ -194,8 +193,8 @@ export default async function(dir: Path) {
         if (yaml !== undefined) {
           if (/^((#|\/\/)\s*)?---(\s*\*\/)?$/.test(line.trim())) {
             let node = parseYaml(yaml)
-            /// using a `tea` node is safer (YAML-FM is a free-for-all) but is not required
-            if (isPlainObject(node) && node.tea) node = node.tea
+            /// using a `pkgx` node is safer (YAML-FM is a free-for-all) but is not required
+            if (isPlainObject(node) && node.pkgx) node = node.pkgx
             return await parse_well_formatted_node(node)
           }
           yaml += line?.replace(/^(#|\/\/)/, '')
@@ -211,7 +210,7 @@ export default async function(dir: Path) {
 
   async function parse_well_formatted_node(obj: unknown) {
     if (!isPlainObject(obj)) {
-      return   //TODO diagnostics in verbose mode, error if `tea` node
+      return   //TODO diagnostics in verbose mode, error if `pkgx` node
     }
 
     const yaml = await extract_well_formatted_entries(obj)
@@ -219,7 +218,7 @@ export default async function(dir: Path) {
     for (let [k, v] of Object.entries(yaml.env)) {
       if (isNumber(v)) v = v.toString()
       if (isString(v)) {
-        //TODO provide diagnostics if verbose, throw if part of a `tea` node
+        //TODO provide diagnostics if verbose, throw if part of a `pkgx` node
         env[k] = fix(v)
       }
     }
@@ -233,7 +232,6 @@ export default async function(dir: Path) {
 
       const foo = [
         ...moustaches.tokenize.host(),
-        { from: "tea.prefix", to: useConfig().prefix.string },  //TODO deprecate and use $TEA_DIR once pantry is migrated
         { from: "home", to: Path.home().string },  //TODO deprecate and use $HOME once pantry is migrated
         { from: "srcroot", to: dir.string }  //TODO deprecate and use $PWD once pantry is migrated
       ]
@@ -246,7 +244,7 @@ export default async function(dir: Path) {
 /// YAML-FM must be explicitly marked with a `dependencies` node
 async function extract_well_formatted_entries(yaml: PlainObject): Promise<{ deps: PackageRequirement[], env: Record<string, unknown> }> {
   const deps = await parse_deps(yaml.dependencies)
-  const env = isPlainObject(yaml.env) ? yaml.env : {}  //TODO provide diagnostics if verbose, throw if part of a `tea` node
+  const env = isPlainObject(yaml.env) ? yaml.env : {}  //TODO provide diagnostics if verbose, throw if part of a `pkgx` node
   return { deps, env }
 }
 
@@ -259,7 +257,7 @@ async function parse_deps(node: unknown) {
   }, {} as Record<string, string>)
 
   if (!isPlainObject(node)) {
-    return [] //TODO provide diagnostics if verbose, throw if part of a `tea` node
+    return [] //TODO provide diagnostics if verbose, throw if part of a `pkgx` node
   }
 
   const pkgs = Object.entries(node)

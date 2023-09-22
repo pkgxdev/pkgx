@@ -1,5 +1,5 @@
 {
-  "tea": {
+  "pkgx": {
     "dependencies": {
       "zlib.net": "^1.2"
     },

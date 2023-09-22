@@ -1,7 +1,7 @@
 // deno-lint-ignore-file require-await
 import { assertEquals, assertRejects, assertThrows } from "deno/assert/mod.ts"
 import specimen, { NoEntrypointError, _internals } from "./run.ts"
-import { Path, SemVer, semver, hooks } from "tea"
+import { Path, SemVer, semver, hooks } from "pkgx"
 import { faker_args } from "../utils/test-utils.ts"
 import * as mock from "deno/testing/mock.ts"
 

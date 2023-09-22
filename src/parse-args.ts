@@ -1,5 +1,5 @@
 import { UsageError } from "./utils/error.ts"
-import { Path, utils } from "tea"
+import { Path, utils } from "pkgx"
 const { flatmap } = utils
 
 type Pkgs = {
@@ -86,7 +86,7 @@ export default function(input: string[]): Args {
         break
       case 'provides':
         if (mode) throw new UsageError({msg: 'multiple modes specified'})
-        console.error("%cdeprecated: %cuse tea --provider instead", 'color: red', 'color: initial')
+        console.error("%cdeprecated: %cuse pkgx --provider instead", 'color: red', 'color: initial')
         mode = 'provider'
         break
       case 'shellcode':
@@ -156,6 +156,7 @@ export default function(input: string[]): Args {
     dryrun ??= false
     return { mode, dryrun, flags }
   default:
+    // deno-lint-ignore no-explicit-any
     return { mode: mode as any, flags }
   }
 }

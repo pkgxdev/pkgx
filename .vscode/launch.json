@@ -18,7 +18,7 @@
     },
     {
       "request": "launch",
-      "name": "Debug Tea with args",
+      "name": "Debug pkgx with args",
       "type": "node",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "deno",
@@ -38,7 +38,7 @@
       "id": "args",
       "type": "promptString",
       "default": "",
-      "description": "The arguments for tea"
+      "description": "The arguments for pkgx"
     }
   ]
 }

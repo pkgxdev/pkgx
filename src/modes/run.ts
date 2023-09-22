@@ -1,4 +1,4 @@
-import { PackageRequirement, TeaError, hooks } from "tea"
+import { PackageRequirement, PkgxError, hooks } from "pkgx"
 import parse_pkg_str from "../prefab/parse-pkg-str.ts"
 import construct_env from "../prefab/construct-env.ts"
 import { isString } from "deno/yaml/_utils.ts"
@@ -37,7 +37,7 @@ export const _internals = {
   get_entrypoint: (pkg: { project: string }) => hooks.usePantry().project(pkg).yaml().then(x => x?.['entrypoint'])
 }
 
-export class NoEntrypointError extends TeaError {
+export class NoEntrypointError extends PkgxError {
   constructor(pkg: {project: string}) {
     super(`no entrypoint for: ${pkg.project}`)
   }

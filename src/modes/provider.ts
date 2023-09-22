@@ -1,4 +1,4 @@
-import { plumbing } from "tea"
+import { plumbing } from "pkgx"
 const { which } = plumbing
 
 export default async function(args: string[]) {

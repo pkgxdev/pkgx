@@ -4,7 +4,7 @@ import specimen, { _internals } from "./resolve-arg0.ts"
 import { AmbiguityError } from "../utils/error.ts"
 import { faker_args } from "../utils/test-utils.ts"
 import * as mock from "deno/testing/mock.ts"
-import { Path, semver, SemVer } from "tea"
+import { Path, semver, SemVer } from "pkgx"
 
 Deno.test("resolve-arg0.ts", async runner => {
   await runner.step("ambiguous but only one installed", async () => {
