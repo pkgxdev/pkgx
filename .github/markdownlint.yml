@@ -27,3 +27,6 @@ MD026: false
 
 # gitbook provides its own top-level heading so we use `#` as `##`
 MD025: false
+
+# this is working around gitbook styling issues
+MD029: false
