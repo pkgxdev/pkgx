@@ -33,11 +33,11 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
     print(`export TEA_POWDER="${pkgenv.pkgenv.map(utils.pkg.str).join(' ')}"`)
     print(`export TEA_PKGENV="${pkgenv.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"`)
 
-    if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
-      //FIXME doesn't work with warp.dev for fuck knows why reasons
-      // https://github.com/warpdotdev/Warp/issues/3492
-      print('export PS1="(tea) $PS1"')
-    }
+    // if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
+    //   //FIXME doesn't work with warp.dev for fuck knows why reasons
+    //   // https://github.com/warpdotdev/Warp/issues/3492
+    //   print('export PS1="(tea) $PS1"')
+    // }
 
     print('')
 
@@ -51,10 +51,11 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
         print(`  unset ${key}`)
       }
     }
-    const ps1 = getenv('PS1')
-    print(ps1 ? `  export PS1="${ps1}"` : '  unset PS1')
-    print('  unset -f _tea_reset _tea_install')
-    print('}')
+
+    // const ps1 = getenv('PS1')
+    // print(ps1 ? `  export PS1="${ps1}"` : '  export PS1="$"')
+    // print('  unset -f _tea_reset _tea_install')
+    // print('}')
 
     const install_set = (({pkgenv, installations}) => {
       const set = new Set(pkgenv.map(({project}) => project))
