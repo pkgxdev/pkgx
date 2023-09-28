@@ -78,6 +78,7 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
       rv += `  unset ${key}\n`
     }
   }
+
   // const ps1 = getenv('PS1')
   // rv += ps1 ? `  export PS1="${ps1}"\n` : "  unset PS1\n"
   // rv += "  unset -f _tea_reset\n"

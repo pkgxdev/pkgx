@@ -50,7 +50,8 @@ export default async function(opts: { pkgs: Pkgs, logger: Logger, pkgenv?: Recor
       } else {
         print(`  unset ${key}`)
       }
-    // }
+    }
+
     // const ps1 = getenv('PS1')
     // print(ps1 ? `  export PS1="${ps1}"` : '  export PS1="$"')
     // print('  unset -f _tea_reset _tea_install')
