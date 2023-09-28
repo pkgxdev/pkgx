@@ -59,11 +59,11 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
     rv += `export ${key}=${escape_if_necessary(value)}\n`
   }
 
-  if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
-    //FIXME doesn't work with warp.dev for fuck knows why reasons
-    // https://github.com/warpdotdev/Warp/issues/3492
-    rv += `export PS1="(tea) $PS1"\n`
-  }
+  // if (/\(tea\)/.test(getenv("PS1") ?? '') == false) {
+  //   //FIXME doesn't work with warp.dev for fuck knows why reasons
+  //   // https://github.com/warpdotdev/Warp/issues/3492
+  //   rv += `export PS1="(tea) $PS1"\n`
+  // }
 
   rv += `export TEA_POWDER="${installations.pkgenv.map(utils.pkg.str).join(' ')}"\n`
   rv += `export TEA_PKGENV="${installations.installations.map(({pkg}) => utils.pkg.str(pkg)).join(' ')}"\n\n`
@@ -78,10 +78,10 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
       rv += `  unset ${key}\n`
     }
   }
-  const ps1 = getenv('PS1')
-  rv += ps1 ? `  export PS1="${ps1}"\n` : "  unset PS1\n"
-  rv += "  unset -f _tea_reset\n"
-  rv += "}\n"
+  // const ps1 = getenv('PS1')
+  // rv += ps1 ? `  export PS1="${ps1}"\n` : "  unset PS1\n"
+  // rv += "  unset -f _tea_reset\n"
+  // rv += "}\n"
 
   rv += "\n"
 
