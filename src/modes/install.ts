@@ -20,7 +20,7 @@ export default async function(pkgs: PackageRequirement[]) {
   async function write(dst: Path, pkgs: PackageRequirement[]) {
     for (const pkg of pkgs) {
       for (const program of await usePantry().project(pkg).provides()) {
-        const f = dst.join(program)
+        const f = dst.mkdir('p').join(program)
         f.write({ text: undent`
           #!/bin/sh
           exec tea +${utils.pkg.str(pkg)} -- ${program} "$@"
