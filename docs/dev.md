@@ -1,12 +1,12 @@
 # Using `dev`
 
-`dev` is a tool for utilizing developer environments. It is built on top of
-`tea` and the tea pkging primitives and automatically determines the packages
+`dev` is a tool for utilizing developer environments bundled with `tea` and available in integrated mode.
+It is built on top of `tea` and the tea pkging primitives and automatically determines the packages
 you need based on your project’s keyfiles.
 
 ## Getting Started
 
-`dev` requires `tea` to be integrated with your shell.
+To make the `dev` command available, you must integrate `tea` with your shell.
 
 ```sh
 tea integrate
