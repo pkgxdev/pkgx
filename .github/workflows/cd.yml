@@ -77,7 +77,7 @@ jobs:
 
       - run: tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
 
-      - uses: pkgxdev/setup@v0
+      - uses: pkgxdev/setup@v1
 
       - run: deno task compile
 
