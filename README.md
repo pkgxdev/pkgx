@@ -194,6 +194,8 @@ Compiling my-rust-proj v0.1.0
 #…
 ```
 
+The `dev` tool requires our shell integration to work.
+
 > [docs.pkgx.sh/dev][dev]
 
 &nbsp;
