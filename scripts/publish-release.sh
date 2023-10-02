@@ -55,7 +55,7 @@ gh release create \
   --prerelease=$is_prerelease \
   --generate-notes \
   --notes-start-tag=v$v_latest \
-  --title=$v_new
+  --title=v$v_new
 
 gh workflow run cd.yml --raw-field version="$v_new"
 # ^^ infuriatingly does not tell us the ID of the run
