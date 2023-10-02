@@ -2,7 +2,6 @@
 
 `pkgx` is a single, *standalone binary* that can *run anything*.
 &nbsp;&nbsp;[![coverage][]][coveralls]
-[![release-badge][]](../../releases)
 
 &nbsp;
 
@@ -97,7 +96,7 @@ Python 2.7.18
 * <details><summary>CI/CD</summary><br>
 
   ```yaml
-  - uses: pkgxdev/setup@v0
+  - uses: pkgxdev/setup@v1
   - run: pkgx shellcheck
   ```
 
@@ -249,5 +248,3 @@ If you have questions or feedback:
 
 [coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main
-
-[release-badge]: https://img.shields.io/github/v/release/pkgxdev/pkgx?include_prereleases&label=latest%20release

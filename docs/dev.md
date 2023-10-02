@@ -36,7 +36,7 @@ found package.json; adding `node` to the environment
 v20.5.0
 ```
 
-Here because there’s a `package.json` we know you want `node`.
+Because there’s a `package.json` we know you want `node`.
 
 If there’s a `.node-version` file we read that:
 
