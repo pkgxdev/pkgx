@@ -1,8 +1,13 @@
 # Using `dev`
 
 {% hint style="danger" %}
-`dev` requires shell integration: `pkgx integrate --dry-run`
-{ endhint %}
+`dev` requires shell integration.
+
+```sh
+pkgx integrate --dry-run`
+```
+
+{% endhint %}
 
 `dev` is a tool for utilizing developer environments. It is built on top of
 `pkgx` and the pkgx pkging primitives and automatically determines the packages
