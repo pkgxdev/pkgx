@@ -67,7 +67,7 @@ Python 2.7.18
 * <details><summary>Docker</summary><br>
 
   ```sh
-  $ pkgx docker run -it pkgxdev/pkgx
+  $ pkgx docker run -it pkgx/pkgx
 
   (docker) $ pkgx node@16
   Welcome to Node.js v16.20.1.
@@ -78,7 +78,7 @@ Python 2.7.18
   Or in a `Dockerfile`:
 
   ```Dockerfile
-  FROM pkgxdev/pkgx
+  FROM pkgx/pkgx
   RUN pkgx deno@1.35 task start
   ```
 

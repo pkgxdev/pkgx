@@ -3,7 +3,7 @@
 We provide an image based on Debian Buster (slim) preloaded with `pkgx`:
 
 ```sh
-$ docker run -it pkgxdev/pkgx
+$ docker run -it pkgx/pkgx
 docker $ env +node@16
 docker $ npm start
 ```
@@ -11,7 +11,7 @@ docker $ npm start
 You can use this as a base:
 
 ```Dockerfile
-FROM pkgxdev/pkgx
+FROM pkgx/pkgx
 RUN env +node@16
 RUN npm start
 ```

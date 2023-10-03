@@ -57,7 +57,7 @@ jobs:
         with:
           images:
             ghcr.io/${{ github.repository }}
-            pkgxdev/pkgx
+            pkgx/pkgx
           tags: |
             type=sha
             type=ref,event=branch
