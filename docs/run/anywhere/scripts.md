@@ -2,7 +2,7 @@
 
 ## `pkgx` is a “Universal” Interpreter
 
-```
+```sh
 $ pkgx ./script.py
 pkgx: running python ./script.py
 

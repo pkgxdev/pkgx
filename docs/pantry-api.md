@@ -32,6 +32,5 @@ The [pantry] is our API for pkg metadata.
 We build the cli and the gui on top of [libpkgx]. You may find it useful to
 add pkging powers to your apps.
 
-
-[pantry]: https://github.com/pkxdev/pantry
-[libpkgx]: https://github.com/pkxdev/lib
+[pantry]: https://github.com/pkgxdev/pantry
+[libpkgx]: https://github.com/pkgxdev/libpkgx
