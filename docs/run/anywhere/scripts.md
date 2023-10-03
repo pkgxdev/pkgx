@@ -1,5 +1,23 @@
 # `pkgx` & Scripting
 
+## `pkgx` is a “Universal” Interpreter
+
+```
+$ pkgx ./script.py
+pkgx: running python ./script.py
+
+$ pkgx ./script.ts
+pkgx: running: deno run ./script.ts
+
+$ head -n1 ./script
+#!/usr/bin/ruby
+$ pkgx ./script
+pkgx: running: ruby ./script
+```
+
+We read the shebang and install the interpreter before executing the script.
+If there is no shebang we use the default interpreter for the file extension.
+
 ## shebangs
 
 You can use `pkgx` as the [shebang] for your scripts:
