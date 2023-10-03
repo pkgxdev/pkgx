@@ -42,16 +42,12 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
   /// env specified in devenv files takes precedence
   Object.assign(env, userenv)
 
-  for (let [key, value] of Object.entries(env)) {
+  for (const [key, value] of Object.entries(env)) {
 
     const existing_value = getenv(key)
     if (value == existing_value) {
       delete env[key]
       continue
-    }
-    // we ignore /FLAGS$/ due to lack of better way to determine keys that should not be colon separated
-    if (existing_value !== undefined && !key.endsWith("FLAGS")) {
-      value += `:$${key}`  // indeed we rely on the shell to expand for clarity and to make this shellcode portable
     }
 
     //NOTE strictly env which we model ourselves on does not do value escaping which results in output

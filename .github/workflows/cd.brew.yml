@@ -6,7 +6,7 @@ on:
       - published
 
 concurrency:
-  group: cd/docker/${{ github.event.release.tag_name }}
+  group: cd/brew/${{ github.event.release.tag_name }}
   cancel-in-progress: true
 
 jobs:
