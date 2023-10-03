@@ -3,17 +3,9 @@ import { Path, PkgxError } from "pkgx"
 
 export default async function(path: Path) {
   try {
-    const fd = await Deno.open(path.string)
+    const fd = await is_shebang(path)
+    if (!fd) return
     try {
-      const buf = new Uint8Array(2)
-
-      if (await fd.read(buf) !== 2) {
-        return  // empty file
-      }
-
-      if (buf[0] != 35 || buf[1] != 33) {
-        return  // not an executable script
-      }
       const shebang = (await readLines(fd).next()).value as string
       const parts = shebang.split(' ')
 
@@ -36,4 +28,21 @@ export default async function(path: Path) {
       throw err
     }
   }
+}
+
+export async function is_shebang(path: Path): Promise<Deno.FsFile | undefined> {
+  const fd = await Deno.open(path.string)
+  const buf = new Uint8Array(2)
+
+  if (await fd.read(buf) !== 2) {
+    fd.close()
+    return  // empty file
+  }
+
+  if (buf[0] != 35 || buf[1] != 33) {
+    fd.close()
+    return  // not an executable script
+  }
+
+  return fd
 }

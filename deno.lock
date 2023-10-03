@@ -2,11 +2,16 @@
   "version": "3",
   "packages": {
     "specifiers": {
-      "npm:@faker-js/faker": "npm:@faker-js/faker@8.1.0"
+      "npm:@faker-js/faker": "npm:@faker-js/faker@8.1.0",
+      "npm:@types/node": "npm:@types/node@18.16.19"
     },
     "npm": {
       "@faker-js/faker@8.1.0": {
         "integrity": "sha512-38DT60rumHfBYynif3lmtxMqMqmsOQIxQgEuPZxCk2yUYN0eqWpTACgxi0VpidvsJB8CRxCpvP7B3anK85FjtQ==",
+        "dependencies": {}
+      },
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
         "dependencies": {}
       }
     }
@@ -199,6 +204,34 @@
     "https://deno.land/x/cliffy@v1.0.0-rc.3/ansi/chain.ts": "eca61b1b64cad7b9799490c12c7aa5538d0f63ac65a73ddb6acac8b35f0a5323",
     "https://deno.land/x/cliffy@v1.0.0-rc.3/ansi/deps.ts": "f48ae5d066684793f4a203524db2a9fd61f514527934b458006f3e57363c0215",
     "https://deno.land/x/is_what@v4.1.15/src/index.ts": "e55b975d532b71a0e32501ada85ae3c67993b75dc1047c6d1a2e00368b789af0",
+    "https://deno.land/x/libpkgx@v0.14.1/mod.ts": "14a69905ffad8064444c02d146008efeb6a0ddf0fe543483839af18e01684f5a",
+    "https://deno.land/x/libpkgx@v0.14.1/src/deps.ts": "cbed32141c67030c1c2ea035408213585d8e14a808bd85319a7337c6c1c39fbf",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useCache.ts": "9f3cc576fabae2caa6aedbf00ab12a59c732be1315471e5a475fef496c1e35ae",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useCellar.ts": "c1e264fcb732423734f8c113fc7cb80c97befe8f13ed9d24906328bc5526c72d",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useConfig.ts": "099044d3a7b6ec5805eef13f222a566b251a355ffc7b45c9934d790d953e861e",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useDownload.ts": "fc51347e5e9c5a3e4c9405dfbc96fb60b57d8ec90e41cf89876adf263db54b8e",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useFetch.ts": "c2a3aa7a01c5ab51ceb9f105638ef95fe135a17aa5fd6ad14c543022ad4fa3cc",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useInventory.ts": "62da5e879c4e02e1b25b5621cd659438ca906d5f8775a4dccddc0d2c17a1e961",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useMoustaches.ts": "417aeabd35096fd81c05b71b151b92049add2d3ead5036e0063b8c10ee682863",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useOffLicense.ts": "469cc8ef33f4fd361fbf338df5a2fbc0d2cd62e38a251d0ef2b52d70ea36873d",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/usePantry.ts": "738a783a27f8e1209fd95cfcdb609e953b5ff7d433f5b3334f9664eacba7e7d2",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useShellEnv.ts": "686635512ef0bd7f982982b6ed555f106ffd618b2ba344e47e50ca195181aa70",
+    "https://deno.land/x/libpkgx@v0.14.1/src/hooks/useSync.ts": "f4afd053f8d814b14d1b5d3fe240c132dbcfdd289e38243999fe6d80d438a9dc",
+    "https://deno.land/x/libpkgx@v0.14.1/src/plumbing/hydrate.ts": "74f295585c4760005cc7676db9f3d9eb67d92b78e197e02445f42823d1643884",
+    "https://deno.land/x/libpkgx@v0.14.1/src/plumbing/install.ts": "5f0b96d82bec57a0e1e612a77aed83cfd1ab04bc04a9a374aa23185d8d3d6100",
+    "https://deno.land/x/libpkgx@v0.14.1/src/plumbing/link.ts": "acb98bf014414208f14c5f57fa36e2aa66ae9bee69d763120c3ddb656e244063",
+    "https://deno.land/x/libpkgx@v0.14.1/src/plumbing/resolve.ts": "9425e0d201ee440a8dc011940046f0bb6d94aa29cd738e1a8c39ca86e55aad41",
+    "https://deno.land/x/libpkgx@v0.14.1/src/plumbing/which.ts": "24778f645c9aaea67df51b671474fffe01c1d3b188552943e24d61d51fa6b80d",
+    "https://deno.land/x/libpkgx@v0.14.1/src/porcelain/install.ts": "b97860e7c106fe5dac66cd6833729b832d70658561d582ff52b933a4d30718c7",
+    "https://deno.land/x/libpkgx@v0.14.1/src/porcelain/run.ts": "b7143ac5e1bea4c0852bfdfdf5039aa0e4e7acac2572751303218e3c57710daa",
+    "https://deno.land/x/libpkgx@v0.14.1/src/types.ts": "dc1a4e6458d11454282f832909838c56f786a26eed54fb8ab5675d6691ebf534",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/Path.ts": "001a723aac860ccbd40bcf06cd64cbba9172894d48d6bb0fa3c53bc96e35be02",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/error.ts": "b0d3130f5cdfc0cc8ea10f93fea0e7e97d4473ddc9bc527156b0fcf24c7b939c",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/flock.deno.ts": "29f6bea74f9feb856f7b5b80a2fe58b337955181e2a922255f76c843a92c08e5",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/host.ts": "3b9e0d4cb05f9bde0ee8bcb0f8557b0a339f6ef56dfb1f08b2cfa63b44db91ee",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/misc.ts": "a4d7944da07066e5dd2ef289af436dc7f1032aed4272811e9b19ceeed60b8491",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/pkg.ts": "5ef9cc1955a5067489ac4d2af8615652505cb17a48745e811cb786ab89377547",
+    "https://deno.land/x/libpkgx@v0.14.1/src/utils/semver.ts": "defa0cc3f08059189d47e5c3600c640fdf16cc555c7c81c3b72de5d1f4180307",
     "https://deno.land/x/outdent@v0.8.0/mod.ts": "72630e680dcc36d5ae556fbff6900b12706c81a6fd592345fc98bcc0878fb3ca",
     "https://deno.land/x/outdent@v0.8.0/src/index.ts": "6dc3df4108d5d6fedcdb974844d321037ca81eaaa16be6073235ff3268841a22",
     "https://deno.land/x/semver@v1.4.1/mod.ts": "0b79c87562eb8a1f008ab0d98f8bb60076dd65bc06f1f8fdfac2d2dab162c27b",
