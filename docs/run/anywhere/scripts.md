@@ -47,7 +47,7 @@ The `-S` parameter is required to pass multiple arguments.
 
 Scripts are the glue that allows open source to be composed into powerful new
 tools. With our `+pkg` syntax you make anything in open source available to
-your your script.
+your script.
 
 ```sh
 #!/usr/bin/env -S pkgx +openssl deno run
