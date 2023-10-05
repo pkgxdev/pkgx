@@ -1,0 +1,13 @@
+# ---
+# pkgx:
+#   dependencies:
+#     - zlib.net^1.2
+#   env:
+#     FOO: BAR
+# ---
+
+[package]
+name = "pkgx example"
+version = "0.0.1"
+authors = ["mxcl"]
+autobins = false

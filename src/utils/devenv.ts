@@ -42,7 +42,7 @@ export default async function(dir: Path) {
       case "action.yaml":
         await github_actions(path)
         break
-      case "cargo.toml":
+      case "Cargo.toml":
         pkgs.push({project: "rust-lang.org", constraint})
         await read_YAML_FM(path)  //TODO use dedicated TOML section in preference
         break

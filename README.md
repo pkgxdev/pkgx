@@ -187,7 +187,7 @@ integrating them into your shell and editor.
 
 ```sh
 my-rust-proj $ dev
-dev: found cargo.toml; env +cargo +rust
+dev: found Cargo.toml; env +cargo +rust
 
 (+cargo+rust) my-rust-proj $ cargo build
 Compiling my-rust-proj v0.1.0
