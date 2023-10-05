@@ -20,7 +20,7 @@ Deno.test("devenv.ts", async runner => {
         ["package.json/std/package.json", "nodejs.org"],
         ["package.json/str/package.json", "nodejs.org"],
         ["package.json/arr/package.json", "nodejs.org"],
-        ["cargo.toml", "rust-lang.org"],
+        ["Cargo.toml", "rust-lang.org"],
         ["Gemfile", "ruby-lang.org"],
         ["pyproject.toml/std/pyproject.toml", "pip.pypa.io"],
         ["pyproject.toml/poetry/pyproject.toml", "python-poetry.org"],
