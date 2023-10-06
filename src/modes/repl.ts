@@ -12,6 +12,10 @@ export default async function(args: string[], { pkgs, ...opts }: { pkgs: Package
   const env = await construct_env(pkgenv)
   const pkgs_str = () => pkgenv.installations.map(({pkg}) => dim(utils.pkg.str(pkg))).join(", ")
 
+  for (const key in env) {
+    env[key] = env[key].replaceAll(`\${${key}}`, Deno.env.get(key) ?? '')
+  }
+
   console.error('this is a temporary shell containing the following packages:')
   console.error(pkgs_str())
   console.error("when done type: `exit`")
