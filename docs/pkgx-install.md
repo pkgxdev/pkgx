@@ -84,6 +84,7 @@ pkgx install node@16
 
 
 ## `pkgx uninstall`
+Coming soon.
 
 ```sh
 $ pkgx install node
