@@ -132,6 +132,15 @@ than `node` just specify that in your `package.json` (or `pkgx.yaml`):
 We supplement the existing files to be less intrusive, but if you prefer you
 can instead add a `pkgx.yaml` (or `.pkgx.yaml`) file to your repo.
 
+The format is the same as that of YAML front matter, thus for example:
+
+```yaml
+dependencies:
+  python@3.10 node@16.20.1
+env:
+  FOO: bar
+```
+
 ### Controlling Shell Environment Variables
 
 It can be convenient to control shell environment variables for work projects.
