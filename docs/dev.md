@@ -4,7 +4,7 @@
 `dev` requires shell integration.
 
 ```sh
-pkgx integrate --dry-run`
+pkgx integrate --dry-run
 ```
 
 {% endhint %}
