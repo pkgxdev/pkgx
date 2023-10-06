@@ -110,10 +110,12 @@ Python 2.7.18
   > [docs.pkgx.sh/ci-cd]
 
   </details>
-* <details><summary>Shebangs</summary><br>
+* <details><summary>Scripts</summary><br>
 
   ```sh
-  #!/usr/bin/env -S pkgx python@3.10
+  #!/usr/bin/env -S pkgx +git python@3.12
+
+  # python 3.12 runs the script and `git` is available during its execution
   ```
 
   > [docs.pkgx.sh/scripts]
