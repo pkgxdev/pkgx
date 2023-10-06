@@ -132,7 +132,7 @@ $ pkgx your-package --args
 You can also recommend our shell one-liner if you like:
 
 ```sh
-sh <(curl pkgx.sh) +your-package sh
+sh <(curl https://pkgx.sh) +your-package sh
 ```
 
 Will for example install pkgx and your pkg then open a new shell with it
