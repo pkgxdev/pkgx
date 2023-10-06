@@ -85,7 +85,6 @@ pkgx install node@16
 
 ## `pkgx uninstall`
 
-```sh
-$ pkgx install node
-$ pkgx uninstall node
-```
+Coming soon.
+
+For now, use ```rm ~/.local/bin/foo``` on the package you want to remove.
