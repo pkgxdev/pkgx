@@ -153,6 +153,8 @@ function command_not_found_handle {
 
 ## How do I uninstall `pkgx`?
 
+**Coming Soon**
+
 ```sh
 pkgx uninstall pkgx
 ```
