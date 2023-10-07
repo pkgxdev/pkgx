@@ -10,7 +10,6 @@ import { flatmap } from "pkgx/utils/misc.ts";
 // * `command_not_found_handler` cannot change the global environment hence we write a file
 
 // TODO
-// * maybe impl `$XDG_BIN_HOME`
 //   ref https://gitlab.freedesktop.org/xdg/xdg-specs/-/issues/14
 // * remove the files we create for command not found handler once any prompt appears
 // * need to use a proper tmp location perhaps
@@ -38,7 +37,7 @@ export default function() {
         if type _pkgx_reset >/dev/null 2>&1; then
           _pkgx_reset
         fi
-        unset -f _pkgx_chpwd_hook _pkgx_should_deactivate_devenv pkgx x command_not_found_handler pkgx@latest _pkgx_commit _pkgx_dev_off >/dev/null 2>&1
+        unset -f _pkgx_chpwd_hook _pkgx_should_deactivate_devenv pkgx x command_not_found_handler command_not_found_handle pkgx@latest _pkgx_commit _pkgx_dev_off >/dev/null 2>&1
         echo "pkgx: shellcode unloaded" >&2;;
       *)
         command pkgx "$@";;
@@ -157,6 +156,10 @@ export default function() {
       eval 'cd() {
               builtin cd "$@" || return
               _pkgx_chpwd_hook
+            }
+
+            command_not_found_handle() {
+              command_not_found_handler "$@"
             }
 
             _pkgx_chpwd_hook'

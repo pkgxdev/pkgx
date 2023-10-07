@@ -4,6 +4,8 @@ import { blurple, dim } from "../utils/color.ts"
 import undent from 'outdent'
 const { usePantry } = hooks
 
+// * maybe impl `$XDG_BIN_HOME`
+
 export default async function(pkgs: PackageRequirement[]) {
   const usrlocal = new Path("/usr/local/bin")
   let n = 0
