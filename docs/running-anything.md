@@ -74,9 +74,9 @@ $ pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
                 ||     ||
 ```
 
-The newer pkgx is installed to `~/.pkgx` like every other pkg. If your `pkgx` is
-installed to `/usr/local/bin` then it will proxy forward to the newest version
-installed automatically; you don’t need to upgrade it.
+The newer pkgx is installed to `~/.pkgx` like every other pkg. If you need
+the installed `pkgx` to be updated then `pkgx install pkgx@latest` will
+replace it.
 
 {% endhint %}
 

@@ -2,17 +2,27 @@
 
 ## How do I run the latest version of `pkgx`?
 
-* either `brew upgrade pkgx`
-* or `pkgx@latest`
+pkgx is just another pkg so:
 
-Depending on how you installed `pkgx` originally
+```
+pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
+```
+
+Is a valid command, provided you have shell integration.
+
+If you are looking to upgrade the “installed” `pkgx` version then use
+`brew upgrade pkgx` or if you installed it otherwise, download the new
+release from GitHub and replace the old binary, `pkgx` is a single binary
+download so that's all you have to do.
+
+Soon there will be a better route for non-brew users, but for now: sorry.
 
 
 ## How do I run the latest version of a specific pkg?
 
 Unless otherwise instructed, `pkgx` executes the latest version of pkgs that
-*are installed*. The first time you run a pkg the latest version will be
-installed, but after that updates will only be fetched if requested.
+*are cached*. The first time you run a pkg the latest version will be
+cached, but after that updates will only be fetched if requested.
 
 ```sh
 pkgx deno@latest
@@ -144,16 +154,19 @@ available to the environment.
 We removed “magic” from pkgx at v1 because it had a number of unsolvable
 issues. If you want it back however fortunately the shellcode is simple:
 
-```sh
+```bash
 function command_not_found_handle {
   pkgx -- "$*"
 }
+# NOTE in zsh append an `r` ie `command_not_found_handler``
 ```
 
 
 ## How do I uninstall `pkgx`?
 
-Coming Soon
+For now `rm -rf ~/.pkgx` is enough.
+
+*Coming Soon*.
 
 ```sh
 pkgx uninstall pkgx
