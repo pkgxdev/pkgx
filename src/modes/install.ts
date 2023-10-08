@@ -27,13 +27,22 @@ export default async function(pkgs: PackageRequirement[]) {
 
   async function write(dst: Path, pkgs: PackageRequirement[]) {
     for (const pkg of pkgs) {
-      for (const program of await usePantry().project(pkg).provides()) {
+      const programs = await usePantry().project(pkg).provides()
+      program_loop:
+      for (const program of programs) {
 
         // skip for now since we would require specific versions and we haven't really got that
         if (program.includes("{{")) continue
 
         const pkgstr = utils.pkg.str(pkg)
         const exec = `exec pkgx +${pkgstr} -- ${program} "$@"`
+        const script = undent`
+          if [ "$PKGX_UNINSTALL" != 1 ]; then
+            ${exec}
+          else
+            cd "$(dirname "$0")"
+            rm ${programs.join(' ')} && echo "uninstalled: ${pkgstr}" >&2
+          fi`
         const f = dst.mkdir('p').join(program)
 
         if (f.exists()) {
@@ -47,21 +56,24 @@ export default async function(pkgs: PackageRequirement[]) {
           if (shebang != "#!/bin/sh") {
             throw new PkgxError(`${f} already exists and is not a pkgx installation`)
           }
-          const { value } = await lines.next()
-          if (value == exec) {
-            console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${pkgstr})`)}`)
-            n++
-            continue
-          }
-          if (!value.startsWith('exec pkgx')) {
-            throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+          while (true) {
+            const { value, done } = await lines.next()
+            if (done) {
+              throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+            }
+            const found = value.match(/^\s*exec pkgx \+([^ ]+)/)?.[1]
+            if (found) {
+              n++
+              console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${found})`)}`)
+              continue program_loop
+            }
           }
         }
 
         f.write({ force: true, text: undent`
           #!/bin/sh
-          ${exec}
-          ` }).chmod(0o755)
+          ${script}`
+        }).chmod(0o755)
         console.error('pkgx: installed:', f)
         n++
       }
