@@ -58,7 +58,9 @@ Deno.test("devenv.ts", async runner => {
         [".node-version", "nodejs.org@16.16.0"],
         ["python-version/std/.python-version", "python.org~3.10"],
         ["python-version/commented/.python-version", "python.org~3.11"],
-        [".ruby-version", "ruby-lang.org@3.2.1"]
+        [".ruby-version", "ruby-lang.org@3.2.1"],
+        ["yarn.lock", "yarnpkg.com"],
+        ["bun.lockb", "bun.sh>=1"],
       ]
 
       for (const [keyfile, dep] of keyfiles) {

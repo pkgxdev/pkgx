@@ -69,9 +69,15 @@ export default async function(dir: Path) {
         pkgs.push({ project: "classic.yarnpkg.com", constraint })
         await read_YAML_FM(path)
         break
+      case "yarn.lock":
+        pkgs.push({ project: "yarnpkg.com", constraint })
+        break
       case ".yarnrc.yml":
         pkgs.push({ project: "yarnpkg.com", constraint })
         await read_YAML_FM(path)
+        break
+      case "bun.lockb":
+        pkgs.push({ project: "bun.sh", constraint: new semver.Range(">=1") })
         break
       case "pixi.toml":
         pkgs.push({ project: 'prefix.dev', constraint })
