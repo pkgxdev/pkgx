@@ -7,7 +7,9 @@ import InstallLogger from "./utils/InstallLogger.ts"
 import { setColorEnabled } from "deno/fmt/colors.ts"
 import internal_use from "./modes/internal.use.ts"
 import { Args as BaseArgs } from "./parse-args.ts"
+import { AmbiguityError } from "./utils/error.ts"
 import integrate from "./modes/integrate.ts"
+import uninstall from "./modes/uninstall.ts"
 import shellcode from "./modes/shellcode.ts"
 import provider from "./modes/provider.ts"
 import clicolor from "./utils/clicolor.ts"
@@ -19,7 +21,6 @@ import help from "./modes/help.ts"
 import repl from "./modes/repl.ts"
 import env from "./modes/env.ts"
 import x from "./modes/x.ts"
-import { AmbiguityError } from "./utils/error.ts"
 
 const { usePantry, useSync } = hooks
 const { flatmap } = utils
@@ -80,6 +81,9 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
       }
       throw err
     }
+    break
+  case 'uninstall':
+    await uninstall(opts.args)
     break
   case 'deintegrate':
     await integrate('uninstall', opts)
