@@ -79,6 +79,9 @@ export default async function(dir: Path) {
       case "bun.lockb":
         pkgs.push({ project: "bun.sh", constraint: new semver.Range(">=1") })
         break
+      case "pnpm-lock.yaml":
+        pkgs.push({ project: "pnpm.io", constraint })
+        break
       case "pixi.toml":
         pkgs.push({ project: 'prefix.dev', constraint })
         await read_YAML_FM(path)
