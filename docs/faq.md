@@ -31,7 +31,7 @@ pkgx deno@latest
 > If you install pkgx/gui we can have it automatically install updates.
 
 
-## How do I install pkgs?
+## How do I “install” pkgs?
 
 To make pkgs available to the wider system use
 [`pkgx install`](pkgx-install.md).
@@ -54,6 +54,13 @@ Relative to other pkging systems:
 * no scripts are executed post install
 * packages must work as is from any location provided their deps are installed
   in parallel (we say our pkgs are “relocatable“)
+
+
+## A package version I need is unavailable
+
+Sorry about that. Open a [ticket] asking for it and we’ll build it.
+
+[ticket]: https://github.com/pkgxdev/pantry/issues/new
 
 
 ## I need to pin a pkg to greater than v20.1.3 but less than v21
