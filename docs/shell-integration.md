@@ -105,3 +105,11 @@ necessary.
 ```sh
 $ env +node@16 +imagemagick +optipng
 ```
+
+Or:
+
+```sh
+$ env +node@16
+$ env +imagemagick
+$ env +optipng
+```

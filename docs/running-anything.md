@@ -110,12 +110,15 @@ exist in the environment.
 `'-*'` can be used to exclude everything. Note that you typically will need
 to quote the asterisk since shells will otherwise interpret it as an attempt
 to glob.
+
 {% endhint %}
 
 {% hint style="info" %}
+
 The first argument that doesn’t start with `-` or `+` is considered the
 first argument to the runner. All arguments that follow are passed to that
 program.
+
 {% endhint }
 
 
@@ -136,7 +139,7 @@ error: multiple projects provide `yarn`. please be more specific:
 ```
 
 In general it's a good idea to specify fully qualified names in
-scripts, etc. since these will always be unambiguous.
+scripts, etc. since you want these to work forever.
 
 
 ## Running System Commands
@@ -148,8 +151,12 @@ To do this specify the full path of the system executable:
 pkgx +llvm.org /usr/bin/make
 ```
 
-> If you only specified `make` rather than `/usr/bin/make` then `pkgx` would
-> install make for you and use that.
+{% hint style="warning" %}
+
+If you only specified `make` rather than `/usr/bin/make` then `pkgx` would
+install GNU make for you and use that.
+
+{% endhint %}
 
 
 [SemVer]: https://devhints.io/semver

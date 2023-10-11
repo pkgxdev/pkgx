@@ -27,7 +27,7 @@ cached, but after that updates will only be fetched if requested.
 pkgx deno@latest
 ```
 
-> If you install pkgx/gui we can have it automatically install updates.
+> [OSS.app](https://pkgx.app) can automatically install updates.
 
 
 ## How do I “install” pkgs?
@@ -40,18 +40,18 @@ You can update installed packages with `pkgx install foo@latest`
 {% endhint %}
 
 
-## What is a pkg?
+## What is a package?
 
-A `pkg` (package) is:
+A package is:
 
-* a plain tarball containing a single project for a single platform and
+* A plain tarball containing a single project for a single platform and
   architecture compiled from that project’s sources
-* a bundle of metadata (`package.yml`) from the [pantry]
+* A bundle of metadata (`package.yml`) from the [pantry]
 
-Relative to other pkging systems:
+Relative to some other packaging systems:
 
-* no scripts are executed post install
-* packages must work as is from any location provided their deps are installed
+* No scripts are executed post install
+* Packages must work as is from any location provided their deps are installed
   in parallel (we say our pkgs are “relocatable“)
 
 
@@ -127,16 +127,20 @@ Yes! Our pkgs are relocatable.
 ## Will you support other platforms?
 
 We would love to support all platforms. All that is holding is back from new
-platforms is expertise. Will you help? Let’s talk [discussions].
+platforms is expertise. Will you help? [Let’s talk].
+
+[Let’s talk]: https://github.com/pkgxdev/pkgx/issues/607
 
 
 ## How do I add my package to pkgx?
 
+You need to add to the [pantry](pantry.md).
+
+{% hint style="info" %}
 Eventually we will support describing how to build or obtain distributables
 for your package via your repo so you can just add a `pkgx.yaml` and users
 can use pkgx to use your package automatically.
-
-For now see our section on the [pantry](pantry.md).
+{% endhint %}
 
 
 ## How should I recommend people install my pkg with pkgx?
@@ -155,7 +159,7 @@ Will for example install pkgx and your pkg then open a new shell with it
 available to the environment.
 
 
-## What happened to “pkgx Magic”?
+## What happened to ”Magic”?
 
 We removed “magic” from pkgx at v1 because it had a number of unsolvable
 issues. If you want it back however fortunately the shellcode is simple:
@@ -171,16 +175,6 @@ function command_not_found_handle {
 ## How do I uninstall `pkgx`?
 
 For now `rm -rf ~/.pkgx` is enough.
-
-*Coming Soon*.
-
-```sh
-pkgx uninstall pkgx
-```
-
-This will uninstall pkgx, all package caches and deintegrate your
-`~/.shellrc` files as well.
-
 
 {% hint style="warning" %}
 

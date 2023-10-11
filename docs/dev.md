@@ -50,7 +50,7 @@ $ dev
 v18.16.0
 ```
 
-We understand all the conventions and files. If we don’t understand one you
+We understand almost all keyfile conventions. If we don’t understand one you
 use [let us know] and we’ll add it.
 
 {% hint style="info" %}

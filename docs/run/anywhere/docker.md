@@ -32,3 +32,37 @@ Mac is as fast and easy as deployments.
 At this time our shellcode doesn’t work in Docker, but we are working on
 making `pkgx` able to be a proxy shell for these situations.
 {% endhint %}
+
+
+## `dev`
+
+`dev` works in our image but because Docker steps are each individual shells
+our shellcode only works in that step. Thus:
+
+```Dockerfile
+FROM pkgxdev/pkgx
+RUN dev && npm start
+```
+
+To use `dev` in another image is more complicated but there are a couple
+options:
+
+```Dockerfile
+FROM ubuntu
+RUN eval "$(curl https://pkgx.sh)" && dev && npm start
+```
+
+{% hint style="info" %}
+`eval`ing our installer integrates the shell code into the current shell.
+{% endhint %}
+
+Alternatively you can use `pkgx integrate` provided docker is instructed to
+use a more advanced shell like bash:
+
+```
+FROM ubuntu
+SHELL ["/bin/bash", "-c"]
+RUN curl https://pkgx.sh | sh
+RUN pkgx integrate
+RUN dev && npm start  # you still have to run `dev && ` tho
+```
