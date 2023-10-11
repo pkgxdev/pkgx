@@ -170,6 +170,14 @@ specify just the deps. We support specification as strings, arrays or
 dictionaries so pick the one that feels right to you.
 { endhint %}
 
+## Reset the dev env
+
+While in an activated dev environemnet, if you add a package with ```env +foo``` it will be there forever as there isn't a way to permenantly remove these from dev yet.
+
+If you need a full reset of a dev environemnt you can remove the dev.pkgx.activated file from the below path:
+
+``~/Library/Application Support/pkgx/dev/Users/path-to-the environemnt``
+
 ## Adding New Dependencies to an Activated Developer Environment
 
 Edit the relevant files and `cd .` to trigger the environment to reload.
