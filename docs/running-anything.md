@@ -75,8 +75,8 @@ $ pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
 ```
 
 The newer pkgx is installed to `~/.pkgx` like every other pkg. If you need
-the installed `pkgx` to be updated then `pkgx install pkgx@latest` will
-replace it.
+the installed `pkgx` to be updated then `brew upgrade` or re-run the
+installer.
 
 {% endhint %}
 

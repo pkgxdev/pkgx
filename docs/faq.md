@@ -11,11 +11,10 @@ pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
 Is a valid command, provided you have shell integration.
 
 If you are looking to upgrade the “installed” `pkgx` version then use
-`brew upgrade pkgx` or if you installed it otherwise, download the new
-release from GitHub and replace the old binary, `pkgx` is a single binary
-download so that's all you have to do.
+`brew upgrade pkgx`, re-run the installer (it upgrades itself) or repeat
+your installation method.
 
-Soon there will be a better route for non-brew users, but for now: sorry.
+A self-upgrade feature is coming soon.
 
 
 ## How do I run the latest version of a specific pkg?

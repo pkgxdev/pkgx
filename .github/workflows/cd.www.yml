@@ -32,10 +32,10 @@ jobs:
             mkdir -p out/$2
             tar czf out/$2/$3.tgz pkgx
             cp pkgx out/$2/$3
+            pkgx --version | awk 'print {print $2}' > VERSION
             gzip pkgx
             mv pkgx.gz out/$2/$3.gz
             INVALIDATION_PATHS="$INVALIDATION_PATHS /$2/$3 /$2/$3.tgz /$2/$3.gz"
-            echo "INVALIDATION_PATHS=$INVALIDATION_PATHS" >> $GITHUB_ENV
           }
 
           for filename in pkgx-*+*+*.tar.xz; do
@@ -52,6 +52,8 @@ jobs:
             esac
           done
 
+          echo "INVALIDATION_PATHS=$INVALIDATION_PATHS" >> $GITHUB_ENV
+
       - name: Upload to S3
         run:
           aws s3 sync out/ s3://www.pkgx.sh/
@@ -62,4 +64,4 @@ jobs:
         run:
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
-            --paths $INVALIDATION_PATHS
+            --paths $INVALIDATION_PATHS VERSION
