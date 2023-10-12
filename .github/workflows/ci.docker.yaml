@@ -31,7 +31,7 @@ jobs:
             .
 
       - run: |
-          echo <<EoD> Dockerfile
+          cat <<EoD> Dockerfile
           FROM pkgxdev/pkgx
           RUN env +duf && duf
           RUN if which duf; then exit 1; fi
@@ -40,7 +40,7 @@ jobs:
           docker build --file Dockerfile .
 
       - run: |
-          echo <<EoD> Dockerfile
+          cat <<EoD> Dockerfile
           FROM pkgxdev/pkgx
           RUN echo '{}' > package.json
           RUN dev && npm --version
