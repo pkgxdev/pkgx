@@ -1,0 +1,50 @@
+name: ci·docker
+
+on:
+  pull_request:
+    paths:
+      - .github/Dockerfile
+
+concurrency:
+  group: ci/docker/${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          mkdir products
+          curl https://pkgx.sh/$(uname)/$(uname -m).gz | gunzip > products/$(uname -m)
+          chmod +x products/*
+
+      - run:
+          docker build
+            --tag pkgxdev/pkgx
+            --file .github/Dockerfile
+            .
+
+      - run: |
+          cat <<EoD> Dockerfile
+          FROM pkgxdev/pkgx
+          RUN env +duf && duf
+          RUN if which duf; then exit 1; fi
+          EoD
+
+          docker build --file Dockerfile .
+
+      - run: |
+          cat <<EoD> Dockerfile
+          FROM pkgxdev/pkgx
+          RUN echo '{}' > package.json
+          RUN dev && npm --version
+          RUN if which npm; then exit 1; fi
+          EoD
+
+          docker build --file Dockerfile .

@@ -4,7 +4,7 @@
 
 pkgx is just another pkg so:
 
-```
+```sh
 pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
 ```
 

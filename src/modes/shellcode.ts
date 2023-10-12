@@ -53,6 +53,7 @@ export default function() {
           rm "${tmp}/shellcode/"?.$$
         else
           echo "pkgx: nothing to run" >&2
+          return 1
         fi;;
       *)
         command pkgx -- "$@";;
@@ -110,6 +111,8 @@ export default function() {
         for arg in "$@"; do
           printf "%q " "$arg" >> "$d/x.$$"
         done
+
+        return 127
       else
         echo "cmd not found: $1" >&2
         return 127
