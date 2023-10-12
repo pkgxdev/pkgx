@@ -5,9 +5,9 @@
 ## Run Anywhere
 
 * [`pkgx` & Terminals](run/anywhere/terminals.md)​
+* [`pkgx` & Scripting](run/anywhere/scripts.md)
 * [`pkgx` & Docker](run/anywhere/docker.md)
 * [`pkgx` & CI/CD](run/anywhere/ci-cd.md)
-* [`pkgx` & Scripting](run/anywhere/scripts.md)
 * [`pkgx` & Editors](run/anywhere/editors.md)
 
 
