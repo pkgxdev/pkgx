@@ -108,7 +108,7 @@ export default async function(dir: Path) {
     }
   }
 
-  if (has_package_json && !pkgs.some(pkg => pkg.project === 'bun.sh')) {
+  if (has_package_json && !pkgs.some(pkg => pkg.project === 'bun.sh') && !pkgs.some(pkg => pkg.project === 'nodejs.org')) {
     pkgs.push({project: "nodejs.org", constraint})
   }
 
@@ -154,8 +154,17 @@ export default async function(dir: Path) {
   }
 
   async function package_json(path: Path) {
-    let node = JSON.parse(await path.read())?.pkgx
+    const json = JSON.parse(await path.read());
+    let node = json?.pkgx;
     if (isString(node) || isArray(node)) node = { dependencies: node }
+    if (!node && json?.engines) {
+      node = {
+        dependencies: {
+          ...(json.engines.node && { 'nodejs.org': json.engines.node }),
+          ...(json.engines.npm && { 'npmjs.com': json.engines.npm }),
+        },
+      };
+    }
     await parse_well_formatted_node(node)
     has_package_json = true
   }

@@ -55,6 +55,11 @@ Deno.test("devenv.ts", async runner => {
 
     await runner.step("fixed fixtures", async test => {
       const keyfiles = [
+        [
+          'package.json/engines/package.json',
+          'nodejs.org~16.16.1',
+          'npmjs.com~9.7.1',
+        ],
         [".node-version", "nodejs.org@16.16.0"],
         ["python-version/std/.python-version", "python.org~3.10"],
         ["python-version/commented/.python-version", "python.org~3.11"],
@@ -63,13 +68,15 @@ Deno.test("devenv.ts", async runner => {
         ["bun.lockb", "bun.sh>=1"],
       ]
 
-      for (const [keyfile, dep] of keyfiles) {
+      for (const [keyfile, ...deps] of keyfiles) {
         await test.step(keyfile, async () => {
           const file = fixturesd.join(keyfile).cp({ into: Path.mktemp() })
           const { env, pkgs } = await specimen(file.parent())
-
-          assertEquals(Object.keys(env).length, 0)
-          assertEquals(utils.pkg.str(pkgs[0]), dep)
+          
+          pkgs.forEach((pkg, i) => {
+            assertEquals(Object.keys(env).length, 0);
+            assertEquals(utils.pkg.str(pkg), deps[i]);
+          });
         })
       }
     })
