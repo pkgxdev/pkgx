@@ -1,0 +1,24 @@
+apiVersion: v4beta7
+kind: Config
+metadata:
+  name: skaffold-fixture
+build:
+  local:
+    useDockerCLI: true
+deploy:
+  kubeContext: minikube
+  kubectl: {}
+  helm: {}
+  # FIXME: ktp cli isn't yet on pkgx pantry
+  kpt: {}
+  docker:
+    images: []
+manifests:
+  # FIXME: ktp cli isn't yet on pkgx pantry
+  kpt: []
+  kustomize: {}
+  helm:
+    releases: []
+
+profiles:
+  - name: skaffold-fixture

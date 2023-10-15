@@ -46,6 +46,10 @@ export default async function(dir: Path) {
         pkgs.push({project: "rust-lang.org", constraint})
         await read_YAML_FM(path)  //TODO use dedicated TOML section in preference
         break
+      case "skaffold.yaml":
+        pkgs.push({project: "skaffold.dev", constraint})
+        await skaffold_yaml(path)
+        break
       case "go.mod":
       case "go.sum":
         pkgs.push({project: "go.dev", constraint})
@@ -167,6 +171,41 @@ export default async function(dir: Path) {
     }
     await parse_well_formatted_node(node)
     has_package_json = true
+  }
+
+  async function skaffold_yaml(path: Path){
+    const yaml = await path.readYAML()
+    if (!isPlainObject(yaml)) return
+    if (yaml.build?.local?.useDockerCLI?.toString() === true || yaml.deploy?.docker){
+      pkgs.push({
+        project: "docker.com/cli",
+        constraint: new semver.Range(`*`)
+      })
+    }
+    if (yaml.deploy?.kubectl){
+      pkgs.push({
+        project: "kubernetes.io/kubectl",
+        constraint: new semver.Range(`*`)
+      })
+    }
+    if (yaml.deploy?.kubeContext?.match("minikube")){
+      pkgs.push({
+        project: "kubernetes.io/minikube",
+        constraint: new semver.Range(`*`)
+      })
+    }
+    if (yaml.deploy?.helm || yaml.manifests?.helm){
+      pkgs.push({
+        project: "helm.sh",
+        constraint: new semver.Range(`*`)
+      })
+    }
+    if (yaml.manifests?.kustomize){
+      pkgs.push({
+        project: "kubernetes.io/kustomize",
+        constraint: new semver.Range(`*`)
+      })
+    }
   }
 
   async function github_actions(path: Path) {

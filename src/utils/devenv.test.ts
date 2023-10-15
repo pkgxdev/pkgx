@@ -72,7 +72,7 @@ Deno.test("devenv.ts", async runner => {
         await test.step(keyfile, async () => {
           const file = fixturesd.join(keyfile).cp({ into: Path.mktemp() })
           const { env, pkgs } = await specimen(file.parent())
-          
+
           pkgs.forEach((pkg, i) => {
             assertEquals(Object.keys(env).length, 0);
             assertEquals(utils.pkg.str(pkg), deps[i]);
@@ -136,6 +136,45 @@ Deno.test("devenv.ts", async runner => {
       const { pkgs } = await specimen(f.parent())
       assertEquals(pkgs.length, 1)
       assertEquals(pkgs[0].project, "nodejs.org")
+    })
+
+    await runner.step("skffold.yaml", async () => {
+      // test invalid skffold.yaml
+      const f = Path.mktemp().join('skaffold.yaml').touch()
+      f.parent().join("skaffold.yaml").rm().write({text: ""})
+      const {env, pkgs} = await specimen(f.parent())
+      console.assert(pkgs.length === 0, "invalid skaffold.yaml should not return any dep")
+
+      const keyfiles = [
+        [
+          'skaffold.yaml/std/skaffold.yaml',
+          'skaffold.dev',
+          'kubernetes.io/kubectl',
+          'helm.sh',
+          'kubernetes.io/minikube',
+          'docker.com/cli',
+          'kubernetes.io/kustomize'
+        ],
+        [
+          'skaffold.yaml/empty/skaffold.yaml',
+          'skaffold.dev'
+        ],
+        [
+          'skaffold.yaml/manifests/skaffold.yaml',
+          'skaffold.dev',
+          'helm.sh',
+          'kubernetes.io/kustomize'
+        ],
+      ]
+
+      for (const [keyfile, ...deps] of keyfiles) {
+        const file = fixturesd.join(keyfile).cp({into: Path.mktemp()})
+        const {env, pkgs} = await specimen(file.parent())
+        assert(pkgs.length === deps.length, `dependencies length differ, required: ${deps.length}, actual: ${pkgs.length}`)
+        deps.every(dep => {
+          assert(pkgs.find(pkg => utils.pkg.str(pkg) == dep), "should dep " + dep)
+        })
+      }
     })
 
   } finally {

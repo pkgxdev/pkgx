@@ -1,0 +1,4 @@
+apiVersion: v4beta7
+kind: Config
+metadata:
+  name: skaffold-fixture
