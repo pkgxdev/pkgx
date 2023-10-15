@@ -1,0 +1,10 @@
+apiVersion: v4beta7
+kind: Config
+metadata:
+  name: skaffold-fixture
+manifests:
+  # FIXME: ktp cli isn't yet on pkgx pantry
+  kpt: []
+  kustomize: {}
+  helm:
+    releases: []
