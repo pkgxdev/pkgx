@@ -1,0 +1,12 @@
+# pyproject. toml
+# ---
+# pkgx:
+#   python@3.10
+# ---
+
+[tool-poetry]
+name = "magicaitrainer"
+version = "0.1.0"
+description =
+authors = ["jlphilli"]
+readme = "README. md"

@@ -66,6 +66,7 @@ Deno.test("devenv.ts", async runner => {
         [".ruby-version", "ruby-lang.org@3.2.1"],
         ["yarn.lock", "yarnpkg.com"],
         ["bun.lockb", "bun.sh>=1"],
+        ["pyproject.toml/poetry-yaml-fm/pyproject.toml", "pip.pypa.io", "python.org~3.10"],
       ]
 
       for (const [keyfile, ...deps] of keyfiles) {

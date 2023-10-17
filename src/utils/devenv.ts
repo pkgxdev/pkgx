@@ -222,6 +222,8 @@ export default async function(dir: Path) {
   }
 
   async function pyproject(path: Path) {
+    //TODO parse the TOML lol!
+
     const content = await path.read()
     if (content.includes("poetry.core.masonry.api")) {
       pkgs.push({project: "python-poetry.org", constraint})
