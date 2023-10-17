@@ -13,6 +13,7 @@ export default async function(pkgs: PackageRequirement[]) {
   try {
     await write(usrlocal, pkgs)
   } catch (err) {
+    //FIXME we should check if /usr/local/bin is writable, but were having trouble with that
     if (err instanceof Deno.errors.PermissionDenied) {
       await write(Path.home().join(".local/bin"), pkgs)
     } else {

@@ -19,6 +19,7 @@ import help from "./modes/help.ts"
 import repl from "./modes/repl.ts"
 import env from "./modes/env.ts"
 import x from "./modes/x.ts"
+import { AmbiguityError } from "./utils/error.ts"
 
 const { usePantry, useSync } = hooks
 const { flatmap } = utils
@@ -66,8 +67,15 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     }
   } break
   case 'install':
-    await ensure_pantry()
-    await install(await Promise.all(opts.args.map(x => parse_pkg_str(x, {latest: 'ok'}))))
+    try {
+      await ensure_pantry()
+      await install(await Promise.all(opts.args.map(x => parse_pkg_str(x, {latest: 'ok'}))))
+    } catch (err) {
+      if (err instanceof AmbiguityError) {
+        err.ctx = 'install'
+      }
+      throw err
+    }
     break
   case 'deintegrate':
     await integrate('uninstall', opts)
