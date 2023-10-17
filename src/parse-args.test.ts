@@ -16,7 +16,7 @@ Deno.test("parse_args.ts", async runner => {
     const rv = parse_args(['+foo', '--', ...args])
     if (rv.mode !== 'x') fail()
     assertEquals(rv.pkgs.plus, ["foo"])
-    assertEquals(rv.args, args)
+    assertEquals(rv.unknown, args)
   })
 
   await runner.step("--long-args", async runner => {
@@ -68,13 +68,6 @@ Deno.test("parse_args.ts", async runner => {
       const args = faker_args()
       assertThrows(() => parse_args(['--dry-run', '--help', ...args]))
     })
-  })
-
-  await runner.step("run", () => {
-    const args = faker_args()
-    const rv = parse_args(['run', ...args])
-    if (rv.mode != 'run') fail()
-    assertEquals(rv.args, args)
   })
 
   await runner.step("provider", () => {
