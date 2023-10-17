@@ -11,27 +11,33 @@ const { usePantry, useSync } = hooks
 //TODO be able to parse @latest for shebang result
 
 
-export default async function(args: string[], { pkgs: dry, ...opts }: {
+export default async function({ args, unknown, pkgs: dry, ...opts }: {
   update: boolean | Set<string>,
   pkgs?: PackageRequirement[],
-  logger: Logger
+  logger: Logger,
+  args: string[],
+  unknown: string[]
 }) {
   const { install, exec, construct_env, getenv } = _internals
 
   dry ??= []
 
   //TODO if contains PATH items then go directly to isFile path
-  const wut = await find_it(args, dry)
-  if (wut.pkg) dry.push(wut.pkg)
-  args = wut.args
+  if (args.length) {
+    const wut = await find_it(args, dry)
+    if (wut.pkg) dry.push(wut.pkg)
+    args = wut.args
 
-  if (wut.update) {
-    if (opts.update instanceof Set) {
-      opts.update.add(wut.pkg!.project)
-    } else if (!opts.update) {
-      opts.update = new Set([wut.pkg!.project])
+    if (wut.update) {
+      if (opts.update instanceof Set) {
+        opts.update.add(wut.pkg!.project)
+      } else if (!opts.update) {
+        opts.update = new Set([wut.pkg!.project])
+      }
     }
   }
+
+  args.push(...unknown)
 
   const pkgenv = await install(dry, opts)
   const env = await construct_env(pkgenv)

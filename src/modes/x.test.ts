@@ -12,14 +12,14 @@ import * as mock from "deno/testing/mock.ts"
 
 Deno.test("x.ts", async runner => {
 
-  const opts = { update: false, logger: { replace: () => {}, clear: () => {}, upgrade: () => null as any } }
+  const opts = { unknown: [], update: false, logger: { replace: () => {}, clear: () => {}, upgrade: () => null as any } }
 
   await runner.step("unprovided throws", async () => {
     const stub1 = mock.stub(_internals, "which", () => Promise.resolve(undefined))
     const stub2 = mock.stub(_internals, "useSync", () => Promise.resolve(undefined))
     try {
       await assertRejects(
-        () => specimen(faker_args(), opts),
+        () => specimen({args: faker_args(), ...opts}),
         ProvidesError)
     } finally {
       stub1.restore()
@@ -37,7 +37,7 @@ Deno.test("x.ts", async runner => {
     })
 
     try {
-      await specimen(args, opts)  //TODO shouldn't be specifying update: false, should just be mocking libpkgx
+      await specimen({args, ...opts})  //TODO shouldn't be specifying update: false, should just be mocking libpkgx
 
       assertEquals(stub1.calls.length, 1)
       assertEquals(stub1.calls[0].args[0].cmd, args)
@@ -63,7 +63,7 @@ Deno.test("x.ts", async runner => {
     const stub4 = mock.stub(_internals, "which", () => Promise.resolve({...pkg, shebang: args.slice(0, 1) }))
 
     try {
-      await runner.step("std", () => specimen(args, opts))
+      await runner.step("std", () => specimen({args, ...opts}))
 
       assertEquals(stub1.calls.length, 1)
       assertEquals(stub1.calls[0].args[0].cmd, args)
@@ -72,7 +72,7 @@ Deno.test("x.ts", async runner => {
         const stub5 = mock.stub(_internals, "getenv", () => undefined)
         const new_args = [`${args[0]}@latest`, ...args.slice(1)]
         try {
-          await runner.step("std", () => specimen(new_args, opts))
+          await runner.step("std", () => specimen({args: new_args, ...opts}))
         } finally {
           stub5.restore()
         }
@@ -80,7 +80,7 @@ Deno.test("x.ts", async runner => {
         assertEquals(stub1.calls.length, 2)
         assertEquals(stub1.calls[1].args[0].cmd, args)
 
-        await runner.step("std w/update-set", () => specimen(new_args, {...opts, update: new Set()}))
+        await runner.step("std w/update-set", () => specimen({args: new_args, ...opts, update: new Set()}))
 
         assertEquals(stub1.calls.length, 3)
         assertEquals(stub1.calls[2].args[0].cmd, args)
@@ -88,7 +88,7 @@ Deno.test("x.ts", async runner => {
       await runner.step("invalid PKGX_LVL", async () => {
         const stub = mock.stub(_internals, "getenv", () => "")
         try {
-          await assertRejects(() => specimen(args, opts))
+          await assertRejects(() => specimen({args, ...opts}))
         } finally {
           stub.restore()
         }
@@ -111,7 +111,7 @@ Deno.test("x.ts", async runner => {
     const args = ['foo', 'bar']
     const stub4 = stub_execve()
     try {
-      await specimen(['foo@3', 'bar'], opts)
+      await specimen({args: ['foo@3', 'bar'], ...opts})
 
       assertEquals(stub4.calls.length, 1)
       assertEquals(stub4.calls[0].args[0].cmd, args)
@@ -134,7 +134,7 @@ Deno.test("x.ts", async runner => {
     const stub3 = stub_execve()
     const stub4 = mock.stub(_internals, "construct_env", () => (Promise.resolve({})))
     try {
-      await specimen(['foo', 'baz'], opts)
+      await specimen({args: ['foo', 'baz'], ...opts})
 
       assertEquals(stub3.calls.length, 1)
       assertEquals(stub3.calls[0].args[0].cmd, args)
@@ -179,7 +179,7 @@ Deno.test("x.ts", async runner => {
     const stub5 = mock.stub(_internals, "install", () => Promise.resolve({ installations, pkgenv: []}))
     const stub6 = mock.stub(_internals, "construct_env", () => (Promise.resolve({})))
     try {
-      await specimen(["foo@3", "bar"], opts)
+      await specimen({args: ["foo@3", "bar"], ...opts})
 
       assertEquals(stub4.calls.length, 1)
       assertEquals(stub4.calls[0].args[0].cmd, ["foo", "bar"])
@@ -197,7 +197,7 @@ Deno.test("x.ts", async runner => {
     const stub2 = mock.stub(_internals, "useSync", async () => { fail() })
     try {
       await assertRejects(
-        () => specimen(["/foo/bar"], opts),
+        () => specimen({args: ["/foo/bar"], ...opts}),
         PkgxError)
     } finally {
       stub1.restore()
@@ -215,7 +215,7 @@ Deno.test("x.ts", async runner => {
 
     try {
       Deno.chdir(newwd.string)
-      await specimen(["foo"], opts)
+      await specimen({args: ["foo"], ...opts})
 
       assertEquals(stub3.calls.length, 1)
       assertEquals(stub3.calls[0].args[0].cmd, ["foo"])
@@ -237,7 +237,7 @@ Deno.test("x.ts", async runner => {
     const stub5 = mock.stub(_internals, "construct_env", () => (Promise.resolve({})))
 
     try {
-      await specimen(["foo", "bar"], opts)
+      await specimen({args: ["foo", "bar"], ...opts})
 
       assertEquals(i, 2)
       assertEquals(useSyncCalled, 1)
@@ -272,7 +272,7 @@ Deno.test("x.ts", async runner => {
     const stub6 = mock.stub(_internals, "get_shebang", () => Promise.resolve(shebang_args))
 
     try {
-      await specimen([f.string, ...args_to_script], opts)
+      await specimen({args: [f.string, ...args_to_script], ...opts})
 
       assertEquals(stub1.calls.length, 1)
       assertEquals(stub1.calls[0].args[0].cmd, [...shebang_args, f.string, ...args_to_script])
@@ -306,7 +306,7 @@ Deno.test("x.ts", async runner => {
     const stub7 = mock.stub(_internals, "get_interpreter", async () => ({project: 'foo.com', args: shebang_args}))
 
     try {
-      await specimen([f.string, ...args_to_script], opts)
+      await specimen({args: [f.string, ...args_to_script], ...opts})
 
       assertEquals(stub1.calls.length, 1)
       assertEquals(stub1.calls[0].args[0].cmd, [...shebang_args, f.string, ...args_to_script])
@@ -328,7 +328,7 @@ Deno.test("x.ts", async runner => {
     const shebang_args = ['pkgx', 'bar']
     const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(shebang_args))
     try {
-      await assertRejects(() => specimen([f.string], opts), PkgxError)
+      await assertRejects(() => specimen({args: [f.string], ...opts}), PkgxError)
     } finally {
       stub.restore()
     }
@@ -339,7 +339,7 @@ Deno.test("x.ts", async runner => {
     const f = Path.mktemp().join('foo').touch()
     const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(['pkgx']))
     try {
-      await assertRejects(() => specimen([f.string], opts), PkgxError)
+      await assertRejects(() => specimen({args: [f.string], ...opts}), PkgxError)
     } finally {
       stub.restore()
     }
@@ -349,7 +349,7 @@ Deno.test("x.ts", async runner => {
     const f = Path.mktemp().join('foo').touch()
     const stub = mock.stub(_internals, "get_shebang", () => Promise.resolve(['pkgx']))
     try {
-      await assertRejects(() => specimen([f.string], opts), PkgxError)
+      await assertRejects(() => specimen({args: [f.string], ...opts}), PkgxError)
     } finally {
       stub.restore()
     }
@@ -360,7 +360,7 @@ Deno.test("x.ts", async runner => {
     const stub1 = mock.stub(_internals, "get_shebang", () => Promise.resolve(['foo']))
     const stub2 = mock.stub(_internals, "which", () => Promise.resolve(undefined))
     try {
-      await assertRejects(() => specimen([f.string], opts), PkgxError)
+      await assertRejects(() => specimen({args: [f.string], ...opts}), PkgxError)
     } finally {
       stub1.restore()
       stub2.restore()

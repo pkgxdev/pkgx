@@ -59,7 +59,7 @@ RUN eval "$(curl https://pkgx.sh)" && dev && npm start
 Alternatively you can use `pkgx integrate` provided docker is instructed to
 use a more advanced shell like bash:
 
-```
+```Dockerfile
 FROM ubuntu
 SHELL ["/bin/bash", "-c"]
 RUN curl https://pkgx.sh | sh

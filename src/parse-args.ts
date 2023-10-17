@@ -13,6 +13,7 @@ export type Args = {
   {
     mode: 'x' | 'run'
     args: string[]
+    unknown: string[]
     pkgs: Pkgs
   } | {
     mode: 'internal.use'
@@ -50,6 +51,7 @@ export default function(input: string[]): Args {
   const it = input[Symbol.iterator]()
   const pkgs: Pkgs = { plus: [], minus: [] }
   const args: string[] = []
+  const unknown: string[] = []
   const flags: Flags = {
     sync: false,
     update: false
@@ -111,7 +113,7 @@ export default function(input: string[]): Args {
         break
       case '':
         // empty the main loop iterator
-        for (const arg of it) args.push(arg)
+        for (const arg of it) unknown.push(arg)
         break
       default: {
         const match = content.match(/^verbose(=-?\d+)?$/)
@@ -135,15 +137,13 @@ export default function(input: string[]): Args {
 
   switch (mode) {
   case undefined:
-    if (args.length) {
-      return { mode: 'x', flags, pkgs, args }
+    if (args.length + unknown.length) {
+      return { mode: 'x', flags, pkgs, args, unknown }
     } else {
       return { mode: 'env', flags, pkgs }
     }
   case 'internal.use':
     return { mode, flags, pkgs }
-  case 'run':
-    return { mode, flags, pkgs, args }
   case 'provider':
   case 'shell-completion':
     return { mode, flags, args }
