@@ -204,6 +204,20 @@ with `pkgx` may have polluted your system during use. Check directories like:
 {% endhint %}
 
 
+## What are the rules for `@` syntax?
+
+The rules for `@` are complex, but more human. We convert them to the
+following [semver] syntax:
+
+* `@3` → `^3`
+* `@3.1` → `~3.1`
+* `@3.1.2` → `>=3.1.2<3.1.3`
+* `@3.1.2.3` → `>=3.1.2.3<3.1.3.4`
+* etc.
+
+[semver]: https://devhints.io/semver
+
+
 ## I have another question
 
 [Support](support.md)
