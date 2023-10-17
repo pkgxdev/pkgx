@@ -15,6 +15,8 @@ export default async function(pkgs: PackageRequirement[]) {
   } catch (err) {
     if (err instanceof Deno.errors.PermissionDenied) {
       await write(Path.home().join(".local/bin"), pkgs)
+    } else {
+      throw err
     }
   }
 
