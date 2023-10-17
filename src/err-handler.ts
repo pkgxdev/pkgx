@@ -24,12 +24,20 @@ export default function(err: Error) {
     render('pantry error', err.message, [[JSON.stringify(err.ctx)]], 'pantry-error')
   } else if (err instanceof AmbiguityError) {
     const args = Deno.args.join(' ')
-    const projects = err.projects.map(p => [`   %c pkgx +${p} ${args} %c`, 'background-color: black; color: white', 'color: initial'])
+    const projects = (() => {
+      if (err.ctx != 'install') {
+        return err.projects.map(p => [`   %c pkgx +${p} ${args} %c`, 'background-color: black; color: white', 'color: initial'])
+      } else {
+        return err.projects.map(p => [`   %c pkgx install ${p} %c`, 'background-color: black; color: white', 'color: initial'])
+      }
+    })()
+
     render('multiple projects provide:', err.arg0, [
         ['pls be more specific:'],
         [], ...projects, []
       ]
     , 'ambiguous-pkgspec')
+
   } else if (err instanceof ProvidesError) {
     render('nothing provides:', err.arg0, [
       ['we haven’t pkgd this yet. %ccan you?', 'font-weight: bold']
