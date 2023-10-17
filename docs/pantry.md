@@ -1,3 +1,17 @@
+# Missing Packages
+
+Firstly it is possible your pantry needs an update:
+
+```sh
+pkgx --sync
+```
+
+Thus if you were trying to run `foo` but it failed do `pkgx --sync foo`
+to see if that helps.
+
+*Typically this is not needed*—we automatically sync the pantry in most
+circumstances that need it. This flag is provided just in case.
+
 # Packaging
 
 There’s millions of open source projects and `pkgx` needs your help to package

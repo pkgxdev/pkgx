@@ -172,6 +172,12 @@ function command_not_found_handle {
 ```
 
 
+## I added a package to the pantry but `pkgx foo` fails
+
+Try `pkgx --sync foo` to force a pantry sync. Typically this isn’t needed but
+this flag can help in confusing situations.
+
+
 ## How do I uninstall `pkgx`?
 
 For now `rm -rf ~/.pkgx` is enough.
