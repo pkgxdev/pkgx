@@ -308,7 +308,17 @@ async function extract_well_formatted_entries(yaml: PlainObject): Promise<{ deps
 async function parse_deps(node: unknown) {
   if (isString(node)) node = node.split(/\s+/).filter(x => x)
 
-  if (isArray(node)) node = node.map(utils.pkg.parse).reduce((acc, curr) => {
+  function parse(input: string) {
+    // @latest means '*' here, we refuse to always check for newer versions
+    // that is up to the user to initiate, however we should allow the spec since
+    // users expect it. Maybe we should console.warn?
+    // discussion: https://github.com/pkgxdev/pkgx/issues/797
+    if (input.endsWith('@latest')) input = input.slice(0, -6)
+
+    return utils.pkg.parse(input)
+  }
+
+  if (isArray(node)) node = node.map(parse).reduce((acc, curr) => {
     acc[curr.project] = curr.constraint.toString()
     return acc
   }, {} as Record<string, string>)
@@ -318,8 +328,11 @@ async function parse_deps(node: unknown) {
   }
 
   const pkgs = Object.entries(node)
-      .compact(([project, constraint]) =>
-        validatePackageRequirement(project, constraint))
+      .compact(([project, constraint]) => {
+        // see comment above in parse() about @latest
+        if (/^@?latest$/.test(constraint)) constraint = '*'
+        return validatePackageRequirement(project, constraint)
+      })
       .map(utils.pkg.str)  //FIXME lol inefficient
       .map(x => _internals.find(x))
 
