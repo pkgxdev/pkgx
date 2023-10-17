@@ -6,9 +6,13 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      release-id:
+        required: true
 
 concurrency:
-  group: cd/www/${{ github.event.release.tag_name }}
+  group: cd/www/${{ github.event.release.tag_name || github.event.inputs.release-id }}
   cancel-in-progress: true
 
 jobs:
@@ -23,7 +27,7 @@ jobs:
 
       - uses: robinraju/release-downloader@v1.8
         with:
-          releaseId: ${{ github.event.release.id }}
+          releaseId: ${{ github.event.release.id || github.event.inputs.release-id }}
 
       - name: Unpack Binaries
         run: |
@@ -32,7 +36,6 @@ jobs:
             mkdir -p out/$2
             tar czf out/$2/$3.tgz pkgx
             cp pkgx out/$2/$3
-            pkgx --version | awk 'print {print $2}' > VERSION
             gzip pkgx
             mv pkgx.gz out/$2/$3.gz
             INVALIDATION_PATHS="$INVALIDATION_PATHS /$2/$3 /$2/$3.tgz /$2/$3.gz"
@@ -48,7 +51,9 @@ jobs:
               go $filename Linux arm64
               go $filename Linux aarch64;;
             *+linux+x86-64.tar.xz)
-              go $filename Linux x86_64;;
+              go $filename Linux x86_64
+              ./out/Linux/x86_64 --version | awk '{print $2}' > out/VERSION
+              ;;
             esac
           done
 
@@ -64,4 +69,4 @@ jobs:
         run:
           aws cloudfront create-invalidation
             --distribution-id ${{ secrets.AWS_CF_DISTRIBUTION_ID }}
-            --paths $INVALIDATION_PATHS VERSION
+            --paths $INVALIDATION_PATHS /VERSION

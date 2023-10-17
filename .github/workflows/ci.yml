@@ -8,7 +8,11 @@ on:
       - .github/workflows/ci.yml
   workflow_call:
   push:
-    branches: [main]
+    branches: main
+    paths:
+      - deno.jsonc
+      - '**/*.ts'
+      - .github/workflows/ci.yml
 
 concurrency:
   group: ${{ github.ref }}
