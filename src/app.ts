@@ -42,7 +42,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     if (args[0] == 'sh') {
       await repl(args.slice(1), { update, pkgs, logger })
     } else {
-      await x(args, { update, pkgs, logger })
+      await x({ args, unknown: opts.unknown, update, pkgs, logger })
     }
   } break
   case 'integrate':

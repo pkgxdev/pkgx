@@ -182,6 +182,12 @@ this flag can help in confusing situations.
 
 For now `rm -rf ~/.pkgx` is enough.
 
+*Coming Soon*.
+
+```sh
+pkgx uninstall pkgx
+```
+
 {% hint style="warning" %}
 
 ### Caveats

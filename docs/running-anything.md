@@ -145,10 +145,17 @@ scripts, etc. since you want these to work forever.
 ## Running System Commands
 
 It can be useful to run system commands with a package environment injected.
-To do this specify the full path of the system executable:
+To do this either specify the full path of the system executable:
 
 ```sh
 pkgx +llvm.org /usr/bin/make
+```
+
+Or use `--` which is the standard POSIX way to tell tools like `pkgx` to stop
+processing args:
+
+```sh
+pkgx +llvm.org -- make  # finds `make` in PATH, failing if none found
 ```
 
 {% hint style="warning" %}
