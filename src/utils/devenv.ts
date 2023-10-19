@@ -26,6 +26,7 @@ export default async function(dir: Path) {
       case "deno.jsonc":
         await deno(path)
         break
+      case ".nvmrc":
       case ".node-version":
         await version_file(path, 'nodejs.org')
         break
