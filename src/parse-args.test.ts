@@ -85,10 +85,11 @@ Deno.test("parse_args.ts", async runner => {
   })
 
   await runner.step("--internal.activate", () => {
-    const args = ['/foo/bar', ...faker_args()]
+    const arg0 = Deno.build.os == 'windows' ? "C:\\foo\\bar" : "/foo/bar"
+    const args = [arg0, ...faker_args()]
     const rv = parse_args(['--internal.activate', ...args])
     if (rv.mode != 'internal.activate') fail()
-    assertEquals(rv.dir.string, args[0])
+    assertEquals(rv.dir.string, arg0)
   })
 
   await runner.step("multiple modes", () => {

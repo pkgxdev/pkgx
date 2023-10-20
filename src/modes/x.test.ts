@@ -197,7 +197,7 @@ Deno.test("x.ts", async runner => {
     const stub2 = mock.stub(_internals, "useSync", async () => { fail() })
     try {
       await assertRejects(
-        () => specimen({args: ["/foo/bar"], ...opts}),
+        () => specimen({args: [Path.root.join("/foo/bar").string], ...opts}),
         PkgxError)
     } finally {
       stub1.restore()

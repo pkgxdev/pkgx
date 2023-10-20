@@ -5,6 +5,7 @@ import resolve_arg0 from "../prefab/resolve-arg0.ts"
 import { ProvidesError } from "../utils/error.ts"
 import get_shebang from "../utils/get-shebang.ts"
 import execve from "../utils/execve.ts"
+import { SEP } from "deno/path/mod.ts"
 import host from "pkgx/utils/host.ts"
 const { usePantry, useSync } = hooks
 
@@ -60,7 +61,7 @@ export function barf(fn: () => Error): never {
 }
 
 async function find_it(args: string[], dry: PackageRequirement[]) {
-  if (args[0].includes('/')) {
+  if (args[0].includes(SEP)) {
     return await find_file(args, dry) ?? barf(() => new PkgxError(`no such file: ${args[0]}`))
   }
 
