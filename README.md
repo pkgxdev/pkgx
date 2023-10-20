@@ -157,7 +157,7 @@ Python 2.7.18
 even more seamless.
 
 ```sh
-$ env +go@1.16
+$ env +go@1.16    # do `pkgx integrate --dry-run` first
 added ~/.pkgx/go.dev/v1.16 to environment
 
 (+go) $ go
@@ -188,7 +188,7 @@ features to auto-detect and install project dependencies, seamlessly
 integrating them into your shell and editor.
 
 ```sh
-my-rust-proj $ dev
+my-rust-proj $ dev    # do `pkgx integrate --dry-run` first
 dev: found Cargo.toml; env +cargo +rust
 
 (+cargo+rust) my-rust-proj $ cargo build
