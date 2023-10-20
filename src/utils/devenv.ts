@@ -254,7 +254,9 @@ export default async function(dir: Path) {
           if (/^((#|\/\/)\s*)?---(\s*\*\/)?$/.test(line.trim())) {
             let node = parseYaml(yaml)
             /// using a `pkgx` node is safer (YAML-FM is a free-for-all) but is not required
-            if (isPlainObject(node) && node.pkgx) node = node.pkgx
+            if (isPlainObject(node) && node.pkgx) {
+              node = isString(node.pkgx) || isArray(node.pkgx) ? { dependencies: node.pkgx } : node.pkgx
+            }
             return await parse_well_formatted_node(node)
           }
           yaml += line?.replace(/^(#|\/\/)/, '')

@@ -66,13 +66,15 @@ Deno.test("devenv.ts", async runner => {
         [".ruby-version", "ruby-lang.org@3.2.1"],
         ["yarn.lock", "yarnpkg.com"],
         ["bun.lockb", "bun.sh>=1"],
-        ["pyproject.toml/poetry-yaml-fm/pyproject.toml", "pip.pypa.io", "python.org~3.10"],
+        ["pyproject.toml/poetry-yaml-fm/pyproject.toml", "pip.pypa.io", "python~3.10"],
       ]
 
       for (const [keyfile, ...deps] of keyfiles) {
         await test.step(keyfile, async () => {
           const file = fixturesd.join(keyfile).cp({ into: Path.mktemp() })
           const { env, pkgs } = await specimen(file.parent())
+
+          assertEquals(pkgs.length, deps.length)
 
           pkgs.forEach((pkg, i) => {
             assertEquals(Object.keys(env).length, 0);

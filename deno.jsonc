@@ -17,7 +17,7 @@
     //--------------------------------------- ci/cd/admin
     "coverage" : "scripts/run-coverage.sh",
     "typecheck": "deno check --unstable ./entrypoint.ts",
-    "compile": "deno compile --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/pkgx ./entrypoint.ts"
+    "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/pkgx ./entrypoint.ts"
   },
   "pkgx": {
     "dependencies": {
