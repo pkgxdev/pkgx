@@ -9,12 +9,10 @@ deploy:
   kubeContext: minikube
   kubectl: {}
   helm: {}
-  # FIXME: ktp cli isn't yet on pkgx pantry
   kpt: {}
   docker:
     images: []
 manifests:
-  # FIXME: ktp cli isn't yet on pkgx pantry
   kpt: []
   kustomize: {}
   helm:
