@@ -146,7 +146,8 @@ Deno.test("devenv.ts", async runner => {
       const f = Path.mktemp().join('skaffold.yaml').touch()
       f.parent().join("skaffold.yaml").rm().write({text: ""})
       const {env, pkgs} = await specimen(f.parent())
-      console.assert(pkgs.length === 0, "invalid skaffold.yaml should not return any dep")
+      // only skafflold.dev, no other dep expected
+      assert(pkgs.length === 1, "invalid skaffold.yaml should not return any dep")
 
       const keyfiles = [
         [
@@ -154,6 +155,7 @@ Deno.test("devenv.ts", async runner => {
           'skaffold.dev',
           'kubernetes.io/kubectl',
           'helm.sh',
+          'kpt.dev',
           'kubernetes.io/minikube',
           'docker.com/cli',
           'kubernetes.io/kustomize'
@@ -166,6 +168,7 @@ Deno.test("devenv.ts", async runner => {
           'skaffold.yaml/manifests/skaffold.yaml',
           'skaffold.dev',
           'helm.sh',
+          'kpt.dev',
           'kubernetes.io/kustomize'
         ],
       ]

@@ -201,6 +201,12 @@ export default async function(dir: Path) {
         constraint: new semver.Range(`*`)
       })
     }
+    if (yaml.deploy?.kpt || yaml.manifests?.kpt){
+      pkgs.push({
+        project: "kpt.dev",
+        constraint: new semver.Range(`*`)
+      })
+    }
     if (yaml.manifests?.kustomize){
       pkgs.push({
         project: "kubernetes.io/kustomize",
