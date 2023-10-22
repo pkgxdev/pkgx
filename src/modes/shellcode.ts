@@ -102,7 +102,7 @@ export default function() {
       if [ "$1" = pkgx ]; then
         echo 'fatal: \`pkgx\` not in PATH' >&2
         return 1
-      elif command pkgx --silent --provider "$1"; then
+      elif command pkgx --sync --keep-going --silent --provider "$1"; then
         echo -e '${dim('^^ type `')}x${dim('` to run that')}' >&2
 
         d="${tmp}/shellcode"

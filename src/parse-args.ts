@@ -45,6 +45,7 @@ interface Flags {
   sync: boolean
   update: boolean
   verbosity?: number
+  keepGoing: boolean
 }
 
 export default function(input: string[]): Args {
@@ -54,7 +55,8 @@ export default function(input: string[]): Args {
   const unknown: string[] = []
   const flags: Flags = {
     sync: false,
-    update: false
+    update: false,
+    keepGoing: false
   }
   let mode: string | undefined
   let dryrun: boolean | undefined
@@ -110,6 +112,9 @@ export default function(input: string[]): Args {
         break
       case 'dry-run':
         dryrun = true
+        break
+      case 'keep-going':
+        flags.keepGoing = true
         break
       case '':
         // empty the main loop iterator
