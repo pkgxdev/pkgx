@@ -218,6 +218,25 @@ following [semver] syntax:
 [semver]: https://devhints.io/semver
 
 
+## Where does `pkgx` store files
+
+* pkgs are cached to `~/.pkgx` (`$PKGX_DIR` overrides)
+
+* pkg tarballs are cached to
+  * `~/Library/Caches/pkgx` on Mac
+  * `~/.cache/pkgx` on *nix
+  * `%LOCALAPPDATA%/cache/pkgx` on Windows
+  * ⚠️⚠️`$XDG_CACHE_HOME` overrides on all platforms
+* runtime data like the [pantry] is stored in:
+  * `~/Library/Application Support/pkgx` on Mac
+  * `~/.local/share/pkgx` on *nix
+  * `%LOCALAPPDATA%/pkgx` on Windows
+  * ⚠️⚠️ `$XDG_DATA_HOME` overrides on all platforms
+
+> If `$XDG_STATE_HOME` is set then `$XDG_STATE_HOME/pkgx` is used for some
+> temporary shellcode state.
+
+
 ## I have another question
 
 [Support](support.md)
