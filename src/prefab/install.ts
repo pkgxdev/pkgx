@@ -11,31 +11,36 @@ export type Logger = {
   upgrade(dry: PackageSpecification[], pending: Package[]): BaseLogger | undefined
 }
 
-export default async function(dry: PackageSpecification[], { logger, ...opts }: {
+interface Options {
   update: boolean | Set<string>,
   logger: Logger
-}) {
+}
+
+export default async function(dry: PackageSpecification[], { logger, ...opts }: Options) {
   logger.replace("resolving graph…")
 
-  const { resolve, install, link, getproj, hydrate } = _internals
+  try {
+    const { resolve, install, link, getproj, hydrate } = _internals
 
-  const companions = (await Promise.all(dry.map(pkg => getproj(pkg).companions()))).flatMap(x => x)
+    const companions = (await Promise.all(dry.map(pkg => getproj(pkg).companions()))).flatMap(x => x)
 
-  const { pkgs: wet, dry: pkgenv_ } = await failsafe(() => hydrate(dry.concat(companions)))
-  const { pending, installed: installations } = await resolve(wet, opts)
+    const { pkgs: wet, dry: pkgenv_ } = await failsafe(() => hydrate(dry.concat(companions)))
+    const { pending, installed: installations } = await resolve(wet, opts)
 
-  const superlogger = logger.upgrade(dry, pending)
+    const superlogger = logger.upgrade(dry, pending)
 
-  const installers = pending.map(pkg => install(pkg, superlogger).then(i => link(i).then(() => i)))
-  installations.push(...await Promise.all(installers))
+    const installers = pending.map(pkg => install(pkg, superlogger).then(i => link(i).then(() => i)))
+    installations.push(...await Promise.all(installers))
 
-  logger.clear()
+    const pkgenv = pkgenv_.filter(({project}) => companions.some(x => x.project == project) == false)
 
-  const pkgenv = pkgenv_.filter(({project}) => companions.some(x => x.project == project) == false)
+    return {
+      installations,
+      pkgenv
+    }
 
-  return {
-    installations,
-    pkgenv
+  } finally {
+    logger.clear()
   }
 }
 
