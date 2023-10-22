@@ -1,6 +1,7 @@
 import { DownloadError, InstallationNotFoundError, PantryError, PantryParseError, ResolveError, PkgxError, utils } from "pkgx"
 import { AmbiguityError, ProgrammerError, ProvidesError } from "./utils/error.ts"
-import announce from "./utils/announce.ts";
+import announce from "./utils/announce.ts"
+import { red } from "./utils/color.ts"
 
 export default function(err: Error) {
   if (err instanceof InstallationNotFoundError) {
@@ -56,5 +57,5 @@ export default function(err: Error) {
 }
 
 export function render(title: string, subtitle: string | undefined, body: (string[])[], help: string | undefined) {
-  announce({ title, subtitle, body, help, color: 'red' })
+  announce({ title, subtitle, body, help, color: red })
 }
