@@ -11,10 +11,11 @@ export default function(err: Error) {
       ['there was an issue fetching %s', err.src.toString()]
     ], 'http-failure')
   } else if (err instanceof ResolveError) {
+    const { platform, arch } = utils.host()
     render('version unavailable', utils.pkg.str(err.pkg), [
       ['please check the following url for available versions'],
       ['if it’s not there, we’ll build it! open a ticket on the pantry.']
-    ], `https://dist.pkgx.dev/?prefix=${err.pkg.project}`)
+    ], `https://dist.pkgx.dev/?prefix=${err.pkg.project}/${platform}/${arch}`)
   } else if (err instanceof PantryParseError) {
     //TODO well not if it's a custom edit tho
     render('parse error', err.project, [
