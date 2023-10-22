@@ -84,7 +84,8 @@ async function find_it(args: string[], dry: PackageRequirement[]) {
   }
 
   // be just works: do a sync in case this has been recently added to the pantry
-  _internals.useSync()
+  await _internals.useSync()
+
   wut = await find_arg0(args, dry)
   if (wut) {
     return wut
