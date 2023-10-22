@@ -18,7 +18,7 @@ export default function() {
   const blurple = (x: string) => `\\033[38;5;63m${x}\\033[0m`
   const dim = (x: string) => `\\e[2m${x}\\e[0m`
   const datadir = useConfig().data.join("dev")
-  const tmp = (flatmap(Deno.env.get("XDG_STATE_HOME"), Path.abs) ?? Path.home().join(".local", "state")).join("pkgx")
+  const tmp = (flatmap(Deno.env.get("XDG_STATE_HOME"), Path.abs) ?? platform_state_default()).join("pkgx")
   const sh = '${SHELL:-/bin/sh}'
 
   return undent`
@@ -48,8 +48,10 @@ export default function() {
       case $1 in
       "")
         if [ -f "${tmp}/shellcode/x.$$" ]; then
-          eval "$(${sh} "${tmp}/shellcode/u.$$" --hush)"
-          ${sh} "${tmp}/shellcode/x.$$"
+          if foo="$("${tmp}/shellcode/u.$$")"; then
+            eval "$foo"
+            ${sh} "${tmp}/shellcode/x.$$"
+          fi
           rm "${tmp}/shellcode/"?.$$
         else
           echo "pkgx: nothing to run" >&2
@@ -105,8 +107,10 @@ export default function() {
 
         d="${tmp}/shellcode"
         mkdir -p "$d"
-        echo "echo -e \\"${blurple('env')} +$1 ${dim('&&')} $@ \\" >&2" > "$d/u.$$"
+        echo "#!${sh}" > "$d/u.$$"
+        echo "echo -e \\"${blurple('env')} +$1 ${dim('&&')} $@ \\" >&2" >> "$d/u.$$"
         echo "exec pkgx --internal.use +\\"$1\\"" >> "$d/u.$$"
+        chmod u+x "$d/u.$$"
         echo -n "exec " > "$d/x.$$"
         for arg in "$@"; do
           printf "%q " "$arg" >> "$d/x.$$"
@@ -180,4 +184,15 @@ export default function() {
       fi
     fi
     `
+}
+
+function platform_state_default() {
+  switch (Deno.build.os) {
+  case 'darwin':
+    return Path.home().join("Library/Application Support")
+  case "windows":
+    return new Path(Deno.env.get("LOCALAPPDATA")!)
+  default:
+    return Path.home().join(".local", "state")
+  }
 }
