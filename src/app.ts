@@ -28,7 +28,11 @@ type Args = BaseArgs & { flags: { verbosity: number } }
 
 export default async function({ flags, ...opts }: Args, logger_prefix?: string) {
   if (flags.sync) {
-    await useSync()  //TODO Logger
+    try {
+      await useSync()  //TODO Logger
+    } catch (err) {
+      if (!flags.keepGoing) throw err
+    }
   }
 
   const logger = make_logger(flags.verbosity, logger_prefix)
