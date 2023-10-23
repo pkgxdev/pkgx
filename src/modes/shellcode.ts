@@ -37,7 +37,7 @@ export default function() {
         if type _pkgx_reset >/dev/null 2>&1; then
           _pkgx_reset
         fi
-        unset -f _pkgx_chpwd_hook _pkgx_should_deactivate_devenv pkgx x command_not_found_handler command_not_found_handle pkgx@latest _pkgx_commit _pkgx_dev_off >/dev/null 2>&1
+        unset -f _pkgx_chpwd_hook _pkgx_should_deactivate_devenv pkgx x command_not_found_handler command_not_found_handle pkgx@latest _pkgx_commit _pkgx_dev_off _pkgx_provider >/dev/null 2>&1
         echo "pkgx: shellcode unloaded" >&2;;
       *)
         command pkgx "$@";;
@@ -99,11 +99,17 @@ export default function() {
       fi
     }
 
+    _pkgx_provider() {
+      if ! command pkgx --silent --provider "$1"; then
+        command pkgx --sync --keep-going --silent --provider "$1"
+      fi
+    }
+
     command_not_found_handler() {
-      if [ "$1" = pkgx ]; then
+      if [ $1 = pkgx ]; then
         echo 'fatal: \`pkgx\` not in PATH' >&2
         return 1
-      elif [ -t 2 ] && command pkgx --sync --keep-going --silent --provider "$1"; then
+      elif [ -t 2 ] && _pkgx_provider $1; then
         echo -e '${dim('^^ type `')}x${dim('` to run that')}' >&2
 
         d="${tmp}/shellcode"
