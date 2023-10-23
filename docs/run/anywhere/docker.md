@@ -66,3 +66,11 @@ RUN curl https://pkgx.sh | sh
 RUN pkgx integrate
 RUN dev && npm start  # you still have to run `dev && ` tho
 ```
+
+---
+
+{% hint style="info" %}
+
+[https://hub.docker.com/r/pkgxdev/pkgx](https://hub.docker.com/r/pkgxdev/pkgx)
+
+{% endhint %}
