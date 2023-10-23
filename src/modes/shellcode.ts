@@ -51,6 +51,7 @@ export default function() {
           if foo="$("${tmp}/shellcode/u.$$")"; then
             eval "$foo"
             ${sh} "${tmp}/shellcode/x.$$"
+            unset foo
           fi
           rm "${tmp}/shellcode/"?.$$
         else
