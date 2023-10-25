@@ -36,6 +36,9 @@ export default async function(dir: Path) {
       case ".python-version":
         await python_version(path)
         break
+      case ".terraform-version":
+        await terraform_version(path)
+        break
       case "package.json":
         await package_json(path)
         break
@@ -156,6 +159,11 @@ export default async function(dir: Path) {
         //noop pyenv sticks random shit in here
       }
     }
+  }
+
+  async function terraform_version(path: Path) {
+    const terraform_version = (await path.read()).trim()
+    pkgs.push(utils.pkg.parse(terraform_version))
   }
 
   async function package_json(path: Path) {
