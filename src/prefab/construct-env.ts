@@ -22,9 +22,10 @@ export default async function(pkgenv: { installations: Installation[] }) {
     }
   }
 
-  for (const key in rv) {
-    rv[key] = rv[key].replaceAll(new RegExp(`\\$${key}\\b`, 'g'), `\${${key}}`)
-  }
+  // stopped doing this since it doesn’t work with fish
+  // for (const key in rv) {
+  //   rv[key] = rv[key].replaceAll(new RegExp(`\\$${key}\\b`, 'g'), `\${${key}}`)
+  // }
 
   return rv
 }

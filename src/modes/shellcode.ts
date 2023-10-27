@@ -226,14 +226,15 @@ function fish(tmp: string) {
       set -l d "${tmp}/shellcode"
       mkdir -p $d
 
-      echo "echo -e '${blurple("env")} +$cmd ${dim("&&")} $argv' >&2" > "$d/u.$fish_pid"
+      echo "#!/bin/sh" > "$d/u.$fish_pid"
+      echo "echo -e '${blurple("env")} +$cmd ${dim("&&")} $argv' >&2" >> "$d/u.$fish_pid"
       echo "rm \"$tmp\"/shellcode/*.$fish_pid" >> "$d/u.$fish_pid"
-      echo "pkgx --internal.use +$cmd" >> "$d/u.$fish_pid"
+      echo "SHELL=fish exec pkgx --internal.use +$cmd" >> "$d/u.$fish_pid"
 
       echo "#!/bin/sh" > "$d/x.$fish_pid"
-      echo -n "exec " >> "$d/x.$fish_pid"
-      echo "$argv" >> "$d/x.$fish_pid"  #FIXME needs quoting :/
-      chmod u+x "$d/x.$fish_pid"
+      echo "exec $argv" >> "$d/x.$fish_pid"
+
+      chmod u+x "$d"/*.$fish_pid
 
       return 127
     else
@@ -244,7 +245,7 @@ function fish(tmp: string) {
 
   function x
     if test -f "${tmp}/shellcode/x.$fish_pid"
-      cat "${tmp}"/shellcode/u.$fish_pid | source
+      "${tmp}"/shellcode/u.$fish_pid | source
       "${tmp}"/shellcode/x.$fish_pid
     else
       echo "pkgx: nothing to run" >&2

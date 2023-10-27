@@ -120,6 +120,7 @@ jobs:
 
       - name: x
         run: |
+          eval "$(pkgx --shellcode)"
           ack --help
           if [ $? -eq 0 ]; then exit 1; fi
           set -e
@@ -128,6 +129,7 @@ jobs:
 
       - name: x with quoted args
         run: |
+          eval "$(pkgx --shellcode)"
           echo "baz foo bar baz" > test-file
           ack "foo bar" test-file
           if [ $? -eq 0 ]; then exit 1; fi
