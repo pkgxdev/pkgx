@@ -1,7 +1,8 @@
 import useConfig from 'pkgx/hooks/useConfig.ts'
+import { flatmap } from "pkgx/utils/misc.ts"
+import { basename } from "deno/path/mod.ts"
 import undent from 'outdent'
 import { Path } from 'pkgx'
-import { flatmap } from "pkgx/utils/misc.ts";
 
 // NOTES
 // * is safely re-entrant (and idempotent)
@@ -14,13 +15,23 @@ import { flatmap } from "pkgx/utils/misc.ts";
 // * remove the files we create for command not found handler once any prompt appears
 // * need to use a proper tmp location perhaps
 
+const blurple = (x: string) => `\\033[38;5;63m${x}\\033[0m`
+const dim = (x: string) => `\\e[2m${x}\\e[0m`
+
 export default function() {
-  const blurple = (x: string) => `\\033[38;5;63m${x}\\033[0m`
-  const dim = (x: string) => `\\e[2m${x}\\e[0m`
   const datadir = useConfig().data.join("dev")
   const tmp = (flatmap(Deno.env.get("XDG_STATE_HOME"), Path.abs) ?? platform_state_default()).join("pkgx")
   const sh = '${SHELL:-/bin/sh}'
 
+  switch (flatmap(Deno.env.get("SHELL"), basename)) {
+  case 'fish':
+    return fish(tmp.string)
+  default:
+    return posixish({tmp, datadir, sh})
+  }
+}
+
+function posixish({tmp, sh, datadir}: {datadir: Path, tmp: Path, sh: string}) {
   return undent`
     pkgx() {
       case "$1" in
@@ -45,22 +56,18 @@ export default function() {
     }
 
     x() {
-      case $1 in
-      "")
-        if [ -f "${tmp}/shellcode/x.$$" ]; then
-          if foo="$("${tmp}/shellcode/u.$$")"; then
-            eval "$foo"
-            ${sh} "${tmp}/shellcode/x.$$"
-            unset foo
-          fi
-          rm "${tmp}/shellcode/"?.$$
-        else
-          echo "pkgx: nothing to run" >&2
-          return 1
-        fi;;
-      *)
-        command pkgx -- "$@";;
-      esac
+      if [ $# -gt 0 ]; then
+        command pkgx -- "$@"
+      elif [ ! -f "${tmp}/shellcode/x.$$" ]; then
+        echo "pkgx: nothing to run" >&2
+        return 1
+      elif foo="$("${tmp}/shellcode/u.$$")"; then
+        eval "$foo"
+        unset foo
+        "${tmp}"/shellcode/x.$$
+      else
+        echo "pkgx: unexpected error" >&2
+      fi
     }
 
     env() {
@@ -114,14 +121,17 @@ export default function() {
 
         d="${tmp}/shellcode"
         mkdir -p "$d"
-        echo "#!${sh}" > "$d/u.$$"
-        echo "echo -e \\"${blurple('env')} +$1 ${dim('&&')} $@ \\" >&2" >> "$d/u.$$"
-        echo "exec pkgx --internal.use +\\"$1\\"" >> "$d/u.$$"
-        chmod u+x "$d/u.$$"
-        echo -n "exec " > "$d/x.$$"
+
+        echo "echo -e \\"${blurple('env')} +$1 ${dim('&&')} $@ \\" >&2" > "$d/u.$$"
+        echo "pkgx --internal.use +\\"$1\\"" >> "$d/u.$$"
+
+        echo "#!${sh}" > "$d/x.$$"
+        echo "rm \"$d\"/?.$$" >> "$d/x.$$"
+        echo -n "exec " >> "$d/x.$$"
         for arg in "$@"; do
           printf "%q " "$arg" >> "$d/x.$$"
         done
+        chmod u+x "$d/x.$$"
 
         return 127
       else
@@ -202,4 +212,44 @@ function platform_state_default() {
   default:
     return Path.home().join(".local", "state")
   }
+}
+
+function fish(tmp: string) {
+  return undent`
+  function fish_command_not_found
+    set -l cmd $argv[1]
+    if test "$cmd" = "pkgx"
+      echo "fatal: 'pkgx' not in PATH" >&2
+      return 1
+    else if test -t 2; and pkgx --provider --silent "$cmd"
+      echo -e "${dim("^^ type \`")}x${dim("\` to run that")}" >&2
+      set -l d "${tmp}/shellcode"
+      mkdir -p $d
+
+      echo "echo -e '${blurple("env")} +$cmd ${dim("&&")} $argv' >&2" > "$d/u.$fish_pid"
+      echo "rm \"$tmp\"/shellcode/*.$fish_pid" >> "$d/u.$fish_pid"
+      echo "pkgx --internal.use +$cmd" >> "$d/u.$fish_pid"
+
+      echo "#!/bin/sh" > "$d/x.$fish_pid"
+      echo -n "exec " >> "$d/x.$fish_pid"
+      echo "$argv" >> "$d/x.$fish_pid"  #FIXME needs quoting :/
+      chmod u+x "$d/x.$fish_pid"
+
+      return 127
+    else
+      echo "cmd not found: $cmd" >&2
+      return 127
+    end
+  end
+
+  function x
+    if test -f "${tmp}/shellcode/x.$fish_pid"
+      cat "${tmp}"/shellcode/u.$fish_pid | source
+      "${tmp}"/shellcode/x.$fish_pid
+    else
+      echo "pkgx: nothing to run" >&2
+      return 1
+    end
+  end
+  `
 }
