@@ -163,7 +163,8 @@ export default async function(dir: Path) {
 
   async function terraform_version(path: Path) {
     const terraform_version = (await path.read()).trim()
-    pkgs.push(utils.pkg.parse(terraform_version))
+    const package_descriptor = `terraform.io@${terraform_version}`
+    pkgs.push(utils.pkg.parse(package_descriptor))
   }
 
   async function package_json(path: Path) {
