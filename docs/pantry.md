@@ -22,7 +22,7 @@ Visit [github.com/pkgxdev/pantry] for the full documentation.
 {% endhint %}
 
 {% hint style="info" %}
-Curious about a specific pkg? `pkgx pkg edit deno` will open deno’s
+Curious about a specific pkg? `pkgx +brewkit pkg edit deno` will open deno’s
 `package.yml` in your editor.
 {% endhint %}
 
