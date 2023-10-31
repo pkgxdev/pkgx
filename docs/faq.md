@@ -237,6 +237,22 @@ following [semver] syntax:
 > temporary shellcode state.
 
 
+## What happens if two packages provide the same named program?
+
+We error with a method to disambiguation, eg:
+
+```sh
+$ yarn
+× multiple projects provide: yarn
+│ pls be more specific:
+│
+│     pkgx +classic.yarnpkg.com --internal.use +yarn
+│     pkgx +yarnpkg.com --internal.use +yarn
+│
+╰─➤ https://docs.pkgx.sh/help/ambiguous-pkgspec
+```
+
+
 ## I have another question
 
 [Support](support.md)
