@@ -16,7 +16,7 @@ export default function(err: Error) {
     render('version unavailable', utils.pkg.str(err.pkg), [
       ['please check the following url for available versions'],
       ['if it’s not there, we’ll build it! open a ticket on the pantry.']
-    ], `https://dist.pkgx.dev/?prefix=${err.pkg.project}/${platform}/${arch}`)
+    ], `https://pkgx.dev/pkgs/${err.pkg.project}/`)
   } else if (err instanceof PantryParseError) {
     //TODO well not if it's a custom edit tho
     render('parse error', err.project, [

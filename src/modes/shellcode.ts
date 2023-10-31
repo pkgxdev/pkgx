@@ -120,18 +120,21 @@ function posixish({tmp, sh, datadir}: {datadir: Path, tmp: Path, sh: string}) {
         echo -e '${dim('^^ type `')}x${dim('` to run that')}' >&2
 
         d="${tmp}/shellcode"
+        u="$d/u.$$"
+        x="$d/x.$$"
         mkdir -p "$d"
 
-        echo "echo -e \\"${blurple('env')} +$1 ${dim('&&')} $@ \\" >&2" > "$d/u.$$"
-        echo "pkgx --internal.use +\\"$1\\"" >> "$d/u.$$"
+        echo "#!${sh}" > "$u"
+        echo "echo -e \\"${blurple('env')} +$1 ${dim('&&')} $@ \\" >&2" >> "$u"
+        echo "pkgx --internal.use +\\"$1\\"" >> "$u"
 
-        echo "#!${sh}" > "$d/x.$$"
-        echo "rm \"$d\"/?.$$" >> "$d/x.$$"
-        echo -n "exec " >> "$d/x.$$"
+        echo "#!${sh}" > "$x"
+        echo "rm \\"$d\\"/?.$$" >> "$x"
+        echo -n "exec " >> "$x"
         for arg in "$@"; do
-          printf "%q " "$arg" >> "$d/x.$$"
+          printf "%q " "$arg" >> "$x"
         done
-        chmod u+x "$d/x.$$"
+        chmod u+x "$d"/*.$$
 
         return 127
       else
