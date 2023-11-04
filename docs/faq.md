@@ -253,6 +253,22 @@ $ yarn
 ```
 
 
+## How do I see a man page for a pkgx pkg?
+
+`man foo` won’t work since pkgx pkgs are not “installed”. Thus you have to
+first create an environment that contains that package before invoking `man`:
+
+```sh
+pkgx +foo man foo
+```
+
+This uses pkgx’s `man` tool. To use the system `man`:
+
+```sh
+pkgx +foo -- man foo
+```
+
+
 ## I have another question
 
 [Support](support.md)
