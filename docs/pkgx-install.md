@@ -85,6 +85,8 @@ pkgx install node@16
 
 ## `pkgx uninstall`
 
-*Coming Soon.*
+```sh
+[sudo] pkgx uninstall node
+```
 
-For now, just `rm ~/.local/bin/foo`.
+If you `sudo` installed you will need to `sudo` uninstall.

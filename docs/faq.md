@@ -180,13 +180,19 @@ this flag can help in confusing situations.
 
 ## How do I uninstall `pkgx`?
 
-For now `rm -rf ~/.pkgx` is enough.
+We’ll provide `pkgx uninstall pkgx` at some point, for now:
 
-*Coming Soon*.
+### macOS
 
-```sh
-pkgx uninstall pkgx
-```
+1. `rm -rf ~/.pkgx`
+2. `rm -rf "${XDG_CACHE_HOME:-$HOME/Library/Caches}/pkgx"`
+3. `rm -rf "${XDG_DATA_HOME:-$HOME/Library/Application Support}"/pkgx`
+
+### Linux
+
+1. `rm -rf ~/.pkgx`
+2. `rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/pkgx"`
+3. `rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}"/pkgx`
 
 {% hint style="warning" %}
 
