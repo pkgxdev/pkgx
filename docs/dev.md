@@ -181,5 +181,12 @@ Generally programmer editors should see tools if the environments are
 activated. If no, [let us know] and we’ll fix it.
 
 
+## Deactivating `dev`
+
+```sh
+$ dev off
+```
+
+
 
 [let us know]: https://github.com/pkgxdev/pkgx/issues/new
