@@ -30,17 +30,31 @@ The developer environment for your project will be available during the job.
 ## Other CI/CD Providers
 
 ```sh
-eval "$(curl https://pkgx.sh)"
+curl https://pkgx.sh | sh
 ```
 
-`pkgx` will be installed and integrated. Use as per general terminal
+`pkgx` will be installed. Use as per general terminal
 guidelines, eg:
 
 ```sh
-env +node@16 && npm start
+pkgx +node@16 npm start
 ```
 
-{% hint style="info" %}
+{% hint style="warning" %}
+
+At this time `dev` requires shell integration.
+
+You can try eg.
+
+```sh
+eval "$(curl https://pkgx.sh)" && dev && npm start
+```
+
+But in our experience CI/CD environments resist our shell integration.
+
+{% endhint %}
+
+{% hint style="success" %}
 `pkgx` can make it easy to use the GNU or BSD versions of core utilities
 across platforms.
 
