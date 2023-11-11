@@ -23,6 +23,8 @@ deno 1.36.1
 # ^^ deno is added to the environment for the session duration
 ```
 
+The above requires [shell integration] (run: `pkgx integrate --dry-run`).
+
 {% endhint %}
 
 
@@ -84,11 +86,11 @@ installer.
 ## Endpoints
 
 Some packages provide typical usages via an `endpoint` entry in their [pantry]
-entry and can be started via `pkgx +brewkit run`.
+entry and can be started via `pkgx +brewkit -- run`.
 
 These are often used to do the equivalent of a project’s getting
-started steps. For example `pkgx +brewkit run llama.cpp` downloads the model and launches a
-chat interface and `pkgx +brewkit run stable-diffusion-webui` launches the web-ui.
+started steps. For example `pkgx +brewkit -- run llama.cpp` downloads the model and launches a
+chat interface and `pkgx +brewkit -- run stable-diffusion-webui` launches the web-ui.
 
 
 ## Adding Additional Packages to the Execution Environment
@@ -168,3 +170,4 @@ install GNU make for you and use that.
 
 [SemVer]: https://devhints.io/semver
 [pantry]: pantry.md
+[shell integration]: shell-integration.md
