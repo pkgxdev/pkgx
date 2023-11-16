@@ -118,6 +118,23 @@ jobs:
           duf --version
         shell: bash -eo posix {0}
 
+      - name: x
+        run: |
+          ack --help
+          if [ $? -eq 0 ]; then exit 1; fi
+          set -e
+          x
+        shell: bash {0}  # no erroring for first command thanks
+
+      - name: x with quoted args
+        run: |
+          echo "baz foo bar baz" > test-file
+          ack "foo bar" test-file
+          if [ $? -eq 0 ]; then exit 1; fi
+          set -e
+          x
+        shell: bash {0}  # no erroring for first command thanks
+
   zsh:
     needs: compile
     runs-on: ubuntu-latest
