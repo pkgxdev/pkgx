@@ -176,7 +176,7 @@ command not found: go
 ```
 
 Tools are available for the duration of your terminal session.
-If you need them for longer, `pkgx install`.
+If you need them for longer, eg. `pkgx install go`.
 
 > [docs.pkgx.sh/shell-integration] \
 > [docs.pkgx.sh/pkgx-install]
