@@ -429,7 +429,7 @@ jobs:
           name: pkgx
       - name: prep
         run: |
-          apt-get update && apt-get --yes install zsh libatomic1
+          sudo apt-get update && sudo apt-get --yes install zsh libatomic1
           chmod u+x /usr/local/bin/pkgx
         shell: sh
 
