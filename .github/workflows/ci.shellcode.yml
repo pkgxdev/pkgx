@@ -432,7 +432,6 @@ jobs:
           sudo apt-get update && sudo apt-get --yes install zsh libatomic1
           chmod u+x /usr/local/bin/pkgx
         shell: sh
-
       - run: |
           alias x="echo hi"
           eval "$(pkgx --shellcode)"

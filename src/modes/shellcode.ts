@@ -45,7 +45,7 @@ export default function() {
     }
 
     if ! type x >/dev/null 2>&1; then
-      x() {
+      eval 'x() {
         case $1 in
         "")
           if [ -f "${tmp}/shellcode/x.$$" ]; then
@@ -62,7 +62,7 @@ export default function() {
         *)
           command pkgx -- "$@";;
         esac
-      }
+      }'
     fi
 
     env() {
@@ -80,8 +80,8 @@ export default function() {
       done
       if [ $# -eq 0 ]; then
         command env
-      fi
-      if type _pkgx_reset >/dev/null 2>&1; then
+        return
+      elif type _pkgx_reset >/dev/null 2>&1; then
         _pkgx_reset
       fi
       eval "$(command pkgx --internal.use "$@")"
