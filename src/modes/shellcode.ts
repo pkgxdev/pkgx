@@ -44,24 +44,26 @@ export default function() {
       esac
     }
 
-    x() {
-      case $1 in
-      "")
-        if [ -f "${tmp}/shellcode/x.$$" ]; then
-          if foo="$("${tmp}/shellcode/u.$$")"; then
-            eval "$foo"
-            ${sh} "${tmp}/shellcode/x.$$"
-            unset foo
-          fi
-          rm "${tmp}/shellcode/"?.$$
-        else
-          echo "pkgx: nothing to run" >&2
-          return 1
-        fi;;
-      *)
-        command pkgx -- "$@";;
-      esac
-    }
+    if ! type x >/dev/null 2>&1; then
+      eval 'x() {
+        case $1 in
+        "")
+          if [ -f "${tmp}/shellcode/x.$$" ]; then
+            if foo="$("${tmp}/shellcode/u.$$")"; then
+              eval "$foo"
+              ${sh} "${tmp}/shellcode/x.$$"
+              unset foo
+            fi
+            rm "${tmp}/shellcode/"?.$$
+          else
+            echo "pkgx: nothing to run" >&2
+            return 1
+          fi;;
+        *)
+          command pkgx -- "$@";;
+        esac
+      }'
+    fi
 
     env() {
       for arg in "$@"; do
@@ -78,8 +80,8 @@ export default function() {
       done
       if [ $# -eq 0 ]; then
         command env
-      fi
-      if type _pkgx_reset >/dev/null 2>&1; then
+        return
+      elif type _pkgx_reset >/dev/null 2>&1; then
         _pkgx_reset
       fi
       eval "$(command pkgx --internal.use "$@")"
