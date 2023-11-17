@@ -415,3 +415,19 @@ jobs:
             echo 'dev did not fail when already activated' >&2
             exit 1
           fi
+
+  x-already-defined-works:
+    needs: compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: /usr/local/bin
+          name: pkgx
+      - name: prep
+        run: chmod u+x /usr/local/bin/pkgx
+
+      - run: |
+          alias x="echo hi"
+          eval "$(pkgx --shellcode)"
+          test "$(x)" = hi
