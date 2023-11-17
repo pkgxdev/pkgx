@@ -419,6 +419,9 @@ jobs:
   x-already-defined-works:
     needs: compile
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: zsh -eo pipefail {0}
     steps:
       - uses: actions/download-artifact@v3
         with:
