@@ -313,10 +313,33 @@ export default async function(dir: Path) {
         { from: "srcroot", to: dir.string }  //TODO deprecate and use $PWD once pantry is migrated
       ]
 
-      return moustaches.apply(input, foo)
+      const out = moustaches.apply(input, foo)
+      _internals.validateDollarSignUsage(out)
+      return out
     }
   }
 }
+
+function validateDollarSignUsage(str: string): void {
+  let currentIndex = 0;
+
+  while ((currentIndex = str.indexOf('$', currentIndex)) !== -1) {
+      const substring = str.substring(currentIndex);
+
+      // Check for ${FOO} format
+      const isValidCurlyFormat = /^\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(substring);
+      // Check for $FOO format
+      const isValidDirectFormat = /^\$[A-Za-z_][A-Za-z0-9_]*/.test(substring);
+
+      if (!isValidCurlyFormat && !isValidDirectFormat) {
+          throw new Error("Invalid dollar sign usage detected.");
+      }
+
+      // Move past this $ instance
+      currentIndex++;
+  }
+}
+
 
 /// YAML-FM must be explicitly marked with a `dependencies` node
 async function extract_well_formatted_entries(yaml: PlainObject): Promise<{ deps: PackageRequirement[], env: Record<string, unknown> }> {
@@ -360,5 +383,6 @@ async function parse_deps(node: unknown) {
 }
 
 export const _internals = {
-  find: parse_pkg_str
+  find: parse_pkg_str,
+  validateDollarSignUsage
 }
