@@ -96,7 +96,9 @@ export class CStringArray extends Uint8Array {
       // maximum bytes for a utf8 string is 4×length
       stringsLength += string.length * 4 + 1;
     }
-    super(8 * (strings.length + 1) + stringsLength);
+    // +1000 because we are getting macOS crashers we don’t understand and this is all
+    // we can think of that may cause it
+    super(8 * (strings.length + 1) + stringsLength + 1000);
     const pointerBuffer = new BigUint64Array(this.buffer, 0, strings.length + 1);
     const stringsBuffer = new Uint8Array(this.buffer).subarray(
       (strings.length + 1) * 8,
