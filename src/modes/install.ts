@@ -15,7 +15,11 @@ export default async function(pkgs: PackageRequirement[]) {
   } catch (err) {
     //FIXME we should check if /usr/local/bin is writable, but were having trouble with that
     if (err instanceof Deno.errors.PermissionDenied) {
-      await write(Path.home().join(".local/bin"), pkgs)
+      const bindir = Path.home().join(".local/bin")
+      await write(bindir, pkgs)
+      if (n > 0 && !Deno.env.get("PATH")?.split(":").includes(bindir.string)) {
+        console.warn("pkgx: %c`%s` is not in `PATH`", 'color: red', bindir)
+      }
     } else {
       throw err
     }
