@@ -1,5 +1,5 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects } from "deno/assert/mod.ts"
+import { assert, assertEquals, assertRejects, assertThrows } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./devenv.ts"
 import * as mock from "deno/testing/mock.ts"
 import { fixturesd } from "./test-utils.ts"
@@ -187,4 +187,14 @@ Deno.test("devenv.ts", async runner => {
   } finally {
     stub.restore()
   }
+
+  await runner.step("validateDollarSignUsage", () => {
+    assertThrows(() => _internals.validateDollarSignUsage("foo $(bar) baz"))
+    assertThrows(() => _internals.validateDollarSignUsage("foo $123 baz"))
+
+    _internals.validateDollarSignUsage("foo $bar baz")
+    _internals.validateDollarSignUsage("foo $BAR baz")
+    _internals.validateDollarSignUsage("foo $B0AR baz")
+    _internals.validateDollarSignUsage("foo z${FOO}s baz")
+  })
 })
