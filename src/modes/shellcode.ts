@@ -6,6 +6,7 @@ import { flatmap } from "pkgx/utils/misc.ts";
 // NOTES
 // * is safely re-entrant (and idempotent)
 // * we `eval` for BASH/ZSH because otherwise parsing fails for POSIX `sh`
+// * we `eval` for conditional functions since weirdly zsh parses code it isn’t actually branching on
 // * we add `~/.local/bin` to `PATH` because we eg `npm i -g` is configured to install there
 // * `command_not_found_handler` cannot change the global environment hence we write a file
 
