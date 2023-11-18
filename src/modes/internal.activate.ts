@@ -7,7 +7,7 @@ import devenv from "../utils/devenv.ts"
 import undent from "outdent"
 
 export default async function(dir: Path, { powder, ...opts }: { powder: PackageRequirement[], logger: Logger }) {
-  const { install, construct_env, datadir, getenv } = _internals
+  const { install, construct_env, datadir, getenv, apply_userenv } = _internals
 
   if (!dir.isDirectory()) {
     throw new PkgxError(`not a directory: ${dir}`)
@@ -37,13 +37,11 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
     return installed.filter(x => set.has(x.project))
   })(installations.pkgenv)
 
+  // substitute or replace calculated env with user-supplied env from the keyfiles
+  apply_userenv(env, userenv)
+
   let rv = ''
-
-  /// env specified in devenv files takes precedence
-  Object.assign(env, userenv)
-
   for (const [key, value] of Object.entries(env)) {
-
     const existing_value = getenv(key)
     if (value == existing_value) {
       delete env[key]
@@ -118,9 +116,23 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
   return [rv, rv_pkgenv] as [string, PackageRequirement[]]
 }
 
+function apply_userenv(env: Record<string, string>, userenv: Record<string, string>) {
+  for (const [key, value] of Object.entries(userenv)) {
+    if (!(key in env) && !value.includes(`$${key}`) && !value.includes(`\${${key}}`)) {
+      /// user supplied env completely overrides this key or the key is empty
+      env[key] = value
+    } else {
+      env[key] = value
+        .replaceAll(`$${key}`, env[key])
+        .replaceAll(`\${${key}}`, env[key])
+    }
+  }
+}
+
 export const _internals = {
   install,
   construct_env,
   datadir: () => hooks.useConfig().data,
-  getenv: Deno.env.get
+  getenv: Deno.env.get,
+  apply_userenv
 }

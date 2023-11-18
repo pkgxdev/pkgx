@@ -2,7 +2,7 @@
 import { fixturesd, null_logger as logger } from "../utils/test-utils.ts"
 import { _internals as _devenv_internals } from "../utils/devenv.ts"
 import specimen0, { _internals } from "./internal.activate.ts"
-import { assertRejects } from "deno/assert/mod.ts"
+import { assertEquals, assertRejects } from "deno/assert/mod.ts"
 import * as mock from "deno/testing/mock.ts"
 import { SemVer, Path, utils, semver } from "pkgx"
 
@@ -65,5 +65,12 @@ Deno.test("internal.activate.ts", async runner => {
 
   await runner.step("coverage++", () => {
     _internals.datadir()
+  })
+
+  await runner.step("apply_userenv", () => {
+    const userenv = { PATH: "/foo/bar:$PATH" }
+    const env = { PATH: "/baz:$PATH"}
+    _internals.apply_userenv(env, userenv)
+    assertEquals(env.PATH, "/foo/bar:/baz:$PATH")
   })
 })
