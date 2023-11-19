@@ -24,7 +24,7 @@ Wanna read that script before you run it? [github.com/pkgxdev/setup/installer.sh
 
 ```sh
 # download it to `./pkgx`
-curl -o ./pkgx --compressed -f --proto '=https' https://pkgx.sh/$(uname)/$(uname -m)
+curl -Lo ./pkgx --compressed -f --proto '=https' https://pkgx.sh/$(uname)/$(uname -m)
 
 # install it to `/usr/local/bin/pkgx`
 sudo install -m 755 pkgx /usr/local/bin
