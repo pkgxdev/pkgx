@@ -182,17 +182,27 @@ this flag can help in confusing situations.
 
 We’ll provide `pkgx uninstall pkgx` at some point, for now:
 
+```sh
+pkgx deintegrate
+sudo rm /usr/local/bin/pkgx
+rm -rf ~/.pkgx
+```
+
+Then there are a couple platform specific cache/data directories:
+
 ### macOS
 
-1. `rm -rf ~/.pkgx`
-2. `rm -rf "${XDG_CACHE_HOME:-$HOME/Library/Caches}/pkgx"`
-3. `rm -rf "${XDG_DATA_HOME:-$HOME/Library/Application Support}"/pkgx`
+```sh
+rm -rf "${XDG_CACHE_HOME:-$HOME/Library/Caches}/pkgx"`
+rm -rf "${XDG_DATA_HOME:-$HOME/Library/Application Support}"/pkgx`
+```
 
-### Linux
+### Non macOS
 
-1. `rm -rf ~/.pkgx`
-2. `rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/pkgx"`
-3. `rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}"/pkgx`
+```sh
+rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/pkgx"
+rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}"/pkgx
+```
 
 {% hint style="warning" %}
 
