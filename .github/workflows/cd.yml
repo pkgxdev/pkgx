@@ -66,6 +66,7 @@ jobs:
           build-id: darwin+aarch64
         - os: [self-hosted, linux, ARM64]
           build-id: linux+aarch64
+      fail-fast: false
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
     env:
@@ -89,7 +90,9 @@ jobs:
 
       # codesign always fails for deno binaries, even though it
       # signs fine. See https://github.com/denoland/deno/issues/575
-      - run: codesign --sign "$APPLE_IDENTITY" --force --preserve-metadata=entitlements,requirements,flags,runtime ./pkgx || true
+      - run: codesign
+          --sign "$APPLE_IDENTITY" --force
+          --preserve-metadata=entitlements,requirements,flags,runtime ./pkgx || true
         env:
           APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
 
@@ -99,11 +102,14 @@ jobs:
       - run: tar cJf $FILENAME pkgx
 
       - name: GPG sign archive
+        # NOTE the +sqlite3 is a bug that we can’t figure out that only fails
+        # on darwin aarch64 in CI, the sqlite dep is not installed for some
+        # reason. Works locally! So we're confused and stuck.
         run: |
           ./pkgx gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
             base64 -d | \
-            ./pkgx gpg --import --batch --yes
+            ./pkgx +sqlite3 gpg --import --batch --yes
           ./pkgx gpg \
             --detach-sign --armor \
             --local-user $GPG_KEY_ID \
