@@ -82,7 +82,7 @@ jobs:
 
       - run: deno task compile
 
-      - uses: teaxyz/brewkit/actions/setup-codesign@v0
+      - uses: teaxyz/brewkit/actions/setup-codesign@v1
         if: startsWith(matrix.platform.build-id, 'darwin+')
         with:
             p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
