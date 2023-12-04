@@ -19,7 +19,7 @@ jobs:
       - uses: denoland/setup-deno@v1
       - uses: actions/checkout@v4
       - run: deno task compile
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: pkgx
           path: pkgx
@@ -33,7 +33,7 @@ jobs:
       run:
         shell: bash -eo pipefail {0}
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -126,7 +126,7 @@ jobs:
       run:
         shell: zsh -eo pipefail {0}
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -231,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:buster-slim
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -294,7 +294,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:buster-slim
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -323,7 +323,7 @@ jobs:
     needs: compile
     container: debian:buster-slim
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -354,7 +354,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: compile
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -372,7 +372,7 @@ jobs:
     needs: compile
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -397,7 +397,7 @@ jobs:
     needs: compile
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
@@ -423,7 +423,7 @@ jobs:
       run:
         shell: zsh -eo pipefail {0}
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: /usr/local/bin
           name: pkgx
