@@ -51,9 +51,9 @@ options:
 FROM ubuntu
 
 # Install curl in case it isn't already
-RUN sudo apt update
-RUN sudo apt upgrade
-RUN sudo apt install curl
+RUN apt update
+RUN apt upgrade
+RUN apt install curl
 
 RUN eval "$(curl https://pkgx.sh)" && dev && npm start
 ```
