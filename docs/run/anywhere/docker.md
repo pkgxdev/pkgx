@@ -71,9 +71,9 @@ FROM ubuntu
 SHELL ["/bin/bash", "-c"]
 
 # Install curl in case it isn't already
-RUN sudo apt update
-RUN sudo apt upgrade
-RUN sudo apt install curl
+RUN apt update
+RUN apt upgrade
+RUN apt install curl
 
 RUN curl https://pkgx.sh | sh
 RUN pkgx integrate
