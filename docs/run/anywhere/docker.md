@@ -49,6 +49,10 @@ options:
 
 ```Dockerfile
 FROM ubuntu
+
+# Install curl in case it isn't already
+RUN apt update && apt upgrade && apt install curl
+
 RUN eval "$(curl https://pkgx.sh)" && dev && npm start
 ```
 
@@ -61,7 +65,12 @@ use a more advanced shell like bash:
 
 ```Dockerfile
 FROM ubuntu
+
 SHELL ["/bin/bash", "-c"]
+
+# Install curl in case it isn't already
+RUN apt update && apt upgrade && apt install curl
+
 RUN curl https://pkgx.sh | sh
 RUN pkgx integrate
 RUN dev && npm start  # you still have to run `dev && ` tho
