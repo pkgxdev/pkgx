@@ -19,7 +19,7 @@ jobs:
       - uses: denoland/setup-deno@v1
       - uses: actions/checkout@v4
       - run: deno task compile
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: pkgx
           path: pkgx
