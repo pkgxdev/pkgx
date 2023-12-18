@@ -72,7 +72,7 @@ jobs:
     env:
       FILENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}.tar.xz
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: srcs
 
