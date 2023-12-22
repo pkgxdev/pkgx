@@ -27,13 +27,11 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+          - windows-latest
     steps:
-      - run: echo 'TMPDIR=/tmp' >> $GITHUB_ENV
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
-      - run: deno cache **/*.test.ts
+      - uses: denoland/setup-deno@v1    # using ourself to install deno could compromise the tests
+      - run: deno task test:cache
       - run: deno task test --coverage=cov_profile --no-check
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
       - uses: coverallsapp/github-action@v2

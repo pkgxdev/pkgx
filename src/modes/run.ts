@@ -25,16 +25,25 @@ export default async function(args: string[], opts: {
 
   chdir(path!.string)
 
-  exec({ cmd: args, env })
+  await exec({ cmd: args, env })
 }
 
 export const _internals = {
   install,
-  exec: execve,
+  exec,
   parse_pkg_str,
   construct_env,
   chdir: Deno.chdir,
   get_entrypoint: (pkg: { project: string }) => hooks.usePantry().project(pkg).yaml().then(x => x?.['entrypoint'])
+}
+
+function exec({ cmd, env }: {cmd: string[], env: Record<string, string>}) {
+  if (Deno.build.os == 'windows') {
+    // deno-lint-ignore no-deprecated-deno-api
+    return Deno.run({ cmd, env, stdout: 'inherit', stderr: 'inherit' }).status()
+  } else {
+    return execve({ cmd, env })
+  }
 }
 
 export class NoEntrypointError extends PkgxError {

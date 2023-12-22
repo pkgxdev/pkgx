@@ -1,3 +1,4 @@
+import { fromFileUrl } from "deno/path/from_file_url.ts"
 import { Logger } from "../prefab/install.ts"
 import { faker } from "npm:@faker-js/faker"
 import { Path } from "pkgx"
@@ -12,7 +13,7 @@ export function faker_args() {
 }
 
 // putting here as putting it in devenv.test.ts caused those tests to once per import
-export const fixturesd = new Path(new URL(import.meta.url).pathname).parent().parent().parent().join('fixtures')
+export const fixturesd = new Path(fromFileUrl(import.meta.url)).parent().parent().parent().join('fixtures')
 
 export const null_logger: Logger = {
   replace: () => {},

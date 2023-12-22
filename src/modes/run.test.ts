@@ -22,7 +22,7 @@ Deno.test("run.ts", async runner => {
       return { installations, pkgenv: [] }
     })
     const stub4 = mock.stub(_internals, "construct_env", () => (Promise.resolve({})))
-    const stub5 = mock.stub(_internals, "chdir", dir => assertEquals(dir, "/opt/foo.com/v2.3.4"))
+    const stub5 = mock.stub(_internals, "chdir", dir => assertEquals(dir, new Path("/opt/foo.com/v2.3.4").string))
     const stub6 = stub_execve(args)
 
     try {
@@ -52,11 +52,11 @@ Deno.test("run.ts", async runner => {
     }
   })
 
-  await runner.step("coverage++", () => {
+  await runner.step("coverage++", async () => {
     if (hooks.usePantry().missing()) {
-      assertThrows(() => _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"}))
+      await assertRejects(async () => await _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"}))
     } else {
-      _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"})
+      await _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"})
     }
   })
 })
