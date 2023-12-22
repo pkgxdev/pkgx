@@ -1,3 +1,4 @@
+import escape_if_necessary from "../utils/sh-escape.ts"
 import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
 import { PackageRequirement } from "pkgx"
@@ -11,7 +12,7 @@ export default async function({ pkgs, ...opts }: {
   const installations = await install(pkgs, opts)
   const env = await construct_env(installations)
   return Object.entries(env).map(([key, value]) =>
-    `${key}=${value}`
+    `${key}=${escape_if_necessary(value)}`
   ).join("\n")
 }
 
