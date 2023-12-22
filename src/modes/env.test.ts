@@ -10,14 +10,14 @@ Deno.test("env.ts", async () => {
 
   const stub1 = mock.stub(_internals, "install", () => Promise.resolve({installations: [], pkgenv: []}))
   const stub2 = mock.stub(_internals, "construct_env", () => Promise.resolve({
-    PATH: "/a", FOO: "bar"
+    PATH: "/a", FOO: "bar baz"
   }))
 
   try {
     const rv = await specimen({ pkgs: [pkg], update: false, logger })
     assertEquals(rv, undent`
       PATH=/a
-      FOO=bar
+      FOO="bar baz"
       `)
   } finally {
     stub1.restore()
