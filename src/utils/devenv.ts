@@ -100,6 +100,8 @@ export default async function(dir: Path) {
       case ".pkgx.yaml":
         await parse_well_formatted_node(await path.readYAML())
         break
+      case "cdk.json":
+        pkgs.push({ project: 'aws.amazon.com/cdk', constraint })
       }
     } else if (isDirectory) {
       switch (name) {
