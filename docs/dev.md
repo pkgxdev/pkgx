@@ -168,7 +168,7 @@ that considering our metadata is universal this seems acceptable, but using
 a `pkgx` root is safer. If you use a `pkgx` and you only have deps you can
 specify just the deps. We support specification as strings, arrays or
 dictionaries so pick the one that feels right to you.
-{ endhint %}
+{% endhint %}
 
 ## Adding New Dependencies to an Activated Developer Environment
 
