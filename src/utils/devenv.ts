@@ -308,7 +308,7 @@ export default async function(dir: Path) {
       //TODO deprecate moustaches and instead use env vars
 
       const foo = [
-        ...moustaches.tokenize.host(),
+        //FIXME ...moustaches.tokenize.host(),
         { from: "home", to: Path.home().string },  //TODO deprecate and use $HOME once pantry is migrated
         { from: "srcroot", to: dir.string }  //TODO deprecate and use $PWD once pantry is migrated
       ]

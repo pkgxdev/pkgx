@@ -76,7 +76,9 @@ jobs:
         with:
           name: srcs
 
-      - run: tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
+      - uses: pkgxdev/setup@v2
+
+      - run: pkgx +xz tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
 
       - uses: pkgxdev/dev@v0
 
