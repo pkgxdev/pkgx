@@ -68,6 +68,7 @@ Deno.test("devenv.ts", async runner => {
         ["yarn.lock", "yarnpkg.com"],
         ["bun.lockb", "bun.sh>=1"],
         ["pyproject.toml/poetry-yaml-fm/pyproject.toml", "pip.pypa.io", "python~3.10"],
+        ["cdk.json", "aws.amazon.com/cdk"],
       ]
 
       for (const [keyfile, ...deps] of keyfiles) {
