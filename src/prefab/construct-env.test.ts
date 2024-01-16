@@ -27,7 +27,7 @@ Deno.test("construct_env.ts", async runner => {
     try {
       const rv = await specimen({ installations })
       assertEquals(rv['FOO_FLAGS'], "bar bar bar bar ${FOO_FLAGS} baz${FOO_FLAGS} baz${FOO_FLAGS} baz${FOO_FLAGS} baz") //FIXME lol
-      assertEquals(rv['PATH'], `/opt/bin:${tmp.join('foo/v2.3.4/bin')}:\${PATH}`)
+      assertEquals(rv['PATH'], `/opt/bin:${tmp.join('foo/v2.3.4/bin')}\${PATH:+:$PATH}`)
     } finally {
       stub2.restore()
       tmp.rm({recursive: true})
