@@ -8,7 +8,8 @@
     "run": "deno run --unstable -A ./entrypoint.ts",
 
     // you can specify paths to specific tests if you need
-    "test": "deno test --allow-read=$PWD,$TMPDIR,$HOME,/ --allow-env --allow-write=$TMPDIR --allow-ffi --unstable",
+    // we would prefer --allow-write=$TMPDIR but deno’s symlink making function inexplicably requires --allow-write
+    "test": "deno test --allow-read=$PWD,$TMPDIR,$HOME,/ --allow-env --allow-write --allow-ffi --unstable",
     // ^^ ffi & unstable needed for execve.ts
 
     // installs to /usr/local/bin/pkgx
