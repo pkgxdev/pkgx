@@ -19,8 +19,8 @@ export default async function(dir: Path) {
   const pkgs: PackageRequirement[] = []
   const env: Record<string, string> = {}
 
-  for await (const [path, {name, isFile, isDirectory}] of dir.ls()) {
-    if (isFile) {
+  for await (const [path, {name, isFile, isSymlink, isDirectory}] of dir.ls()) {
+    if (isFile || isSymlink) {
       switch (name) {
       case "deno.json":
       case "deno.jsonc":

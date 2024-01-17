@@ -67,7 +67,7 @@ Deno.test("internal.activate.ts", async runner => {
     _internals.datadir()
   })
 
-  await runner.step("apply_userenv", () => {
+  await runner.step("apply userenv", () => {
     const userenv = { PATH: "/foo/bar:$PATH" }
     const env = { PATH: "/baz:$PATH"}
     _internals.apply_userenv(env, userenv)
