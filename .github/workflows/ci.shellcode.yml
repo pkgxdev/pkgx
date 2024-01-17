@@ -331,7 +331,7 @@ jobs:
         run: |
           chmod u+x /usr/local/bin/pkgx
 
-      - run: pkgx +ack node -c 'console.log()'
+      - run: pkgx +ack node -e 'console.log()'
 
   test-shebangs:
     runs-on: ubuntu-latest
