@@ -34,21 +34,26 @@ Deno.test("devenv.ts", async runner => {
 
       for (const [keyfile, dep] of keyfiles) {
         await test.step(`${keyfile}`, async () => {
-          const file = fixturesd.join(keyfile).cp({ into: Path.mktemp() })
-          const { env, pkgs } = await specimen(file.parent())
-          assert(pkgs.find(pkg => utils.pkg.str(pkg) == "zlib.net^1.2"), "should dep zlib^1.2")
-          if (dep) {
-            assert(pkgs.find(pkg => utils.pkg.str(pkg) == dep), `should dep ${dep}`)
+          const go = async (file: Path) => {
+            const { env, pkgs } = await specimen(file.parent())
+            assert(pkgs.find(pkg => utils.pkg.str(pkg) == "zlib.net^1.2"), "should dep zlib^1.2")
+            if (dep) {
+              assert(pkgs.find(pkg => utils.pkg.str(pkg) == dep), `should dep ${dep}`)
+            }
+
+            switch (keyfile) {
+            case 'package.json/str/package.json':
+            case 'package.json/arr/package.json':
+            case 'deno.json/arr/deno.json':
+              break  // testing the short form for deps with these files
+            default:
+              assertEquals(env.FOO, "BAR")
+            }
           }
 
-          switch (keyfile) {
-          case 'package.json/str/package.json':
-          case 'package.json/arr/package.json':
-          case 'deno.json/arr/deno.json':
-            break  // testing the short form for deps with these files
-          default:
-            assertEquals(env.FOO, "BAR")
-          }
+          const target = fixturesd.join(keyfile).cp({ into: Path.mktemp() })
+          await go(target)
+          await go(Path.mktemp().join(target.basename()).ln('s', { target }))
         })
       }
     })
