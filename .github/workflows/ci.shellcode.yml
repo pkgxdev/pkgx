@@ -3,7 +3,8 @@ name: ci·shellcode
 on:
   pull_request:
     paths:
-      - src/modes/shellcode.ts
+      - src/modes/shellcode.*
+      - src/prefab/construct-env.*
       - .github/workflows/ci.shellcode.yml
 
   workflow_call:
@@ -318,6 +319,20 @@ jobs:
           node --version | grep v16
         shell: bash
 
+  test-plus-pkg-syntax:
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /usr/local/bin
+          name: pkgx
+      - name: prep
+        run: |
+          chmod u+x /usr/local/bin/pkgx
+
+      - run: pkgx +ack node -c 'console.log()'
+
   test-shebangs:
     runs-on: ubuntu-latest
     needs: compile
@@ -334,7 +349,7 @@ jobs:
           chmod u+x /usr/local/bin/pkgx
 
       - run: |
-          echo '#!/usr/bin/env -S pkgx node' > foo
+          echo '#!/usr/bin/env -S pkgx +ack node' > foo
           echo 'console.log("sh.pkgx")' >> foo
           chmod u+x foo
 
