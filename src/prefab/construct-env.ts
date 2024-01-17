@@ -26,7 +26,8 @@ export default async function(pkgenv: { installations: Installation[] }) {
     rv[key] = rv[key].replaceAll(new RegExp(`\\$${key}\\b`, 'g'), `\${${key}}`)
     // don’t end with a trailing `:` since that is sometimes interpreted as CWD and can break things
     // instead of `foo:${PATH}` we end up with `foo${PATH:+:PATH}` which is not POSIX but works
-    // with all realy shells to avoid the trailing `:`
+    // with all the shells that we support shellcode for and avoids a trailing `:`
+    // NOTE this may not work with FISH though.
     rv[key] = rv[key].replaceAll(new RegExp(`:+\\$\{${key}}$`, 'g'), `\${${key}:+:$${key}}`)
   }
 

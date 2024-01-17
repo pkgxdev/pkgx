@@ -13,7 +13,7 @@ export default async function(args: string[], { pkgs, ...opts }: { pkgs: Package
   const pkgs_str = () => pkgenv.installations.map(({pkg}) => dim(utils.pkg.str(pkg))).join(", ")
 
   for (const key in env) {
-    env[key] = env[key].replaceAll(`\${${key}}`, Deno.env.get(key) ?? '')
+    env[key] = env[key].replaceAll(new RegExp(`\\\${${key}.*?}`, 'g'), (v => v ? `:${v}` : '')(Deno.env.get(key)))
   }
 
   console.error('this is a temporary shell containing the following packages:')
@@ -40,7 +40,7 @@ function shell() {
     cmd.splice(1, 0, '--norc', '--noprofile') // longopts must precede shortopts
     // fall through
   case 'sh':
-    PS1 = "\\[\\033[38;5;86m\\]pkgx\\[\\033[0m\\] %~ "
+    PS1 = "\\[\\033[38;5;63m\\]pkgx\\[\\033[0m\\] %~ "
     break
   case 'zsh':
     PS1 = "%F{086}pkgx%F{reset} %~ "

@@ -43,7 +43,7 @@ export default async function({ args, unknown, pkgs: dry, ...opts }: {
   const env = await construct_env(pkgenv)
 
   for (const key in env) {
-    env[key] = env[key].replaceAll(`\${${key}}`, getenv(key) ?? '')
+    env[key] = env[key].replaceAll(new RegExp(`\\\${${key}.*?}`, 'g'), (v => v ? `:${v}` : '')(Deno.env.get(key)))
   }
 
   // fork bomb protection
