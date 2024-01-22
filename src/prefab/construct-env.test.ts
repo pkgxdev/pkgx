@@ -1,9 +1,15 @@
-import { assertEquals, assertThrows } from "deno/assert/mod.ts"
+import { assertEquals, assertRejects } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./construct-env.ts"
 import { Path, SemVer, semver, hooks } from "pkgx"
 import * as mock from "deno/testing/mock.ts"
 
-Deno.test("construct_env.ts", async runner => {
+Deno.test({
+  name: "construct_env.ts",
+  // libpkgx loads sqlite3 dynamically during this test
+  // libpkgx considers this a global resource that is acceptable to leak
+  // we would prefer it didn't, certainly this test doesn't need to by using a real pantry or pantry-cache
+  sanitizeResources: false,
+async fn(runner) {
   const pkg1 = { project: 'foo', constraint: new semver.Range("^2")}
   const pkg2 = { project: 'bar', constraint: new semver.Range("~3.1")}
 
@@ -34,12 +40,12 @@ Deno.test("construct_env.ts", async runner => {
     }
   })
 
-  await runner.step("coverage++", () => {
+  await runner.step("coverage++", async () => {
     const pkg = { project: "bytereef.org/mpdecimal", version: new SemVer("2.1.2") }
     if (hooks.usePantry().missing()) {
-      assertThrows(() => _internals.runtime_env(pkg, []))
+      assertRejects(() => _internals.runtime_env(pkg, []))
     } else {
-      _internals.runtime_env(pkg, [])
+      await _internals.runtime_env(pkg, [])
     }
   })
-})
+}})
