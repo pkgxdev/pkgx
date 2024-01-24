@@ -87,10 +87,15 @@ additional commands then those commands are invoked in that environment.
 
 ## How do I list what packages are cached?
 
-Coming soon.
+We have created a [`mash`](https://mash/pkgx.sh) script to list cached
+packages:
 
-For now, all packages are encapsulated in individual, versioned folders in
-`~/.pkgx` just like `brew`.
+```sh
+pkgx mash pkgx/ls
+```
+
+All packages are encapsulated in individual, versioned folders in
+`~/.pkgx` just like `brew` so you can just browse them with a file browser.
 
 
 ## A pkg I was expecting is not available
