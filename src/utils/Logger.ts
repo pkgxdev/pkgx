@@ -1,4 +1,4 @@
-import { stripAnsiCode } from "deno/fmt/colors.ts"
+import { stripAnsiCode } from "https://deno.land/std@0.213.0/fmt/colors.ts"
 import { ansi } from "cliffy/ansi/ansi.ts"
 import { dim } from "./color.ts"
 
