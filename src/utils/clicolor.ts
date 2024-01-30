@@ -1,5 +1,5 @@
 
-export default function(dst = Deno.stdout.rid, env = Deno.env.toObject()) {
+export default function(dst = Deno.stdout, env = Deno.env.toObject()) {
   // interprets https://no-color.org
   // see: https://deno.land/api@v1.37.1?s=Deno.noColor
   if (Deno.noColor) {
@@ -8,9 +8,9 @@ export default function(dst = Deno.stdout.rid, env = Deno.env.toObject()) {
 
   //https://bixense.com/clicolors/
 
-  //NOTE we (mostly) only output colors to stderr hence the isatty check for that
+  //NOTE we (mostly) only output colors to stderr hence the isTerminal() check for that
   //FIXME not true for --help tho
-  if (env.CLICOLOR !== '0' && Deno.isatty(dst)) {
+  if (env.CLICOLOR !== '0' && dst.isTerminal()) {
     return true
   }
   if ((env.CLICOLOR_FORCE ?? '0') != '0') {
