@@ -54,7 +54,7 @@ Deno.test("run.ts", async runner => {
 
   await runner.step("coverage++", async () => {
     if (hooks.usePantry().missing()) {
-      await assertRejects(() => _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"}))
+      assertThrows(() => _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"}))
     } else {
       await _internals.get_entrypoint({project: "github.com/ggerganov/llama.cpp"})
     }

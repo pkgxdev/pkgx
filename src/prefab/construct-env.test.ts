@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "deno/assert/mod.ts"
+import { assertEquals, assertThrows } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./construct-env.ts"
 import { Path, SemVer, semver, hooks } from "pkgx"
 import * as mock from "deno/testing/mock.ts"
@@ -43,7 +43,7 @@ async fn(runner) {
   await runner.step("coverage++", async () => {
     const pkg = { project: "bytereef.org/mpdecimal", version: new SemVer("2.1.2") }
     if (hooks.usePantry().missing()) {
-      assertRejects(() => _internals.runtime_env(pkg, []))
+      assertThrows(() => _internals.runtime_env(pkg, []))
     } else {
       await _internals.runtime_env(pkg, [])
     }
