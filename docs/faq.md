@@ -2,19 +2,21 @@
 
 ## How do I run the latest version of `pkgx`?
 
-pkgx is just another pkg so:
+Typically you want to upgrade `pkgx` so either:
+
+1. `brew upgrade pkgx`; or
+2. `curl -LSsf pkgx.sh | sh`
+
+> [!NOTE]
+> Indeed! Our installer installs and upgrades too.
+
+OTOH, `pkgx` packages itself so:
 
 ```sh
 pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
 ```
 
 Is a valid command, provided you have shell integration.
-
-If you are looking to upgrade the “installed” `pkgx` version then use
-`brew upgrade pkgx`, re-run the installer (it upgrades itself) or repeat
-your installation method.
-
-A self-upgrade feature is coming soon.
 
 
 ## How do I run the latest version of a specific pkg?
@@ -25,6 +27,13 @@ cached, but after that updates will only be fetched if requested.
 
 ```sh
 pkgx deno@latest
+```
+
+For us neophiliacs we have written a [`mash`] script to check for newer
+versions of what you have cached and fetch them:
+
+```sh
+pkgx mash pkgx/cache upgrade
 ```
 
 > [OSS.app](https://pkgx.app) can automatically install updates.
@@ -87,11 +96,10 @@ additional commands then those commands are invoked in that environment.
 
 ## How do I list what packages are cached?
 
-We have created a [`mash`](https://mash/pkgx.sh) script to list cached
-packages:
+We have created a [`mash`] script to list cached packages:
 
 ```sh
-pkgx mash pkgx/ls
+pkgx mash pkgx/cache ls
 ```
 
 All packages are encapsulated in individual, versioned folders in
@@ -293,3 +301,6 @@ pkgx +foo -- man foo
 ## I have another question
 
 [Support](support.md)
+
+
+[`mash`](https://mash/pkgx.sh)
