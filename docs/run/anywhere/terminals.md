@@ -48,7 +48,15 @@ If you download manually you’ll need to move the binary somewhere in
 your `PATH`.
 {% endhint %}
 
+4. If you're on Arch Linux (or any of it's derivatives) you can also use the [`pkgx`](https://aur.archlinux.org/packages/pkgx) (latest released version) or [`pkgx-git`](https://aur.archlinux.org/packages/pkgx-git) (latest development version, might not be stable).
+
+{% hint style='warning' %}
+The AURs are community-maintained and might be out-of-date. Use them with caution.
+{% endhint %}
+
 
 [`brew`]: https://brew.sh
 [GitHub Releases]: https://github.com/pkgxdev/pkgx/releases
 [installer]: https://github.com/pkgxdev/setup/blob/main/installer.sh
+[`pkgx` AUR]: https://aur.archlinux.org/packages/pkgx
+[`pkgx-git` AUR]: https://aur.archlinux.org/packages/pkgx-git
