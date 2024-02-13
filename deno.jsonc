@@ -21,7 +21,7 @@
     "typecheck": "deno check --unstable ./entrypoint.ts",
     "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable-ffi --unstable-fs --output $INIT_CWD/pkgx ./entrypoint.ts"
   },
-  "pkgx": "deno~1.39",
+  "pkgx": "deno>=1.40",
   "lint": {
     "exclude": ["src/**/*.test.ts"]
   },
