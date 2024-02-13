@@ -73,14 +73,4 @@ describe("integrate.ts", () => {
   }, async () => {
     await assertRejects(() => specimen("install"))
   })
-
-  it("isatty", async function() {
-    const stub = mock.stub(_internals, "isatty", () => true)
-    try {
-      file.touch()
-      await specimen("install")
-    } finally {
-      stub.restore()
-    }
-  })
 })

@@ -5,12 +5,12 @@
   },
   "tasks": {
     // runs this source checkout, args will be passed
-    "run": "deno run --unstable -A ./entrypoint.ts",
+    "run": "deno run --unstable-ffi --unstable-fs -A ./entrypoint.ts",
 
     // you can specify paths to specific tests if you need
     // follows is the ideal permissions lines, unfortunately deno considers making symlinks to require full read/write permissions for fuck knows why reasons
     //"test": "deno test --allow-read=$PWD,$TMPDIR,$HOME,/ --allow-env --allow-write=$TMPDIR --allow-ffi --unstable",
-    "test": "deno test --allow-read --allow-env --allow-write --allow-ffi --unstable",
+    "test": "deno test --allow-read --allow-env --allow-write --allow-ffi --unstable-ffi --unstable-fs",
     // ^^ ffi & unstable needed for execve.ts
 
     // installs to /usr/local/bin/pkgx
@@ -19,7 +19,7 @@
     //--------------------------------------- ci/cd/admin
     "coverage" : "scripts/run-coverage.sh",
     "typecheck": "deno check --unstable ./entrypoint.ts",
-    "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/pkgx ./entrypoint.ts"
+    "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable-ffi --unstable-fs --output $INIT_CWD/pkgx ./entrypoint.ts"
   },
   "pkgx": "deno~1.39",
   "lint": {

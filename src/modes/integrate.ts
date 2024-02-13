@@ -80,7 +80,7 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
     }
     break
   case 'install':
-    if (!_internals.isatty(Deno.stdout.rid)) {
+    if (!Deno.stdout.isTerminal()) {
       // we're being sourced, output the hook
       _internals.stdout(shellcode())
     } else if (opd_at_least_once) {
@@ -125,7 +125,6 @@ function shells(): [Path, string][] {
 export const _internals = {
   home: Path.home,
   host,
-  isatty: Deno.isatty,
   stdout: console.log,
   stderr: console.error
 }
