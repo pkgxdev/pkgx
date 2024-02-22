@@ -1,7 +1,7 @@
 FROM debian:buster-slim as stage0
 COPY ./products/* /pkgx/
 RUN cp /pkgx/$(uname -m) /usr/local/bin/pkgx
-RUN echo 'export PS1="\\[\\033[38;5;63m\\]pkgx\\[\\033[0m\\] $ "' >> /root/.bashrc
+RUN echo 'export PS1="\\[\\033[38;5;63m\\]pkgx\\[\\033[0m\\]\\w $ "' >> /root/.bashrc
 RUN pkgx integrate
 
 FROM debian:buster-slim as stage1

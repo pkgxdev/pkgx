@@ -1,0 +1,8 @@
+# https://tea.xyz/what-is-this-file
+---
+version: 1.0.0
+codeOwners:
+  - '0x5E2DE4A68df811AAAD32d71fb065e6946fA5C8d9'  #mxcl
+  - '0x2faad60792b0594fB37592BA25Bd7387Fbd35191'  #thomas-borrel
+  - '0xAb9A89fA4Bbd04Fc37116F0d7766866D001EA704'  #jhheider
+quorum: 1
