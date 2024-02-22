@@ -95,7 +95,7 @@ export default async function(dir: Path, { powder, ...opts }: { powder: PackageR
       env ${off_string}
 
       if [ "$1" != --shy ]; then
-        rm "${persistence}"
+        rm -f "${persistence}"
       fi
 
       unset -f _pkgx_dev_off _pkgx_should_deactivate_devenv
