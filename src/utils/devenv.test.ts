@@ -64,6 +64,20 @@ Deno.test("devenv.ts", async runner => {
           'package.json/engines/package.json',
           'nodejs.org~16.16.1',
           'npmjs.com~9.7.1',
+          'yarnpkg.com~1.22.10',
+          'pnpm.io~7.33.7',
+        ],
+        [
+          'package.json/packageManager/package.json',
+          'pnpm.io@7.33.7',
+          'nodejs.org'
+        ],
+        [
+          'package.json/volta/package.json',
+          'nodejs.org@16.16.1',
+          'npmjs.com@9.7.1',
+          'yarnpkg.com@1.22.10',
+          'pnpm.io@7.33.7',
         ],
         [".node-version", "nodejs.org@16.16.0"],
         ["python-version/std/.python-version", "python.org~3.10"],
