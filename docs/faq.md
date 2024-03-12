@@ -206,8 +206,8 @@ Then there are a couple platform specific cache/data directories:
 ### macOS
 
 ```sh
-rm -rf "${XDG_CACHE_HOME:-$HOME/Library/Caches}/pkgx"`
-rm -rf "${XDG_DATA_HOME:-$HOME/Library/Application Support}"/pkgx`
+rm -rf "${XDG_CACHE_HOME:-$HOME/Library/Caches}/pkgx"
+rm -rf "${XDG_DATA_HOME:-$HOME/Library/Application Support}"/pkgx
 ```
 
 ### Non macOS
