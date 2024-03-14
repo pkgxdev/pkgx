@@ -48,4 +48,15 @@ async fn(runner) {
       await _internals.runtime_env(pkg, [])
     }
   })
+
+  await runner.step("multiple versions", async () => {
+    const tmp = Path.mktemp()
+
+    const installations = [
+      { pkg: {project: "unicode.org", version: new SemVer("71.0.0")}, path: tmp.join("unicode.org/v71.0.0").mkdir('p') },
+      { pkg: {project: "unicode.org", version: new SemVer("73.0.0")}, path: tmp.join("unicode.org/v73.0.0").mkdir('p') },
+    ]
+
+    await _internals.mkenv({ installations })
+  })
 }})
