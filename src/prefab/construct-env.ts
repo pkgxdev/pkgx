@@ -36,7 +36,7 @@ export default async function(pkgenv: { installations: Installation[] }) {
 
 ///////////////////////// reworked from useShellEnv needs porting back to libpkgx
 async function mkenv({installations}: {installations: Installation[]}) {
-  const projects = new Set(installations.map(x => x.pkg.project))
+  const projects = new Set(installations.map(x => `${x.pkg.project}@${x.pkg.version}`))
   console.assert(projects.size == installations.length, "pkgx: env is being duped")
 
   const common_vars: Record<string, OrderedSet<string>> = {}
@@ -160,5 +160,6 @@ class OrderedSet<T> {
 
 ////////////////////////////////////////////////////////////////////// internals
 export const _internals = {
-  runtime_env: (pkg: Package, installations: Installation[]) => usePantry().project(pkg.project).runtime.env(pkg.version, installations)
+  runtime_env: (pkg: Package, installations: Installation[]) => usePantry().project(pkg.project).runtime.env(pkg.version, installations),
+  mkenv
 }
