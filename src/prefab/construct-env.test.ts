@@ -56,7 +56,12 @@ async fn(runner) {
       { pkg: {project: "unicode.org", version: new SemVer("71.0.0")}, path: tmp.join("unicode.org/v71.0.0").mkdir('p') },
       { pkg: {project: "unicode.org", version: new SemVer("73.0.0")}, path: tmp.join("unicode.org/v73.0.0").mkdir('p') },
     ]
-
-    await _internals.mkenv({ installations })
+    const stub3 = mock.stub(_internals, "runtime_env", async () => ({}))
+    try {
+      await _internals.mkenv({ installations })
+    } finally {
+      stub3.restore()
+      tmp.rm({recursive: true})
+    }
   })
 }})
