@@ -19,8 +19,7 @@
     //--------------------------------------- ci/cd/admin
     "coverage" : "scripts/run-coverage.sh",
     "typecheck": "deno check ./entrypoint.ts",
-    "compile": "scripts/compile.sh",
-    "benchmark": "deno task compile &>/dev/null && deno bench --allow-run --allow-env --seed=250 benchmarks"
+    "compile": "scripts/compile.sh"
   },
   "pkgx": "deno~1.42.0",
   "lint": {
