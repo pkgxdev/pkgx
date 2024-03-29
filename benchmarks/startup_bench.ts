@@ -1,6 +1,6 @@
 import { assert } from "deno/assert/mod.ts"
 
-const gitVersion = "2.44.0"
+const gitVersion = Deno.env.get("GIT_VERSION")
 
 function assertGitOutput(output: Deno.CommandOutput) {
   assert(output.code === 0)
@@ -9,13 +9,6 @@ function assertGitOutput(output: Deno.CommandOutput) {
   )
   assert(new TextDecoder().decode(output.stderr) === "")
 }
-
-// Run the command before the benchmark to ensure git is bootstrapped
-const command = new Deno.Command("./pkgx", {
-  args: [`git@${gitVersion}`, "--version"],
-})
-const output = await command.output()
-assertGitOutput(output)
 
 Deno.bench(
   "git --version",
