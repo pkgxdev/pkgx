@@ -3,14 +3,14 @@
 ## GitHub Actions
 
 ```sh
-- uses: pkgxdev/setup@v1
+- uses: pkgxdev/setup@v2
 - run: pkgx go@1.20 build
 ```
 
 Installs `pkgx` so you can then run `go build` with go version ^1.20.
 
 ```sh
-- uses: pkgxdev/setup@v1
+- uses: pkgxdev/setup@v2
   with:
     +: node@16
 - run: node --version
@@ -22,7 +22,7 @@ Installs `pkgx` so you can then run `go build` with go version ^1.20.
 
 ```sh
 - uses: actions/checkout@v3
-- uses: pkgxdev/dev@v1
+- uses: pkgxdev/dev@v0
 ```
 
 The developer environment for your project will be available during the job.
