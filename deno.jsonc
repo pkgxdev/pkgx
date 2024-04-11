@@ -21,7 +21,7 @@
     "typecheck": "deno check ./entrypoint.ts",
     "compile": "scripts/compile.sh"
   },
-  "pkgx": "deno~1.42.0",
+  "pkgx": "deno~1.42.1",
   "lint": {
     "exclude": ["src/**/*.test.ts"]
   },
