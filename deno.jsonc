@@ -33,7 +33,7 @@
     "pkgx": "https://deno.land/x/libpkgx@v0.18.1/mod.ts",
     "pkgx/": "https://deno.land/x/libpkgx@v0.18.1/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
-    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.3/",
-    "deno/": "https://deno.land/std@0.196.0/" // cliffy is on 196 so we standardized on it
+    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.4/",
+    "deno/": "https://deno.land/std@0.221.0/" // cliffy is on 221 so we standardized on it
   }
 }

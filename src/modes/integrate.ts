@@ -1,5 +1,5 @@
-import { writeAll } from "deno/streams/write_all.ts"
-import { readAll } from "deno/streams/read_all.ts"
+import { writeAll } from "deno/io/write_all.ts"
+import { readAll } from "deno/io/read_all.ts"
 import { readLines } from "deno/io/read_lines.ts"
 import { Path, PkgxError, utils } from "pkgx"
 import announce from "../utils/announce.ts"
