@@ -112,6 +112,9 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
             const found = value.match(/^\s*exec pkgx \+([^ ]+)/)?.[1]
             const unsafe_found = value.match(/#MANAGED BY PKGX/);
             if (found) {
+              if (found != pkgstr) {
+                throw new PkgxError(`different version already installed: ${blurple(program)} ${dim(`(${found})`)}`)
+              }
               n++
               console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${found})`)}`)
               continue program_loop
