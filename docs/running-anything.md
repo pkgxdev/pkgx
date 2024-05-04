@@ -121,7 +121,7 @@ The first argument that doesn’t start with `-` or `+` is considered the
 first argument to the runner. All arguments that follow are passed to that
 program.
 
-{% endhint }
+{% endhint %}
 
 
 ## Disambiguation
