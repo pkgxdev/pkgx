@@ -45,7 +45,7 @@ export default async function(pkgs: PackageRequirement[]) {
             ${exec}
           else
             cd "$(dirname "$0")"
-            rm ${programs.join(' ')} && echo "uninstalled: ${pkgstr}" >&2
+            rm -f ${programs.map(p => `'${p}'`).join(' ')} && echo "uninstalled: ${pkgstr}" >&2
           fi`
         const f = dst.mkdir('p').join(program)
 
