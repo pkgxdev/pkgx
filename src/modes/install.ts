@@ -6,13 +6,13 @@ const { usePantry } = hooks
 
 // * maybe impl `$XDG_BIN_HOME`
 
-export function is_unsafe(): boolean {
+export function is_unsafe(unsafe: boolean): boolean {
   // `--unsafe` takes precedence over the `$PKGX_UNSAFE_INSTALL` flag
-  const IS_UNSAFE = parseInt(Deno.env.get("PKGX_UNSAFE_INSTALL") || "0") ? true : (Deno.args.includes("--unsafe"));
+  const IS_UNSAFE = parseInt(Deno.env.get("PKGX_UNSAFE_INSTALL") || "0") ? true : unsafe;
   return IS_UNSAFE;
 }
 
-export default async function(pkgs: PackageRequirement[]) {
+export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
   const usrlocal = new Path("/usr/local/bin")
   let n = 0
 
@@ -36,7 +36,7 @@ export default async function(pkgs: PackageRequirement[]) {
   }
 
   async function write(dst: Path, pkgs: PackageRequirement[]) {
-    const UNSAFE = is_unsafe();
+    const UNSAFE = is_unsafe(unsafe);
     for (const pkg of pkgs) {
       const programs = await usePantry().project(pkg).provides()
       program_loop:
