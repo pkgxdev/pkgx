@@ -18,6 +18,7 @@ async function uninstall(prefix: Path, pkgs: PackageRequirement[]) {
     try {
       await Deno.remove(Path.home().join(`.cache/pkgx/envs/${parts}`).toString(), {recursive: true})
     } catch (e) {
+      console.warn(e);
     }
     for (const program of programs) {
       const f = prefix.join(program)
