@@ -6,6 +6,12 @@ const { usePantry } = hooks
 
 // * maybe impl `$XDG_BIN_HOME`
 
+export function is_unsafe(): boolean {
+  // $PKGX_UNSAFE_INSTALL takes precedence over the `--unsafe` flag
+  const IS_UNSAFE = parseInt(Deno.env.get("PKGX_UNSAFE_INSTALL") || "0") ? true : (Deno.args.includes("--unsafe"));
+  return IS_UNSAFE;
+}
+
 export default async function(pkgs: PackageRequirement[]) {
   const usrlocal = new Path("/usr/local/bin")
   let n = 0
@@ -30,6 +36,7 @@ export default async function(pkgs: PackageRequirement[]) {
   }
 
   async function write(dst: Path, pkgs: PackageRequirement[]) {
+    const UNSAFE = is_unsafe();
     for (const pkg of pkgs) {
       const programs = await usePantry().project(pkg).provides()
       program_loop:
@@ -39,7 +46,30 @@ export default async function(pkgs: PackageRequirement[]) {
         if (program.includes("{{")) continue
 
         const pkgstr = utils.pkg.str(pkg)
-        const exec = `exec pkgx +${pkgstr} -- ${program} "$@"`
+        if (UNSAFE) {
+          const parts = pkgstr.split("/")
+          parts.pop()
+          await Deno.mkdir(Path.home().join(`.cache/pkgx/envs/${parts.join("/")}`).toString(), {recursive: true})
+        }
+        //FIXME: doing `set -a` clears the args env
+        const exec = UNSAFE ? undent`
+            ARGS="$@"
+            pkgx_resolve() {
+            mkdir -p "$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs"
+              pkgx +${pkgstr} 1>"$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
+              run
+            }
+            run() {
+              if [[ -e "$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env" && -e "$\{PKGX_HOME:-$HOME/.pkgx\}/${pkgstr}/v*/bin/${program}" ]]; then
+                set -a
+                source "$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
+                exec "$\{PKGX_HOME:-$HOME/.pkgx\}/${pkgstr}/v*/bin/${program}" "$ARGS"
+              else
+                pkgx_resolve
+              fi
+            }
+            run
+          ` : `exec pkgx +${pkgstr} -- ${program} "$@"`
         const script = undent`
           if [ "$PKGX_UNINSTALL" != 1 ]; then
             ${exec}
@@ -65,7 +95,7 @@ export default async function(pkgs: PackageRequirement[]) {
             if (done) {
               throw new PkgxError(`${f} already exists and is not a pkgx installation`)
             }
-            const found = value.match(/^\s*exec pkgx \+([^ ]+)/)?.[1]
+            const found = value.match(/^\s*pkgx \+([^ ]+)/)?.[1]
             if (found) {
               n++
               console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${found})`)}`)
