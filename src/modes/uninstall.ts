@@ -22,7 +22,6 @@ async function uninstall(prefix: Path, pkgs: PackageRequirement[]) {
     for (const program of programs) {
       const f = prefix.join(program)
       if (f.isFile()) {
-        console.log(f)
         const cmd = new Deno.Command(f.string, {env: {PKGX_UNINSTALL: '1'}})
         const proc = await cmd.spawn().status
         if (!proc.success) {
