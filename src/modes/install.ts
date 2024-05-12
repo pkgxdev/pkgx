@@ -55,7 +55,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
         const exec = UNSAFE ? undent`
             ARGS="$@"
             pkgx_resolve() {
-            mkdir -p "$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs"
+              mkdir -p "$(dirname \\"$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env\\")"
               pkgx +${pkgstr} 1>"$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
               run
             }
