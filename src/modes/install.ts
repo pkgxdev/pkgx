@@ -91,7 +91,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
               rm ${programs.join(" ")} && echo "uninstalled: ${pkgstr}" >&2
             fi`
         }
-        const f = dst.mkdir("p").join(program)
+        const f = dst.mkdir('p').join(program)
 
         if (f.exists()) {
           if (!f.isFile()) throw new PkgxError(`${f} already exists and is not a file`)
