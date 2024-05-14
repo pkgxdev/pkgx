@@ -102,6 +102,14 @@ export default async function(dir: Path) {
         break
       case "cdk.json":
         pkgs.push({ project: 'aws.amazon.com/cdk', constraint })
+        break
+      case "cdk.json":
+        pkgs.push({ project: 'aws.amazon.com/cdk', constraint })
+        break
+      case "justfile":
+      case "Justfile":
+        pkgs.push({ project: 'just.systems', constraint })
+        break
       }
     } else if (isDirectory) {
       switch (name) {
