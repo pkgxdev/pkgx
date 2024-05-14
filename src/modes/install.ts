@@ -24,7 +24,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
       const bindir = Path.home().join(".local/bin")
       await write(bindir, pkgs)
       if (n > 0 && !Deno.env.get("PATH")?.split(":").includes(bindir.string)) {
-        console.warn("pkgx: %c`%s` is not in `PATH`", "color: red", bindir)
+        console.warn("pkgx: %c`%s` is not in `PATH`", 'color: red', bindir)
       }
     } else {
       throw err
@@ -32,7 +32,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
   }
 
   if (n == 0) {
-    console.error("pkgx: no programs provided by pkgs")
+    console.error('pkgx: no programs provided by pkgs')
   }
 
   async function write(dst: Path, pkgs: PackageRequirement[]) {
@@ -41,6 +41,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
       const programs = await usePantry().project(pkg).provides()
       program_loop:
       for (const program of programs) {
+
         // skip for now since we would require specific versions and we haven't really got that
         if (program.includes("{{")) continue
 
@@ -82,7 +83,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
               rm ${programs.join(" ")} && echo "uninstalled: ${pkgstr}" >&2
             fi`
         } else {
-          const script = undent`
+          script = undent`
             if [ "$PKGX_UNINSTALL" != 1 ]; then
               exec pkgx +${pkgstr} -- ${program} "$@"
             else
@@ -100,10 +101,14 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
 
           const lines = f.readLines()
           const { value: shebang } = await lines.next()
-          if (shebang != "#!/bin/sh") throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+          if (shebang != "#!/bin/sh") {
+            throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+          }
           while (true) {
             const { value, done } = await lines.next()
-            if (done) throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+            if (done) {
+              throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+            }
             const found = value.match(/^\s*pkgx \+([^ ]+)/)?.[1]
             if (found) {
               n++
@@ -117,7 +122,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
           #!/bin/sh
           ${script}`
         }).chmod(0o755)
-        console.error("pkgx: installed:", f)
+        console.error('pkgx: installed:', f)
         n++
       }
     }
