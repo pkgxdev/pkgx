@@ -46,24 +46,29 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
         if (program.includes("{{")) continue
 
         const pkgstr = utils.pkg.str(pkg)
+        const config = hooks.useConfig()
         if (UNSAFE) {
           const parts = pkgstr.split("/")
           parts.pop()
-          await Deno.mkdir(Path.home().join(`.cache/pkgx/envs/${parts.join("/")}`).toString(), {recursive: true})
+          config.cache.join(`pkgx/envs/${parts.join("/")}`).mkdir("p")
         }
         //FIXME: doing `set -a` clears the args env
         const exec = UNSAFE ? undent`
             ARGS="$@"
+            ENV_FILE=\"$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env\"
+            PKGX_DIR=$\{PKGX_DIR:-$HOME/.pkgx\}
+  
             pkgx_resolve() {
-              mkdir -p "$(dirname \\"$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env\\")"
-              pkgx +${pkgstr} 1>"$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
+              mkdir -p "$(dirname \"$ENV_FILE\")"
+              pkgx +${pkgstr} 1>"$ENV_FILE"
               run
             }
             run() {
-              if [[ -e "$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env" && -e "$\{PKGX_HOME:-$HOME/.pkgx\}/${pkgstr}/v*/bin/${program}" ]]; then
+              if [[ -e "$ENV_FILE" && -e "$PKGX_DIR/${pkgstr}/v*/bin/${program}" ]]; then
                 set -a
-                source "$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
-                exec "$\{PKGX_HOME:-$HOME/.pkgx\}/${pkgstr}/v*/bin/${program}" "$ARGS"
+                source "$ENV_FILE"
+                set +a
+                exec "$PKGX_DIR/v*/bin/${program}" "$ARGS"
               else
                 pkgx_resolve
               fi
