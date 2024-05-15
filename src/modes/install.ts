@@ -7,9 +7,8 @@ const { usePantry } = hooks
 // * maybe impl `$XDG_BIN_HOME`
 
 export function is_unsafe(unsafe: boolean): boolean {
-  // `--unsafe` takes precedence over the `$PKGX_UNSAFE_INSTALL` flag
-  const IS_UNSAFE = parseInt(Deno.env.get("PKGX_UNSAFE_INSTALL") || "0") ? true : unsafe
-  return IS_UNSAFE
+    const env = parseInt(Deno.env.get("PKGX_UNSAFE_INSTALL") || "0")
+    return env || unsafe
 }
 
 export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
