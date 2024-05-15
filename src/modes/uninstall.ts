@@ -13,11 +13,10 @@ async function uninstall(prefix: Path, pkgs: PackageRequirement[]) {
     const programs = await hooks.usePantry().project(pkg).provides()
     const pkgstr = utils.pkg.str(pkg)
     const config = hooks.useConfig()
-    const parts = pkgstr.split("/")
-    parts.pop()
+    const pkgdir = pkgstr.split("/").slice(0, -1).join("/")
     //FIXME: it removes the dir successfully. however, it still complains that it didn't delete that
     try {
-      config.cache.join(`pkgx/envs/${parts.join("/")}`).rm({recursive: true})
+      config.cache.join(`pkgx/envs/${pkgdir}`).rm({recursive: true})
     } catch (e) {
       console.warn(e);
     }
