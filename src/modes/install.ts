@@ -51,9 +51,8 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
 
         if (UNSAFE) {
           const config = hooks.useConfig()
-          const parts = pkgstr.split("/")
-          parts.pop()
-          config.cache.join(`pkgx/envs/${parts.join("/")}`).mkdir("p")
+          const pkgdir = pkgstr.split("/").slice(0, -1).join("/")
+          config.cache.join(`pkgx/envs/${pkgdir}`).mkdir("p")
           //FIXME: doing `set -a` clears the args env
           script = undent`
             if [ "$PKGX_UNINSTALL" != 1 ]; then
