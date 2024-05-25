@@ -182,6 +182,26 @@ export default async function(dir: Path) {
       };
     }
     await parse_well_formatted_node(node)
+    if (isString(json?.packageManager)) {
+      try {
+        const { project, constraint } = utils.pkg.parse(json.packageManager)
+        switch (project) {
+        case "yarn":
+          // TODO: find a better way to check the version
+          if (/@1(\.|$)/.test(json.packageManager)) {
+            pkgs.push({ project: 'classic.yarnpkg.com', constraint })
+          } else {
+            pkgs.push({ project: 'yarnpkg.com', constraint })
+          }
+          break
+        case "pnpm":
+          pkgs.push({ project: 'pnpm.io', constraint })
+          break
+        }
+      } catch {
+        // ignore unrecognized versions (for example, a url)
+      }
+    } 
     has_package_json = true
   }
 
