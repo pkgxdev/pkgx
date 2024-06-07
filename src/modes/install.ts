@@ -54,6 +54,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
           config.cache.join(`pkgx/envs/${pkgdir}`).mkdir("p")
           //FIXME: doing `set -a` clears the args env
           script = undent`
+            #MANAGED BY PKGX
             if [ "$PKGX_UNINSTALL" != 1 ]; then
               ARGS="$*"
               ENV_FILE="$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
@@ -107,10 +108,15 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
             if (done) {
               throw new PkgxError(`${f} already exists and is not a pkgx installation`)
             }
-            const found = value.match(/^\s*pkgx \+([^ ]+)/)?.[1]
+            const found = value.match(/^\s*exec pkgx \+([^ ]+)/)?.[1]
+            const unsafe_found = value.match(/#MANAGED BY PKGX/);
             if (found) {
               n++
               console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${found})`)}`)
+              continue program_loop
+            } else if (unsafe_found) {
+              n++
+              console.warn(`pkgx: already install: ${blurple(program)} ${dim("(UNSAFE)")}`);
               continue program_loop
             }
           }
