@@ -201,7 +201,7 @@ export default async function(dir: Path) {
       } catch {
         // ignore unrecognized versions (for example, a url)
       }
-    } 
+    }
     has_package_json = true
   }
 
