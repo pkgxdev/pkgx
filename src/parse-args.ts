@@ -45,7 +45,8 @@ interface Flags {
   sync: boolean
   update: boolean
   verbosity?: number
-  keepGoing: boolean
+  keepGoing: boolean,
+  unsafe: boolean
 }
 
 export default function(input: string[]): Args {
@@ -56,7 +57,8 @@ export default function(input: string[]): Args {
   const flags: Flags = {
     sync: false,
     update: false,
-    keepGoing: false
+    keepGoing: false,
+    unsafe: false
   }
   let mode: string | undefined
   let dryrun: boolean | undefined
@@ -88,6 +90,9 @@ export default function(input: string[]): Args {
         break
       case 'update':
         flags.update = true
+        break
+      case 'unsafe':
+        flags.unsafe = true
         break
       case 'provides':
         if (mode) throw new UsageError({msg: 'multiple modes specified'})
