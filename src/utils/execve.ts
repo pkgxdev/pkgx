@@ -15,13 +15,24 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
   const argv = new CStringArray(args)
   const envp = new CStringArray(Object.entries(env).map(([key, value]) => `${key}=${value}`))
 
-  const errno = _internals.execve(
-    Deno.UnsafePointer.of(path),
-    Deno.UnsafePointer.of(argv),
-    Deno.UnsafePointer.of(envp))
+  const errno = (() => {
+    let tries = 10;
+    while (true) {
+      const errno = _internals.execve(
+        Deno.UnsafePointer.of(path),
+        Deno.UnsafePointer.of(argv),
+        Deno.UnsafePointer.of(envp)
+      );
+      if (!tries--) return errno;
+      // 11 = EAGAIN = Try again
+      if (errno == 11) continue;
+      return errno;
+    }
+  })();
 
   switch (errno) {
-    case 2:  //ENOENT:
+    case 2:   //ENOENT:
+    case 316: //FIXME ALERT! ALERT! BUG! SOMETHING IS WRONG WITH OUR USE OR ERRNO AND THIS SOMETIMES RESULTS, USUALLY ON MACOS :/
       // yes: strange behavior from execve here indeed
       if (parse_Path(args[0])?.exists()) {
         throw new Deno.errors.PermissionDenied()
@@ -29,7 +40,6 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
         throw new Deno.errors.NotFound()
       }
     case 13:
-    case 316:  //FIXME ALERT! ALERT! BUG! SOMETHING IS WRONG WITH OUR USE OR ERRNO AND THIS SOMETIMES RESULTS :/
       throw new Deno.errors.PermissionDenied()
     case 63: //ENAMETOOLONG:
     case 7:  //E2BIG:

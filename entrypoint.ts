@@ -7,7 +7,7 @@ import { render as perror } from "./src/err-handler.ts"
 import { setColorEnabled } from "deno/fmt/colors.ts"
 import clicolor from "./src/utils/clicolor.ts"
 
-setColorEnabled(clicolor(Deno.stderr.rid))
+setColorEnabled(clicolor(Deno.stderr))
 
 ///////////////////////////////////////////////////////// backwards compatability
 const argstr = Deno.args.join(' ')
@@ -71,7 +71,7 @@ try {
 
 /////////////////////////////////////////////////////////////////////////// utils
 function logger_prefix() {
-  if (Deno.env.get("CI") || !Deno.isatty(Deno.stdin.rid)) {
+  if (Deno.env.get("CI") || !Deno.stdin.isTerminal()) {
     return 'pkgx'
   }
 }

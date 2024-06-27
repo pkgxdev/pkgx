@@ -92,7 +92,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     console.log(shellcode())
     break
   case 'help':
-    setColorEnabled(clicolor(Deno.stdout.rid))
+    setColorEnabled(clicolor(Deno.stdout))
     console.log(help(flags.verbosity))
     break
   case 'env': {
@@ -122,7 +122,7 @@ async function ensure_pantry() {
 
 function make_logger(verbosity: number, logger_prefix?: string): IInstallLogger {
   const logger = new Logger(logger_prefix)
-  if (verbosity <= -2 || !Deno.isatty(Deno.stderr.rid)) {
+  if (verbosity <= -2 || !Deno.stderr.isTerminal()) {
     return {
       replace: () => {},
       clear: () => {},
