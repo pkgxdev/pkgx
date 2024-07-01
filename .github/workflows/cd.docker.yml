@@ -17,7 +17,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: robinraju/release-downloader@v1.9
+      - uses: robinraju/release-downloader@v1.11
         with:
           releaseId: ${{ github.event.release.id }}
 
