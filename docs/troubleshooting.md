@@ -22,13 +22,6 @@ Solution:
 
 - Ensure the command is spelled correctly.
 - Check if the package is supported by pkgx:
-    ```bash
-    pkgx search <command>
-    ```
-- If the command requires a specific version, specify it:
-    ```bash
-    pkgx <command>@<version>
-    ```
 
 ### 3. Problem: Errors related to missing dependencies.
 Problem: Errors related to missing dependencies.
