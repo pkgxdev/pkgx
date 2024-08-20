@@ -11,7 +11,7 @@ deno 1.33.4
 
 | <p>​<a href="run/anywhere/terminals.md">Terminals</a><br>Run anything in your terminal</p> | <p><a href="run/anywhere/docker.md">Docker</a><br>Run anything in Docker</p> |
 | ----- | ----- |
-| <p>​<a href="run/anywhere/ci-cd.md">CI/CD</a><br>Run anything in CI/CD</p> | <p>​<a href="run/anywhere/ci-cd.md">Scripting</a><br>Run anything in scripts</p> |
+| <p>​<a href="run/anywhere/ci-cd.md">CI/CD</a><br>Run anything in CI/CD</p> | <p>​<a href="run/anywhere/scripts.md">Scripting</a><br>Run anything in scripts</p> |
 | <p>​<a href="run/anywhere/editors.md">Editors</a><br>Run anything in Editors & IDEs</p> |
 
 
