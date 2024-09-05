@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: 1.45.5
+          deno-version: ^1.46
       - uses: actions/checkout@v4
       - run: deno task compile
       - uses: actions/upload-artifact@v4
