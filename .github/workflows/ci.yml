@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
         with:
-          deno-version: 1.45.5
+          deno-version: ^1.46
       - run: deno cache **/*.test.ts
       - run: deno task test --coverage=cov_profile --no-check
       - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1   # using ourself to install deno could compromise the tests
         with:
-          deno-version: 1.45.5
+          deno-version: ^1.46
       - run: deno lint
 
   typecheck:
@@ -68,5 +68,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: 1.45.5
+          deno-version: ^1.46
       - run: deno task typecheck

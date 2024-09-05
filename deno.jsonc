@@ -21,7 +21,7 @@
     "typecheck": "deno check ./entrypoint.ts",
     "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable-ffi --unstable-fs --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
   },
-  "pkgx": "deno~1.45.5",
+  "pkgx": "deno^1.46",
   "lint": {
     "exclude": ["src/**/*.test.ts"]
   },
@@ -30,10 +30,10 @@
   },
   "imports": {
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
-    "pkgx": "https://deno.land/x/libpkgx@v0.18.1/mod.ts",
-    "pkgx/": "https://deno.land/x/libpkgx@v0.18.1/src/",
+    "pkgx": "https://deno.land/x/libpkgx@v0.19.0/mod.ts",
+    "pkgx/": "https://deno.land/x/libpkgx@v0.19.0/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
     "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.4/",
-    "deno/": "https://deno.land/std@0.221.0/" // cliffy is on 221 so we standardized on it
+    "deno/": "https://deno.land/std@0.224.0/"
   }
 }
