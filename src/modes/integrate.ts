@@ -1,5 +1,5 @@
-import { writeAll } from "deno/streams/write_all.ts"
-import { readAll } from "deno/streams/read_all.ts"
+import { writeAll } from "deno/io/write_all.ts"
+import { readAll } from "deno/io/read_all.ts"
 import { readLines } from "deno/io/read_lines.ts"
 import { Path, PkgxError, utils } from "pkgx"
 import announce from "../utils/announce.ts"
@@ -80,7 +80,7 @@ export default async function(op: 'install' | 'uninstall', { dryrun }: { dryrun:
     }
     break
   case 'install':
-    if (!_internals.isatty(Deno.stdout.rid)) {
+    if (!_internals.isatty(Deno.stdout)) {
       // we're being sourced, output the hook
       _internals.stdout(shellcode())
     } else if (opd_at_least_once) {
@@ -125,7 +125,7 @@ function shells(): [Path, string][] {
 export const _internals = {
   home: Path.home,
   host,
-  isatty: Deno.isatty,
+  isatty: (x: {isTerminal: () => boolean}) => x.isTerminal(),
   stdout: console.log,
   stderr: console.error
 }

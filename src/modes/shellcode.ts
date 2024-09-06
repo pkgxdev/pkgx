@@ -55,7 +55,7 @@ export default function() {
               ${sh} "${tmp}/shellcode/x.$$"
               unset foo
             fi
-            rm "${tmp}/shellcode/"?.$$
+            rm -f "${tmp}/shellcode/"?.$$
           else
             echo "pkgx: nothing to run" >&2
             return 1
@@ -90,7 +90,12 @@ export default function() {
 
     dev() {
       if [ "$1" = 'off' ]; then
-        _pkgx_dev_off
+        if type _pkgx_dev_off >/dev/null 2>&1; then
+          _pkgx_dev_off
+        else
+          echo 'dev: environment not active' >&2
+          return 1
+        fi
       elif type _pkgx_dev_off >/dev/null 2>&1; then
         echo 'dev: environment already active' >&2
         return 1

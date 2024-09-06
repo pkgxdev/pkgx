@@ -102,6 +102,11 @@ export default async function(dir: Path) {
         break
       case "cdk.json":
         pkgs.push({ project: 'aws.amazon.com/cdk', constraint })
+        break
+      case "justfile":
+      case "Justfile":
+        pkgs.push({ project: 'just.systems', constraint })
+        break
       }
     } else if (isDirectory) {
       switch (name) {
@@ -173,13 +178,59 @@ export default async function(dir: Path) {
     const json = JSON.parse(await path.read());
     let node = json?.pkgx;
     if (isString(node) || isArray(node)) node = { dependencies: node }
-    if (!node && json?.engines) {
-      node = {
-        dependencies: {
-          ...(json.engines.node && { 'nodejs.org': json.engines.node }),
-          ...(json.engines.npm && { 'npmjs.com': json.engines.npm }),
-        },
-      };
+    if (!node) {
+      if (json?.engines) {
+        node = {
+          dependencies: {
+            ...(json.engines.node && { 'nodejs.org': json.engines.node }),
+            ...(json.engines.npm && { 'npmjs.com': json.engines.npm }),
+            ...(json.engines.yarn && { 'yarnpkg.com': json.engines.yarn }),
+            ...(json.engines.pnpm && { 'pnpm.io': json.engines.pnpm }),
+          },
+        };
+      }
+      if (json?.packageManager) { // corepack
+        // example: "pnpm@7.33.7+sha256.d1581d46ed10f54ff0cbdd94a2373b1f070202b0fbff29f27c2ce01460427043"
+        const match = json.packageManager.match(/^(?<pkg>[^@]+)@(?<version>[^+]+)/);
+
+        if (match) {
+          const { pkg, version } = match.groups as { pkg: string, version: string };
+
+          switch (pkg) {
+            case 'npm':
+              node = {
+                dependencies: {
+                  'npmjs.com': version,
+                },
+              };
+              break;
+            case 'yarn':
+              node = {
+                dependencies: {
+                  'yarnpkg.com': version,
+                },
+              };
+              break;
+            case 'pnpm':
+              node = {
+                dependencies: {
+                  'pnpm.io': version,
+                },
+              };
+              break;
+          };
+        }
+      }
+      if (json?.volta) {
+        node = {
+          dependencies: {
+            ...(json.volta.node && { 'nodejs.org': json.volta.node }),
+            ...(json.volta.npm && { 'npmjs.com': json.volta.npm }),
+            ...(json.volta.yarn && { 'yarnpkg.com': json.volta.yarn }),
+            ...(json.volta.pnpm && { 'pnpm.io': json.volta.pnpm }),
+          }
+        }
+      }
     }
     await parse_well_formatted_node(node)
     has_package_json = true

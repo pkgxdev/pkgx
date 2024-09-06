@@ -87,9 +87,10 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
               exec pkgx +${pkgstr} -- ${program} "$@"
             else
               cd "$(dirname "$0")"
-              rm ${programs.join(" ")} && echo "uninstalled: ${pkgstr}" >&2
+              rm -f ${programs.map(p => `'${p}'`).join(' ')} && echo "uninstalled: ${pkgstr}" >&2
             fi`
         }
+        
         const f = dst.mkdir('p').join(program)
 
         if (f.exists()) {

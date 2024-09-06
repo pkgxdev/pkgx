@@ -5,23 +5,23 @@
   },
   "tasks": {
     // runs this source checkout, args will be passed
-    "run": "deno run --unstable -A ./entrypoint.ts",
+    "run": "deno run --unstable-fs --unstable-ffi -A ./entrypoint.ts",
 
     // you can specify paths to specific tests if you need
     // follows is the ideal permissions lines, unfortunately deno considers making symlinks to require full read/write permissions for fuck knows why reasons
     //"test": "deno test --allow-read=$PWD,$TMPDIR,$HOME,/ --allow-env --allow-write=$TMPDIR --allow-ffi --unstable",
-    "test": "deno test --allow-read --allow-env --allow-write --allow-ffi --unstable",
+    "test": "deno test --unstable-ffi --allow-ffi --allow-read --allow-env --allow-write",
     // ^^ ffi & unstable needed for execve.ts
 
     // installs to /usr/local/bin/pkgx
     "install": "deno task compile && ./pkgx +gnu.org/coreutils /usr/bin/sudo install -D ./pkgx /usr/local/bin/pkgx",
 
     //--------------------------------------- ci/cd/admin
-    "coverage" : "scripts/run-coverage.sh",
-    "typecheck": "deno check --unstable ./entrypoint.ts",
-    "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable --output $INIT_CWD/pkgx ./entrypoint.ts"
+    "coverage": "scripts/run-coverage.sh",
+    "typecheck": "deno check ./entrypoint.ts",
+    "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable-ffi --unstable-fs --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
   },
-  "pkgx": "deno~1.39",
+  "pkgx": "deno~1.45.5",
   "lint": {
     "exclude": ["src/**/*.test.ts"]
   },
@@ -33,7 +33,7 @@
     "pkgx": "https://deno.land/x/libpkgx@v0.18.1/mod.ts",
     "pkgx/": "https://deno.land/x/libpkgx@v0.18.1/src/",
     "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
-    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.3/",
-    "deno/": "https://deno.land/std@0.196.0/" // cliffy is on 196 so we standardized on it
+    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.4/",
+    "deno/": "https://deno.land/std@0.221.0/" // cliffy is on 221 so we standardized on it
   }
 }
