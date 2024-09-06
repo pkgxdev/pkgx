@@ -8,7 +8,7 @@ brew install pkgxdev/made/pkgx
 
 # Other Ways to Install
 
-1. After `brew` our installer is easiest:
+1. After [`brew`] our installer is easiest:
 
 ```sh
 curl -fsS https://pkgx.sh | sh
