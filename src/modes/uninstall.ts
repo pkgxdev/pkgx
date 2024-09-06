@@ -1,5 +1,5 @@
 import parse_pkg_str from "../prefab/parse-pkg-str.ts"
-import { hooks, PackageRequirement, Path, PkgxError } from "pkgx"
+import { hooks, PackageRequirement, Path, PkgxError, utils } from "pkgx"
 
 export default async function(pkgspecs: string[]) {
   const pkgs = await Promise.all(pkgspecs.map(x => parse_pkg_str(x, {latest: 'ok'})))
@@ -11,6 +11,15 @@ export default async function(pkgspecs: string[]) {
 async function uninstall(prefix: Path, pkgs: PackageRequirement[]) {
   for (const pkg of pkgs) {
     const programs = await hooks.usePantry().project(pkg).provides()
+    const pkgstr = utils.pkg.str(pkg)
+    const config = hooks.useConfig()
+    const pkgdir = pkgstr.split("/").slice(0, -1).join("/")
+    //FIXME: it removes the dir successfully. however, it still complains that it didn't delete that
+    try {
+      config.cache.join(`pkgx/envs/${pkgdir}`).rm({recursive: true})
+    } catch (e) {
+      console.warn(e);
+    }
     for (const program of programs) {
       const f = prefix.join(program)
       if (f.isFile()) {

@@ -6,7 +6,12 @@ const { usePantry } = hooks
 
 // * maybe impl `$XDG_BIN_HOME`
 
-export default async function(pkgs: PackageRequirement[]) {
+export function is_unsafe(unsafe: boolean): boolean {
+    const env = parseInt(Deno.env.get("PKGX_UNSAFE_INSTALL") || "0") ? true : false;
+    return env || unsafe
+}
+
+export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
   const usrlocal = new Path("/usr/local/bin")
   let n = 0
 
@@ -30,6 +35,7 @@ export default async function(pkgs: PackageRequirement[]) {
   }
 
   async function write(dst: Path, pkgs: PackageRequirement[]) {
+    const UNSAFE = is_unsafe(unsafe)
     for (const pkg of pkgs) {
       const programs = await usePantry().project(pkg).provides()
       program_loop:
@@ -39,14 +45,52 @@ export default async function(pkgs: PackageRequirement[]) {
         if (program.includes("{{")) continue
 
         const pkgstr = utils.pkg.str(pkg)
-        const exec = `exec pkgx +${pkgstr} -- ${program} "$@"`
-        const script = undent`
-          if [ "$PKGX_UNINSTALL" != 1 ]; then
-            ${exec}
-          else
-            cd "$(dirname "$0")"
-            rm -f ${programs.map(p => `'${p}'`).join(' ')} && echo "uninstalled: ${pkgstr}" >&2
-          fi`
+
+        let script = ""
+
+        if (UNSAFE) {
+          const config = hooks.useConfig()
+          const pkgdir = pkgstr.split("/").slice(0, -1).join("/")
+          config.cache.join(`pkgx/envs/${pkgdir}`).mkdir("p")
+          //FIXME: doing `set -a` clears the args env
+          script = undent`
+            #MANAGED BY PKGX
+            if [ "$PKGX_UNINSTALL" != 1 ]; then
+              ARGS="$*"
+              ENV_FILE="$\{XDG_CACHE_DIR:-$HOME/.cache\}/pkgx/envs/${pkgstr}.env"
+              PKGX_DIR="$\{PKGX_DIR:-$HOME/.pkgx\}"
+
+              pkgx_resolve() {
+                mkdir -p "$(dirname "$ENV_FILE")"
+                pkgx +${pkgstr} 1>"$ENV_FILE"
+                run
+              }
+              run() {
+                if test -e "$ENV_FILE" && test -e "$PKGX_DIR/${pkgstr}/v*/bin/${program}"; then
+                  set -a
+                  # shellcheck source=$ENV_FILE
+                  . "$ENV_FILE"
+                  set +a
+                  exec "$PKGX_DIR/${pkgstr}/v*/bin/${program}" "$ARGS"
+                else
+                  pkgx_resolve
+                fi
+              }
+              run
+            else
+              cd "$(dirname "$0")" || exit
+              rm ${programs.join(" ")} && echo "uninstalled: ${pkgstr}" >&2
+            fi`
+        } else {
+          script = undent`
+            if [ "$PKGX_UNINSTALL" != 1 ]; then
+              exec pkgx +${pkgstr} -- ${program} "$@"
+            else
+              cd "$(dirname "$0")"
+              rm -f ${programs.map(p => `'${p}'`).join(' ')} && echo "uninstalled: ${pkgstr}" >&2
+            fi`
+        }
+        
         const f = dst.mkdir('p').join(program)
 
         if (f.exists()) {
@@ -66,9 +110,14 @@ export default async function(pkgs: PackageRequirement[]) {
               throw new PkgxError(`${f} already exists and is not a pkgx installation`)
             }
             const found = value.match(/^\s*exec pkgx \+([^ ]+)/)?.[1]
+            const unsafe_found = value.match(/#MANAGED BY PKGX/);
             if (found) {
               n++
               console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${found})`)}`)
+              continue program_loop
+            } else if (unsafe_found) {
+              n++
+              console.warn(`pkgx: already install: ${blurple(program)} ${dim("(UNSAFE)")}`);
               continue program_loop
             }
           }

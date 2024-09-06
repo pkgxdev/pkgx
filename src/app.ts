@@ -87,7 +87,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
   case 'install':
     try {
       await ensure_pantry()
-      await install(await Promise.all(opts.args.map(x => parse_pkg_str(x, {latest: 'ok'}))))
+      await install(await Promise.all(opts.args.map(x => parse_pkg_str(x, {latest: 'ok'}))), flags.unsafe)
     } catch (err) {
       if (err instanceof AmbiguityError) {
         err.ctx = 'install'
