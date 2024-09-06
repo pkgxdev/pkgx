@@ -4,6 +4,7 @@ import construct_env from "../prefab/construct-env.ts"
 import resolve_arg0 from "../prefab/resolve-arg0.ts"
 import { ProvidesError } from "../utils/error.ts"
 import get_shebang from "../utils/get-shebang.ts"
+import BaseLogger from "../utils/Logger.ts"
 import execve from "../utils/execve.ts"
 import host from "pkgx/utils/host.ts"
 const { usePantry, useSync } = hooks
@@ -84,7 +85,19 @@ async function find_it(args: string[], dry: PackageRequirement[]) {
   }
 
   // be just works: do a sync in case this has been recently added to the pantry
-  await _internals.useSync()
+  const logger = new BaseLogger('sync')
+  const printer = {
+    syncing() {
+      logger.replace('fetching')
+    },
+    caching() {
+      logger.replace('caching')
+    },
+    syncd() {
+      logger.clear()
+    }
+  }
+  await _internals.useSync(printer)
 
   wut = await find_arg0(args, dry)
   if (wut) {

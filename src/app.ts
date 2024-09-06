@@ -30,7 +30,20 @@ type Args = BaseArgs & { flags: { verbosity: number } }
 export default async function({ flags, ...opts }: Args, logger_prefix?: string) {
   if (flags.sync) {
     try {
-      await useSync()  //TODO Logger
+      const logger: Logger = new Logger('sync')
+      const printer = {
+        syncing() {
+          logger.replace('fetching')
+        },
+        caching() {
+          logger.replace('caching')
+        },
+        syncd() {
+          logger.clear()
+        }
+      }
+
+      await useSync(printer)  //TODO Logger
     } catch (err) {
       if (!flags.keepGoing) throw err
     }
