@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: denoland/setup-deno@v1
         with:
-          deno-version: "1.44.4"
+          deno-version: 1.44.4
       - uses: actions/checkout@v4
       - run: deno task compile
       - uses: actions/upload-artifact@v4
@@ -43,8 +43,8 @@ jobs:
 
       - name: prep
         run: |
-          apt-get update && apt-get --yes install bash libatomic1
-          chmod u+x /usr/local/bin/pkgx
+            apt-get update && apt-get --yes install bash libatomic1
+            chmod u+x /usr/local/bin/pkgx
 
       - run: |
           test -n "$BASH_VERSION"
@@ -138,7 +138,7 @@ jobs:
         run: |
           apt-get update && apt-get --yes install zsh libatomic1
           chmod u+x /usr/local/bin/pkgx
-        shell: sh # ∵ cannot be zsh until zsh is installed
+        shell: sh  # ∵ cannot be zsh until zsh is installed
 
       # NOTE matrix does not work for the shell key :-/
       - run: |
