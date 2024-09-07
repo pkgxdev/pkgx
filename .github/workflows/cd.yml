@@ -58,7 +58,7 @@ jobs:
     strategy:
       matrix:
         platform:
-        - os: macos-latest
+        - os: ["self-hosted", "macOS", "X64"]
           build-id: darwin+x86-64
         - os: ubuntu-latest
           build-id: linux+x86-64
