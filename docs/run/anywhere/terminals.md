@@ -1,6 +1,6 @@
 # Getting Started
 
-Installing with [`brew`] is most straight forward:
+Installing with [`homebrew`] is most straight forward:
 
 ```sh
 brew install pkgxdev/made/pkgx
@@ -8,7 +8,7 @@ brew install pkgxdev/made/pkgx
 
 # Other Ways to Install
 
-1. After [`brew`] our installer is easiest:
+1. After [`homebrew`] our installer is easiest:
 
 ```sh
 curl -fsS https://pkgx.sh | sh
@@ -55,7 +55,7 @@ The AURs are community-maintained and might be out-of-date. Use them with cautio
 {% endhint %}
 
 
-[`brew`]: https://brew.sh
+[`homebrew`]: https://brew.sh
 [GitHub Releases]: https://github.com/pkgxdev/pkgx/releases
 [installer]: https://github.com/pkgxdev/setup/blob/main/installer.sh
 [`pkgx` AUR]: https://aur.archlinux.org/packages/pkgx
