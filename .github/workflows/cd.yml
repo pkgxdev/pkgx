@@ -77,10 +77,16 @@ jobs:
           name: srcs
 
       - uses: pkgxdev/setup@v2
+        with:
+          +: unzip xz
 
       - run: pkgx +xz tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
 
-      - uses: pkgxdev/dev@v0
+      # we would prefer this, but our pkging is not stable enough :/
+    # - uses: pkgxdev/dev@v0
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: ~1.45
 
       - run: deno task compile
 
