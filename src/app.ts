@@ -112,7 +112,12 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     await ensure_pantry()
     const { update, pkgs: xopts } = await parse_xopts(opts.pkgs, flags.update)
     const pkgs = consolidate(xopts)
-    console.log(await env({pkgs, update, logger}))
+    const out = await env({pkgs, update, logger})
+    if (out.trim()) {
+      console.log(out)
+    } else {
+      console.error("empty env, try `pkgx --help`")
+    }
   } break
   case 'version':
     console.log(`pkgx ${version()}`)
