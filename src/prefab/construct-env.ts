@@ -37,7 +37,11 @@ export default async function(pkgenv: { installations: Installation[] }) {
 ///////////////////////// reworked from useShellEnv needs porting back to libpkgx
 async function mkenv({installations}: {installations: Installation[]}) {
   const projects = new Set(installations.map(x => `${x.pkg.project}@${x.pkg.version}`))
-  console.assert(projects.size == installations.length, "pkgx: env is being duped")
+
+  // we need to do this as well, since we allow multiple versions of e.g. unicode.org.
+  // however, if we *just* use this as `projects`, then tests below like `projects.has('cmake.org')` will fail
+  const projects_with_versions = new Set(installations.map(x => `${x.pkg.project}@${x.pkg.version}`))
+  console.assert(projects_with_versions.size == installations.length, "pkgx: env is being duped")
 
   const common_vars: Record<string, OrderedSet<string>> = {}
   const common_keys = new Set<string>()
