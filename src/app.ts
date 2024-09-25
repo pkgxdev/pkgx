@@ -115,7 +115,7 @@ export default async function({ flags, ...opts }: Args, logger_prefix?: string) 
     const out = await env({pkgs, update, logger})
     if (out.trim()) {
       console.log(out)
-    } else {
+    } else if (!flags.sync) {
       console.error("empty env, try `pkgx --help`")
     }
   } break
