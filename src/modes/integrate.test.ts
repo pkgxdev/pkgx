@@ -1,8 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
-import { afterEach, beforeEach, describe, afterAll, it } from "deno/testing/bdd.ts"
+import { afterEach, beforeEach, describe, afterAll, it } from "@std/testing/bdd"
 import specimen0, { _internals } from "./integrate.ts"
-import { assertRejects } from "deno/assert/mod.ts"
-import * as mock from "deno/testing/mock.ts"
+import { assertRejects } from "@std/assert"
+import * as mock from "@std/testing/mock"
 import { isString } from "is-what"
 import { Path } from "pkgx"
 

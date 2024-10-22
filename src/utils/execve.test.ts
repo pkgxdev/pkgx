@@ -1,7 +1,7 @@
-import { assertThrows } from "deno/assert/assert_throws.ts"
+import { assertThrows } from "@std/assert"
 import execve, { _internals } from "./execve.ts"
 import faker, { faker_args } from "./test-utils.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 import { Path } from "pkgx"
 
 Deno.test("execve.ts", async runner => {

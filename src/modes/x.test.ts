@@ -1,10 +1,10 @@
 // deno-lint-ignore-file require-await no-explicit-any
-import { assertEquals, assertRejects, fail } from "deno/assert/mod.ts"
+import { assertEquals, assertRejects, fail } from "@std/assert"
 import { Path, SemVer, PkgxError, semver } from "pkgx"
 import { faker_args } from "../utils/test-utils.ts"
 import { ProvidesError } from "../utils/error.ts"
 import specimen, { _internals } from "./x.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 
 //TODO use a testLib thing (libpkgx provides this)
 //TODO add faker methods for more of what we hardcode here

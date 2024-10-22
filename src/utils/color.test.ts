@@ -1,4 +1,4 @@
-import { assertEquals } from "deno/assert/mod.ts";
+import { assertEquals } from "@std/assert";
 import { blurple, dim, inverse_blurple } from "./color.ts";
 
 Deno.test("color", async runner => {

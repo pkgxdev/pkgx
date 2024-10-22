@@ -2,7 +2,7 @@
 import { semver, SemVer, Path, Installation, utils } from "pkgx"
 import { null_logger as logger } from "../utils/test-utils.ts"
 import specimen0, { _internals } from "./internal.use.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 
 Deno.test("internal.use.ts", async runner => {
 

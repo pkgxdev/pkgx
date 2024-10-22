@@ -1,4 +1,4 @@
-import { readLines } from "deno/io/read_lines.ts"
+import readLines from "pkgx/utils/read-lines.ts"
 import { Path, PkgxError } from "pkgx"
 
 export default async function(path: Path) {

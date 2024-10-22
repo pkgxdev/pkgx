@@ -1,7 +1,7 @@
-import { assertEquals, assertThrows } from "deno/assert/mod.ts"
+import { assertEquals, assertThrows } from "@std/assert"
 import specimen, { _internals } from "./construct-env.ts"
 import { Path, SemVer, semver, hooks } from "pkgx"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 
 Deno.test({
   name: "construct_env.ts",

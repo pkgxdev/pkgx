@@ -1,9 +1,9 @@
-import { writeAll } from "deno/io/write_all.ts"
-import { readAll } from "deno/io/read_all.ts"
-import { readLines } from "deno/io/read_lines.ts"
+import readLines from "pkgx/utils/read-lines.ts"
 import { Path, PkgxError, utils } from "pkgx"
 import announce from "../utils/announce.ts"
 import shellcode from "./shellcode.ts"
+import { writeAll } from "@std/io"
+import { readAll } from "@std/io"
 const { flatmap, host } = utils
 
 //TODO could be a fun efficiency excercise to maintain a separate write file-pointer

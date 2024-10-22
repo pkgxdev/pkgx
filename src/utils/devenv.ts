@@ -1,11 +1,11 @@
 import { PlainObject, isArray, isNumber, isPlainObject, isString } from "is-what"
 import { PackageRequirement, Path, semver, hooks, utils } from "pkgx"
 import { validatePackageRequirement } from "pkgx/hooks/usePantry.ts"
-import { parse as parseYaml } from "deno/yaml/parse.ts"
 import parse_pkg_str from "../prefab/parse-pkg-str.ts"
-import { readLines } from "deno/io/read_lines.ts"
+import readLines from "pkgx/utils/read-lines.ts"
+import { parse as parseYaml } from "@std/yaml"
 import { ProgrammerError } from "./error.ts"
-import * as JSONC from "deno/jsonc/mod.ts"
+import * as JSONC from "@std/jsonc"
 const { useMoustaches } = hooks
 
 export default async function(dir: Path) {

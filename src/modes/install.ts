@@ -90,7 +90,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
               rm -f ${programs.map(p => `'${p}'`).join(' ')} && echo "uninstalled: ${pkgstr}" >&2
             fi`
         }
-        
+
         const f = dst.mkdir('p').join(program)
 
         if (f.exists()) {

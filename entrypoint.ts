@@ -4,7 +4,7 @@
  */
 
 import { render as perror } from "./src/err-handler.ts"
-import { setColorEnabled } from "deno/fmt/colors.ts"
+import { setColorEnabled } from "@std/fmt/colors"
 import clicolor from "./src/utils/clicolor.ts"
 
 setColorEnabled(clicolor(Deno.stderr))

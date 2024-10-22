@@ -1,7 +1,7 @@
 import { null_logger as logger } from "../utils/test-utils.ts"
-import { assertEquals } from "deno/assert/mod.ts"
 import specimen, { _internals } from "./env.ts"
-import * as mock from "deno/testing/mock.ts"
+import { assertEquals } from "@std/assert"
+import * as mock from "@std/testing/mock"
 import { semver } from "pkgx"
 import undent from "outdent"
 

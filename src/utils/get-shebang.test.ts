@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "deno/assert/mod.ts"
+import { assertEquals, assertRejects } from "@std/assert"
 import specimen from "./get-shebang.ts"
 import undent from "outdent"
 import { Path } from "pkgx"

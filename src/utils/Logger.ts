@@ -1,5 +1,5 @@
-import { stripAnsiCode } from "https://deno.land/std@0.213.0/fmt/colors.ts"
-import { ansi } from "cliffy/ansi/ansi.ts"
+import { stripAnsiCode } from "@std/fmt/colors"
+import { ansi } from "@cliffy/ansi"
 import { dim } from "./color.ts"
 
 export default class Logger {

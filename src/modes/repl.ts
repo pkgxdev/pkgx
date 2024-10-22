@@ -1,7 +1,7 @@
 import construct_env from "../prefab/construct-env.ts"
 import install, { Logger } from "../prefab/install.ts"
 import { PackageRequirement, Path, PkgxError, utils } from "pkgx"
-import { basename } from "deno/path/mod.ts"
+import { basename } from "@std/path"
 import { dim } from "../utils/color.ts"
 import exec from "../utils/execve.ts"
 

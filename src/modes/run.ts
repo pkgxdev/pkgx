@@ -1,9 +1,9 @@
 import { PackageRequirement, PkgxError, hooks } from "pkgx"
 import parse_pkg_str from "../prefab/parse-pkg-str.ts"
 import construct_env from "../prefab/construct-env.ts"
-import { isString } from "deno/yaml/_utils.ts"
 import install, { Logger } from "../prefab/install.ts"
 import execve from "../utils/execve.ts"
+import { isString } from "is-what"
 
 export default async function(args: string[], opts: {
   update: boolean | Set<string>,

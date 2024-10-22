@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
-import { assertRejects, assertEquals } from "deno/assert/mod.ts"
+import { assertRejects, assertEquals } from "@std/assert"
 import specimen, { _internals } from "./resolve-arg0.ts"
 import { AmbiguityError } from "../utils/error.ts"
 import { faker_args } from "../utils/test-utils.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 import { Path, semver, SemVer } from "pkgx"
 
 Deno.test("resolve-arg0.ts", async runner => {
