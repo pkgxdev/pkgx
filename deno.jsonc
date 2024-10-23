@@ -17,7 +17,7 @@
     "typecheck": "deno check ./entrypoint.ts",
     "compile": "deno compile --lock=deno.lock --allow-all --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
   },
-  "pkgx": "deno^2",
+  "pkgx": "deno~2.0",
   "lint": {
     "exclude": ["src/**/*.test.ts"]
   },
