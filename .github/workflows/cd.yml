@@ -84,7 +84,7 @@ jobs:
 
       # we would prefer this, but our pkging is not stable enough :/
     # - uses: pkgxdev/dev@v0
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: ^2.0.2
 
