@@ -1,17 +1,13 @@
 {
   "compilerOptions": {
-    "allowJs": false,
     "strict": true
   },
   "tasks": {
     // runs this source checkout, args will be passed
-    "run": "deno run --unstable-fs --unstable-ffi --unstable-process -A ./entrypoint.ts",
+    "run": "deno run --allow-all ./entrypoint.ts",
 
     // you can specify paths to specific tests if you need
-    // follows is the ideal permissions lines, unfortunately deno considers making symlinks to require full read/write permissions for fuck knows why reasons
-    //"test": "deno test --allow-read=$PWD,$TMPDIR,$HOME,/ --allow-env --allow-write=$TMPDIR --allow-ffi --unstable",
-    "test": "deno test --unstable-ffi --allow-ffi --allow-read --allow-env --allow-write",
-    // ^^ ffi & unstable needed for execve.ts
+    "test": "deno test --allow-all",
 
     // installs to /usr/local/bin/pkgx
     "install": "deno task compile && ./pkgx +gnu.org/coreutils /usr/bin/sudo install -D ./pkgx /usr/local/bin/pkgx",
@@ -19,21 +15,27 @@
     //--------------------------------------- ci/cd/admin
     "coverage": "scripts/run-coverage.sh",
     "typecheck": "deno check ./entrypoint.ts",
-    "compile": "deno compile --lock=deno.lock --allow-read --allow-write --allow-net --allow-run --allow-env --allow-ffi --unstable-ffi --unstable-fs --unstable-process --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
+    "compile": "deno compile --lock=deno.lock --allow-all --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
   },
-  "pkgx": "deno~1.45",
+  "pkgx": "deno~2.0",
   "lint": {
     "exclude": ["src/**/*.test.ts"]
   },
   "fmt": {
-		"semiColons": false
+    "semiColons": false
   },
   "imports": {
+    "@cliffy/ansi": "jsr:@cliffy/ansi@^1.0.0-rc.7",
+    "@std/assert": "jsr:@std/assert@^1.0.6",
+    "@std/fmt": "jsr:@std/fmt@^1.0.2",
+    "@std/io": "jsr:@std/io@^0.225.0",
+    "@std/jsonc": "jsr:@std/jsonc@^1.0.1",
+    "@std/path": "jsr:@std/path@^1.0.6",
+    "@std/testing": "jsr:@std/testing@^1.0.3",
+    "@std/yaml": "jsr:@std/yaml@^1.0.5",
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
-    "pkgx": "https://deno.land/x/libpkgx@v0.19.1/mod.ts",
-    "pkgx/": "https://deno.land/x/libpkgx@v0.19.1/src/",
-    "outdent": "https://deno.land/x/outdent@v0.8.0/mod.ts",
-    "cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.4/",
-    "deno/": "https://deno.land/std@0.224.0/"
+    "outdent": "jsr:@cspotcode/outdent@^0.8",
+    "pkgx": "https://deno.land/x/libpkgx@v0.20.0/mod.ts",
+    "pkgx/": "https://deno.land/x/libpkgx@v0.20.0/src/"
   }
 }

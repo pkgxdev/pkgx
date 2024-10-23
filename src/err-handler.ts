@@ -3,7 +3,7 @@ import { AmbiguityError, ProgrammerError, ProvidesError } from "./utils/error.ts
 import announce from "./utils/announce.ts"
 import { red } from "./utils/color.ts"
 
-export default function(err: Error) {
+export default function(err: unknown) {
   if (err instanceof InstallationNotFoundError) {
     const subtitle = utils.pkg.str(err.pkg)
     render("not cached", subtitle, [], 'pkg-not-cached')
@@ -48,10 +48,12 @@ export default function(err: Error) {
     render('programmer error', undefined, [['this is a bug, please report it']], 'https://github.com/pkgxdev/pkgx/issues/new')
   } else if (err instanceof PkgxError) {
     console.error('%c × %s', 'color: red', err.message)
-  } else {
+  } else if (err instanceof Error) {
     const title = 'unexpected error'
     const ctx = err.stack?.split('\n').map(x => [x]) ?? [['no stack trace']]
     render(title, err.message, ctx, 'https://github.com/pkgxdev/pkgx/issues/new')
+  } else {
+    render('unknown error', `${err}`, [['no context']], 'https://github.com/pkgxdev/pkgx/issues/new')
   }
   return 1
 }

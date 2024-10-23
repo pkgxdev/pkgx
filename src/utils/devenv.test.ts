@@ -1,7 +1,7 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects, assertThrows } from "deno/assert/mod.ts"
+import { assert, assertEquals, assertRejects, assertThrows } from "@std/assert"
 import specimen, { _internals } from "./devenv.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 import { fixturesd } from "./test-utils.ts"
 import { Path, utils } from "pkgx"
 

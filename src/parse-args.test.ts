@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertThrows, fail } from "deno/assert/mod.ts"
+import { assert, assertEquals, assertThrows, fail } from "@std/assert"
 import { faker_args } from "./utils/test-utils.ts"
 import parse_args from "./parse-args.ts"
 import { UsageError } from "./utils/error.ts";

@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any require-await
-import { assert, assertEquals, assertFalse } from "deno/assert/mod.ts"
+import { assert, assertEquals, assertFalse } from "@std/assert"
 import { null_logger as logger  } from "../utils/test-utils.ts"
 import specimen, { _internals } from "./install.ts"
 import hydrate from "pkgx/plumbing/hydrate.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 import { Path, SemVer, semver } from "pkgx"
 
 Deno.test("install.ts", () => {

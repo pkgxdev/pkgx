@@ -1,9 +1,9 @@
 // deno-lint-ignore-file require-await
-import { assertEquals, assertRejects, assertThrows } from "deno/assert/mod.ts"
+import { assertEquals, assertRejects, assertThrows } from "@std/assert"
 import specimen, { NoEntrypointError, _internals } from "./run.ts"
 import { Path, SemVer, semver, hooks } from "pkgx"
 import { faker_args } from "../utils/test-utils.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 
 Deno.test("run.ts", async runner => {
   const opts = { pkgs: [], update: false, logger: { replace: () => {}, clear: () => {}, upgrade: () => null as any } }

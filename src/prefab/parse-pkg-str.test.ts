@@ -1,8 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
 import { ProvidesError, AmbiguityError } from "../utils/error.ts"
-import { assertRejects, assertEquals } from "deno/assert/mod.ts"
+import { assertRejects, assertEquals } from "@std/assert"
 import specimen, { _internals } from "./parse-pkg-str.ts"
-import * as mock from "deno/testing/mock.ts"
+import * as mock from "@std/testing/mock"
 
 Deno.test("parse-pkg-str.ts", async runner => {
 

@@ -1,4 +1,4 @@
-import { assertEquals } from "deno/assert/mod.ts"
+import { assertEquals } from "@std/assert"
 import shEscape from "./sh-escape.ts"
 
 Deno.test("shEscape", () => {

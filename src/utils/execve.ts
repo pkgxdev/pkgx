@@ -32,6 +32,7 @@ export default function({cmd: args, env}: {cmd: string[], env: Record<string, st
 
   switch (errno) {
     case 2:   //ENOENT:
+    case 22:  //EINVAL:  (on Linux we're getting this for file is not executable since Deno 2 :/)
     case 316: //FIXME ALERT! ALERT! BUG! SOMETHING IS WRONG WITH OUR USE OR ERRNO AND THIS SOMETIMES RESULTS, USUALLY ON MACOS :/
       // yes: strange behavior from execve here indeed
       if (parse_Path(args[0])?.exists()) {

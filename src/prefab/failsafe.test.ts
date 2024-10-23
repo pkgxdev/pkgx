@@ -1,8 +1,8 @@
 // deno-lint-ignore-file require-await
-import { assertEquals } from "deno/assert/assert_equals.ts"
+import { assertEquals } from "@std/assert"
 import specimen, { _internals } from "./failsafe.ts"
-import { assertRejects } from "deno/assert/mod.ts"
-import * as mock from "deno/testing/mock.ts"
+import { assertRejects } from "@std/assert"
+import * as mock from "@std/testing/mock"
 import { PackageNotFoundError } from "pkgx"
 
 Deno.test("failsafe.ts", async runner => {
