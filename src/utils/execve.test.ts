@@ -57,8 +57,6 @@ Deno.test("execve.ts", async runner => {
     const f = Path.mktemp().join(args[0]).touch()
     args[0] = f.string
 
-    console.error(f)
-
     assertThrows(
       () => execve({ cmd: args, env: {} }),
       Deno.errors.PermissionDenied
