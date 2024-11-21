@@ -86,7 +86,7 @@ jobs:
     # - uses: pkgxdev/dev@v0
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: ^2.1.0
+          deno-version: ^2.1.1
 
       - run: deno task compile
 
