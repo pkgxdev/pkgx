@@ -80,6 +80,7 @@ Deno.test("devenv.ts", async runner => {
           'pnpm.io@7.33.7',
         ],
         [".node-version", "nodejs.org@16.16.0"],
+        [".nvmrc", "nodejs.org^20"],
         ["python-version/std/.python-version", "python.org~3.10"],
         ["python-version/commented/.python-version", "python.org~3.11"],
         [".ruby-version", "ruby-lang.org@3.2.1"],
