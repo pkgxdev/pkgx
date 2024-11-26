@@ -71,7 +71,7 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
                   # shellcheck source=$ENV_FILE
                   . "$ENV_FILE"
                   set +a
-                  exec "$PKGX_DIR/${pkgstr}/v*/bin/${program}" "$ARGS"
+                  exec "$PKGX_DIR/${pkgstr}/v*/bin/${program}" $ARGS
                 else
                   pkgx_resolve
                 fi
