@@ -107,6 +107,9 @@ export default async function(dir: Path) {
       case "Justfile":
         pkgs.push({ project: 'just.systems', constraint })
         break
+      case "Taskfile.yml":
+        pkgs.push({ project: 'taskfile.dev', constraint })
+        break
       }
     } else if (isDirectory) {
       switch (name) {
