@@ -1,4 +1,4 @@
-import { PackageNotFoundError, hooks } from "pkgx"
+import { PackageNotFoundError, PantryNotFoundError, hooks } from "pkgx"
 import Logger from "../utils/Logger.ts"
 const { useSync } = hooks
 
@@ -6,7 +6,7 @@ export default async function failsafe<T>(body: () => Promise<T>): Promise<T> {
   try {
     return await body()
   } catch (err) {
-    if (err instanceof PackageNotFoundError) {
+    if (err instanceof PackageNotFoundError || err instanceof PantryNotFoundError) {
       const logger: Logger = new Logger('sync')
       const printer = {
         syncing() {
