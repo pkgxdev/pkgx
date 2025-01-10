@@ -1,0 +1,36 @@
+# https://github.com/BamPeers/rust-ci-github-actions-workflow
+
+# TODO:
+# on:
+#   release:
+#     types: [published]
+
+# name: Release Packaging
+
+# jobs:
+#   release:
+#     name: Release Packaging
+#     env:
+#       PROJECT_NAME_UNDERSCORE: pkgx
+#       RUSTFLAGS: "-D warnings"
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: dtolnay/rust-toolchain@stable
+#       - name: Release Build
+#         run: cargo build --release
+#       - name: "Upload Artifact"
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: ${{ env.PROJECT_NAME_UNDERSCORE }}
+#           path: target/release/${{ env.PROJECT_NAME_UNDERSCORE }}
+
+#   publish:
+#     name: Publish to crates.io
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: dtolnay/rust-toolchain@stable
+#       - uses: katyo/publish-crates@v2
+#         with:
+#           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}

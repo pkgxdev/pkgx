@@ -1,32 +1,17 @@
-# use banner rather than an h1 at the top of the file
+default:
+  true
+
+MD013:
+  code_blocks: false
+  tables: false
+
+# Honestly most of the lint rules are absurd, we disable these *at least*
+
+# First line in a file should be a top-level heading
 MD041: false
-
-# extra lines to offset content
-MD012: false
-
-# skipping heading levels as needed for display purposes
-MD001: false
-
-# "prompts" in code examples
-MD014: false
-
-# consecutive distinct blockquotes
-MD028: false
-
-# sometimes, you need HTML: <details>
-MD033: false
-
-# duplicate headers are sometimes useful
-MD024: false
-
-# can't split up a table row
-MD013: false
-
-# some titles end in 'etc.'
-MD026: false
-
-# gitbook provides its own top-level heading so we use `#` as `##`
+# Multiple top-level headings in the same document
 MD025: false
-
-# this is working around gitbook styling issues
-MD029: false
+# Inline HTML
+MD033: false
+# Multiple consecutive blank lines
+MD012: false

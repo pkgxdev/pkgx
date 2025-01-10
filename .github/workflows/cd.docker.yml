@@ -17,7 +17,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: robinraju/release-downloader@v1.9
+      - uses: robinraju/release-downloader@v1.11
         with:
           releaseId: ${{ github.event.release.id }}
 
@@ -34,6 +34,8 @@ jobs:
           mkdir products
           mv linux+x86-64 products/x86_64
           mv linux+aarch64 products/aarch64
+
+          curl -o products/pkgm https://pkgxdev.github.io/pkgm/pkgm.ts
 
       - uses: actions/checkout@v4
         with:

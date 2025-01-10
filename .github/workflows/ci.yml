@@ -1,72 +1,104 @@
-name: ci
-
 on:
   pull_request:
-    paths:
-      - deno.jsonc
-      - '**/*.ts'
-      - .github/workflows/ci.yml
-  workflow_call:
   push:
-    branches: main
+    branches:
+      - main
     paths:
-      - deno.jsonc
-      - '**/*.ts'
-      - .github/workflows/ci.yml
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - Cargo.lock
+
+name: ci·rs
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ci/rs/${{ github.ref }}
   cancel-in-progress: true
 
-jobs:
-  tests:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-    steps:
-      - run: echo 'TMPDIR=/tmp' >> $GITHUB_ENV
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2   # using ourself to install deno could compromise the tests
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check
+        env:
+          RUSTFLAGS: "-D warnings"
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          deno-version: ^2.1.4
-      - run: deno cache **/*.test.ts
-      - run: deno task test --coverage=cov_profile --no-check
-      - run: deno coverage cov_profile --lcov --exclude=tests/ --output=cov_profile.lcov
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - run: cargo clippy --all-features
+        env:
+          RUSTFLAGS: "-D warnings"
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all-features
+        env:
+          RUSTFLAGS: "-D warnings"
+
+  smoke:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    needs: [check]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo run --all-features -- git --version
+
+  coverage:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-tarpaulin
+      - run: cargo tarpaulin -o lcov --output-dir coverage
       - uses: coverallsapp/github-action@v2
         with:
-          path-to-lcov: cov_profile.lcov
+          path-to-lcov: coverage/lcov.info
           parallel: true
           flag-name: ${{ matrix.os }}
 
   upload-coverage:
-    needs: tests
+    needs: coverage
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - uses: coverallsapp/github-action@v2
         with:
           parallel-finished: true
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2   # using ourself to install deno could compromise the tests
-        with:
-          deno-version: ^2.1.4
-      - run: deno lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: ^2.1.4
-      - run: deno task typecheck

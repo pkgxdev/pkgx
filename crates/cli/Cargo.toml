@@ -1,0 +1,27 @@
+[package]
+name = "pkgx"
+description = "Run anything"
+authors = ["Max Howell <mxcl@me.com>", "Jacob Heider <jacob@pkgx.dev>"]
+license = "Apache-2.0"
+version = "2.0.0"
+edition = "2021"
+repository = "https://github.com/pkgxdev/pkgx"
+
+[dependencies]
+tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
+rusqlite = "0.32.1"
+regex = "1.11.1"
+indicatif = "0.17.9"
+nix = { version = "0.29.0", features = ["process"] }
+serde_json = "1.0.135"
+libpkgx = { path = "../lib" }
+console = { version = "0.15", default-features = false, features = ["ansi-parsing"] }
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+rusqlite = { version = "0.32.1", features = ["bundled"] }
+native-tls = { version = "0.2", features = ["vendored"] }
+# ^^ this is a transitive dependency
+# ^^ we vendor OpenSSL ∵ we want to be standalone and just work inside minimal docker images
+
+[profile.release]
+lto = "fat"

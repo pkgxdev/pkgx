@@ -15,13 +15,13 @@ pkgx node start
 Is in fact implicitly:
 
 ```sh
-pkgx +node node start
+pkgx +node -- node start
 ```
 
 Which more precisely† is in fact:
 
 ```sh
-pkgx +nodejs.org node start
+pkgx +nodejs.org -- node start
 ```
 
 > † see [disambiguation](pkgx-cmd.md#disambiguation)
@@ -44,18 +44,8 @@ XDG_DATA_DIRS=~/.pkgx/unicode.org/v71.1.0/share:~/.pkgx/zlib.net/v1.2.13/share:~
 DYLD_FALLBACK_LIBRARY_PATH=~/.pkgx/unicode.org/v71.1.0/lib:~/.pkgx/openssl.org/v1.1.1u/lib:~/.pkgx/zlib.net/v1.2.13/lib
 ```
 
-This is a composable primitive, and is used by our [shellcode](shellcode.md),
-eg. `env +node` is basically just:
+This is a composable primitive, you could imagine `pkgx npm start` to be:
 
 ```sh
-$ eval "$(pkgx +node)"
-
-$ node --version
-Node.js v20.5.0
-```
-
-And thus you could imagine `pkgx npm start` to be:
-
-```sh
-env "$(pkgx +node)" npm start
+env "$(pkgx +npmjs.org)" npm start
 ```
