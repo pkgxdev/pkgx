@@ -1,8 +1,0 @@
-# ---
-# dependencies:
-#   zlib.net: ^1.2
-# env:
-#   FOO: BAR
-# ---
-gem 'rails', '5.0.0'
-gem 'sqlite3'

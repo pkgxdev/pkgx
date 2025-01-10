@@ -20,3 +20,6 @@ jobs:
       - uses: fischerscode/tagger@v0
         with:
           prefix: v
+      - run: |
+          git tag -f latest
+          git push origin latest --force

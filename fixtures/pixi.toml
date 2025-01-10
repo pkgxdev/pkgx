@@ -1,7 +1,0 @@
-# ---
-# dependencies:
-#   zlib.net: ^1.2
-#   python.org: '@latest'
-# env:
-#   FOO: BAR
-# ---

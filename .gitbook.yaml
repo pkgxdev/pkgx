@@ -1,20 +1,26 @@
 root:
   ./docs/
 redirects:
-  pantry: pantry.md
-  shell-integration: shell-integration.md
-  shellcode: shell-integration.md
-  getting-started: run/anywhere/terminals.md
-  quickstart: run/anywhere/terminals.md
-  installing-w/out-brew: run/anywhere/terminals.md
-  docker: run/anywhere/docker.md
-  ci-cd: run/anywhere/ci-cd.md
-  scripts: run/anywhere/scripts.md
-  editors: run/anywhere/editors.md
-  pkgx-install: pkgx-install.md
-  install: pkgx-install.md
-  support: support.md
-  dev: dev.md
+  installing-w/out-brew: getting-started.md
+  pantry: pkging/pantry.md
+  getting-started: getting-started.md
+  quickstart: getting-started.md
+
   help/pkg-not-cached: https://github.com/orgs/pkgxdev/discussions/new?category=help&title=pkg-not-cached
   help/http-failure: https://github.com/orgs/pkgxdev/discussions/new?category=help&title=http-failure
   help/ambiguous-pkgspec: https://github.com/orgs/pkgxdev/discussions/new?category=help&title=ambiguous-pkgspec
+
+  # links should never die
+  docker: getting-started.md
+  ci-cd: getting-started.md
+  scripts: scripting.md
+  run/anywhere/terminals.md: getting-started.md
+  run/anywhere/docker.md: getting-started.md
+  run/anywhere/ci-cd.md: getting-started.md
+  run/anywhere/scripts.md: scripting.md
+  pantry.md: pkging/pantry.md
+  pantry-api.md: pkging/pantry.md
+  pkgx-install: https://github.com/pkgxdev/pkgm
+  install: https://github.com/pkgxdev/pkgm
+  support: https://github.com/pkgxdev/discussions
+  dev: https://github.com/pkgxdev/dev
