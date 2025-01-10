@@ -1,0 +1,27 @@
+name: cd·crates
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      release-id:
+        required: true
+
+concurrency:
+  group: cd/crates/${{ github.event.release.tag_name || github.event.inputs.release-id }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.event.inputs.release-id }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: katyo/publish-crates@v2
+        with:
+          args: --all-features
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}

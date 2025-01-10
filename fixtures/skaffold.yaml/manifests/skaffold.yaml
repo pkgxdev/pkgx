@@ -1,9 +1,0 @@
-apiVersion: v4beta7
-kind: Config
-metadata:
-  name: skaffold-fixture
-manifests:
-  kpt: []
-  kustomize: {}
-  helm:
-    releases: []

@@ -1,5 +1,2 @@
+/target
 .DS_Store
-/pkgx
-
-.idea/
-cov_profile**

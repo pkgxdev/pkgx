@@ -43,19 +43,26 @@ if [ $v_new = $v_latest ]; then
   exit 1
 fi
 
-gum confirm "prepare draft release for $v_new?" || exit 1
-
-git push origin main
-
 is_prerelease=$(_is_prerelease $v_new)
 
-gh release create \
-  v$v_new \
-  --draft=true \
-  --prerelease=$is_prerelease \
-  --generate-notes \
-  --notes-start-tag=v$v_latest \
-  --title=v$v_new
+if ! gh release view v$v_new >/dev/null 2>&1; then
+  gum confirm "prepare draft release for $v_new?" || exit 1
+
+  gh release create \
+    v$v_new \
+    --draft=true \
+    --prerelease=$is_prerelease \
+    --generate-notes \
+    --notes-start-tag=v$v_latest \
+    --title=v$v_new
+
+  git push origin main
+else
+  gum format "> existing $v_new draft found, using that"
+  echo  #spacer
+
+  git push origin main
+fi
 
 gh workflow run cd.yml --raw-field version="$v_new"
 # ^^ infuriatingly does not tell us the ID of the run

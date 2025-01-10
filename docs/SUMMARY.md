@@ -2,35 +2,34 @@
 
 * [Highlights](README.md)
 
-## Run Anywhere
+---
 
-* [`pkgx` & Terminals](run/anywhere/terminals.md)​
-* [`pkgx` & Scripting](run/anywhere/scripts.md)
-* [`pkgx` & Docker](run/anywhere/docker.md)
-* [`pkgx` & CI/CD](run/anywhere/ci-cd.md)
-* [`pkgx` & Editors](run/anywhere/editors.md)
+* [Getting Started](getting-started.md)
 
+## `pkgx`
 
-## Using `pkgx`
+* [Running Commands](pkgx.md)
+* [Scripting](scripting.md)
 
-* [Run Anything](running-anything.md)
-* [Shell Integration](shell-integration.md)
-* [`pkgx install`](pkgx-install.md)
+## The `pkgx` Ecosystem
 
-
-## Using `dev`
-
-* [`dev`](dev.md)
+* [`dev`](https://github.com/pkgxdev/dev)
+* [`pkgm`](https://github.com/pkgxdev/pkgm)
+* [`mash`](https://github.com/pkgxdev/mash)
 ​
 
 ## Appendix
 
 * [FAQ](faq.md)
 * Deeper Dives
-  * [Shellcode Mechanics and User Manual](deeper-dives/shellcode.md)
   * [How `pkgx` Works: A Conceptual Overview](deeper-dives/conceptual-overview.md)
   * [Using `pkgx` with a C/C++ Pipeline](deeper-dives/c++.md)
 * Packaging
-  * [Contributing pkgs](pantry.md)
-  * [API](pantry-api.md)
-* [Feedback & Support](support.md)
+  * [Contributing Packages](pkging/pantry.md)
+  * [API](pkging/pantry-api.md)
+
+## Linktree
+
+* [GitHub](https://github.com/pkgxdev/)
+* [Discord](https://discord.gg/rNwNUY83XS)
+* [𝕏](https://x.com/pkgxdev)
