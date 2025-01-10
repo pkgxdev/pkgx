@@ -13,7 +13,7 @@ jobs:
   bump-tap:
     runs-on: ubuntu-latest
     steps:
-    - uses: aurelien-baudet/workflow-dispatch@v2
+    - uses: aurelien-baudet/workflow-dispatch@v4
       with:
         workflow: bump.yml
         repo: pkgxdev/homebrew-made

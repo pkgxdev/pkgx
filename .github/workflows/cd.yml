@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
+        description: version *w/out* the v prefix
         required: true
 
 concurrency:
@@ -14,14 +15,20 @@ concurrency:
 
 jobs:
   qa:
-    uses: ./.github/workflows/ci.yml
-
-  integration-tests:
-    uses: ./.github/workflows/ci.shellcode.yml
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all-features
+        env:
+          RUSTFLAGS: "-D warnings"
 
   attach-srcs:
     runs-on: ubuntu-latest
-    needs: [qa, integration-tests]
+    needs: qa
     env:
       FILENAME: pkgx-${{ github.event.inputs.version }}
     steps:
@@ -30,8 +37,6 @@ jobs:
           path: ${{ env.FILENAME }}
       - name: clean
         run: rm -rf ${{ env.FILENAME }}/.github .gitbook.yml
-      - name: stamp version.ts
-        run: echo "export default function() { return '${{github.event.inputs.version}}' }" > $FILENAME/src/modes/version.ts
       - name: include GPG pubkey
         run: echo "${{ secrets.GPG_PUBLIC_KEY }}" | base64 -d > $FILENAME/pkgx.dev.pub.asc
       - run: tar cJf $FILENAME.tar.xz $FILENAME
@@ -61,14 +66,17 @@ jobs:
         - os: ["self-hosted", "macOS", "X64"]
           build-id: darwin+x86-64
         - os: ubuntu-latest
+          container: debian:buster-slim
           build-id: linux+x86-64
         - os: [self-hosted, macOS, ARM64]
           build-id: darwin+aarch64
         - os: [self-hosted, linux, ARM64]
           build-id: linux+aarch64
+          pkgs: llvm.org perl gnu.org/make xz
       fail-fast: false
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
+    container: ${{ matrix.platform.container }}
     env:
       FILENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}.tar.xz
     steps:
@@ -78,31 +86,41 @@ jobs:
 
       - uses: pkgxdev/setup@v2
         with:
-          +: unzip xz
+          +: ${{ matrix.platform.pkgs }}
 
-      - run: pkgx +xz tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
+      - name: Prep
+        run: |
+          case ${{ matrix.platform.build-id }} in
+          linux+aarch64)
+            echo AR=llvm-ar >> $GITHUB_ENV;;
+          linux+x86-64)
+            apt-get update
+            apt-get install curl gcc perl-modules openssl make xz-utils --yes;;
+          esac
+        # ^^ gpg-agent due to worrying bug running gpg with `pkgx` which I cannot debug RN
 
-      # we would prefer this, but our pkging is not stable enough :/
-    # - uses: pkgxdev/dev@v0
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: ^2.1.4
+      - run: tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
 
-      - run: deno task compile
+      - uses: dtolnay/rust-toolchain@stable
 
-      - uses: pkgxdev/brewkit/actions/setup-codesign@v0
+      - run: |
+          cargo build --release
+          mv target/release/pkgx .
+          strip ./pkgx
+
+      - uses: pkgxdev/pantry/.github/actions/setup@main
         if: startsWith(matrix.platform.build-id, 'darwin+')
         with:
             p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
             p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
+            APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
 
-      # codesign always fails for deno binaries, even though it
-      # signs fine. See https://github.com/denoland/deno/issues/575
       - run: codesign
           --sign "$APPLE_IDENTITY" --force
-          --preserve-metadata=entitlements,requirements,flags,runtime ./pkgx || true
+          --preserve-metadata=entitlements,requirements,flags,runtime ./pkgx
         env:
           APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+        if: startsWith(matrix.platform.build-id, 'darwin+')
 
       - name: sanity check
         run: test "$(./pkgx --version)" = "pkgx ${{ github.event.inputs.version }}"
@@ -113,8 +131,9 @@ jobs:
         # NOTE the +sqlite3 is a bug that we can’t figure out that only fails
         # on darwin aarch64 in CI, the sqlite dep is not installed for some
         # reason. Works locally! So we're confused and stuck.
+        # NOTE the pkgx^1 because pkgx^2 deployment woes
         run: |
-          ./pkgx gpg-agent --daemon || true
+          ./pkgx pkgx^1 gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
             base64 -d | \
             ./pkgx +sqlite3 gpg --import --batch --yes

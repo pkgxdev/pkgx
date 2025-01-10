@@ -1,9 +1,9 @@
-name: ci·markdown-lint
+name: ci·md
 
 on:
   pull_request:
     paths:
-      - '**.md'
+      - 'docs/**.md'
       - .github/workflows/ci.md.yml
 
 concurrency:

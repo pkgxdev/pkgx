@@ -1,9 +1,0 @@
-# ---
-# dependencies:
-#   zlib.net: ^1.2
-# env:
-#   FOO: BAR
-# ---
-
-[project]
-name = "pkgx example"

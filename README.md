@@ -1,6 +1,6 @@
 ![pkgx.dev](https://pkgx.dev/banner.png)
 
-`pkgx` is a single, *standalone binary* that can *run anything*.
+`pkgx` is a 4MB, *standalone* binary that can *run anything*.
 &nbsp;&nbsp;[![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
 
 &nbsp;
@@ -9,11 +9,10 @@
 ### Quickstart
 
 ```sh
-brew install pkgxdev/made/pkgx
+brew install pkgxdev/made/pkgx || sh <(curl https://pkgx.sh)
 ```
 
-> * [docs.pkgx.sh/installing-w/out-brew]
-> * [Migrating from v0](https://blog.pkgx.dev/pkgx-1-0-0-alpha-1/)
+> [docs.pkgx.sh/installing-w/out-brew]
 
 &nbsp;
 
@@ -25,12 +24,12 @@ $ deno
 command not found: deno
 
 $ pkgx deno
-Deno 1.36.3
+Deno 2.1.4
 > ^D
 
 $ deno
 command not found: deno
-# ^^ nothing was installed; your system remains untouched
+# ^^ nothing was installed; your wider system is untouched
 ```
 
 
@@ -96,15 +95,15 @@ Python 2.7.18
 * <details><summary>CI/CD</summary><br>
 
   ```yaml
-  - uses: pkgxdev/setup@v1
+  - uses: pkgxdev/setup@v2
   - run: pkgx shellcheck
   ```
 
   Or in other CI/CD providers:
 
   ```sh
-  $ curl https://pkgx.sh | sh
-  $ pkgx shellcheck
+  curl https://pkgx.sh | sh
+  pkgx shellcheck
   ```
 
   > [docs.pkgx.sh/ci-cd]
@@ -149,106 +148,217 @@ Python 2.7.18
 
 &nbsp;
 
+# The `pkgx` Ecosystem
 
-# Shell Integration
-
-`pkgx` puts the whole open source ecosystem at your fingertips and its
-***optional*** shell integration makes workflows with that open source
-even more seamless.
-
-```sh
-$ env +go@1.16    # do `pkgx integrate --dry-run` first
-added ~/.pkgx/go.dev/v1.16 to environment
-
-(+go) $ go
-Go is a tool for managing Go source code.
-#…
-
-(+go) $ env | grep go
-PATH=~/.pkgx/go.dev/v1.16.15/bin:$PATH
-LIBRARY_PATH=~/.pkgx/go.dev/v1.16.15/lib
-
-(+go) $ env -go
-removed ~/.pkgx/go.dev/v1.16 from environment
-
-$ go
-command not found: go
-```
-
-Tools are available for the duration of your terminal session.
-If you need them for longer, eg. `pkgx install go`.
-
-> [docs.pkgx.sh/shell-integration] \
-> [docs.pkgx.sh/pkgx-install]
+`pkgx` is not just a package runner, it’s a composable primitive that can be
+used to build a whole ecosystem of tools.
 
 ## `dev`
 
-`dev` is a separate tool that leverages pkgx's core
-features to auto-detect and install project dependencies, seamlessly
-integrating them into your shell and editor.
+`dev` uses `pkgx` and shellcode to create “virtual environments” consisting
+of the specific versions of tools and their dependencies you need for your
+projects.
 
 ```sh
-my-rust-proj $ dev    # do `pkgx integrate --dry-run` first
-dev: found Cargo.toml; env +cargo +rust
+$ cd my-rust-proj && ls
+Cargo.toml  src/
 
-(+cargo+rust) my-rust-proj $ cargo build
+my-rust-proj $ cargo build
+command not found: cargo
+
+my-rust-proj $ dev
++rust +cargo
+
+my-rust-proj $ cargo build
 Compiling my-rust-proj v0.1.0
 #…
 ```
 
-The `dev` tool requires our shell integration to work.
+> [github.com/pkgxdev/dev][dev]
 
-> [docs.pkgx.sh/dev][dev]
+
+## `pkgm`
+
+`pkgm` installs `pkgx` packages to `/usr/local`. It installs alongside `pkgx`.
+
+> [github.com/pkgxdev/pkgm][pkgm]
+
+
+## Scripting
+
+A powerful use of `pkgx` is scripting, eg. here’s a script to release new
+versions to GitHub:
+
+```sh
+#!/usr/bin/env -S pkgx +gum +gh +npx +git bash>=4 -eo pipefail
+
+gum format "# determining new version"
+
+versions="$(git tag | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+')"
+v_latest="$(npx -- semver --include-prerelease $versions | tail -n1)"
+v_new=$(npx -- semver bump $v_latest --increment $1)
+
+gum format "# releasing v$v_new"
+
+gh release create \
+  $v_new \
+  --title "$v_new Released 🎉" \
+  --generate-notes \
+  --notes-start-tag=v$v_latest
+```
+
+Above you can see how we “loaded” the shebang with `+pkg` syntax to bring in
+all the tools we needed.
+
+> We have pretty advanced versions of the above script, eg
+> [teaBASE][teaBASE-release-script]
+
+There’s tools for just about every language ecosystem so you can import
+dependencies. For example, here we use `uv` to run a python script with
+pypi dependencies, and pkgx to load both `uv` and a specific python version:
+
+```sh
+#!/usr/bin/env -S pkgx +python@3.11 uv run --script
+
+# /// script
+# dependencies = [
+#   "requests<3",
+#   "rich",
+# ]
+# ///
+
+import requests
+from rich.pretty import pprint
+
+resp = requests.get("https://peps.python.org/api/peps.json")
+data = resp.json()
+pprint([(k, v["title"]) for k, v in data.items()][:10])
+```
+
+> [!TIP]
+>
+> ### Mash
+>
+> We love scripting with `pkgx` so much that we made a whole package manager
+> for scripts to show the world what is possible when the whole open source
+> ecosystem is available to your scripts Check it out [`mash`].
+
+## Recursive Run
+
+Easily run tools from other language ecosystems:
+
+```sh
+pkgx uvx cowsay "Run Python (PyPi) programs with `uvx`"  # or pipx
+pkgx bunx cowsay "Run JavaScript (NPM) programs tools with `bunx`"  # or `npx`
+```
+
+## Magic
+
+It can be fun to add magic to your shell:
+
+```sh
+# add to ~/.zshrc
+command_not_found_handler() {
+  pkgx -- "$@"
+}
+```
+
+Thus if you type `gh` and it’s not installed pkgx will magically run it as
+though it was installed all along.
+
+> [!NOTE]
+> Bash is the same function but drop the `r` from the end of the name.
 
 &nbsp;
 
 
+# Further Reading
 
-# Getting Started
-
-```sh
-brew install pkgxdev/made/pkgx
-```
-
-> no `brew`? [docs.pkgx.sh/installing-w/out-brew]
-
-### Integrating with your Shell
-
-```sh
-pkgx integrate --dry-run   # docs.pkgx.sh/shell-integration
-```
-
-## Further Reading
-
-[docs.pkgx.sh][docs] is a comprehensive manual and user guide for `pkgx`.
+[docs.pkgx.sh][docs] is a comprehensive manual and user guide for the `pkgx`
+suite.
 
 &nbsp;
 
+
+# Migrating from `pkgx`^1
+
+## Shellcode
+
+The `pkgx` suite has had its scopes tightened. There is no shellcode in `pkgx`
+anymore. Instead [`dev`] is its own separate tool that has its own shellcode.
+Migrate your shell configuration with:
+
+```sh
+pkgx pkgx^1 deintegrate
+pkgx dev integrate
+```
+
+## `env +foo`
+
+If you used this, let us know, we can make a mash script to provide this
+functionality again. You can achieve the same result as eg. `env +git` with:
+
+```sh
+eval "$(pkgx +git)"
+```
+
+Surround the `eval` with `set -a` and `set +a` if you need the environment
+exported.
+
+## `pkgx install`
+
+We now provide [`pkgm`][pkgm] but if you miss the leanness of “stubs” we provide a
+[`mash`] script to create stubs in `/usr/local/bin`:
+
+```sh
+$ pkgx mash pkgx/stub git
+created stub: /usr/local/bin/git
+
+$ cat /usr/local/bin/git
+#!/bin/sh
+exec pkgx git "$@"
+```
+
+&nbsp;
 
 
 # Contributing
 
+We recommend using [`dev`] to make rust available.
+
 * To add packages see the [pantry README]
-* To hack on `pkgx` itself; clone it and then `pkgx deno task` to list
-  entrypoints for hackers
+* To hack on `pkgx` itself; clone it and `cargo build`
+  * [`hydrate.rs`] is where optimization efforts will bear most fruit
 
-If you have questions or feedback:
+## Pre-PR Linting
 
+```sh
+cargo fmt --all --check
+cargo clippy --all-features
+pkgx npx markdownlint --config .github/markdownlint.yml --fix .
+```
+
+# Chat / Support / Questions
+
+We love a good chinwag.
+
+* [Discord](https://discord.gg/rNwNUY83XS)
 * [github.com/orgs/pkgxdev/discussions][discussions]
-* [x.com/pkgxdev](https://x.com/pkgxdev) (DMs are open)
-
 
 [docs]: https://docs.pkgx.sh
 [pantry README]: ../../../pantry#contributing
 [discussions]: ../../discussions
-[docs.pkgx.sh/pkgx-install]: https://docs.pkgx.sh/pkgx-install
 [docs.pkgx.sh/ci-cd]: https://docs.pkgx.sh/ci-cd
 [docs.pkgx.sh/scripts]: https://docs.pkgx.sh/scripts
 [docs.pkgx.sh/editors]: https://docs.pkgx.sh/editors
 [docs.pkgx.sh/docker]: https://docs.pkgx.sh/docker
 [docs.pkgx.sh/installing-w/out-brew]: https://docs.pkgx.sh/installing-w/out-brew
-[docs.pkgx.sh/shell-integration]: https://docs.pkgx.sh/shell-integration
-[dev]: https://docs.pkgx.sh/dev
+[dev]: https://github.com/pkgxdev/dev
+[pkgm]: https://github.com/pkgxdev/pkgm
+[teaBASE-release-script]: https://github.com/teaxyz/teaBASE/blob/main/Scripts/publish-release.sh
+[`hydrate.rs`]: src/hydrate.rs
+[`mash`]: https://github.com/pkgxdev/mash
+[`dev`]: https://github.com/pkgxdev/dev
 
 [coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main

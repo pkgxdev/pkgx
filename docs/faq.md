@@ -8,45 +8,27 @@ Typically you want to upgrade `pkgx` so either:
 2. `curl -LSsf pkgx.sh | sh`
 
 > [!NOTE]
-> Indeed! Our installer installs and upgrades too.
-
-OTOH, `pkgx` packages itself so:
-
-```sh
-pkgx@latest npx@latest cowsay@latest 'fancy a cuppa?'
-```
-
-Is a valid command, provided you have shell integration.
+> Yes. Our installer upgrades `pkgx` too.
 
 
 ## How do I run the latest version of a specific pkg?
 
-Unless otherwise instructed, `pkgx` executes the latest version of pkgs that
-*are cached*. The first time you run a pkg the latest version will be
-cached, but after that updates will only be fetched if requested.
+Unless otherwise instructed, `pkgx` executes the latest version of packages
+that *are downloaded*. The first time you run a package the latest version
+will be downloaded, but after that updates will only be fetched if requested
+or required by other packages.
 
-```sh
-pkgx deno@latest
-```
-
-For us neophiliacs we have written a [`mash`] script to check for newer
-versions of what you have cached and fetch them:
+For us neophiliacs we have written a [`mash`] script to upgrade your `pkgx`
+packages:
 
 ```sh
 pkgx mash pkgx/cache upgrade
 ```
 
-> [OSS.app](https://pkgx.app) can automatically install updates.
-
 
 ## How do I “install” pkgs?
 
-To make pkgs available to the wider system use
-[`pkgx install`](pkgx-install.md).
-
-{% hint style="info" %}
-You can update installed packages with `pkgx install foo@latest`
-{% endhint %}
+Use [`pkgm`](https://github.com/pkgxdev/pkgm).
 
 
 ## What is a package?
@@ -59,9 +41,8 @@ A package is:
 
 Relative to some other packaging systems:
 
-* No scripts are executed post install
-* Packages must work as is from any location provided their deps are installed
-  in parallel (we say our pkgs are “relocatable“)
+* No scripts are executed post “install”
+* Packages must work from any location (we say our pkgs are “relocatable“)
 
 
 ## A package version I need is unavailable
@@ -71,9 +52,9 @@ Sorry about that. Open a [ticket] asking for it and we’ll build it.
 [ticket]: https://github.com/pkgxdev/pantry/issues/new
 
 
-## I need to pin a pkg to greater than v20.1.3 but less than v21
+## I need a pkg greater than v20.1.3 but less than v21
 
-The commonly used `@` syntax would pin the pkg to v20.1.x (`@20.1.3`).
+The commonly used `@` syntax would evaluate to v20.1.x (`@20.1.3`).
 
 To provide more control we support the
 [full semantic version range syntax](https://devhints.io/semver). So for the
@@ -94,9 +75,9 @@ Typing `pkgx +deno` dumps the environment to the terminal, if you add
 additional commands then those commands are invoked in that environment.
 
 
-## How do I list what packages are cached?
+## How do I list what packages are downloaded?
 
-We have created a [`mash`] script to list cached packages:
+We have created a [`mash`] script to list everything `pkgx` has downloaded:
 
 ```sh
 pkgx mash pkgx/cache ls
@@ -114,11 +95,11 @@ You may need to contribute to the [pantry](pantry.md).
 
 ## Where do you put pkgs?
 
-Everything goes in `~/.pkgx`. eg. Deno v1.2.3 installs an independent POSIX
-prefix to `~/.pkgx/deno.land/v1.2.3`, thus the `deno` executable is at
+Everything goes in `~/.pkgx`. eg. Deno v1.2.3 is an independent POSIX
+prefix at `~/.pkgx/deno.land/v1.2.3`, thus the `deno` executable is at
 `~/.pkgx/deno.land/v1.2.3/bin/deno`.
 
-We also install symlinks for majors, minors and latest:
+We also create symlinks for majors, minors and latest:
 
 ```sh
 $ cd ~/.pkgx/deno.land
@@ -156,48 +137,32 @@ can use pkgx to use your package automatically.
 {% endhint %}
 
 
-## How should I recommend people install my pkg with pkgx?
+## How should I recommend people use my pkg with pkgx?
 
 ```sh
-$ pkgx your-package --args
+pkgx your-package --args
 ```
 
 You can also recommend our shell one-liner if you like:
 
 ```sh
-sh <(curl https://pkgx.sh) +your-package sh
+sh <(curl https://pkgx.sh) your-package --args
 ```
 
-Will for example install pkgx and your pkg then open a new shell with it
-available to the environment.
+This is neat because `pkgx` is *not installed* and it runs your package from a
+temporary location making this a very low friction way to try out your
+package.
 
+Finally, you can have them try your package out via our Docker image:
 
-## What happened to ”Magic”?
-
-We removed “magic” from pkgx at v1 because it had a number of unsolvable
-issues. If you want it back however fortunately the shellcode is simple:
-
-```bash
-function command_not_found_handle {
-  pkgx -- "$*"
-}
-# NOTE in zsh append an `r` ie `command_not_found_handler``
+```sh
+docker run pkgxdev/pkgx your-package --args
 ```
-
-
-## I added a package to the pantry but `pkgx foo` fails
-
-Try `pkgx --sync foo` to force a pantry sync. Typically this isn’t needed but
-this flag can help in confusing situations.
-
 
 ## How do I uninstall `pkgx`?
 
-We’ll provide `pkgx uninstall pkgx` at some point, for now:
-
 ```sh
-pkgx deintegrate
-sudo rm /usr/local/bin/pkgx
+sudo rm /usr/local/bin/pkg[xm]
 rm -rf ~/.pkgx
 ```
 
@@ -206,8 +171,8 @@ Then there are a couple platform specific cache/data directories:
 ### macOS
 
 ```sh
-rm -rf "${XDG_CACHE_HOME:-$HOME/Library/Caches}/pkgx"
-rm -rf "${XDG_DATA_HOME:-$HOME/Library/Application Support}"/pkgx
+rm -rf ~/Library/Caches/pkgx
+rm -rf ~/Application\ Support/pkgx
 ```
 
 ### Non macOS
@@ -221,7 +186,7 @@ rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}"/pkgx
 
 ### Caveats
 
-Though not a problem unique to `pkgx` you should note that tools installed
+Though not a problem unique to `pkgx` you should note that tools run
 with `pkgx` may have polluted your system during use. Check directories like:
 
 * `~/.local`
@@ -249,21 +214,11 @@ following [semver] syntax:
 
 ## Where does `pkgx` store files
 
-* pkgs are cached to `~/.pkgx` (`$PKGX_DIR` overrides)
-
-* pkg tarballs are cached to
-  * `~/Library/Caches/pkgx` on Mac
-  * `~/.cache/pkgx` on *nix
-  * `%LOCALAPPDATA%/cache/pkgx` on Windows
-  * ⚠️⚠️`$XDG_CACHE_HOME` overrides on all platforms
+* pkgs are downloaded to `~/.pkgx` (`$PKGX_DIR` overrides)
 * runtime data like the [pantry] is stored in:
-  * `~/Library/Application Support/pkgx` on Mac
-  * `~/.local/share/pkgx` on *nix
+  * `~/Library/Caches/pkgx` on Mac
+  * `${XDG_CACHE_HOME:-$HOME/.cache}/pkgx` on *nix
   * `%LOCALAPPDATA%/pkgx` on Windows
-  * ⚠️⚠️ `$XDG_DATA_HOME` overrides on all platforms
-
-> If `$XDG_STATE_HOME` is set then `$XDG_STATE_HOME/pkgx` is used for some
-> temporary shellcode state.
 
 
 ## What happens if two packages provide the same named program?
