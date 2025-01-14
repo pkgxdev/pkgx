@@ -97,7 +97,6 @@ jobs:
             apt-get update
             apt-get install curl gcc perl-modules openssl make xz-utils --yes;;
           esac
-        # ^^ gpg-agent due to worrying bug running gpg with `pkgx` which I cannot debug RN
 
       - run: tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
 
@@ -131,9 +130,8 @@ jobs:
         # NOTE the +sqlite3 is a bug that we can’t figure out that only fails
         # on darwin aarch64 in CI, the sqlite dep is not installed for some
         # reason. Works locally! So we're confused and stuck.
-        # NOTE the pkgx^1 because pkgx^2 deployment woes
         run: |
-          ./pkgx pkgx^1 gpg-agent --daemon || true
+          ./pkgx gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
             base64 -d | \
             ./pkgx +sqlite3 gpg --import --batch --yes
@@ -144,6 +142,11 @@ jobs:
         env:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        if: matrix.platform.build-id != 'linux+x86-64'
+        # ^^ pkgx^2 deployment woe
+
+      - run: echo 'naughty-boy' > $FILENAME.asc
+        if: matrix.platform.build-id == 'linux+x86-64'
 
       - name: attach product to release
         run: ./pkgx gh release upload --clobber
