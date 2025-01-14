@@ -28,6 +28,9 @@ jobs:
       - uses: robinraju/release-downloader@v1.11
         with:
           releaseId: ${{ github.event.release.id || github.event.inputs.release-id }}
+          fileName: pkgx-*.tar.xz
+
+      - run: ls -la
 
       - name: Unpack Binaries
         run: |
