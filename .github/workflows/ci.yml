@@ -76,7 +76,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo run --all-features -- git --version
 
-  coverage:
+  coverage-unit:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -92,8 +92,41 @@ jobs:
           parallel: true
           flag-name: ${{ matrix.os }}
 
+  coverage-integration:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install rustfilt
+      - name: build
+        run: |
+          RUSTFLAGS="-C instrument-coverage" cargo build
+          echo "$PWD/target/debug" >> $GITHUB_PATH
+      - name: run integrations
+        run: |
+          pkgx --help
+          pkgx --version
+          pkgx +git
+          pkgx +git --json
+          pkgx git --version
+      - name: generate coverage
+        run: |
+          pkgx +llvm.org -- llvm-profdata merge -sparse default_*.profraw -o default.profdata
+          pkgx +llvm.org -- llvm-cov export ./target/debug/pkgx --format=lcov --instr-profile=default.profdata -Xdemangler=rustfilt > coverage/lcov2.info
+
+      - run: lcov -a coverage/lcov.info -a coverage/lcov2.info -o lcov.info
+
+      - uses: coverallsapp/github-action@v2
+        with:
+          path-to-lcov: lcov.info
+          parallel: true
+          flag-name: ${{ matrix.os }}
+
   upload-coverage:
-    needs: coverage
+    needs: [coverage-unit, coverage-integration]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
