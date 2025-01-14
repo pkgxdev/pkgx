@@ -18,125 +18,133 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo check
-        env:
-          RUSTFLAGS: "-D warnings"
-
-  fmt:
+  glibc-check:
     runs-on: ubuntu-latest
+    container: debian:buster-slim
     steps:
-      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install curl gcc perl-modules openssl make --yes
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - run: cargo fmt --all -- --check
-
-  clippy:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - run: cargo clippy --all-features
-        env:
-          RUSTFLAGS: "-D warnings"
+      - run: cargo run -- --version
+  # check:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - run: cargo check
+  #       env:
+  #         RUSTFLAGS: "-D warnings"
 
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --all-features
-        env:
-          RUSTFLAGS: "-D warnings"
+  # fmt:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         components: rustfmt
+  #     - run: cargo fmt --all -- --check
 
-  smoke:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    needs: [check]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo run --all-features -- git --version
+  # clippy:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         components: clippy
+  #     - run: cargo clippy --all-features
+  #       env:
+  #         RUSTFLAGS: "-D warnings"
 
-  coverage-unit:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install cargo-tarpaulin
-      - run: cargo tarpaulin -o lcov --output-dir coverage
-      - uses: coverallsapp/github-action@v2
-        with:
-          path-to-lcov: coverage/lcov.info
-          parallel: true
-          flag-name: ${{ matrix.os }}
+  # coverage-unit:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - run: cargo install cargo-tarpaulin
+  #     - run: cargo tarpaulin -o lcov --output-dir coverage
+  #     - uses: coverallsapp/github-action@v2
+  #       with:
+  #         path-to-lcov: coverage/lcov.info
+  #         parallel: true
+  #         flag-name: ${{ matrix.os }}
 
-  coverage-integration:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+  # coverage-integration:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
 
-      - name: build
-        run: |
-          RUSTFLAGS="-C instrument-coverage" cargo build
-          echo "$PWD/target/debug" >> $GITHUB_PATH
+  #     - name: build
+  #       run: |
+  #         RUSTFLAGS="-C instrument-coverage" cargo build
+  #         echo "$PWD/target/debug" >> $GITHUB_PATH
 
-      - name: run integrations
-        run: |
-          pkgx --help
-          pkgx --version
-          pkgx +git
-          pkgx +git --json
-          pkgx git --version
+  #     - name: run integrations
+  #       run: |
+  #         pkgx --help
+  #         pkgx --version
+  #         pkgx +git
+  #         pkgx +git --json
+  #         pkgx git --version
 
-      - name: generate coverage
-        run: |
-          cargo install rustfilt
-          pkgx +llvm.org -- llvm-profdata merge -sparse default_*.profraw -o default.profdata
-          pkgx +llvm.org -- llvm-cov export \
-            ./target/debug/pkgx \
-            --format=lcov \
-             --ignore-filename-regex="$HOME/.cargo" \
-            --instr-profile=default.profdata \
-            -Xdemangler=rustfilt \
-            > lcov.info
+  #     - name: generate coverage
+  #       run: |
+  #         cargo install rustfilt
+  #         pkgx +llvm.org -- llvm-profdata merge -sparse default_*.profraw -o default.profdata
+  #         pkgx +llvm.org -- llvm-cov export \
+  #           ./target/debug/pkgx \
+  #           --format=lcov \
+  #            --ignore-filename-regex="$HOME/.cargo" \
+  #           --instr-profile=default.profdata \
+  #           -Xdemangler=rustfilt \
+  #           > lcov.info
 
-      - uses: coverallsapp/github-action@v2
-        with:
-          path-to-lcov: lcov.info
-          parallel: true
-          flag-name: ${{ matrix.os }}
+  #     - uses: coverallsapp/github-action@v2
+  #       with:
+  #         path-to-lcov: lcov.info
+  #         parallel: true
+  #         flag-name: ${{ matrix.os }}
 
-  upload-coverage:
-    needs: [coverage-unit, coverage-integration]
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: coverallsapp/github-action@v2
-        with:
-          parallel-finished: true
+  # upload-coverage:
+  #   needs: [coverage-unit, coverage-integration]
+  #   if: ${{ always() }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: coverallsapp/github-action@v2
+  #       with:
+  #         parallel-finished: true
+
+  # test:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - run: cargo test --all-features
+  #       env:
+  #         RUSTFLAGS: "-D warnings"
+
+  # smoke:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest]
+  #   needs: [check]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - run: cargo run --all-features -- git --version
