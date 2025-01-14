@@ -118,7 +118,13 @@ jobs:
         run: |
           cargo install rustfilt
           pkgx +llvm.org -- llvm-profdata merge -sparse default_*.profraw -o default.profdata
-          pkgx +llvm.org -- llvm-cov export ./target/debug/pkgx --format=lcov --instr-profile=default.profdata -Xdemangler=rustfilt > lcov.info
+          pkgx +llvm.org -- llvm-cov export \
+            ./target/debug/pkgx \
+            --format=lcov \
+             --ignore-filename-regex="$HOME/.cargo" \
+            --instr-profile=default.profdata \
+            -Xdemangler=rustfilt \
+            > lcov.info
 
       - uses: coverallsapp/github-action@v2
         with:
