@@ -6,11 +6,11 @@ on:
       - published
   workflow_dispatch:
     inputs:
-      release-id:
+      tag:
         required: true
 
 concurrency:
-  group: cd/crates/${{ github.event.release.tag_name || github.event.inputs.release-id }}
+  group: cd/crates/${{ github.event.release.tag_name || github.event.inputs.tag }}
   cancel-in-progress: true
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.release-id }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.tag }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: katyo/publish-crates@v2
         with:
