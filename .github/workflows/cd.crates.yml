@@ -23,6 +23,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: katyo/publish-crates@v2
         with:
-          # TODO: remove --package to publish libpkgx as well
-          args: --package pkgx --all-features
+          args: --all-features
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
