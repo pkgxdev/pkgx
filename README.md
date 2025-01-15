@@ -9,7 +9,7 @@
 ### Quickstart
 
 ```sh
-brew install pkgxdev/made/pkgx || sh <(curl https://pkgx.sh)
+brew install pkgxdev/made/pkgx || curl https://pkgx.sh | sh
 ```
 
 > [docs.pkgx.sh/installing-w/out-brew]
@@ -242,6 +242,11 @@ pprint([(k, v["title"]) for k, v in data.items()][:10])
 > We love scripting with `pkgx` so much that we made a whole package manager
 > for scripts to show the world what is possible when the whole open source
 > ecosystem is available to your scripts Check it out [`mash`].
+
+> [!INFO]
+> Notably, packages used during your script aren’t installed and don’t pollute
+> your system and anyone else’s systems either. Don’t be confused— they are
+> downloaded to `~/.pkgx` but the wider system is not touched.
 
 ## Recursive Run
 
