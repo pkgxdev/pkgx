@@ -4,9 +4,13 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
 
 concurrency:
-  group: docker/${{ github.event.release.tag_name }}
+  group: docker/${{ github.event.release.tag_name || github.event.inputs.tag }}
   cancel-in-progress: true
 
 permissions:
@@ -20,6 +24,8 @@ jobs:
       - uses: robinraju/release-downloader@v1.11
         with:
           releaseId: ${{ github.event.release.id }}
+          tag: ${{ github.event.inputs.tag }}
+          fileName: pkgx-*.tar.xz
 
       - name: Unpack Binaries
         run: |
