@@ -8,7 +8,7 @@ if ! git diff-index --quiet HEAD --; then
   exit 1
 fi
 
-if [ "$(git rev-parse --abbrev-ref HEAD)" != main ]; then
+if [ "$(git rev-parse --abbrev-ref HEAD)" != v1/main ]; then
   echo "error: requires main branch" >&2
   exit 1
 fi
@@ -16,7 +16,7 @@ fi
 # ensure we have the latest version tags
 git fetch origin -pft
 
-versions="$(git tag | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+')"
+versions="$(git tag | grep '^v1\.[0-9]\+\.[0-9]\+')"
 v_latest="$(npx -- semver --include-prerelease $versions | tail -n1)"
 
 _is_prerelease() {
@@ -45,7 +45,7 @@ fi
 
 gum confirm "prepare draft release for $v_new?" || exit 1
 
-git push origin main
+git push origin v1/main
 
 is_prerelease=$(_is_prerelease $v_new)
 
@@ -55,14 +55,15 @@ gh release create \
   --prerelease=$is_prerelease \
   --generate-notes \
   --notes-start-tag=v$v_latest \
+  --latest=false \
   --title=v$v_new
 
-gh workflow run cd.yml --raw-field version="$v_new"
+gh workflow run cd.yml --ref=v1/main --raw-field version="$v_new"
 # ^^ infuriatingly does not tell us the ID of the run
 
 gum spin --title 'sleeping 5s because GitHub API is slow' -- sleep 5
 
-run_id=$(gh run list --json databaseId --workflow=cd.yml | jq '.[0].databaseId')
+run_id=$(gh run list --json databaseId --branch=v1/main --workflow=cd.yml | jq '.[0].databaseId')
 
 if ! gh run watch --exit-status $run_id; then
   foo=$?
