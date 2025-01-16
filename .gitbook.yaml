@@ -14,12 +14,12 @@ redirects:
   docker: getting-started.md
   ci-cd: getting-started.md
   scripts: scripting.md
-  run/anywhere/terminals.md: getting-started.md
-  run/anywhere/docker.md: getting-started.md
-  run/anywhere/ci-cd.md: getting-started.md
-  run/anywhere/scripts.md: scripting.md
+  run/anywhere/terminals: getting-started.md
+  run/anywhere/docker: getting-started.md
+  run/anywhere/ci-cd: getting-started.md
+  run/anywhere/scripts: scripting.md
   pantry.md: pkging/pantry.md
-  pantry-api.md: pkging/pantry.md
+  pantry-api: pkging/pantry-api.md
   pkgx-install: https://github.com/pkgxdev/pkgm
   install: https://github.com/pkgxdev/pkgm
   support: https://github.com/pkgxdev/discussions

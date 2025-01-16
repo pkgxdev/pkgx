@@ -1,4 +1,10 @@
-# Getting Started
+There are quite a few ways to install `pkgx` but this is our recommendation:
+
+```sh
+brew install pkgxdev/made/pkgx || curl https://pkgx.sh | sh
+```
+
+# Complete Installation Method Listing
 
 1. ## Homebrew
 

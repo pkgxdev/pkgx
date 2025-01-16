@@ -1,4 +1,4 @@
-# Run Anything
+# Using `pkgx`
 
 With `pkgx` it couldn’t be simpler to run anything from the Open Source
 ecosystem:

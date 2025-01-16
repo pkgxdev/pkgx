@@ -1,14 +1,11 @@
 ‌# Summary​
 
 * [Highlights](README.md)
-
----
-
-* [Getting Started](getting-started.md)
+* [Installing `pkgx`](getting-started.md)
 
 ## `pkgx`
 
-* [Running Commands](pkgx.md)
+* [Getting Started](pkgx.md)
 * [Scripting](scripting.md)
 
 ## The `pkgx` Ecosystem
