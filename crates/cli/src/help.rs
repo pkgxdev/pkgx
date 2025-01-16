@@ -16,6 +16,7 @@ examples:
   $ pkgx +openssl cargo build
 
 flags:
+  -q, --quiet   # supresses brief informational messages
   -s, --silent  # no chat. no errors. just execute.
   --version
 
