@@ -1017,7 +1017,7 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 
 [[package]]
 name = "pkgx"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "console",
  "indicatif",
