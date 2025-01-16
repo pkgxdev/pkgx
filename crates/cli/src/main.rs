@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     std::fs::create_dir_all(cache_dir)?;
     let mut conn = Connection::open(cache_dir.join("pantry.db"))?;
 
-    let spinner = if flags.silent {
+    let spinner = if flags.silent || flags.quiet {
         None
     } else {
         let spinner = indicatif::ProgressBar::new_spinner();
@@ -152,6 +152,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut installations = resolution.installed;
     if !resolution.pending.is_empty() {
+        let spinner = spinner.or(if !flags.silent && flags.quiet {
+            Some(indicatif::ProgressBar::new(0))
+        } else {
+            None
+        });
         let pb = spinner.map(|spinner| {
             configure_bar(&spinner);
             Arc::new(MultiProgressBar { pb: spinner })

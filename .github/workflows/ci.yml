@@ -18,18 +18,6 @@ permissions:
   contents: read
 
 jobs:
-  check:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo check
-        env:
-          RUSTFLAGS: "-D warnings"
-
   fmt:
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +28,7 @@ jobs:
       - run: cargo fmt --all -- --check
 
   clippy:
+    needs: test
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -54,6 +43,7 @@ jobs:
           RUSTFLAGS: "-D warnings"
 
   test:
+    needs: fmt
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -66,6 +56,7 @@ jobs:
           RUSTFLAGS: "-D warnings"
 
   coverage-unit:
+    needs: [test, clippy, fmt]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -82,6 +73,7 @@ jobs:
           flag-name: ${{ matrix.os }}
 
   coverage-integration:
+    needs: [test, clippy, fmt]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -101,7 +93,10 @@ jobs:
           pkgx --version
           pkgx +git
           pkgx +git --json
+          pkgx +git --json=v1
           pkgx git --version
+          pkgx --silent +git
+          pkgx --quiet +git
 
       - name: generate coverage
         run: |
