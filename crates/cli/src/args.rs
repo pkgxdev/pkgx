@@ -79,7 +79,13 @@ pub fn parse() -> Args {
             // spit arg into characters
             for c in arg.chars().skip(1) {
                 match c {
-                    'q' => quiet = true,
+                    'q' => {
+                        if quiet {
+                            silent = true
+                        } else {
+                            quiet = true
+                        }
+                    }
                     's' => silent = true,
                     'j' => json = true,
                     _ => panic!("unknown argument: -{}", c),
