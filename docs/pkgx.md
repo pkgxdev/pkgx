@@ -119,10 +119,68 @@ gum version 0.14.5
 For this mode we can also output JSON: `pkgx +gum --json`.
 
 
-## Silent Mode
+## Quietening Output
 
 ```sh
-pkgx --silent gum format 'no progress information is output'
+$ pkgx --quiet gum format 'download progress is still shown'
+# ^^ supresses resolving/syncing etc. messages but not download progress info
+
+```sh
+pkgx --silent gum format 'no output at all'
+# ^^ silences everything, even errors
+```
+
+Note that this only effects `pkgx` *not the tools you run with `pkgx`*.
+
+## Other Common Needs
+
+`pkgx` is not a package manager so the command itself doesn’t typically offer
+such operations you may expect, however the way `pkgx` works is simple and
+standardized so we offer some `mash` scripts to help.
+
+Longer term we will make a tool `pkgq` to help with these operations.
+
+### Updating Downloaded Packages
+
+```sh
+$ pkgx mash pkgx/cache upgrade
+updating: /Users/mxcl/.pkgx/python.org/v3.11.11
+# snip…
+```
+
+### Pruning Older Versions of Packages
+
+The `pkgx` download cache can get large over time. To prune older versions:
+
+```sh
+$ pkgx mash pkgx/cache prune
+pruning: ~/.pkgx/deno.land/v1.39.4
+pruning: ~/.pkgx/deno.land/v1.46.3
+# snip…
+```
+
+This may delete versions that you use—if so—this is fine. `pkgx` will just
+reinstall them next time you need them.
+
+### Listing Available Versions for a Package
+
+```sh
+$ pkgx mash pkgx/pantry-inventory git
+2.38.1
+2.39.0
+# snip…
+```
+
+### Listing What is Downloaded
+
+```sh
+$ mash pkgx/cache ls
+
+  Parent Directory                │Version
+  ────────────────────────────────┼──────────
+  perl.org                        │5.40.0
+  x.org/xcb                       │1.17.0
+  # snip…
 ```
 
 [SemVer]: https://devhints.io/semver
