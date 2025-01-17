@@ -33,7 +33,6 @@ jobs:
       - run: cargo fmt --all -- --check
 
   clippy:
-    needs: test
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -61,7 +60,7 @@ jobs:
           RUSTFLAGS: "-D warnings"
 
   coverage-unit:
-    needs: [test, clippy, fmt]
+    needs: fmt
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -78,7 +77,7 @@ jobs:
           flag-name: ${{ matrix.os }}
 
   coverage-integration:
-    needs: [test, clippy, fmt]
+    needs: fmt
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -92,22 +91,23 @@ jobs:
           RUSTFLAGS="-C instrument-coverage" cargo build
           echo "$PWD/target/debug" >> $GITHUB_PATH
 
-      - name: run integrations
-        run: |
-          pkgx --help
-          pkgx --version
-          pkgx +git
-          pkgx +git --json
-          pkgx +git --json=v1
-          pkgx git --version
-          pkgx --silent +git
-          pkgx --quiet +git
-          pkgx +git -- git --version   # lib/utils.rs:find_program
-          pkgx --shellcode || true
-          pkgx -qq git --version
-          pkgx -s git --version
-          pkgx -j +git
-          pkgx /usr/bin/awk --version
+      - run: pkgx --help
+      - run: pkgx --version
+      - run: pkgx +git
+      - run: pkgx +git --json
+      - run: pkgx +git --json=v1
+      - run: pkgx git --version
+      - run: pkgx --silent +git
+      - run: pkgx --quiet +git
+      - run: pkgx +git -- git --version   # lib/utils.rs:find_program
+      - run: pkgx --shellcode || true
+      - run: pkgx -qq git --version
+      - run: pkgx -s git --version
+      - run: pkgx -j +git
+      - run: pkgx /usr/bin/awk --version
+      - run: pkgx +yarnpkg.com yarn --version
+      - run: pkgx +yarnpkg.com -- yarn --version
+      - run: '! pkgx yarn --version'
 
       - name: generate coverage
         run: |
