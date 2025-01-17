@@ -15,7 +15,8 @@
     //--------------------------------------- ci/cd/admin
     "coverage": "scripts/run-coverage.sh",
     "typecheck": "deno check ./entrypoint.ts",
-    "compile": "deno compile --lock=deno.lock --allow-all --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
+    "compile": "deno compile --lock=deno.lock --allow-all --output \"$INIT_CWD/pkgx\" ./entrypoint.ts",
+    "cache": "deno cache ./entrypoint.ts src/**/*.test.ts"
   },
   "pkgx": "deno~2.1.4",
   "lint": {
