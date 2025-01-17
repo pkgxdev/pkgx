@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   www-upload:
+    if: startsWith(github.event.release.tag_name, 2)
     runs-on: ubuntu-latest
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
