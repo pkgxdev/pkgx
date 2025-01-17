@@ -120,13 +120,14 @@ fn suffixes(key: &EnvKey) -> Option<Vec<&'static str>> {
 }
 
 pub fn mix(input: HashMap<String, Vec<String>>) -> HashMap<String, String> {
-    let mut rv = HashMap::new();
+    let mut rv = HashMap::from_iter(std::env::vars());
 
-    for (key, mut value) in std::env::vars() {
-        if let Some(injected_values) = input.get(&key) {
-            value = format!("{}:{}", injected_values.join(":"), value);
+    for (key, value) in input.iter() {
+        if let Some(values) = rv.get(key) {
+            rv.insert(key.clone(), format!("{}:{}", value.join(":"), values));
+        } else {
+            rv.insert(key.clone(), value.join(":"));
         }
-        rv.insert(key, value);
     }
 
     rv
