@@ -35,8 +35,7 @@
     "@std/yaml": "jsr:@std/yaml@^1.0.5",
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
     "outdent": "jsr:@cspotcode/outdent@^0.8",
-    // TODO: revert this before merging
-    "pkgx": "https://raw.githubusercontent.com/felipecrs/libpkgx/refs/heads/fix-pantry-not-found/mod.ts",
-    "pkgx/": "https://raw.githubusercontent.com/felipecrs/libpkgx/refs/heads/fix-pantry-not-found/src/"
+    "pkgx": "https://deno.land/x/libpkgx@v0.20.1/mod.ts",
+    "pkgx/": "https://deno.land/x/libpkgx@v0.20.1/src/"
   }
 }
