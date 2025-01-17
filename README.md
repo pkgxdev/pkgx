@@ -250,6 +250,6 @@ If you have questions or feedback:
 [docs.pkgx.sh/shell-integration]: https://docs.pkgx.sh/shell-integration
 [dev]: https://docs.pkgx.sh/dev
 
-[coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
+[coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=v1/main
 [coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main
 [teaRank]: https://img.shields.io/endpoint?url=https%3A%2F%2Fchai.tea.xyz%2Fv1%2FgetTeaRankBadge%3FprojectId%3D79e9363b-862c-43e0-841d-4d4eaad1fc95
