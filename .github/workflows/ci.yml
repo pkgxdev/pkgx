@@ -7,6 +7,10 @@ on:
       - "**/Cargo.toml"
       - Cargo.lock
   pull_request:
+    paths:
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - Cargo.lock
 
 name: ci·rs
 
@@ -117,8 +121,7 @@ jobs:
           flag-name: ${{ matrix.os }}
 
   upload-coverage:
-    needs: [coverage-unit, coverage-integration]
-    if: ${{ always() }}
+    needs: [coverage-unit, coverage-integration, test]
     runs-on: ubuntu-latest
     steps:
       - uses: coverallsapp/github-action@v2
