@@ -127,14 +127,11 @@ jobs:
       - run: tar cJf $FILENAME pkgx
 
       - name: GPG sign archive
-        # NOTE the +sqlite3 is a bug that we can’t figure out that only fails
-        # on darwin aarch64 in CI, the sqlite dep is not installed for some
-        # reason. Works locally! So we're confused and stuck.
         run: |
           ./pkgx gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
             base64 -d | \
-            ./pkgx +sqlite3 gpg --import --batch --yes
+            ./pkgx gpg --import --batch --yes
           ./pkgx gpg \
             --detach-sign --armor \
             --local-user $GPG_KEY_ID \
@@ -142,8 +139,6 @@ jobs:
         env:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        if: matrix.platform.build-id != 'linux+x86-64'
-        # ^^ pkgx^2 deployment woe
 
       - run: echo 'naughty-boy' > $FILENAME.asc
         if: matrix.platform.build-id == 'linux+x86-64'

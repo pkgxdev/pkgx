@@ -11,17 +11,17 @@ if [ "$(git rev-parse --abbrev-ref HEAD)" != main ]; then
 fi
 
 v_new=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "pkgx") | .version')
+v_latest=$(gh release view --json tagName --jq .tagName)
 
-case $(gh release view --json isDraft | jq .isDraft) in
-'release not found')
+case "$((gh release view v$v_new --json isDraft | jq .isDraft) 2>&1)" in
+release\ not\ found)
   gum confirm "prepare draft release for $v_new?" || exit 1
 
   gh release create \
     v$v_new \
     --draft=true \
-    --prerelease=$is_prerelease \
     --generate-notes \
-    --notes-start-tag=v$v_latest \
+    --notes-start-tag=$v_latest \
     --title=v$v_new
 
   ;;
@@ -32,6 +32,9 @@ true)
 false)
   gum format "$v_new already published! edit \`./crates/cli/Cargo.toml\`"
   exit 1;;
+*)
+  echo 'unexpected exit result' >&2
+  exit 2;;
 esac
 
 git push origin main
