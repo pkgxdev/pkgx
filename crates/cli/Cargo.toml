@@ -24,6 +24,3 @@ rusqlite = { version = "0.32.1", features = ["bundled"] }
 native-tls = { version = "0.2", features = ["vendored"] }
 # ^^ this is a transitive dependency
 # ^^ we vendor OpenSSL ∵ we want to be standalone and just work inside minimal docker images
-
-[profile.release]
-lto = "fat"
