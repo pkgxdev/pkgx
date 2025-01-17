@@ -11,6 +11,7 @@ on:
       - "**/*.rs"
       - "**/Cargo.toml"
       - Cargo.lock
+      - .github/workflows/ci.yml
 
 name: ci·rs
 
@@ -101,6 +102,12 @@ jobs:
           pkgx git --version
           pkgx --silent +git
           pkgx --quiet +git
+          pkgx +git -- git --version   # lib/utils.rs:find_program
+          pkgx --shellcode || true
+          pkgx -qq git --version
+          pkgx -s git --version
+          pkgx -j +git
+          pkgx /usr/bin/awk --version
 
       - name: generate coverage
         run: |
