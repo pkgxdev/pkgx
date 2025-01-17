@@ -19,6 +19,7 @@ permissions:
 
 jobs:
   build-and-push-image:
+    name: docker buildx pkgxdev/pkgx:${{ github.event.release.tag_name || github.event.inputs.tag }}
     runs-on: ubuntu-latest
     steps:
       - uses: robinraju/release-downloader@v1.11
@@ -26,6 +27,19 @@ jobs:
           releaseId: ${{ github.event.release.id }}
           tag: ${{ github.event.inputs.tag }}
           fileName: pkgx-*.tar.xz
+
+      - name: is_latest?
+        id: latest
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.tag }}"
+          LATEST_RELEASE=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name')
+          if [ "$TAG_NAME" == "$LATEST_RELEASE" ]; then
+            echo "value=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "value=false" >> "${GITHUB_OUTPUT}"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Unpack Binaries
         run: |
@@ -47,13 +61,6 @@ jobs:
         with:
           path: src
 
-      - name: log in to github pkgs
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
       - name: log in to docker hub
         uses: docker/login-action@v3
         with:
@@ -63,16 +70,14 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images:
-            ghcr.io/${{ github.repository }}
-            pkgxdev/pkgx
+          images: pkgxdev/pkgx
+          flavor: |
+            latest=${{ steps.latest.outputs.value }}
           tags: |
             type=sha
-            type=ref,event=branch
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
-            type=semver,pattern=v{{major}}
-            type=raw,value=latest
+            type=semver,pattern=v{{version}},value=${{ github.event.release.tag_name || github.event.inputs.tag }}
+            type=semver,pattern=v{{major}}.{{minor}},value=${{ github.event.release.tag_name || github.event.inputs.tag }}
+            type=semver,pattern=v{{major}},value=${{ github.event.release.tag_name || github.event.inputs.tag }}
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3

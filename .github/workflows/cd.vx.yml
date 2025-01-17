@@ -23,3 +23,4 @@ jobs:
       - run: |
           git tag -f latest
           git push origin latest --force
+        if: startsWith(github.event.release.tag_name, 2)
