@@ -67,41 +67,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut pkgs = vec![];
 
-    if find_program {
-        let PackageReq {
-            constraint,
-            project: cmd,
-        } = PackageReq::parse(&args[0])?;
-
-        args[0] = cmd.clone(); // invoke eg. `node` rather than eg. `node@20`
-
-        let project = match which(&cmd, &conn).await {
-            Err(WhichError::CmdNotFound(cmd)) => {
-                if !did_sync {
-                    if let Some(spinner) = &spinner {
-                        let msg = format!("{} not found, syncing…", cmd);
-                        spinner.set_message(msg);
-                    }
-                    // cmd not found ∴ sync in case it is new
-                    sync::replace(&config, &mut conn).await?;
-                    if let Some(spinner) = &spinner {
-                        spinner.set_message("resolving pkg graph…");
-                    }
-                    which(&cmd, &conn).await
-                } else {
-                    Err(WhichError::CmdNotFound(cmd))
-                }
-            }
-            Err(err) => Err(err),
-            Ok(project) => Ok(project),
-        }?;
-
-        pkgs.push(PackageReq {
-            project,
-            constraint,
-        });
-    }
-
     for pkgspec in plus {
         let PackageReq {
             project: project_or_cmd,
@@ -118,12 +83,47 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 constraint,
             });
         } else {
-            let project = which(&project_or_cmd, &conn).await?;
+            let project = which(&project_or_cmd, &conn, &pkgs).await?;
             pkgs.push(PackageReq {
                 project,
                 constraint,
             });
         }
+    }
+
+    if find_program {
+        let PackageReq {
+            constraint,
+            project: cmd,
+        } = PackageReq::parse(&args[0])?;
+
+        args[0] = cmd.clone(); // invoke eg. `node` rather than eg. `node@20`
+
+        let project = match which(&cmd, &conn, &pkgs).await {
+            Err(WhichError::CmdNotFound(cmd)) => {
+                if !did_sync {
+                    if let Some(spinner) = &spinner {
+                        let msg = format!("{} not found, syncing…", cmd);
+                        spinner.set_message(msg);
+                    }
+                    // cmd not found ∴ sync in case it is new
+                    sync::replace(&config, &mut conn).await?;
+                    if let Some(spinner) = &spinner {
+                        spinner.set_message("resolving pkg graph…");
+                    }
+                    which(&cmd, &conn, &pkgs).await
+                } else {
+                    Err(WhichError::CmdNotFound(cmd))
+                }
+            }
+            Err(err) => Err(err),
+            Ok(project) => Ok(project),
+        }?;
+
+        pkgs.push(PackageReq {
+            project,
+            constraint,
+        });
     }
 
     let companions = pantry_db::companions_for_projects(
@@ -262,14 +262,28 @@ impl std::fmt::Display for WhichError {
 
 impl std::error::Error for WhichError {}
 
-async fn which(cmd: &String, conn: &Connection) -> Result<String, WhichError> {
+async fn which(cmd: &String, conn: &Connection, pkgs: &[PackageReq]) -> Result<String, WhichError> {
     let candidates = pantry_db::which(cmd, conn).map_err(WhichError::DbError)?;
     if candidates.len() == 1 {
         Ok(candidates[0].clone())
     } else if candidates.is_empty() {
-        return Err(WhichError::CmdNotFound(cmd.clone()));
+        Err(WhichError::CmdNotFound(cmd.clone()))
     } else {
-        return Err(WhichError::MultipleProjects(cmd.clone(), candidates));
+        let selected_pkgs = candidates
+            .clone()
+            .into_iter()
+            .filter(|candidate| {
+                pkgs.iter().any(|pkg| {
+                    let PackageReq { project, .. } = pkg;
+                    project == candidate
+                })
+            })
+            .collect::<Vec<String>>();
+        if selected_pkgs.len() == 1 {
+            Ok(selected_pkgs[0].clone())
+        } else {
+            Err(WhichError::MultipleProjects(cmd.clone(), candidates))
+        }
     }
 }
 
