@@ -59,7 +59,7 @@ gum confirm "draft prepared, release $v_new?" || exit 1
 gh release edit \
   v$v_new \
   --verify-tag \
-  $(if [ $is_prerelease = false ]; then echo --latest; fi) \
+  --latest \
   --draft=false \
   --discussion-category=Announcements
 

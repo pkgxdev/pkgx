@@ -8,16 +8,16 @@ on:
       - published
   workflow_dispatch:
     inputs:
-      release-id:
+      tag:
         required: true
 
 concurrency:
-  group: cd/www/${{ github.event.release.tag_name || github.event.inputs.release-id }}
+  group: cd/www/${{ github.event.release.tag_name || github.event.inputs.tag }}
   cancel-in-progress: true
 
 jobs:
   www-upload:
-    if: startsWith(github.event.release.tag_name, 2)
+    if: startsWith(github.event.release.tag_name || github.event.inputs.tag, 'v2')
     runs-on: ubuntu-latest
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
@@ -28,10 +28,9 @@ jobs:
 
       - uses: robinraju/release-downloader@v1.11
         with:
-          releaseId: ${{ github.event.release.id || github.event.inputs.release-id }}
+          releaseId: ${{ github.event.release.id }}
+          tag: ${{ github.event.inputs.tag }}
           fileName: pkgx-*.tar.xz
-
-      - run: ls -la
 
       - name: Unpack Binaries
         run: |

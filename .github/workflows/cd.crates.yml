@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   publish:
-    if: startsWith(github.event.release.tag_name, 2)
+    if: startsWith(github.event.release.tag_name || github.event.inputs.tag, 'v2')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

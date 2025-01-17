@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   bump-tap:
-    if: startsWith(github.event.release.tag_name, 2)
+    if: startsWith(github.event.release.tag_name, 'v2')
     runs-on: ubuntu-latest
     steps:
     - uses: aurelien-baudet/workflow-dispatch@v4
