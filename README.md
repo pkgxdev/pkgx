@@ -1,7 +1,8 @@
 ![pkgx.dev](https://pkgx.dev/banner.png)
 
 `pkgx` is a 4MB, *standalone* binary that can *run anything*.
-&nbsp;&nbsp;[![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
+
+[![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
 
 &nbsp;
 
@@ -244,6 +245,7 @@ pprint([(k, v["title"]) for k, v in data.items()][:10])
 > ecosystem is available to your scripts Check it out [`mash`].
 
 > [!INFO]
+>
 > Notably, packages used during your script aren’t installed and don’t pollute
 > your system and anyone else’s systems either. Don’t be confused— they are
 > downloaded to `~/.pkgx` but the wider system is not touched.
@@ -312,8 +314,8 @@ exported.
 
 ## `pkgx install`
 
-We now provide [`pkgm`][pkgm] but if you miss the leanness of “stubs” we provide a
-[`mash`] script to create stubs in `/usr/local/bin`:
+We now provide [`pkgm`][pkgm] but if you miss the leanness of “stubs” we
+provide a [`mash`] script to create stubs in `/usr/local/bin`:
 
 ```sh
 $ pkgx mash pkgx/stub git
