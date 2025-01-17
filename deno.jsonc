@@ -15,8 +15,7 @@
     //--------------------------------------- ci/cd/admin
     "coverage": "scripts/run-coverage.sh",
     "typecheck": "deno check ./entrypoint.ts",
-    "compile": "deno compile --lock=deno.lock --allow-all --output \"$INIT_CWD/pkgx\" ./entrypoint.ts",
-    "cache": "deno cache ./entrypoint.ts src/**/*.test.ts"
+    "compile": "deno compile --lock=deno.lock --allow-all --output \"$INIT_CWD/pkgx\" ./entrypoint.ts"
   },
   "pkgx": "deno^2.1.6",
   "lint": {
@@ -37,6 +36,9 @@
     "is-what": "https://deno.land/x/is_what@v4.1.15/src/index.ts",
     "outdent": "jsr:@cspotcode/outdent@^0.8",
     "pkgx": "https://deno.land/x/libpkgx@v0.20.3/mod.ts",
-    "pkgx/": "https://deno.land/x/libpkgx@v0.20.3/src/"
+    "pkgx/": "https://deno.land/x/libpkgx@v0.20.3/src/",
+    // test dependencies
+    "faker": "npm:@faker-js/faker@^9.4.0",
+    "npm:@types/node@*": "npm:@types/node@*" // implicit
   }
 }
