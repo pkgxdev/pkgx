@@ -15,3 +15,7 @@ MD025: false
 MD033: false
 # Multiple consecutive blank lines
 MD012: false
+
+# Blank line inside blockquote
+# gives false positives on code blocks for literal consecutive blockquotes
+MD028: false
