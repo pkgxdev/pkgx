@@ -80,7 +80,7 @@ Python 2.7.18
   You can use this image to try out (pretty much) any version of any program:
 
   ```sh
-  $ docker run pkgxdev/pkgx pkgx node@21.1 --version
+  $ docker run pkgxdev/pkgx node@21.1 --version
   v21.1.0
   ```
 
