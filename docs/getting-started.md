@@ -1,7 +1,7 @@
 There are quite a few ways to install `pkgx` but this is our recommendation:
 
 ```sh
-brew install pkgxdev/made/pkgx || curl https://pkgx.sh | sh
+brew install pkgx || curl https://pkgx.sh | sh
 ```
 
 # Complete Installation Method Listing
@@ -9,7 +9,7 @@ brew install pkgxdev/made/pkgx || curl https://pkgx.sh | sh
 1. ## Homebrew
 
    ```sh
-   brew install pkgxdev/made/pkgx
+   brew install pkgx
    ```
 
 2. ## cURL Installer

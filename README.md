@@ -10,7 +10,7 @@
 ### Quickstart
 
 ```sh
-brew install pkgxdev/made/pkgx || curl https://pkgx.sh | sh
+brew install pkgx || curl https://pkgx.sh | sh
 ```
 
 > [docs.pkgx.sh/installing-w/out-brew]

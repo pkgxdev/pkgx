@@ -5,7 +5,7 @@
 ## Quick Start
 
 ```sh
-brew install pkgxdev/made/pkgx || curl https://pkgx.sh | sh
+brew install pkgx || curl https://pkgx.sh | sh
 ```
 
 [Getting Started Guide](getting-started.md)
