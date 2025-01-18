@@ -1,6 +1,6 @@
 ![pkgx.dev](https://pkgx.dev/banner.png)
 
-`pkgx` is a 4MB, *standalone* binary that can *run anything*.
+`pkgx` is a 4 MiB, standalone binary that can *run anything*.
 
 [![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
 
@@ -50,7 +50,7 @@ Python 2.7.18
 * <details><summary>macOS</summary><br>
 
   * macOS >= 11
-  * x86-64 & Apple Silicon
+  * 64 bit Intel & Apple Silicon
 
   </details>
 * <details><summary>Linux</summary><br>
@@ -66,6 +66,8 @@ Python 2.7.18
   </details>
 * <details><summary>Docker</summary><br>
 
+  We provide an image with `pkgx` in it:
+
   ```sh
   $ pkgx docker run -it pkgxdev/pkgx
 
@@ -73,6 +75,13 @@ Python 2.7.18
   Welcome to Node.js v16.20.1.
   Type ".help" for more information.
   >
+  ```
+
+  You can use this image to try out (pretty much) any version of any program:
+
+  ```sh
+  $ docker run pkgxdev/pkgx pkgx node@21.1 --version
+  v21.1.0
   ```
 
   Or in a `Dockerfile`:
@@ -90,13 +99,11 @@ Python 2.7.18
   RUN pkgx python@3.10 -m http.server 8000
   ```
 
-  > [docs.pkgx.sh/docker]
-
   </details>
 * <details><summary>CI/CD</summary><br>
 
   ```yaml
-  - uses: pkgxdev/setup@v2
+  - uses: pkgxdev/setup@v3
   - run: pkgx shellcheck
   ```
 
@@ -106,8 +113,6 @@ Python 2.7.18
   curl https://pkgx.sh | sh
   pkgx shellcheck
   ```
-
-  > [docs.pkgx.sh/ci-cd]
 
   </details>
 * <details><summary>Scripts</summary><br>
@@ -123,14 +128,7 @@ Python 2.7.18
   </details>
 * <details><summary>Editors</summary><br>
 
-  ```sh
-  $ cd myproj
-
-  myproj $ env +cargo
-  (+cargo) myproj $ code .
-  ```
-
-  Or use [`dev`][dev]; a separate tool that uses the pkgx primitives to
+  Use [`dev`][dev]; a separate tool that uses the pkgx primitives to
   automatically determine and utilize your dependencies based on your
   project’s keyfiles.
 
@@ -138,12 +136,10 @@ Python 2.7.18
   $ cd myproj
 
   myproj $ dev
-  env +cargo +rust
+  +cargo +rust
 
-  (+cargo+rust) my-rust-project $ code .
+  myproj $ code .
   ```
-
-  > [docs.pkgx.sh/editors]
 
   </details>
 

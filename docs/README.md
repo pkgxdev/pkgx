@@ -1,6 +1,6 @@
 # `pkgx`
 
-`pkgx` is a 4MB, *standalone binary* that can *run anything*.
+`pkgx` is a 4 MiB, standalone binary that can *run anything*.
 
 ## Quick Start
 
@@ -8,7 +8,9 @@
 brew install pkgx || curl https://pkgx.sh | sh
 ```
 
-[Getting Started Guide](getting-started.md)
+{% hint style='info' %}
+[Installation Guide](installing-pkgx.md)
+{% endhint %}
 
 ## Using `pkgx`
 
@@ -25,17 +27,23 @@ used to build a whole ecosystem of tools. Here’s what we’ve built so far:
 `dev` uses shellcode and `pkgx` to create “virtual environments” for any
 project and any toolset.
 
-> [https://github.com/pkgxdev/dev](https://github.com/pkgxdev/dev)
+{% hint style='info' %}
+[https://github.com/pkgxdev/dev](https://github.com/pkgxdev/dev)
+{% endhint %}
 
 ## `pkgm`
 
 `pkgm` installs `pkgx` packages to `/usr/local`.
 
-> [https://github.com/pkgxdev/pkgm](https://github.com/pkgxdev/pkgm)
+{% hint style='info' %}
+[https://github.com/pkgxdev/pkgm](https://github.com/pkgxdev/pkgm)
+{% endhint %}
 
 ## `mash`
 
 `mash` is a package manager for scripts that use `pkgx` to make the whole
 open source ecosystem available to them.
 
-> [https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
+{% hint style='info' %}
+[https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
+{% endhint %}

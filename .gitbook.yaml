@@ -1,22 +1,22 @@
 root:
   ./docs/
 redirects:
-  installing-w/out-brew: getting-started.md
+  installing-w/out-brew: installing-pkgx.md
   pantry: pkging/pantry.md
   getting-started: getting-started.md
-  quickstart: getting-started.md
+  quickstart: installing-pkgx.md
 
   help/pkg-not-cached: https://github.com/orgs/pkgxdev/discussions/new?category=help&title=pkg-not-cached
   help/http-failure: https://github.com/orgs/pkgxdev/discussions/new?category=help&title=http-failure
   help/ambiguous-pkgspec: https://github.com/orgs/pkgxdev/discussions/new?category=help&title=ambiguous-pkgspec
 
   # links should never die
-  docker: getting-started.md
-  ci-cd: getting-started.md
+  docker: installing-pkgx.md
+  ci-cd: installing-pkgx.md
   scripts: scripting.md
-  run-anywhere/terminals: getting-started.md
-  run-anywhere/docker: getting-started.md
-  run-anywhere/ci-cd: getting-started.md
+  run-anywhere/terminals: installing-pkgx.md
+  run-anywhere/docker: installing-pkgx.md
+  run-anywhere/ci-cd: installing-pkgx.md
   run-anywhere/scripts: scripting.md
   pantry.md: pkging/pantry.md
   pantry-api: pkging/pantry-api.md

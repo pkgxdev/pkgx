@@ -1,10 +1,10 @@
 ‌# Summary​
 
 * [Highlights](README.md)
-* [Installing `pkgx`](getting-started.md)
 
 ## `pkgx`
 
+* [Installing `pkgx`](installing-pkgx.md)
 * [Getting Started](pkgx.md)
 * [Scripting](scripting.md)
 
@@ -14,7 +14,6 @@
 * [`pkgm`](https://github.com/pkgxdev/pkgm)
 * [`mash`](https://github.com/pkgxdev/mash)
 ​
-
 ## Appendix
 
 * [FAQ](faq.md)

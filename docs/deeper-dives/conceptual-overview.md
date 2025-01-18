@@ -1,6 +1,4 @@
-# Appendix
-
-## How `pkgx` Works: A Conceptual Overview
+# How `pkgx` Works: A Conceptual Overview
 
 Everything `pkgx` does involves initially creating package environment. It then
 either runs commands inside those environments or injects those environments
