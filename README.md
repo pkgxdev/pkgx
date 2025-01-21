@@ -240,7 +240,7 @@ pprint([(k, v["title"]) for k, v in data.items()][:10])
 > for scripts to show the world what is possible when the whole open source
 > ecosystem is available to your scripts Check it out [`mash`].
 
-> [!INFO]
+> [!NOTE]
 >
 > Notably, packages used during your script aren’t installed and don’t pollute
 > your system and anyone else’s systems either. Don’t be confused— they are
