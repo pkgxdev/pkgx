@@ -47,103 +47,104 @@ Python 2.7.18
 
 ## Run Anywhere
 
-* <details><summary>macOS</summary><br>
+<details><summary>macOS</summary><br>
 
-  * macOS >= 11
-  * 64 bit Intel & Apple Silicon
+* macOS >= 11
+* 64 bit Intel & Apple Silicon
 
-  </details>
-* <details><summary>Linux</summary><br>
+</details>
+<details><summary>Linux</summary><br>
 
-  * glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
-  * `x86_64` & `arm64`
+* glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
+* `x86_64` & `arm64`
 
-  </details>
-* <details><summary>Windows</summary><br>
+</details>
+<details><summary>Windows</summary><br>
 
-  WSL2; x86-64. *Native windows is planned.*
+WSL2; x86-64. *Native windows is planned.*
 
-  </details>
-* <details><summary>Docker</summary><br>
+</details>
+<details><summary>Docker</summary><br>
 
-  We provide an image with `pkgx` in it:
+We provide an image with `pkgx` in it:
 
-  ```sh
-  $ pkgx docker run -it pkgxdev/pkgx
+```sh
+$ pkgx docker run -it pkgxdev/pkgx
 
-  (docker) $ pkgx node@16
-  Welcome to Node.js v16.20.1.
-  Type ".help" for more information.
-  >
-  ```
+(docker) $ pkgx node@16
+Welcome to Node.js v16.20.1.
+Type ".help" for more information.
+>
+```
 
-  You can use this image to try out (pretty much) any version of any program:
+You can use this image to try out (pretty much) any version of any program:
 
-  ```sh
-  $ docker run pkgxdev/pkgx node@21.1 --version
-  v21.1.0
-  ```
+```sh
+$ docker run pkgxdev/pkgx node@21.1 --version
+v21.1.0
+```
 
-  Or in a `Dockerfile`:
+Or in a `Dockerfile`:
 
-  ```Dockerfile
-  FROM pkgxdev/pkgx
-  RUN pkgx deno@1.35 task start
-  ```
+```Dockerfile
+FROM pkgxdev/pkgx
+RUN pkgx deno@1.35 task start
+```
 
-  Or in any image:
+Or in any image:
 
-  ```Dockerfile
-  FROM ubuntu
-  RUN curl https://pkgx.sh | sh
-  RUN pkgx python@3.10 -m http.server 8000
-  ```
+```Dockerfile
+FROM ubuntu
+RUN curl https://pkgx.sh | sh
+RUN pkgx python@3.10 -m http.server 8000
+```
 
-  </details>
-* <details><summary>CI/CD</summary><br>
+</details>
+<details><summary>CI/CD</summary><br>
 
-  ```yaml
-  - uses: pkgxdev/setup@v3
-  - run: pkgx shellcheck
-  ```
+```yaml
+- uses: pkgxdev/setup@v3
+- run: pkgx shellcheck
+```
 
-  Or in other CI/CD providers:
+Or in other CI/CD providers:
 
-  ```sh
-  curl https://pkgx.sh | sh
-  pkgx shellcheck
-  ```
+```sh
+curl https://pkgx.sh | sh
+pkgx shellcheck
+```
 
-  </details>
-* <details><summary>Scripts</summary><br>
+</details>
+<details><summary>Scripts</summary><br>
 
-  ```sh
-  #!/usr/bin/env -S pkgx +git python@3.12
+```sh
+#!/usr/bin/env -S pkgx +git python@3.12
 
-  # python 3.12 runs the script and `git` is available during its execution
-  ```
+# python 3.12 runs the script and `git` is available during its execution
+```
 
-  > [docs.pkgx.sh/scripts]
+> [docs.pkgx.sh/scripts]
 
-  </details>
-* <details><summary>Editors</summary><br>
+</details>
+<details><summary>Editors</summary><br>
 
-  Use [`dev`][dev]; a separate tool that uses the pkgx primitives to
-  automatically determine and utilize your dependencies based on your
-  project’s keyfiles.
+Use [`dev`][dev]; a separate tool that uses the pkgx primitives to
+automatically determine and utilize your dependencies based on your
+project’s keyfiles.
 
-  ```sh
-  $ cd myproj
+```sh
+$ cd myproj
 
-  myproj $ dev
-  +cargo +rust
+myproj $ dev
++cargo +rust
 
-  myproj $ code .
-  ```
+myproj $ code .
+```
 
-  </details>
+</details>
 
 &nbsp;
+
 
 # The `pkgx` Ecosystem
 
@@ -340,6 +341,9 @@ cargo fmt --all --check
 cargo clippy --all-features
 pkgx npx markdownlint --config .github/markdownlint.yml --fix .
 ```
+
+&nbsp;
+
 
 # Chat / Support / Questions
 

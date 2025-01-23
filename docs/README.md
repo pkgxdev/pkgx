@@ -14,8 +14,8 @@ brew install pkgx || curl https://pkgx.sh | sh
 
 ## Using `pkgx`
 
-| <p>​<a href="running-anything.md">Run Anything</a><br>Run anything with `pkgx`</p> | <p><a href="scripting.md">Scripting</a><br>Write scripts in any language with all the tools you need available from L:1</p> |
-| ----- | ----- |
+* [Run Anything](running-anything.md)
+* [Scripting](scripting.md)
 
 # The `pkgx` Ecosystem
 
@@ -47,3 +47,8 @@ open source ecosystem available to them.
 {% hint style='info' %}
 [https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
 {% endhint %}
+
+
+# Support
+
+[Discord](https://discord.gg/rNwNUY83XS)
