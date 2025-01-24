@@ -37,5 +37,6 @@ more:
     re.replace_all(&usage, |caps: &regex::Captures| {
         dim(caps.get(0).unwrap().as_str())
     })
+    .trim()
     .to_string()
 }
