@@ -8,19 +8,14 @@ use tokio_tar::Archive;
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 
 #[allow(clippy::all)]
-pub fn should(config: &Config) -> bool {
+pub fn should(config: &Config) -> Result<bool, Box<dyn Error>> {
     if !config.pantry_dir.join("projects").is_dir() {
-        true
-    } else if !config
-        .pantry_dir
-        .parent()
-        .unwrap()
-        .join("pantry.db")
-        .is_file()
-    {
-        true
+        Ok(true)
     } else {
-        false
+        let path = config.pantry_dir.parent().unwrap().join("pantry.2.db");
+        // the file always exists because we create the connection
+        // but will be 0 bytes if we need to fill it
+        Ok(std::fs::metadata(&path)?.len() == 0)
     }
 }
 

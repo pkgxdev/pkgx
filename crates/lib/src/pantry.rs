@@ -12,6 +12,7 @@ pub struct PantryEntry {
     pub programs: Vec<String>,
     pub companions: Vec<PackageReq>,
     pub env: HashMap<String, String>,
+    pub display_name: Option<String>,
 }
 
 impl PantryEntry {
@@ -73,12 +74,15 @@ impl PantryEntry {
             HashMap::new()
         };
 
+        let display_name = entry.display_name;
+
         Ok(Self {
             deps,
             project,
             env,
             companions,
             programs,
+            display_name,
         })
     }
 }
@@ -131,6 +135,8 @@ struct RawPantryEntry {
     provides: Option<Provides>,
     companions: Option<Deps>,
     runtime: Option<Runtime>,
+    #[serde(rename = "display-name")]
+    display_name: Option<String>,
 }
 
 #[derive(Debug)]

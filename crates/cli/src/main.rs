@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let cache_dir = config.pantry_dir.parent().unwrap();
     std::fs::create_dir_all(cache_dir)?;
-    let mut conn = Connection::open(cache_dir.join("pantry.db"))?;
+    let mut conn = Connection::open(cache_dir.join("pantry.2.db"))?;
 
     let spinner = if flags.silent || flags.quiet {
         None
@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Some(spinner)
     };
 
-    let did_sync = if sync::should(&config) {
+    let did_sync = if sync::should(&config)? {
         if let Some(spinner) = &spinner {
             spinner.set_message("syncing pkg-db…");
         }
@@ -263,7 +263,7 @@ impl std::fmt::Display for WhichError {
 impl std::error::Error for WhichError {}
 
 async fn which(cmd: &String, conn: &Connection, pkgs: &[PackageReq]) -> Result<String, WhichError> {
-    let candidates = pantry_db::which(cmd, conn).map_err(WhichError::DbError)?;
+    let candidates = pantry_db::projects_for_symbol(cmd, conn).map_err(WhichError::DbError)?;
     if candidates.len() == 1 {
         Ok(candidates[0].clone())
     } else if candidates.is_empty() {
