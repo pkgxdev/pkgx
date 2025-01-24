@@ -30,10 +30,15 @@ pub fn cache(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error
         project TEXT,
         envline TEXT
     );
+    CREATE TABLE aliases (
+        project TEXT,
+        alias TEXT
+    );
     CREATE INDEX idx_project ON provides(project);
     CREATE INDEX idx_program ON provides(program);
     CREATE INDEX idx_project_dependencies ON dependencies(project);
     CREATE INDEX idx_project_companions ON companions(project);
+    CREATE INDEX idx_alias_project ON aliases(alias);
     ",
     )?;
 
@@ -50,6 +55,13 @@ pub fn cache(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error
             tx.execute(
                 "INSERT INTO provides (project, program) VALUES (?1, ?2);",
                 params![pkg.project, program],
+            )?;
+        }
+
+        if let Some(display_name) = pkg.display_name {
+            tx.execute(
+                "INSERT INTO aliases (project, alias) VALUES (?1, ?2);",
+                params![pkg.project, display_name],
             )?;
         }
 
@@ -97,6 +109,24 @@ pub fn which(cmd: &String, conn: &Connection) -> Result<Vec<String>, rusqlite::E
     let mut stmt = conn.prepare("SELECT project FROM provides WHERE program = ?1")?;
     let mut rv = Vec::new();
     let mut rows = stmt.query(params![cmd])?;
+    while let Some(row) = rows.next()? {
+        rv.push(row.get(0)?);
+    }
+    Ok(rv)
+}
+
+pub fn projects_for_symbol(
+    symbol: &String,
+    conn: &Connection,
+) -> Result<Vec<String>, rusqlite::Error> {
+    let mut stmt = conn.prepare(
+        "
+        SELECT project FROM provides WHERE program = ?1
+        UNION
+        SELECT project FROM aliases WHERE alias = ?1;",
+    )?;
+    let mut rv = Vec::new();
+    let mut rows = stmt.query(params![symbol])?;
     while let Some(row) = rows.next()? {
         rv.push(row.get(0)?);
     }

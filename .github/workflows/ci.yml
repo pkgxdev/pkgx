@@ -107,7 +107,10 @@ jobs:
       - run: pkgx /usr/bin/awk --version
       - run: pkgx +yarnpkg.com yarn --version
       - run: pkgx +yarnpkg.com -- yarn --version
+      # coverage for conflict error messages
       - run: '! pkgx yarn --version'
+      # coverage for display-name resolution
+      - run: pkgx +agg
 
       - name: generate coverage
         run: |
