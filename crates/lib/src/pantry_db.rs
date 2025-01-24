@@ -123,7 +123,7 @@ pub fn projects_for_symbol(
         "
         SELECT project FROM provides WHERE program = ?1
         UNION
-        SELECT project FROM aliases WHERE alias = ?1;",
+        SELECT project FROM aliases WHERE LOWER(alias) = LOWER(?1);",
     )?;
     let mut rv = Vec::new();
     let mut rows = stmt.query(params![symbol])?;
