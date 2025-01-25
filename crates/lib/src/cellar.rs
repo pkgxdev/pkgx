@@ -8,8 +8,19 @@ use tokio::fs;
 pub async fn ls(project: &str, config: &Config) -> Result<Vec<Installation>, Box<dyn Error>> {
     let d = config.pkgx_dir.join(project);
 
-    if !fs::metadata(&d).await?.is_dir() {
-        return Ok(vec![]);
+    match fs::metadata(&d).await {
+        Ok(metadata) => {
+            if !metadata.is_dir() {
+                return Err(format!("err: expected directory: {:?}", d).into());
+            }
+        }
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                return Ok(vec![]);
+            } else {
+                return Err(e.into());
+            }
+        }
     }
 
     let mut rv = vec![];
@@ -39,23 +50,16 @@ pub async fn ls(project: &str, config: &Config) -> Result<Vec<Installation>, Box
     Ok(rv)
 }
 
-pub async fn resolve(pkgreq: &PackageReq, config: &Config) -> Result<Installation, Box<dyn Error>> {
-    let installations = ls(&pkgreq.project, config).await?;
-
-    if let Some(i) = installations
+pub async fn resolve(
+    pkgreq: &PackageReq,
+    config: &Config,
+) -> Result<Option<Installation>, Box<dyn Error>> {
+    Ok(ls(&pkgreq.project, config)
+        .await?
         .iter()
         .filter(|i| pkgreq.constraint.satisfies(&i.pkg.version))
         .max_by_key(|i| i.pkg.version.clone())
-    {
-        Ok(i.clone())
-    } else {
-        // If no matching version is found, return an error
-        Err(format!("couldn’t resolve {:?}", pkgreq).into())
-    }
-}
-
-pub async fn has(pkg: &PackageReq, config: &Config) -> Option<Installation> {
-    resolve(pkg, config).await.ok()
+        .cloned())
 }
 
 pub fn dst(pkg: &Package, config: &Config) -> PathBuf {
