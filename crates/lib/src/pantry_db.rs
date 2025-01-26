@@ -14,6 +14,7 @@ pub fn cache(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error
     DROP TABLE IF EXISTS dependencies;
     DROP TABLE IF EXISTS companions;
     DROP TABLE IF EXISTS runtime_env;
+    DROP TABLE IF EXISTS aliases;
     CREATE TABLE provides (
         project TEXT,
         program TEXT
