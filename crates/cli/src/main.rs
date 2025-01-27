@@ -25,6 +25,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         find_program,
     } = args::parse();
 
+    if flags.version_n_continue {
+        eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
+    }
+
     match mode {
         args::Mode::Help => {
             println!("{}", help::usage());
@@ -234,10 +238,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("{}", json);
         }
         Ok(())
-    } else {
+    } else if !flags.version_n_continue {
         clear_progress_bar();
         eprintln!("{}", help::usage());
         std::process::exit(2);
+    } else {
+        Ok(())
     }
 }
 

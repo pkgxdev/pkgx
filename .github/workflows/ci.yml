@@ -110,7 +110,7 @@ jobs:
       # coverage for conflict error messages
       - run: '! pkgx yarn --version'
       # coverage for display-name resolution
-      - run: pkgx +agg
+      - run: pkgx -v +agg
 
       - name: generate coverage
         run: |

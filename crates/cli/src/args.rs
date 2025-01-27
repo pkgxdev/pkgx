@@ -10,6 +10,7 @@ pub struct Flags {
     pub quiet: bool,
     pub silent: bool,
     pub json: bool,
+    pub version_n_continue: bool,
 }
 
 pub struct Args {
@@ -29,6 +30,7 @@ pub fn parse() -> Args {
     let mut json: bool = false;
     let mut find_program = false;
     let mut collecting_args = false;
+    let mut version_n_continue = false;
 
     for arg in std::env::args().skip(1) {
         if collecting_args {
@@ -86,8 +88,10 @@ pub fn parse() -> Args {
                             quiet = true
                         }
                     }
+                    'h' => mode = Mode::Help,
                     's' => silent = true,
                     'j' => json = true,
+                    'v' => version_n_continue = true,
                     _ => panic!("unknown argument: -{}", c),
                 }
             }
@@ -107,6 +111,7 @@ pub fn parse() -> Args {
             silent,
             json,
             quiet,
+            version_n_continue,
         },
     }
 }
