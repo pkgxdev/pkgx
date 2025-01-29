@@ -214,11 +214,20 @@ following [semver] syntax:
 
 ## Where does `pkgx` store files
 
-* pkgs are downloaded to `~/.pkgx` (`$PKGX_DIR` overrides)
-* runtime data like the [pantry] is stored in:
-  * `~/Library/Caches/pkgx` on Mac
-  * `${XDG_CACHE_HOME:-$HOME/.cache}/pkgx` on *nix
-  * `%LOCALAPPDATA%/pkgx` on Windows
+Packages are downloaded to `$PKGX_DIR` if set. If not set:
+
+* macOS
+  * `~/Library/Packages` if the directory exists
+  * `~/.pkgx` otherwise
+* *nix
+  * `~/.pkgx` if the directory exists
+  * `${XDG_DATA_HOME:-$HOME/.local/share}/pkgx` otherwise
+
+Some cache data is stored:
+
+* `~/Library/Caches/pkgx` on Mac
+* `${XDG_CACHE_HOME:-$HOME/.cache}/pkgx` on *nix
+* `%LOCALAPPDATA%/pkgx` on Windows
 
 
 ## What happens if two packages provide the same named program?
