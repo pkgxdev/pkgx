@@ -22,7 +22,6 @@ Using `env` to invoke `pkgx` is typical for tools that have no POSIX location.
 The `-S` parameter is required to pass multiple arguments.
 {% endhint %}
 
-
 ## Including Additional pkgs
 
 Scripts are the glue that allows open source to be composed into powerful new
@@ -47,7 +46,6 @@ source <(pkgx dev --shellcode)
 
 {% endhint %}
 
-
 ## Scripting for Various Languages & Their Dependencies
 
 ### Python
@@ -55,14 +53,7 @@ source <(pkgx dev --shellcode)
 Use `uv` to import PyPi dependencies:
 
 ```python
-#!/usr/bin/env -S pkgx +python@3.11 uv run --script
-
-# /// script
-# dependencies = [
-#   "requests<3",
-#   "rich",
-# ]
-# ///
+#!/usr/bin/env -S pkgx +python@3.11 uv run --with requests<=3 --with rich
 
 import requests
 from rich.pretty import pprint
@@ -107,7 +98,6 @@ Use [Scriptisto]:
 # snip… type `pkgx scriptisto new cargo` for the rest.
 ```
 
-
 ## Mash
 
 We think `pkgx` scripting is so powerful that we made a whole package
@@ -115,11 +105,9 @@ manager to show it off.
 
 > [https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
 
-
 ## Other Examples
 
 We make use of `pkgx` scripting all over our repositories. Check them out!
-
 
 [shebang]: https://en.wikipedia.org/wiki/Shebang_(Unix)
 [Scriptisto]: https://github.com/igor-petruk/scriptisto
