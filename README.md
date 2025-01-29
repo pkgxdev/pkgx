@@ -216,7 +216,7 @@ dependencies. For example, here we use `uv` to run a python script with
 pypi dependencies, and pkgx to load both `uv` and a specific python version:
 
 ```sh
-#!/usr/bin/env -S pkgx +python@3.11 uv run --script
+#!/usr/bin/env -S pkgx +python@3.11 uv run
 
 # /// script
 # dependencies = [

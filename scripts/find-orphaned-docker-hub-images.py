@@ -1,5 +1,4 @@
-#!/usr/bin/env -S pkgx +python@3.11 uv run --script
-# /// script
+#!/usr/bin/env -S pkgx +python@3.11 uv run
 # dependencies = [
 #   "requests"
 # ]
