@@ -355,10 +355,7 @@ We love a good chinwag.
 [docs]: https://docs.pkgx.sh
 [pantry README]: ../../../pantry#contributing
 [discussions]: ../../discussions
-[docs.pkgx.sh/ci-cd]: https://docs.pkgx.sh/ci-cd
 [docs.pkgx.sh/scripts]: https://docs.pkgx.sh/scripts
-[docs.pkgx.sh/editors]: https://docs.pkgx.sh/editors
-[docs.pkgx.sh/docker]: https://docs.pkgx.sh/docker
 [docs.pkgx.sh/installing-w/out-brew]: https://docs.pkgx.sh/installing-w/out-brew
 [dev]: https://github.com/pkgxdev/dev
 [pkgm]: https://github.com/pkgxdev/pkgm
