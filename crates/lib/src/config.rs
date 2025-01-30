@@ -42,18 +42,20 @@ fn get_pantry_dir() -> io::Result<PathBuf> {
 }
 
 fn get_pkgx_dir() -> io::Result<PathBuf> {
-    if let Ok(env_dir) = env::var("PKGX_DIR") {
-        let path = PathBuf::from(env_dir);
-        if !path.is_absolute() {
-            return Ok(env::current_dir()?.join(path));
-        } else {
+    if let Ok(path) = env::var("PKGX_DIR") {
+        let path = PathBuf::from(path);
+        if path.is_absolute() {
             return Ok(path);
         }
     }
-    #[cfg(target_os = "macos")]
-    return Ok(dirs_next::home_dir().unwrap().join(".pkgx"));
-    #[cfg(target_os = "linux")]
-    return Ok(dirs_next::home_dir().unwrap().join(".pkgx"));
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    panic!("Unsupported platform")
+
+    let default = dirs_next::home_dir().map(|x| x.join(".pkgx"));
+
+    if default.clone().is_some_and(|x| x.exists()) {
+        Ok(default.unwrap())
+    } else if let Ok(xdg) = env::var("XDG_DATA_HOME") {
+        Ok(PathBuf::from(xdg).join("pkgx"))
+    } else {
+        Ok(default.unwrap())
+    }
 }
