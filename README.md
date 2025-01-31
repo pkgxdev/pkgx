@@ -247,6 +247,12 @@ pprint([(k, v["title"]) for k, v in data.items()][:10])
 > your system and anyone else’s systems either. Don’t be confused— they are
 > downloaded to `~/.pkgx` but the wider system is not touched.
 
+## `pkgo` (Package…GO!)
+
+Some Open Source resists packaging and instead includes long installation
+instructions that can be… tedious. [`pkgo`] makes using amazing tools like
+[“Stable Diffusion WebUI”] as easy as typing `pkgo` (thanks to `pkgx`).
+
 ## Recursive Run
 
 Easily run tools from other language ecosystems:
@@ -363,6 +369,8 @@ We love a good chinwag.
 [`hydrate.rs`]: src/hydrate.rs
 [`mash`]: https://github.com/pkgxdev/mash
 [`dev`]: https://github.com/pkgxdev/dev
+[`pkgo`]: https://github.com/pkgxdev/pkgo
+[“Stable Diffusion WebUI”]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 
 [coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main

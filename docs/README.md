@@ -48,6 +48,17 @@ open source ecosystem available to them.
 [https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
 {% endhint %}
 
+## `pkgo` (Package…GO!)
+
+Some Open Source resists packaging and instead includes long installation
+instructions that can be… tedious. `pkgo` makes using amazing tools like
+[“Stable Diffusion WebUI”] as easy as typing `pkgo` (thanks to `pkgx`).
+
+{% hint style='info' %}
+[https://github.com/pkgxdev/pkgo](https://github.com/pkgxdev/pkgo)
+{% endhint %}
+
+[“Stable Diffusion WebUI”]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 
 # Support
 
