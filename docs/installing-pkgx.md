@@ -77,7 +77,7 @@ RUN pkgx +node@16 npm start
 ## GitHub Actions
 
 ```yaml
-- uses: pkgxdev/setup@v2
+- uses: pkgxdev/setup@v3
 ```
 
 {% hint style='info' %}
