@@ -18,7 +18,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
 tokio-stream = "0.1"
-strum = "0.24"
+strum = "0.26"
 strum_macros = "0.26"
 rusqlite = "0.32.1"
 regex = "1.11.1"
