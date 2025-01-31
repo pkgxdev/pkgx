@@ -4,3 +4,13 @@ updates:
     directory: /
     schedule:
       interval: weekly
+
+  - package-ecosystem: cargo
+    directory: /crates/cli
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: cargo
+    directory: /crates/lib
+    schedule:
+      interval: weekly
