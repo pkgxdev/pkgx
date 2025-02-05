@@ -1,6 +1,6 @@
 import { PackageRequirement, Path, PkgxError, hooks, utils } from "pkgx"
 import { is_shebang } from "../utils/get-shebang.ts"
-import { blurple, dim } from "../utils/color.ts"
+import uninstall from "./uninstall.ts"
 import undent from 'outdent'
 const { usePantry } = hooks
 
@@ -37,15 +37,43 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
   async function write(dst: Path, pkgs: PackageRequirement[]) {
     const UNSAFE = is_unsafe(unsafe)
     for (const pkg of pkgs) {
-      const programs = await usePantry().project(pkg).provides()
-      program_loop:
-      for (const program of programs) {
-
+      const programs = (await usePantry().project(pkg).provides()).filter(
         // skip for now since we would require specific versions and we haven't really got that
-        if (program.includes("{{")) continue
+        p => !p.includes("{{")
+      )
+      const pkgstr = utils.pkg.str(pkg)
 
-        const pkgstr = utils.pkg.str(pkg)
+      for (const program of programs) {
+        const f = dst.join(program)
 
+        if (f.exists()) {
+          if (!f.isFile()) throw new PkgxError(`${f} already exists and is not a file`)
+
+          const fd = is_shebang(f).catch(() => undefined)
+          if (!fd) throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+
+          const lines = f.readLines()
+          const { value: shebang } = await lines.next()
+          if (shebang != "#!/bin/sh") {
+            throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+          }
+          while (true) {
+            const { value, done } = await lines.next()
+            if (done) {
+              throw new PkgxError(`${f} already exists and is not a pkgx installation`)
+            }
+            const found = value.match(/^\s*exec pkgx \+([^ ]+)/);
+            const unsafe_found = value.match(/#MANAGED BY PKGX/);
+            if (found || unsafe_found) {
+              await uninstall([pkgstr])
+              break
+            }
+          }
+        }
+      }
+
+      for (const program of programs) {
+        const f = dst.mkdir('p').join(program)
         let script = ""
 
         if (UNSAFE) {
@@ -89,41 +117,6 @@ export default async function(pkgs: PackageRequirement[], unsafe: boolean) {
               cd "$(dirname "$0")"
               rm -f ${programs.map(p => `'${p}'`).join(' ')} && echo "uninstalled: ${pkgstr}" >&2
             fi`
-        }
-
-        const f = dst.mkdir('p').join(program)
-
-        if (f.exists()) {
-          if (!f.isFile()) throw new PkgxError(`${f} already exists and is not a file`)
-
-          const fd = is_shebang(f).catch(() => undefined)
-          if (!fd) throw new PkgxError(`${f} already exists and is not a pkgx installation`)
-
-          const lines = f.readLines()
-          const { value: shebang } = await lines.next()
-          if (shebang != "#!/bin/sh") {
-            throw new PkgxError(`${f} already exists and is not a pkgx installation`)
-          }
-          while (true) {
-            const { value, done } = await lines.next()
-            if (done) {
-              throw new PkgxError(`${f} already exists and is not a pkgx installation`)
-            }
-            const found = value.match(/^\s*exec pkgx \+([^ ]+)/)?.[1]
-            const unsafe_found = value.match(/#MANAGED BY PKGX/);
-            if (found) {
-              if (found != pkgstr) {
-                throw new PkgxError(`different version already installed: ${blurple(program)} ${dim(`(${found})`)}`)
-              }
-              n++
-              console.warn(`pkgx: already installed: ${blurple(program)} ${dim(`(${found})`)}`)
-              continue program_loop
-            } else if (unsafe_found) {
-              n++
-              console.warn(`pkgx: already install: ${blurple(program)} ${dim("(UNSAFE)")}`);
-              continue program_loop
-            }
-          }
         }
 
         f.write({ force: true, text: undent`
