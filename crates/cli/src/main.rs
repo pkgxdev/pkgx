@@ -71,7 +71,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut pkgs = vec![];
 
-    for pkgspec in plus {
+    for pkgspec in plus.clone() {
         let PackageReq {
             project: project_or_cmd,
             constraint,
@@ -238,7 +238,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("{}", json);
         }
         Ok(())
-    } else if !flags.version_n_continue {
+    } else if !flags.version_n_continue && plus.is_empty() {
         clear_progress_bar();
         eprintln!("{}", help::usage());
         std::process::exit(2);
