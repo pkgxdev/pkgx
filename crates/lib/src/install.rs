@@ -39,17 +39,29 @@ where
     fs::create_dir_all(&shelf)?;
     let shelf = OpenOptions::new()
         .read(true) // Open the directory in read-only mode
-        .open(shelf)?;
+        .open(shelf.clone())?;
 
     task::spawn_blocking({
         let shelf = shelf.try_clone()?;
         move || {
             shelf
                 .lock_exclusive()
-                .expect("couldn’t obtain lock, is another pkgx instance running?");
+                .expect("unexpected error: install locking failed");
         }
     })
     .await?;
+
+    let dst_path = cellar::dst(pkg, config);
+
+    // did another instance of pkx install us while we waited for the lock?
+    // if so, we’re good: eject
+    if fs::exists(dst_path.clone())? {
+        FileExt::unlock(&shelf)?;
+        return Ok(Installation {
+            path: dst_path,
+            pkg: pkg.clone(),
+        });
+    }
 
     let url = inventory::get_url(pkg, config);
     let client = Client::new();
@@ -86,7 +98,7 @@ where
     archive.unpack(&config.pkgx_dir).await?;
 
     let installation = Installation {
-        path: cellar::dst(pkg, config),
+        path: dst_path,
         pkg: pkg.clone(),
     };
 
