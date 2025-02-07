@@ -74,7 +74,7 @@ jobs:
         with:
           path-to-lcov: coverage/lcov.info
           parallel: true
-          flag-name: ${{ matrix.os }}
+          flag-name: ${{ matrix.os }}-unit
 
   coverage-integration:
     needs: fmt
@@ -90,6 +90,10 @@ jobs:
         run: |
           RUSTFLAGS="-C instrument-coverage" cargo build
           echo "$PWD/target/debug" >> $GITHUB_PATH
+
+      # testing for installing multiple of the same thing at once is ok
+      - run: pkgx +gnome.org/libxml2 & pkgx +gnome.org/libxml2 & pkgx +gnome.org/libxml2
+      # ^^ KEEP FIRST, IT MUST INSTALL
 
       - run: pkgx --help
       - run: pkgx --version
@@ -114,6 +118,15 @@ jobs:
       # testing we correctly handle +pkg syntax for pkgs with no env
       - run: pkgx +curl.se/ca-certs
 
+      # create a fork bomb, but since it’s via pkgx we prevent it
+      - run: |
+          echo '#!/bin/sh' > foo
+          echo 'pkgx -- /bin/sh "$0"' >> foo
+          chmod u+x foo
+          if ./foo; then
+            exit 1
+          fi
+
       - name: generate coverage
         run: |
           cargo install rustfilt
@@ -130,10 +143,10 @@ jobs:
         with:
           path-to-lcov: lcov.info
           parallel: true
-          flag-name: ${{ matrix.os }}
+          flag-name: ${{ matrix.os }}-integration
 
   upload-coverage:
-    needs: [coverage-unit, coverage-integration, test]
+    needs: [coverage-unit, coverage-integration]
     runs-on: ubuntu-latest
     steps:
       - uses: coverallsapp/github-action@v2
