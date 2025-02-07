@@ -111,6 +111,8 @@ jobs:
       - run: '! pkgx yarn --version'
       # coverage for display-name resolution
       - run: pkgx -v +agg
+      # testing we correctly handle +pkg syntax for pkgs with no env
+      - run: pkgx +curl.se/ca-certs
 
       - name: generate coverage
         run: |
