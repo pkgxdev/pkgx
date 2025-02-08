@@ -138,22 +138,28 @@ pub fn mix_runtime(
     installations: &Vec<Installation>,
     conn: &Connection,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let mut output = input.clone();
+    let mut output: HashMap<String, String> = input
+        .iter()
+        .map(|(k, v)| (k.clone(), format!("{}:${}", v, k)))
+        .collect();
 
     for installation in installations.clone() {
         let runtime_env =
             crate::pantry_db::runtime_env_for_project(&installation.pkg.project, conn)?;
         for (key, runtime_value) in runtime_env {
             let runtime_value = expand_moustaches(&runtime_value, &installation, installations);
-            let new_value = match output.get(&key) {
-                Some(curr_value) => runtime_value.replace(&format!("${}", key), curr_value),
-                None => {
-                    //TODO need to remove any $FOO, aware of `:` delimiters
-                    runtime_value
-                        .replace(&format!(":${}", key), "")
-                        .replace(&format!("${}:", key), "")
-                        .replace(&format!("${}", key), "")
+            let new_value = if let Some(curr_value) = output.get(&key) {
+                if runtime_value.contains(&format!("${}", key)) {
+                    runtime_value.replace(&format!("${}", key), curr_value)
+                } else {
+                    // parent env overrides runtime env if the runtime env
+                    // has no capacity to include the parent env
+                    curr_value.clone()
                 }
+            } else if runtime_value.contains(&format!("${}", key)) {
+                runtime_value
+            } else {
+                format!("${{{}:-{}}}", key, runtime_value)
             };
             output.insert(key, new_value);
         }
