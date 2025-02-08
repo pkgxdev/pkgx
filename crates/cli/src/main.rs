@@ -12,6 +12,7 @@ use libpkgx::{
     config::Config, env, hydrate::hydrate, install_multi, pantry_db, resolve::resolve, sync,
     types::PackageReq, utils,
 };
+use regex::Regex;
 use rusqlite::Connection;
 use serde_json::json;
 
@@ -207,6 +208,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let env = env::mix(env);
         let mut env = env::mix_runtime(&env, &installations, &conn)?;
 
+        let re = Regex::new(r"^\$\{\w+:-([^}]+)\}$").unwrap();
+
+        for (key, value) in env.clone() {
+            if let Some(caps) = re.captures(&value) {
+                env.insert(key, caps.get(1).unwrap().as_str().to_string());
+            } else {
+                let cleaned_value = value
+                    .replace(&format!(":${}", key), "")
+                    .replace(&format!("${}:", key), "")
+                    .replace(&format!("; ${}", key), "") // one pantry instance of this
+                    .replace(&format!("${}", key), "");
+                env.insert(key, cleaned_value);
+            }
+        }
+
         // fork bomb protection
         env.insert("PKGX_LVL".to_string(), pkgx_lvl.to_string());
 
@@ -220,7 +236,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let env = env.iter().map(|(k, v)| (k.clone(), v.join(":"))).collect();
             let env = env::mix_runtime(&env, &installations, &conn)?;
             for (key, value) in env {
-                println!("{}=\"{}${{{}:+:${}}}\"", key, value, key, key);
+                println!(
+                    "{}=\"{}\"",
+                    key,
+                    value.replace(&format!(":${}", key), &format!("${{{}:+:${}}}", key, key))
+                );
             }
         } else {
             let mut runtime_env = HashMap::new();
