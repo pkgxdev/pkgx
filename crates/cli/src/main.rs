@@ -229,7 +229,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         clear_progress_bar();
 
         execve(cmd, args, env)
-    } else if !env.is_empty() {
+    } else if !plus.is_empty() {
         clear_progress_bar();
 
         if !flags.json {
@@ -258,7 +258,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("{}", json);
         }
         Ok(())
-    } else if !flags.version_n_continue && plus.is_empty() {
+    } else if !flags.version_n_continue {
         clear_progress_bar();
         eprintln!("{}", help::usage());
         std::process::exit(2);
