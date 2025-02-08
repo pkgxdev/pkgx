@@ -2,6 +2,7 @@ use async_compression::tokio::bufread::XzDecoder;
 use fs2::FileExt;
 use reqwest::Client;
 use std::{error::Error, fs::OpenOptions, path::PathBuf};
+use tempfile::tempdir_in;
 use tokio::task;
 use tokio_tar::Archive;
 
@@ -53,9 +54,9 @@ where
 
     let dst_path = cellar::dst(pkg, config);
 
-    // did another instance of pkx install us while we waited for the lock?
+    // did another instance of pkgx install us while we waited for the lock?
     // if so, we’re good: eject
-    if fs::exists(dst_path.clone())? {
+    if dst_path.is_dir() {
         FileExt::unlock(&shelf)?;
         return Ok(Installation {
             path: dst_path,
@@ -93,9 +94,16 @@ where
     // Step 2: Create a XZ decoder
     let decoder = XzDecoder::new(stream);
 
-    // Step 3: Extract the tar archive
+    // Step 3: Make a temporary directory to extract the tarball into
+    let temp_dir = tempdir_in(config.pkgx_dir.join(&pkg.project))?;
+
+    // Step 4: Extract the tar archive
     let mut archive = Archive::new(decoder);
-    archive.unpack(&config.pkgx_dir).await?;
+    archive.unpack(&temp_dir).await?;
+
+    // Step 5: atomically move from temp dir to installation location
+    let partial_path = format!("{}/v{}", pkg.project, pkg.version.raw);
+    fs::rename(temp_dir.into_path().join(&partial_path), &dst_path)?;
 
     let installation = Installation {
         path: dst_path,
