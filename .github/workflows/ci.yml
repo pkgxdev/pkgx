@@ -127,6 +127,22 @@ jobs:
             exit 1
           fi
 
+      # check that we update the pantry for unknown programs
+      # this works by deleting the entry for git then forcing
+      # pkgx to update the db, then trying to get git again
+      - run: |
+          set -x
+          rm -rf ~/.pkgx
+          rm -rf ~/.cache/pkgx/pantry/projects/git-scm.org
+          rm ~/.cache/pkgx/pantry.2.db
+          pkgx curl --version
+          test -f ~/.cache/pkgx/pantry.2.db
+          test ! -d ~/.cache/pkgx/pantry/projects/git-scm.org
+          pkgx git --version
+          test -d ~/.cache/pkgx/pantry/projects/git-scm.org
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        # ^^ only on one platform as wasteful otherwise
+
       - name: generate coverage
         run: |
           cargo install rustfilt

@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         if let Some(spinner) = &spinner {
             spinner.set_message("syncing pkg-db…");
         }
-        sync::replace(&config, &mut conn).await?;
+        sync::ensure(&config, &mut conn).await?;
         true
     } else {
         false
@@ -112,7 +112,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         spinner.set_message(msg);
                     }
                     // cmd not found ∴ sync in case it is new
-                    sync::replace(&config, &mut conn).await?;
+                    sync::update(&config, &mut conn).await?;
                     if let Some(spinner) = &spinner {
                         spinner.set_message("resolving pkg graph…");
                     }
