@@ -58,6 +58,10 @@ Python 2.7.18
 * glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
 * `x86_64` & `arm64`
 
+> [!TIP]
+> We have gone to good lengths to make `pkgx` (and the packages it installs)
+> work with almost nothing else installed, making it ideal for tiny containers.
+
 </details>
 <details><summary>Windows</summary><br>
 
