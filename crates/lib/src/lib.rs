@@ -1,4 +1,5 @@
 mod cellar;
+mod client;
 pub mod config;
 pub mod env;
 pub mod hydrate;

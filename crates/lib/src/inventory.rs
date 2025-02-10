@@ -1,3 +1,4 @@
+use crate::client::build_client;
 use crate::config::Config;
 use crate::types::{host, Package, PackageReq};
 use libsemverator::semver::Semver as Version;
@@ -44,7 +45,7 @@ pub async fn ls(rq: &PackageReq, config: &Config) -> Result<Vec<Version>, Box<dy
         base_url, rq.project, platform, arch
     ))?;
 
-    let rsp = reqwest::get(url.clone()).await?;
+    let rsp = build_client()?.get(url.clone()).send().await?;
 
     if !rsp.status().is_success() {
         return Err(Box::new(DownloadError {
