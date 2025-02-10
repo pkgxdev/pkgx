@@ -131,6 +131,7 @@ jobs:
       # this works by deleting the entry for git then forcing
       # pkgx to update the db, then trying to get git again
       - run: |
+          set -x
           rm -rf ~/.cache/pkgx/pantry/projects/git-scm.org
           rm -rf ~/.cache/pkgx/pantry/*.db
           pkgx +curl
