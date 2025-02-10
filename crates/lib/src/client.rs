@@ -28,5 +28,9 @@ pub fn build_client() -> Result<Client, Box<dyn std::error::Error>> {
     let ca = Certificate::from_pem(CERT2)?;
     builder = builder.add_root_certificate(ca);
 
-    Ok(builder.build()?)
+    let client = builder.build()?
+
+    eprintln!("Client built {:?}", client);
+
+    Ok(client)
 }
