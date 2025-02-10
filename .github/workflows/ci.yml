@@ -133,9 +133,9 @@ jobs:
       - run: |
           set -x
           rm -rf ~/.cache/pkgx/pantry/projects/git-scm.org
-          rm -rf ~/.cache/pkgx/pantry/*.db
+          rm -rf ~/.cache/pkgx/pantry*.db
           pkgx +curl
-          test -d ~/.cache/pkgx/pantry*.db
+          test -f ~/.cache/pkgx/pantry*.db
           ! test -d ~/.cache/pkgx/pantry/projects/git-scm.org
           pkgx +git
           test -d ~/.cache/pkgx/pantry/projects/git-scm.org
