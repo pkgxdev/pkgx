@@ -1,6 +1,5 @@
 use async_compression::tokio::bufread::XzDecoder;
 use fs2::FileExt;
-use reqwest::Client;
 use std::{error::Error, fs::OpenOptions, path::PathBuf};
 use tempfile::tempdir_in;
 use tokio::task;
@@ -16,6 +15,7 @@ use futures::stream::TryStreamExt;
 
 use crate::{
     cellar,
+    client::build_client,
     config::Config,
     inventory,
     types::{Installation, Package},
@@ -65,7 +65,7 @@ where
     }
 
     let url = inventory::get_url(pkg, config);
-    let client = Client::new();
+    let client = build_client()?;
     let rsp = client.get(url).send().await?.error_for_status()?;
 
     let total_size = rsp

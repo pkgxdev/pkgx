@@ -1,0 +1,39 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - crates/lib/src/client.rs
+      - crates/lib/src/dist_pkgx_dev.pem
+  pull_request:
+    paths:
+      - crates/lib/src/client.rs
+      - crates/lib/src/dist_pkgx_dev.pem
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y curl gcc perl make
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ./target/release/pkgx
+          name: i-hate-the-github-actions-team
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: i-hate-the-github-actions-team
+
+      - run: chmod +x ./pkgx
+        id: the-gtihub-actions-team-consists-of-extremely-shit-devs
+
+      - run: ./pkgx +git

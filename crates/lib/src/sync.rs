@@ -1,4 +1,4 @@
-use crate::{config::Config, pantry_db};
+use crate::{client::build_client, config::Config, pantry_db};
 use async_compression::tokio::bufread::GzipDecoder;
 use fs2::FileExt;
 use futures::TryStreamExt;
@@ -39,7 +39,7 @@ pub async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<d
 }
 
 async fn download_and_extract_pantry(url: &str, dest: &PathBuf) -> Result<(), Box<dyn Error>> {
-    let rsp = reqwest::get(url).await?.error_for_status()?;
+    let rsp = build_client()?.get(url).send().await?.error_for_status()?;
 
     let stream = rsp.bytes_stream();
 
