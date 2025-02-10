@@ -132,9 +132,12 @@ jobs:
       # pkgx to update the db, then trying to get git again
       - run: |
           rm -rf ~/.cache/pkgx/pantry/projects/git-scm.org
+          rm -rf ~/.cache/pkgx/pantry/*.db
           pkgx +curl
+          test -d ~/.cache/pkgx/pantry*.db
           ! test -d ~/.cache/pkgx/pantry/projects/git-scm.org
           pkgx +git
+          test -d ~/.cache/pkgx/pantry/projects/git-scm.org
         if: ${{ matrix.os == 'ubuntu-latest' }}
 
       - name: generate coverage
