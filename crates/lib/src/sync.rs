@@ -23,7 +23,7 @@ pub fn should(config: &Config) -> Result<bool, Box<dyn Error>> {
 // essential for working in a local pantry clone with PKGX_PANTRY_DIR set
 pub async fn ensure(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
     if !config.pantry_dir.join("projects").is_dir() {
-        Ok(replace(&config, conn).await?)
+        replace(config, conn).await
     } else {
         let dest = &config.pantry_dir;
         std::fs::create_dir_all(dest.clone())?;
@@ -44,7 +44,7 @@ pub async fn update(config: &Config, conn: &mut Connection) -> Result<(), Box<dy
     if std::env::var("PKGX_PANTRY_DIR").is_ok() {
         return Err("PKGX_PANTRY_DIR is set, refusing to update pantry")?;
     }
-    Ok(replace(config, conn).await?)
+    replace(config, conn).await
 }
 
 async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
