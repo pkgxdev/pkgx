@@ -132,12 +132,13 @@ jobs:
       # pkgx to update the db, then trying to get git again
       - run: |
           set -x
+          rm -rf ~/.pkgx
           rm -rf ~/.cache/pkgx/pantry/projects/git-scm.org
-          rm -rf ~/.cache/pkgx/pantry*.db
-          pkgx +curl
-          test -f ~/.cache/pkgx/pantry*.db
+          rm ~/.cache/pkgx/pantry.2.db
+          pkgx curl --version
+          test -f ~/.cache/pkgx/pantry.2.db
           ! test -d ~/.cache/pkgx/pantry/projects/git-scm.org
-          pkgx +git
+          pkgx git --version
           test -d ~/.cache/pkgx/pantry/projects/git-scm.org
         if: ${{ matrix.os == 'ubuntu-latest' }}
 
