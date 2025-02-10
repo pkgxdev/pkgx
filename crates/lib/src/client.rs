@@ -8,9 +8,9 @@ const CERT2: &[u8; 1188] = include_bytes!("amazon_root_ca1.pem");
 pub fn build_client() -> Result<Client, Box<dyn std::error::Error>> {
     let mut builder = ClientBuilder::new();
 
-    let foo = reqwest::Certificate::from_pem_bundle(CERT)?;
-    for bar in foo {
-        builder = builder.add_root_certificate(bar);
+    let bndl = reqwest::Certificate::from_pem_bundle(CERT)?;
+    for cert in bndl {
+        builder = builder.add_root_certificate(cert);
     }
 
     // // Split and parse each certificate in the PEM chain
@@ -28,7 +28,7 @@ pub fn build_client() -> Result<Client, Box<dyn std::error::Error>> {
     let ca = Certificate::from_pem(CERT2)?;
     builder = builder.add_root_certificate(ca);
 
-    let client = builder.build()?
+    let client = builder.build()?;
 
     eprintln!("Client built {:?}", client);
 
