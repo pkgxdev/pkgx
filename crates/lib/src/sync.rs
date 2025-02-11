@@ -19,7 +19,35 @@ pub fn should(config: &Config) -> Result<bool, Box<dyn Error>> {
     }
 }
 
-pub async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
+// doesn’t replace pantry clone, will build db
+// essential for working in a local pantry clone with PKGX_PANTRY_DIR set
+pub async fn ensure(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
+    if !config.pantry_dir.join("projects").is_dir() {
+        replace(config, conn).await
+    } else {
+        let dest = &config.pantry_dir;
+        std::fs::create_dir_all(dest.clone())?;
+        let dir = OpenOptions::new()
+            .read(true) // Open in read-only mode; no need to write.
+            .open(dest)?;
+        dir.lock_exclusive()?;
+
+        pantry_db::cache(config, conn)?;
+
+        FileExt::unlock(&dir)?;
+
+        Ok(())
+    }
+}
+
+pub async fn update(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
+    if std::env::var("PKGX_PANTRY_DIR").is_ok() {
+        return Err("PKGX_PANTRY_DIR is set, refusing to update pantry")?;
+    }
+    replace(config, conn).await
+}
+
+async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
     let url = env!("PKGX_PANTRY_TARBALL_URL");
     let dest = &config.pantry_dir;
 
