@@ -366,7 +366,7 @@ We love a good chinwag.
 [dev]: https://github.com/pkgxdev/dev
 [pkgm]: https://github.com/pkgxdev/pkgm
 [teaBASE-release-script]: https://github.com/teaxyz/teaBASE/blob/main/Scripts/publish-release.sh
-[`hydrate.rs`]: src/hydrate.rs
+[`hydrate.rs`]: crates/lib/src/hydrate.rs
 [`mash`]: https://github.com/pkgxdev/mash
 [`dev`]: https://github.com/pkgxdev/dev
 [`pkgo`]: https://github.com/pkgxdev/pkgo
