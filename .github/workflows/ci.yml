@@ -133,13 +133,13 @@ jobs:
       - run: |
           set -x
           rm -rf ~/.pkgx
-          rm -rf ~/.cache/pkgx/pantry/projects/git-scm.org
+          rm -rf ~/.local/share/pkgx/pantry/projects/git-scm.org
           rm ~/.cache/pkgx/pantry.2.db
           pkgx curl --version
           test -f ~/.cache/pkgx/pantry.2.db
-          test ! -d ~/.cache/pkgx/pantry/projects/git-scm.org
+          test ! -d ~/.local/share/pkgx/pantry/projects/git-scm.org
           pkgx git --version
-          test -d ~/.cache/pkgx/pantry/projects/git-scm.org
+          test -d ~/.local/share/pkgx/pantry/projects/git-scm.org
         if: ${{ matrix.os == 'ubuntu-latest' }}
         # ^^ only on one platform as wasteful otherwise
 

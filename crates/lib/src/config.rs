@@ -5,6 +5,7 @@ use std::path::PathBuf;
 #[derive(Debug)]
 pub struct Config {
     pub pantry_dir: PathBuf,
+    pub pantry_db_file: PathBuf,
     pub dist_url: String,
     pub pkgx_dir: PathBuf,
 }
@@ -12,10 +13,12 @@ pub struct Config {
 impl Config {
     pub fn new() -> io::Result<Self> {
         let pantry_dir = get_pantry_dir()?;
+        let pantry_db_file: PathBuf = get_pantry_db_file()?;
         let dist_url = get_dist_url();
         let pkgx_dir = get_pkgx_dir()?;
         Ok(Self {
             pantry_dir,
+            pantry_db_file,
             dist_url,
             pkgx_dir,
         })
@@ -29,16 +32,33 @@ fn get_dist_url() -> String {
     env!("PKGX_DIST_URL").to_string()
 }
 
-fn get_pantry_dir() -> io::Result<PathBuf> {
+#[allow(non_snake_case)]
+fn get_PKGX_PANTRY_DIR() -> Option<PathBuf> {
     if let Ok(env_dir) = env::var("PKGX_PANTRY_DIR") {
         let path = PathBuf::from(env_dir);
-        if !path.is_absolute() {
-            return Ok(env::current_dir()?.join(path));
+        if path.is_absolute() {
+            Some(path)
+        } else if let Ok(cwd) = env::current_dir() {
+            Some(cwd.join(path))
         } else {
-            return Ok(path);
+            None
         }
+    } else {
+        None
     }
-    Ok(dirs_next::cache_dir().unwrap().join("pkgx/pantry"))
+}
+
+fn get_pantry_dir() -> io::Result<PathBuf> {
+    if let Some(path) = get_PKGX_PANTRY_DIR() {
+        Ok(path)
+    } else if let Some(path) = dirs_next::data_local_dir() {
+        Ok(path.join("pkgx/pantry"))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Could not determine cache directory",
+        ))
+    }
 }
 
 fn get_pkgx_dir() -> io::Result<PathBuf> {
@@ -57,5 +77,18 @@ fn get_pkgx_dir() -> io::Result<PathBuf> {
         Ok(PathBuf::from(xdg).join("pkgx"))
     } else {
         Ok(default.unwrap())
+    }
+}
+
+fn get_pantry_db_file() -> io::Result<PathBuf> {
+    if let Some(path) = get_PKGX_PANTRY_DIR() {
+        Ok(path.join("pantry.2.db"))
+    } else if let Some(path) = dirs_next::cache_dir() {
+        Ok(path.join("pkgx/pantry.2.db"))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Could not determine data directory",
+        ))
     }
 }

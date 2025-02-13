@@ -12,10 +12,9 @@ pub fn should(config: &Config) -> Result<bool, Box<dyn Error>> {
     if !config.pantry_dir.join("projects").is_dir() {
         Ok(true)
     } else {
-        let path = config.pantry_dir.parent().unwrap().join("pantry.2.db");
         // the file always exists because we create the connection
         // but will be 0 bytes if we need to fill it
-        Ok(std::fs::metadata(&path)?.len() == 0)
+        Ok(std::fs::metadata(&config.pantry_db_file)?.len() == 0)
     }
 }
 
@@ -51,7 +50,7 @@ async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn E
     let url = env!("PKGX_PANTRY_TARBALL_URL");
     let dest = &config.pantry_dir;
 
-    std::fs::create_dir_all(dest.clone())?;
+    std::fs::create_dir_all(dest)?;
     let dir = OpenOptions::new()
         .read(true) // Open in read-only mode; no need to write.
         .open(dest)?;

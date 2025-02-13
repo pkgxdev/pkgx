@@ -44,9 +44,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let config = Config::new()?;
 
-    let cache_dir = config.pantry_dir.parent().unwrap();
-    std::fs::create_dir_all(cache_dir)?;
-    let mut conn = Connection::open(cache_dir.join("pantry.2.db"))?;
+    std::fs::create_dir_all(config.pantry_db_file.parent().unwrap())?;
+    let mut conn = Connection::open(&config.pantry_db_file)?;
 
     let spinner = if flags.silent || flags.quiet {
         None
