@@ -3,12 +3,15 @@ on:
     branches:
       - main
     paths:
+      - Cargo.lock
       - crates/lib/src/client.rs
       - crates/lib/src/dist_pkgx_dev.pem
   pull_request:
     paths:
+      - Cargo.lock
       - crates/lib/src/client.rs
       - crates/lib/src/dist_pkgx_dev.pem
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,7 +25,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: ./target/release/pkgx
-          name: i-hate-the-github-actions-team
+          name: pkgx
 
   test:
     needs: build
@@ -31,9 +34,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: i-hate-the-github-actions-team
+          name: pkgx
 
       - run: chmod +x ./pkgx
-        id: the-gtihub-actions-team-consists-of-extremely-shit-devs
 
       - run: ./pkgx +git
