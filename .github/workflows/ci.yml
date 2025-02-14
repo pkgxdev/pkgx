@@ -84,10 +84,13 @@ jobs:
     needs: fmt
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os:
+          - ubuntu-latest
+          - macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: dtolnay/rust-toolchain@stable
 
       - name: build
@@ -172,3 +175,15 @@ jobs:
       - uses: coverallsapp/github-action@v2
         with:
           parallel-finished: true
+
+  test-minimal-container:
+    needs: fmt
+    runs-on: ubuntu-latest
+    container: debian:buster-slim
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y curl make gcc perl
+      - uses: dtolnay/rust-toolchain@stable
+      - run: apt-get remove curl ca-certificates openssl --yes
+      - run: cargo build
+      - run: .target/debug/pkgx +git
