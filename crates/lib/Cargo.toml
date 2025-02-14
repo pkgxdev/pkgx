@@ -20,7 +20,7 @@ tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
 tokio-stream = "0.1"
 strum = "0.27"
 strum_macros = "0.27"
-rusqlite = "0.32.1"
+rusqlite = "0.33.0"
 regex = "1.11.1"
 reqwest = { version = "0.12", features = ["stream", "blocking"] }
 async-compression = { version = "0.4", features = ["tokio", "gzip", "xz"] }
@@ -33,4 +33,4 @@ fs2 = "0.4.3"
 tempfile = "3.16.0"
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-rusqlite = { version = "0.32.1", features = ["bundled"] }
+rusqlite = { version = "0.33.0", features = ["bundled"] }
