@@ -186,4 +186,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: apt-get remove curl ca-certificates openssl --yes
       - run: cargo build
-      - run: .target/debug/pkgx +git
+      - run: ./target/debug/pkgx +git
