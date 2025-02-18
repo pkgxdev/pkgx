@@ -47,7 +47,11 @@ pub async fn update(config: &Config, conn: &mut Connection) -> Result<(), Box<dy
 }
 
 async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn Error>> {
-    let url = env!("PKGX_PANTRY_TARBALL_URL");
+    let url = format!(
+        "{}/{}",
+        config.dist_url,
+        env!("PKGX_PANTRY_TARBALL_FILENAME")
+    );
     let dest = &config.pantry_dir;
 
     std::fs::create_dir_all(dest)?;
@@ -56,7 +60,7 @@ async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn E
         .open(dest)?;
     dir.lock_exclusive()?;
 
-    download_and_extract_pantry(url, dest).await?;
+    download_and_extract_pantry(&url, dest).await?;
 
     pantry_db::cache(config, conn)?;
 
