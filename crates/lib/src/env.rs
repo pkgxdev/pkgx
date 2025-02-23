@@ -7,6 +7,11 @@ use std::{
 
 use crate::types::Installation;
 
+#[cfg(not(windows))]
+const SEP: &str = ":";
+#[cfg(windows)]
+const SEP: &str = ";";
+
 pub fn map(installations: &Vec<Installation>) -> HashMap<String, Vec<String>> {
     let mut vars: HashMap<EnvKey, OrderedSet<PathBuf>> = HashMap::new();
 
@@ -71,17 +76,25 @@ enum EnvKey {
     Path,
     Manpath,
     PkgConfigPath,
+    #[cfg(unix)]
     LibraryPath,
+    #[cfg(unix)]
     LdLibraryPath,
+    #[cfg(unix)]
     Cpath,
     XdgDataDirs,
     CmakePrefixPath,
     #[cfg(target_os = "macos")]
     DyldFallbackLibraryPath,
     SslCertFile,
+    #[cfg(unix)]
     Ldflags,
     PkgxDir,
     AclocalPath,
+    #[cfg(windows)]
+    Lib,
+    #[cfg(windows)]
+    Include,
 }
 
 struct OrderedSet<T: Eq + std::hash::Hash + Clone> {
@@ -111,11 +124,19 @@ fn suffixes(key: &EnvKey) -> Option<Vec<&'static str>> {
         EnvKey::PkgConfigPath => Some(vec!["share/pkgconfig", "lib/pkgconfig"]),
         EnvKey::XdgDataDirs => Some(vec!["share"]),
         EnvKey::AclocalPath => Some(vec!["share/aclocal"]),
+        #[cfg(unix)]
         EnvKey::LibraryPath | EnvKey::LdLibraryPath => Some(vec!["lib", "lib64"]),
         #[cfg(target_os = "macos")]
         EnvKey::DyldFallbackLibraryPath => Some(vec!["lib", "lib64"]),
+        #[cfg(unix)]
         EnvKey::Cpath => Some(vec!["include"]),
-        EnvKey::CmakePrefixPath | EnvKey::SslCertFile | EnvKey::Ldflags | EnvKey::PkgxDir => None,
+        EnvKey::CmakePrefixPath | EnvKey::SslCertFile | EnvKey::PkgxDir => None,
+        #[cfg(unix)]
+        EnvKey::Ldflags => None,
+        #[cfg(windows)]
+        EnvKey::Lib => Some(vec!["lib"]),
+        #[cfg(windows)]
+        EnvKey::Include => Some(vec!["include"]),
     }
 }
 
@@ -124,9 +145,9 @@ pub fn mix(input: HashMap<String, Vec<String>>) -> HashMap<String, String> {
 
     for (key, value) in input.iter() {
         if let Some(values) = rv.get(key) {
-            rv.insert(key.clone(), format!("{}:{}", value.join(":"), values));
+            rv.insert(key.clone(), format!("{}{}{}", value.join(SEP), SEP, values));
         } else {
-            rv.insert(key.clone(), value.join(":"));
+            rv.insert(key.clone(), value.join(SEP));
         }
     }
 
@@ -140,7 +161,7 @@ pub fn mix_runtime(
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut output: HashMap<String, String> = input
         .iter()
-        .map(|(k, v)| (k.clone(), format!("{}:${}", v, k)))
+        .map(|(k, v)| (k.clone(), format!("{}{}${}", v, SEP, k)))
         .collect();
 
     for installation in installations.clone() {
