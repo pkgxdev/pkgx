@@ -9,7 +9,7 @@ use std::{collections::HashMap, error::Error, fmt::Write, sync::Arc, time::Durat
 use execve::execve;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use libpkgx::{
-    config::Config, env, hydrate::hydrate, install_multi, pantry_db, resolve::resolve, sync,
+    config::Config, env::{self, construct_platform_case_aware_env_key}, hydrate::hydrate, install_multi, pantry_db, resolve::resolve, sync,
     types::PackageReq, utils,
 };
 use regex::Regex;
@@ -195,9 +195,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 paths.append(&mut pkgpaths.clone());
             }
             if let Ok(syspaths) = std::env::var("PATH") {
+                #[cfg(windows)]
+                let sep = ";";
+                #[cfg(not(windows))]
+                let sep = ":";
                 paths.extend(
                     syspaths
-                        .split(':')
+                        .split(sep)
                         .map(|x| x.to_string())
                         .collect::<Vec<String>>(),
                 );
@@ -223,7 +227,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // fork bomb protection
-        env.insert("PKGX_LVL".to_string(), pkgx_lvl.to_string());
+        env.insert(construct_platform_case_aware_env_key("PKGX_LVL".to_string()), pkgx_lvl.to_string());
 
         clear_progress_bar();
 
@@ -232,7 +236,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         clear_progress_bar();
 
         if !flags.json {
-            let env = env.iter().map(|(k, v)| (k.clone(), v.join(":"))).collect();
+            let env = env.iter().map(|(k, v)| (construct_platform_case_aware_env_key(k.clone()), v.join(":"))).collect();
             let env = env::mix_runtime(&env, &installations, &conn)?;
             for (key, value) in env {
                 println!(

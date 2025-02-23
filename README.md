@@ -55,6 +55,7 @@ Python 2.7.18
 - `x86_64` & `arm64`
 
 > [!TIP]
+>
 > We have gone to good lengths to make `pkgx` (and the packages it installs)
 > work with almost nothing else installed, making it ideal for tiny containers.
 
