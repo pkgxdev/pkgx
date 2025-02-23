@@ -1,13 +1,19 @@
+#[cfg(unix)]
 use nix::unistd::execve as nix_execve;
+#[cfg(unix)]
 use std::ffi::CString;
+
+use libpkgx::env::PlatformCaseAwareEnvKey;
 use std::{collections::HashMap, error::Error};
 
+#[cfg(unix)]
 pub fn execve(
     cmd: String,
     mut args: Vec<String>,
-    env: HashMap<String, String>,
+    env: HashMap<PlatformCaseAwareEnvKey, String>,
 ) -> Result<(), Box<dyn Error>> {
     // Convert the command to a CString
+
     let c_command = CString::new(cmd.clone())
         .map_err(|e| format!("Failed to convert command to CString: {}", e))?;
 
@@ -46,4 +52,22 @@ pub fn execve(
     }
 
     Ok(())
+}
+
+#[cfg(windows)]
+use std::process::{exit, Command};
+
+#[cfg(windows)]
+pub fn execve(
+    cmd: String,
+    args: Vec<String>,
+    env: HashMap<PlatformCaseAwareEnvKey, String>,
+) -> Result<(), Box<dyn Error>> {
+    let status = Command::new(cmd)
+        .args(args)
+        .envs(env.iter().map(|(k, v)| (&k.0, v)))
+        .spawn()?
+        .wait()?;
+
+    exit(status.code().unwrap_or(1));
 }

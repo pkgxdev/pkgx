@@ -1,0 +1,1 @@
+source ~/.cargo/env

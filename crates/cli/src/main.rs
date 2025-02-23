@@ -9,8 +9,14 @@ use std::{collections::HashMap, error::Error, fmt::Write, sync::Arc, time::Durat
 use execve::execve;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use libpkgx::{
-    config::Config, env, hydrate::hydrate, install_multi, pantry_db, resolve::resolve, sync,
-    types::PackageReq, utils,
+    config::Config,
+    env::{self, construct_platform_case_aware_env_key},
+    hydrate::hydrate,
+    install_multi, pantry_db,
+    resolve::resolve,
+    sync,
+    types::PackageReq,
+    utils,
 };
 use regex::Regex;
 use rusqlite::Connection;
@@ -195,9 +201,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 paths.append(&mut pkgpaths.clone());
             }
             if let Ok(syspaths) = std::env::var("PATH") {
+                #[cfg(windows)]
+                let sep = ";";
+                #[cfg(not(windows))]
+                let sep = ":";
                 paths.extend(
                     syspaths
-                        .split(':')
+                        .split(sep)
                         .map(|x| x.to_string())
                         .collect::<Vec<String>>(),
                 );
@@ -209,13 +219,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let re = Regex::new(r"^\$\{\w+:-([^}]+)\}$").unwrap();
 
+        #[cfg(unix)]
+        let sep = ":";
+        #[cfg(windows)]
+        let sep = ";";
+
         for (key, value) in env.clone() {
             if let Some(caps) = re.captures(&value) {
                 env.insert(key, caps.get(1).unwrap().as_str().to_string());
             } else {
                 let cleaned_value = value
-                    .replace(&format!(":${}", key), "")
-                    .replace(&format!("${}:", key), "")
+                    .replace(&format!("{}${}", sep, key), "")
+                    .replace(&format!("${}{}", key, sep), "")
                     .replace(&format!("; ${}", key), "") // one pantry instance of this
                     .replace(&format!("${}", key), "");
                 env.insert(key, cleaned_value);
@@ -223,7 +238,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // fork bomb protection
-        env.insert("PKGX_LVL".to_string(), pkgx_lvl.to_string());
+        env.insert(
+            construct_platform_case_aware_env_key("PKGX_LVL".to_string()),
+            pkgx_lvl.to_string(),
+        );
 
         clear_progress_bar();
 
@@ -237,7 +255,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
         clear_progress_bar();
 
         if !flags.json {
-            let env = env.iter().map(|(k, v)| (k.clone(), v.join(":"))).collect();
+            let env = env
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        construct_platform_case_aware_env_key(k.clone()),
+                        v.join(":"),
+                    )
+                })
+                .collect();
             let env = env::mix_runtime(&env, &installations, &conn)?;
             for (key, value) in env {
                 println!(

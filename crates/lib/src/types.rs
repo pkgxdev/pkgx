@@ -87,6 +87,7 @@ impl Serialize for Installation {
 pub enum Host {
     Darwin,
     Linux,
+    Windows,
 }
 
 // These are only used per build at present
@@ -101,8 +102,8 @@ pub fn host() -> (Host, Arch) {
     let host = Host::Darwin;
     #[cfg(target_os = "linux")]
     let host = Host::Linux;
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    panic!("Unsupported platform");
+    #[cfg(windows)]
+    let host = Host::Windows;
 
     #[cfg(target_arch = "aarch64")]
     let arch = Arch::Arm64;
@@ -119,6 +120,7 @@ impl fmt::Display for Host {
         let os_str = match self {
             Host::Linux => "linux",
             Host::Darwin => "darwin",
+            Host::Windows => "windows",
         };
         write!(f, "{}", os_str)
     }
