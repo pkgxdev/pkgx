@@ -2,10 +2,73 @@ use std::{
     collections::{HashMap, HashSet},
     error::Error,
     path::PathBuf,
-    str::FromStr,
 };
 
+#[cfg(unix)]
+use std::str::FromStr;
+
+#[cfg(windows)]
+use std::{
+    fmt,
+    hash::{Hash, Hasher},
+};
+
+#[cfg(windows)]
+#[derive(Clone)]
+pub struct CaseInsensitiveKey(pub String);
+
+#[cfg(windows)]
+impl PartialEq for CaseInsensitiveKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq_ignore_ascii_case(&other.0)
+    }
+}
+
+#[cfg(windows)]
+impl fmt::Display for CaseInsensitiveKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[cfg(windows)]
+impl Eq for CaseInsensitiveKey {}
+
+#[cfg(windows)]
+impl Hash for CaseInsensitiveKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.to_lowercase().hash(state);
+    }
+}
+
+#[cfg(windows)]
+impl fmt::Debug for CaseInsensitiveKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
+#[cfg(windows)]
+pub type PlatformCaseAwareEnvKey = CaseInsensitiveKey;
+#[cfg(not(windows))]
+pub type PlatformCaseAwareEnvKey = String;
+
+#[cfg(windows)]
+pub fn construct_platform_case_aware_env_key(key: String) -> PlatformCaseAwareEnvKey {
+    CaseInsensitiveKey(key)
+}
+
+#[cfg(not(windows))]
+pub fn construct_platform_case_aware_env_key(key: String) -> PlatformCaseAwareEnvKey {
+    key
+}
+
 use crate::types::Installation;
+
+#[cfg(unix)]
+const SEP: &str = ":";
+#[cfg(windows)]
+const SEP: &str = ";";
 
 pub fn map(installations: &Vec<Installation>) -> HashMap<String, Vec<String>> {
     let mut vars: HashMap<EnvKey, OrderedSet<PathBuf>> = HashMap::new();
@@ -37,12 +100,15 @@ pub fn map(installations: &Vec<Installation>) -> HashMap<String, Vec<String>> {
     }
 
     // don’t break `man`
+    #[cfg(unix)]
     if vars.contains_key(&EnvKey::Manpath) {
         vars.get_mut(&EnvKey::Manpath)
             .unwrap()
             .add(PathBuf::from_str("/usr/share/man").unwrap());
     }
+
     // https://github.com/pkgxdev/libpkgx/issues/70
+    #[cfg(unix)]
     if vars.contains_key(&EnvKey::XdgDataDirs) {
         let set = vars.get_mut(&EnvKey::XdgDataDirs).unwrap();
         set.add(PathBuf::from_str("/usr/local/share").unwrap());
@@ -71,17 +137,25 @@ enum EnvKey {
     Path,
     Manpath,
     PkgConfigPath,
+    #[cfg(unix)]
     LibraryPath,
+    #[cfg(unix)]
     LdLibraryPath,
+    #[cfg(unix)]
     Cpath,
     XdgDataDirs,
     CmakePrefixPath,
     #[cfg(target_os = "macos")]
     DyldFallbackLibraryPath,
     SslCertFile,
+    #[cfg(unix)]
     Ldflags,
     PkgxDir,
     AclocalPath,
+    #[cfg(windows)]
+    Lib,
+    #[cfg(windows)]
+    Include,
 }
 
 struct OrderedSet<T: Eq + std::hash::Hash + Clone> {
@@ -111,22 +185,35 @@ fn suffixes(key: &EnvKey) -> Option<Vec<&'static str>> {
         EnvKey::PkgConfigPath => Some(vec!["share/pkgconfig", "lib/pkgconfig"]),
         EnvKey::XdgDataDirs => Some(vec!["share"]),
         EnvKey::AclocalPath => Some(vec!["share/aclocal"]),
+        #[cfg(unix)]
         EnvKey::LibraryPath | EnvKey::LdLibraryPath => Some(vec!["lib", "lib64"]),
         #[cfg(target_os = "macos")]
         EnvKey::DyldFallbackLibraryPath => Some(vec!["lib", "lib64"]),
+        #[cfg(unix)]
         EnvKey::Cpath => Some(vec!["include"]),
-        EnvKey::CmakePrefixPath | EnvKey::SslCertFile | EnvKey::Ldflags | EnvKey::PkgxDir => None,
+        EnvKey::CmakePrefixPath | EnvKey::SslCertFile | EnvKey::PkgxDir => None,
+        #[cfg(unix)]
+        EnvKey::Ldflags => None,
+        #[cfg(windows)]
+        EnvKey::Lib => Some(vec!["lib"]),
+        #[cfg(windows)]
+        EnvKey::Include => Some(vec!["include"]),
     }
 }
 
-pub fn mix(input: HashMap<String, Vec<String>>) -> HashMap<String, String> {
-    let mut rv = HashMap::from_iter(std::env::vars());
+pub fn mix(input: HashMap<String, Vec<String>>) -> HashMap<PlatformCaseAwareEnvKey, String> {
+    let mut rv: HashMap<PlatformCaseAwareEnvKey, String> = HashMap::new();
+
+    for (key, value) in std::env::vars() {
+        rv.insert(construct_platform_case_aware_env_key(key), value);
+    }
 
     for (key, value) in input.iter() {
+        let key = &construct_platform_case_aware_env_key(key.clone());
         if let Some(values) = rv.get(key) {
-            rv.insert(key.clone(), format!("{}:{}", value.join(":"), values));
+            rv.insert(key.clone(), format!("{}{}{}", value.join(SEP), SEP, values));
         } else {
-            rv.insert(key.clone(), value.join(":"));
+            rv.insert(key.clone(), value.join(SEP));
         }
     }
 
@@ -134,13 +221,13 @@ pub fn mix(input: HashMap<String, Vec<String>>) -> HashMap<String, String> {
 }
 
 pub fn mix_runtime(
-    input: &HashMap<String, String>,
+    input: &HashMap<PlatformCaseAwareEnvKey, String>,
     installations: &Vec<Installation>,
     conn: &Connection,
-) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let mut output: HashMap<String, String> = input
+) -> Result<HashMap<PlatformCaseAwareEnvKey, String>, Box<dyn Error>> {
+    let mut output: HashMap<PlatformCaseAwareEnvKey, String> = input
         .iter()
-        .map(|(k, v)| (k.clone(), format!("{}:${}", v, k)))
+        .map(|(k, v)| (k.clone(), format!("{}{}${}", v, SEP, k)))
         .collect();
 
     for installation in installations.clone() {
@@ -148,7 +235,8 @@ pub fn mix_runtime(
             crate::pantry_db::runtime_env_for_project(&installation.pkg.project, conn)?;
         for (key, runtime_value) in runtime_env {
             let runtime_value = expand_moustaches(&runtime_value, &installation, installations);
-            let new_value = if let Some(curr_value) = output.get(&key) {
+            let insert_key = construct_platform_case_aware_env_key(key.clone());
+            let new_value = if let Some(curr_value) = output.get(&insert_key) {
                 if runtime_value.contains(&format!("${}", key)) {
                     runtime_value.replace(&format!("${}", key), curr_value)
                 } else {
@@ -161,7 +249,7 @@ pub fn mix_runtime(
             } else {
                 format!("${{{}:-{}}}", key, runtime_value)
             };
-            output.insert(key, new_value);
+            output.insert(insert_key, new_value);
         }
     }
 
