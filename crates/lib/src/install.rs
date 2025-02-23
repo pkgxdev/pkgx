@@ -13,6 +13,9 @@ use tokio_util::compat::FuturesAsyncReadCompatExt;
 // futures::io::AsyncRead.
 use futures::stream::TryStreamExt;
 
+#[cfg(windows)]
+use std::os::windows::fs::symlink_dir;
+
 use crate::{
     cellar,
     client::build_client,
@@ -203,9 +206,10 @@ async fn make_symlink(
         .file_name()
         .ok_or_else(|| anyhow::anyhow!("Could not get the base name of the installation path"))?;
 
-    match std::os::unix::fs::symlink(target, &symlink_path) {
-        Ok(_) => Ok(()),
-        Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => Ok(()),
-        Err(err) => Err(err.into()),
-    }
+    #[cfg(not(windows))]
+    std::os::unix::fs::symlink(target, &symlink_path)?;
+    #[cfg(windows)]
+    symlink_dir(target, symlink_path)?;
+
+    Ok(())
 }

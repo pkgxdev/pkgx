@@ -1,7 +1,11 @@
+#[cfg(unix)]
 use nix::unistd::execve as nix_execve;
+#[cfg(unix)]
 use std::ffi::CString;
+
 use std::{collections::HashMap, error::Error};
 
+#[cfg(unix)]
 pub fn execve(
     cmd: String,
     mut args: Vec<String>,
@@ -46,4 +50,23 @@ pub fn execve(
     }
 
     Ok(())
+}
+
+#[cfg(windows)]
+use std::process::{exit, Command};
+
+#[cfg(windows)]
+pub fn execve(
+    cmd: String,
+    args: Vec<String>,
+    env: HashMap<String, String>,
+) -> Result<(), Box<dyn Error>> {
+    Command::new(cmd)
+        .args(args)
+        .envs(env)
+        .spawn()
+        .expect("Failed to execute process");
+
+    // If you want behavior similar to `execve`, exit the current process
+    exit(0);
 }
