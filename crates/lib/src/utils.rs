@@ -1,4 +1,6 @@
-use std::{error::Error, os::unix::fs::PermissionsExt, path::Path};
+#[cfg(not(windows))]
+use std::os::unix::fs::PermissionsExt;
+use std::{error::Error, path::Path};
 
 pub async fn find_program(arg: &str, paths: &Vec<String>) -> Result<String, Box<dyn Error>> {
     if arg.starts_with("/") {
@@ -13,9 +15,21 @@ pub async fn find_program(arg: &str, paths: &Vec<String>) -> Result<String, Box<
     }
     for path in paths {
         let full_path = Path::new(&path).join(arg);
-        if let Ok(metadata) = full_path.metadata() {
-            if full_path.is_file() && (metadata.permissions().mode() & 0o111 != 0) {
-                return Ok(full_path.to_str().unwrap().to_string());
+        if full_path.is_file() {
+            #[cfg(unix)]
+            if let Ok(metadata) = full_path.metadata() {
+                if metadata.permissions().mode() & 0o111 != 0 {
+                    return Ok(full_path.to_str().unwrap().to_string());
+                }
+            }
+            #[cfg(windows)]
+            if let Some(ext) = full_path.extension() {
+                match ext.to_str() {
+                    Some("exe") | Some("bat") | Some("cmd") => {
+                        return Ok(full_path.to_str().unwrap().to_string())
+                    }
+                    _ => {}
+                }
             }
         }
     }

@@ -52,19 +52,23 @@ async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn E
         config.dist_url,
         env!("PKGX_PANTRY_TARBALL_FILENAME")
     );
-    let dest = &config.pantry_dir;
 
-    std::fs::create_dir_all(dest)?;
-    let dir = OpenOptions::new()
-        .read(true) // Open in read-only mode; no need to write.
-        .open(dest)?;
-    dir.lock_exclusive()?;
+    std::fs::create_dir_all(&config.pantry_dir)?;
+    #[cfg(not(windows))]
+    let lockfile = OpenOptions::new().read(true).open(&config.pantry_dir)?;
+    #[cfg(windows)]
+    let lockfile = OpenOptions::new()
+        .read(true)
+        .create(true)
+        .write(true)
+        .open(config.pantry_dir.join("lockfile"))?;
+    lockfile.lock_exclusive()?;
 
-    download_and_extract_pantry(&url, dest).await?;
+    download_and_extract_pantry(&url, &config.pantry_dir).await?;
 
     pantry_db::cache(config, conn)?;
 
-    FileExt::unlock(&dir)?;
+    FileExt::unlock(&lockfile)?;
 
     Ok(())
 }

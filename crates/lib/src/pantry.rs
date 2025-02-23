@@ -285,9 +285,10 @@ impl<'de> Deserialize<'de> for Provides {
             ProvidesHelper::Map(map) => {
                 #[cfg(target_os = "macos")]
                 let key = "darwin";
-
                 #[cfg(target_os = "linux")]
                 let key = "linux";
+                #[cfg(windows)]
+                let key = "windows";
 
                 if let Some(values) = map.get(key) {
                     Ok(Provides(values.clone()))

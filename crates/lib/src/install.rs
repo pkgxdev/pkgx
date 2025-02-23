@@ -1,6 +1,9 @@
 use async_compression::tokio::bufread::XzDecoder;
 use fs2::FileExt;
-use std::{error::Error, fs::OpenOptions, path::PathBuf};
+use std::{
+    error::Error,
+    fs::{self, OpenOptions},
+};
 use tempfile::tempdir_in;
 use tokio::task;
 use tokio_tar::Archive;
@@ -38,14 +41,22 @@ where
 {
     let shelf = config.pkgx_dir.join(&pkg.project);
     fs::create_dir_all(&shelf)?;
-    let shelf = OpenOptions::new()
+
+    #[cfg(windows)]
+    let lockfile = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(shelf.join("lockfile"))?;
+    #[cfg(not(windows))]
+    let lockfile = OpenOptions::new()
         .read(true) // Open the directory in read-only mode
         .open(shelf.clone())?;
 
     task::spawn_blocking({
-        let shelf = shelf.try_clone()?;
+        let lockfile = lockfile.try_clone()?;
         move || {
-            shelf
+            lockfile
                 .lock_exclusive()
                 .expect("unexpected error: install locking failed");
         }
@@ -57,7 +68,7 @@ where
     // did another instance of pkgx install us while we waited for the lock?
     // if so, we’re good: eject
     if dst_path.is_dir() {
-        FileExt::unlock(&shelf)?;
+        FileExt::unlock(&lockfile)?;
         return Ok(Installation {
             path: dst_path,
             pkg: pkg.clone(),
@@ -110,19 +121,22 @@ where
         pkg: pkg.clone(),
     };
 
+    #[cfg(not(windows))]
     symlink(&installation, config).await?;
+    // ^^ you need admin privs to symlink on windows (wtf)
 
-    FileExt::unlock(&shelf)?;
+    FileExt::unlock(&lockfile)?;
 
     Ok(installation)
 }
 
-use libsemverator::range::Range as VersionReq;
-use libsemverator::semver::Semver as Version;
-use std::collections::VecDeque;
-use std::fs;
-use std::path::Path;
+#[cfg(not(windows))]
+use {
+    libsemverator::range::Range as VersionReq, libsemverator::semver::Semver as Version,
+    std::collections::VecDeque, std::path::Path, std::path::PathBuf,
+};
 
+#[cfg(not(windows))]
 async fn symlink(installation: &Installation, config: &Config) -> Result<(), Box<dyn Error>> {
     let mut versions: VecDeque<(Version, PathBuf)> = cellar::ls(&installation.pkg.project, config)
         .await?
@@ -183,6 +197,7 @@ async fn symlink(installation: &Installation, config: &Config) -> Result<(), Box
     Ok(())
 }
 
+#[cfg(not(windows))]
 async fn make_symlink(
     shelf: &Path,
     symname: &str,
@@ -203,9 +218,10 @@ async fn make_symlink(
         .file_name()
         .ok_or_else(|| anyhow::anyhow!("Could not get the base name of the installation path"))?;
 
-    match std::os::unix::fs::symlink(target, &symlink_path) {
-        Ok(_) => Ok(()),
-        Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => Ok(()),
-        Err(err) => Err(err.into()),
-    }
+    #[cfg(not(windows))]
+    std::os::unix::fs::symlink(target, &symlink_path)?;
+    #[cfg(windows)]
+    std::os::windows::fs::symlink_dir(target, symlink_path)?;
+
+    Ok(())
 }
