@@ -187,3 +187,13 @@ jobs:
       - run: apt-get remove curl ca-certificates openssl --yes
       - run: cargo build
       - run: ./target/debug/pkgx +git
+
+  windows:
+    needs: fmt
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all-features
+        env:
+          RUSTFLAGS: "-D warnings"
