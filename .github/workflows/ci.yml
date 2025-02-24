@@ -125,6 +125,8 @@ jobs:
       # testing we correctly handle +pkg syntax for pkgs with no env
       - run: pkgx +curl.se/ca-certs
 
+      - run: pkgx --ensure make --version
+
       # create a fork bomb, but since it’s via pkgx we prevent it
       - run: |
           echo '#!/bin/sh' > foo

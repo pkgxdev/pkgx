@@ -19,6 +19,7 @@ flags:
   -q,  --quiet    # suppress brief informational messages
   -qq, --silent   # no chat. no errors. just execute.
   -v,  --version
+  -e,  --ensure   # if possible, delegate to the system‐installed program
 
 more:
   $ open https://docs.pkgx.sh

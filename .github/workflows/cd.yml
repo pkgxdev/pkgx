@@ -140,9 +140,6 @@ jobs:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
-      - run: echo 'naughty-boy' > $FILENAME.asc
-        if: matrix.platform.build-id == 'linux+x86-64'
-
       - name: attach product to release
         run: ./pkgx gh release upload --clobber
           v${{ github.event.inputs.version }}

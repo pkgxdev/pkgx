@@ -3,6 +3,7 @@ mod execve;
 mod help;
 #[cfg(test)]
 mod tests;
+mod utils;
 
 use std::{collections::HashMap, error::Error, fmt::Write, sync::Arc, time::Duration};
 
@@ -10,7 +11,7 @@ use execve::execve;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use libpkgx::{
     config::Config, env, hydrate::hydrate, install_multi, pantry_db, resolve::resolve, sync,
-    types::PackageReq, utils,
+    types::PackageReq,
 };
 use regex::Regex;
 use rusqlite::Connection;
@@ -23,15 +24,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         mut args,
         mode,
         flags,
-        find_program,
+        mut find_program,
     } = args::parse();
-
-    if flags.version_n_continue {
-        eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
-    }
 
     match mode {
         args::Mode::Help => {
+            if flags.version_n_continue {
+                eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
+            }
             println!("{}", help::usage());
             return Ok(());
         }
@@ -39,7 +39,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("pkgx {}", env!("CARGO_PKG_VERSION"));
             return Ok(());
         }
-        args::Mode::X => (),
+        args::Mode::X => {
+            if flags.version_n_continue {
+                eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
+            }
+        }
     }
 
     let config = Config::new()?;
@@ -101,33 +105,57 @@ async fn main() -> Result<(), Box<dyn Error>> {
             project: cmd,
         } = PackageReq::parse(&args[0])?;
 
-        args[0] = cmd.clone(); // invoke eg. `node` rather than eg. `node@20`
+        let mut found = false;
+        if flags.ensure {
+            let paths = std::env::var("PATH")
+                .or_else(|_| Ok::<String, std::env::VarError>("".to_string()))
+                .unwrap()
+                .split(':')
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>();
+            if let Some(cmd) = libpkgx::utils::find_program(&cmd, &paths).await {
+                #[cfg(target_os = "macos")]
+                let do_it = utils::good_on_macos(&cmd);
+                #[cfg(not(target_os = "macos"))]
+                let do_it = true;
 
-        let project = match which(&cmd, &conn, &pkgs).await {
-            Err(WhichError::CmdNotFound(cmd)) => {
-                if !did_sync {
-                    if let Some(spinner) = &spinner {
-                        let msg = format!("{} not found, syncing…", cmd);
-                        spinner.set_message(msg);
-                    }
-                    // cmd not found ∴ sync in case it is new
-                    sync::update(&config, &mut conn).await?;
-                    if let Some(spinner) = &spinner {
-                        spinner.set_message("resolving pkg graph…");
-                    }
-                    which(&cmd, &conn, &pkgs).await
-                } else {
-                    Err(WhichError::CmdNotFound(cmd))
+                if do_it {
+                    args[0] = cmd;
+                    found = true;
+                    find_program = false;
                 }
             }
-            Err(err) => Err(err),
-            Ok(project) => Ok(project),
-        }?;
+        }
 
-        pkgs.push(PackageReq {
-            project,
-            constraint,
-        });
+        if !found {
+            args[0] = cmd.clone(); // invoke eg. `node` rather than eg. `node@20`
+
+            let project = match which(&cmd, &conn, &pkgs).await {
+                Err(WhichError::CmdNotFound(cmd)) => {
+                    if !did_sync {
+                        if let Some(spinner) = &spinner {
+                            let msg = format!("{} not found, syncing…", cmd);
+                            spinner.set_message(msg);
+                        }
+                        // cmd not found ∴ sync in case it is new
+                        sync::update(&config, &mut conn).await?;
+                        if let Some(spinner) = &spinner {
+                            spinner.set_message("resolving pkg graph…");
+                        }
+                        which(&cmd, &conn, &pkgs).await
+                    } else {
+                        Err(WhichError::CmdNotFound(cmd))
+                    }
+                }
+                Err(err) => Err(err),
+                Ok(project) => Ok(project),
+            }?;
+
+            pkgs.push(PackageReq {
+                project,
+                constraint,
+            });
+        }
     }
 
     let companions = pantry_db::companions_for_projects(
@@ -182,7 +210,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         let cmd = if find_program {
-            utils::find_program(&args.remove(0), &env["PATH"]).await?
+            libpkgx::utils::find_program(&args.remove(0), &env["PATH"])
+                .await
+                .unwrap()
         } else if args[0].contains('/') {
             // user specified a path to program which we should use
             args.remove(0)
@@ -202,7 +232,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .collect::<Vec<String>>(),
                 );
             }
-            utils::find_program(&args.remove(0), &paths).await?
+            libpkgx::utils::find_program(&args.remove(0), &paths)
+                .await
+                .unwrap()
         };
         let env = env::mix(env);
         let mut env = env::mix_runtime(&env, &installations, &conn)?;

@@ -11,6 +11,7 @@ pub struct Flags {
     pub silent: bool,
     pub json: bool,
     pub version_n_continue: bool,
+    pub ensure: bool,
 }
 
 pub struct Args {
@@ -25,9 +26,10 @@ pub fn parse() -> Args {
     let mut mode = Mode::X;
     let mut plus = Vec::new();
     let mut args = Vec::new();
-    let mut silent: bool = false;
-    let mut quiet: bool = false;
-    let mut json: bool = false;
+    let mut silent = false;
+    let mut quiet = false;
+    let mut json = false;
+    let mut ensure = false;
     let mut find_program = false;
     let mut collecting_args = false;
     let mut version_n_continue = false;
@@ -56,6 +58,7 @@ pub fn parse() -> Args {
                 "--help" => mode = Mode::Help,
                 "--version" => mode = Mode::Version,
                 "--quiet" => quiet = true,
+                "--ensure" => ensure = true,
                 "--shellcode" => {
                     if !silent {
                         eprintln!("{}", style("⨯ migration required").red());
@@ -88,6 +91,7 @@ pub fn parse() -> Args {
                             quiet = true
                         }
                     }
+                    'e' => ensure = true,
                     'h' => mode = Mode::Help,
                     's' => silent = true,
                     'j' => json = true,
@@ -112,6 +116,7 @@ pub fn parse() -> Args {
             json,
             quiet,
             version_n_continue,
+            ensure,
         },
     }
 }
