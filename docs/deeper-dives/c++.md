@@ -1,7 +1,7 @@
 # `pkgx` as part of a C/C++ Pipeline
 
-We have most of the most popular c & c++ libraries pkg’d so just add them
-to your developer environment.
+We have most of the most popular c & c++ libraries pkg’d so just add them to
+your developer environment.
 
 ```yaml
 # pkgx.yaml
@@ -15,7 +15,7 @@ dependencies:
 ```
 
 Usually this is enough to have tools like Autoconf or CMake find the libraries
-sometimes though you may need to provide a helping hand. Examine the devenv
-with `pkgx` for path information.
+sometimes though you may need to provide a helping hand. Examine the devenv with
+`pkgx` for path information.
 
 Then `dev` to activate the environment.

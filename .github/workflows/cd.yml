@@ -63,16 +63,16 @@ jobs:
     strategy:
       matrix:
         platform:
-        - os: ["self-hosted", "macOS", "X64"]
-          build-id: darwin+x86-64
-        - os: ubuntu-latest
-          container: debian:buster-slim
-          build-id: linux+x86-64
-        - os: [self-hosted, macOS, ARM64]
-          build-id: darwin+aarch64
-        - os: [self-hosted, linux, ARM64]
-          build-id: linux+aarch64
-          pkgs: llvm.org perl gnu.org/make xz
+          - os: ["self-hosted", "macOS", "X64"]
+            build-id: darwin+x86-64
+          - os: ubuntu-latest
+            container: debian:buster-slim
+            build-id: linux+x86-64
+          - os: [self-hosted, macOS, ARM64]
+            build-id: darwin+aarch64
+          - os: [self-hosted, linux, ARM64]
+            build-id: linux+aarch64
+            pkgs: llvm.org perl gnu.org/make xz
       fail-fast: false
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
@@ -110,9 +110,9 @@ jobs:
       - uses: pkgxdev/pantry/.github/actions/setup@main
         if: startsWith(matrix.platform.build-id, 'darwin+')
         with:
-            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
-            p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
-            APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
+          APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
 
       - run: codesign
           --sign "$APPLE_IDENTITY" --force

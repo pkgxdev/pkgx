@@ -3,7 +3,7 @@ name: ci·md
 on:
   pull_request:
     paths:
-      - 'docs/**.md'
+      - "docs/**.md"
       - .github/workflows/ci.md.yml
 
 concurrency:

@@ -1,6 +1,6 @@
 # `pkgx`
 
-`pkgx` is a 4 MiB, standalone binary that can *run anything*.
+`pkgx` is a 4 MiB, standalone binary that can _run anything_.
 
 ## Quick Start
 
@@ -8,14 +8,12 @@
 brew install pkgx || curl https://pkgx.sh | sh
 ```
 
-{% hint style='info' %}
-[Installation Guide](installing-pkgx.md)
-{% endhint %}
+{% hint style='info' %} [Installation Guide](installing-pkgx.md) {% endhint %}
 
 ## Using `pkgx`
 
-* [Run Anything](running-anything.md)
-* [Scripting](scripting.md)
+- [Run Anything](running-anything.md)
+- [Scripting](scripting.md)
 
 # The `pkgx` Ecosystem
 
@@ -24,29 +22,26 @@ used to build a whole ecosystem of tools. Here’s what we’ve built so far:
 
 ## `dev`
 
-`dev` uses shellcode and `pkgx` to create “virtual environments” for any
-project and any toolset.
+`dev` uses shellcode and `pkgx` to create “virtual environments” for any project
+and any toolset.
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/dev](https://github.com/pkgxdev/dev)
-{% endhint %}
+[https://github.com/pkgxdev/dev](https://github.com/pkgxdev/dev) {% endhint %}
 
 ## `pkgm`
 
 `pkgm` installs `pkgx` packages to `/usr/local`.
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/pkgm](https://github.com/pkgxdev/pkgm)
-{% endhint %}
+[https://github.com/pkgxdev/pkgm](https://github.com/pkgxdev/pkgm) {% endhint %}
 
 ## `mash`
 
-`mash` is a package manager for scripts that use `pkgx` to make the whole
-open source ecosystem available to them.
+`mash` is a package manager for scripts that use `pkgx` to make the whole open
+source ecosystem available to them.
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
-{% endhint %}
+[https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash) {% endhint %}
 
 ## `pkgo` (Package…GO!)
 
@@ -55,8 +50,7 @@ instructions that can be… tedious. `pkgo` makes using amazing tools like
 [“Stable Diffusion WebUI”] as easy as typing `pkgo` (thanks to `pkgx`).
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/pkgo](https://github.com/pkgxdev/pkgo)
-{% endhint %}
+[https://github.com/pkgxdev/pkgo](https://github.com/pkgxdev/pkgo) {% endhint %}
 
 [“Stable Diffusion WebUI”]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 

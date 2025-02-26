@@ -110,7 +110,7 @@ jobs:
       - run: pkgx git --version
       - run: pkgx --silent +git
       - run: pkgx --quiet +git
-      - run: pkgx +git -- git --version   # lib/utils.rs:find_program
+      - run: pkgx +git -- git --version # lib/utils.rs:find_program
       - run: pkgx --shellcode || true
       - run: pkgx -qq git --version
       - run: pkgx -s git --version
@@ -119,7 +119,7 @@ jobs:
       - run: pkgx +yarnpkg.com yarn --version
       - run: pkgx +yarnpkg.com -- yarn --version
       # coverage for conflict error messages
-      - run: '! pkgx yarn --version'
+      - run: "! pkgx yarn --version"
       # coverage for display-name resolution
       - run: pkgx -v +agg
       # testing we correctly handle +pkg syntax for pkgs with no env

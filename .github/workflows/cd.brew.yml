@@ -14,9 +14,9 @@ jobs:
     if: startsWith(github.event.release.tag_name, 'v2')
     runs-on: ubuntu-latest
     steps:
-    - uses: aurelien-baudet/workflow-dispatch@v4
-      with:
-        workflow: bump.yml
-        repo: pkgxdev/homebrew-made
-        ref: main
-        token: ${{secrets.GH_TOKEN}}
+      - uses: aurelien-baudet/workflow-dispatch@v4
+        with:
+          workflow: bump.yml
+          repo: pkgxdev/homebrew-made
+          ref: main
+          token: ${{secrets.GH_TOKEN}}
