@@ -42,7 +42,6 @@ deno 1.35.3
 If you want to ensure the latest version of “foo” is installed, use
 `pkgx mash pkgx/upgrade foo`.
 
-
 ## Adding Additional Packages to the Execution Environment
 
 It can be useful to run a program with additional packages in the environment.
@@ -53,7 +52,6 @@ pkgx +openssl cargo build
 
 Here `+pkg` syntax added OpenSSL to Cargo’s environment. Thus the build will
 see the OpenSSL headers and libraries.
-
 
 ## Disambiguation
 
@@ -73,7 +71,6 @@ error: multiple projects provide `yarn`. please be more specific:
 
 In general it's a good idea to specify fully qualified names in
 scripts, etc. since you want these to work forever.
-
 
 ## Running System Commands
 
@@ -144,6 +141,23 @@ $ pkgx mash pkgx/ensure git --version
 
 $ eval "$(pkgx mash pkgx/ensure +git)"
 # ^^ adds pkgx git to the environment *unless* it is installed to the system
+```
+
+## “Virtual Environments”
+
+You can set `PKGX_DIR` to have `pkgx` install packages there. This can be
+useful for creating “virtual environments” for various usages.
+
+```sh
+$ export PKGX_DIR="$PWD/foo"  # must be an absolute path or is ignored
+
+$ pkgx +gum
+$ find foo
+foo/charm.sh/gum/v0.14.5/bin/gum
+
+$ eval "$(pkgx +gum)"
+$ echo $PATH
+$PWD/foo/charm.sh/gum/v0.14.5/bin/gum:…
 ```
 
 ## Other Common Needs
