@@ -97,7 +97,6 @@ If you only specified `make` rather than `/usr/bin/make` or separating with
 
 {% endhint %}
 
-
 ## Dumping the Environment
 
 If you don’t specify anything to run, `pkgx` will install any `+pkg`s and then
@@ -118,19 +117,34 @@ gum version 0.14.5
 
 For this mode we can also output JSON: `pkgx +gum --json`.
 
-
 ## Quietening Output
 
 ```sh
 $ pkgx --quiet gum format 'download progress is still shown'
 # ^^ supresses resolving/syncing etc. messages but not download progress info
+# `pkgx -q` is the same
 
 ```sh
 pkgx --silent gum format 'no output at all'
 # ^^ silences everything, even errors
+# ^^ `pkgx -qq` is the same
 ```
 
 Note that this only effects `pkgx` *not the tools you run with `pkgx`*.
+
+## Ensuring Packages
+
+In some cases you don’t want to use a `pkgx` package if the user has that
+package already installed to their system. For these cases we provide an
+`ensure` script:
+
+```sh
+$ pkgx mash pkgx/ensure git --version
+# ^^ runs system `git` if installed, otherwise installs the `pkgx` pkg
+
+$ eval "$(pkgx mash pkgx/ensure +git)"
+# ^^ adds pkgx git to the environment *unless* it is installed to the system
+```
 
 ## Other Common Needs
 
@@ -146,7 +160,7 @@ Longer term we will make a tool `pkgq` to help with these operations.
 ensure you have (any) newer versions installed use this command:
 
 ```sh
-$ pkgx mash pkgx/cache upgrade
+$ pkgx mash pkgx/upgrade
 updating: /Users/mxcl/.pkgx/python.org/v3.11.11
 # snip…
 ```
@@ -156,7 +170,7 @@ updating: /Users/mxcl/.pkgx/python.org/v3.11.11
 The `pkgx` download cache can get large over time. To prune older versions:
 
 ```sh
-$ pkgx mash pkgx/cache prune
+$ pkgx mash pkgx/prune
 pruning: ~/.pkgx/deno.land/v1.39.4
 pruning: ~/.pkgx/deno.land/v1.46.3
 # snip…
@@ -170,7 +184,7 @@ reinstall them next time you need them.
 ie. what versions *could be* run by `pkgx`:
 
 ```sh
-$ pkgx mash pkgx/pantry-inventory git
+$ pkgx mash pkgx/inventory git
 2.38.1
 2.39.0
 # snip…
@@ -179,7 +193,7 @@ $ pkgx mash pkgx/pantry-inventory git
 ### Listing What is Downloaded
 
 ```sh
-$ mash pkgx/cache ls
+$ mash pkgx/ls
 
   Parent Directory                │Version
   ────────────────────────────────┼──────────
