@@ -16,17 +16,16 @@ $ ./my-script.py
 3.9.17
 ```
 
-{% hint style="info" %}
-Using `env` to invoke `pkgx` is typical for tools that have no POSIX location.
+{% hint style="info" %} Using `env` to invoke `pkgx` is typical for tools that
+have no POSIX location.
 
-The `-S` parameter is required to pass multiple arguments.
-{% endhint %}
+The `-S` parameter is required to pass multiple arguments. {% endhint %}
 
 ## Including Additional pkgs
 
 Scripts are the glue that allows open source to be composed into powerful new
-tools. With our `+pkg` syntax you make anything in open source available to
-your script.
+tools. With our `+pkg` syntax you make anything in open source available to your
+script.
 
 ```sh
 #!/usr/bin/env -S pkgx +openssl deno run
@@ -34,8 +33,8 @@ your script.
 Deno.dlopen("libssl.dylib")
 ```
 
-{% hint style="info" %}
-Robustness requires precisely specifying your environment:
+{% hint style="info" %} Robustness requires precisely specifying your
+environment:
 
 ```sh
 #!/usr/bin/env -S pkgx bash>=4
@@ -100,8 +99,8 @@ Use [Scriptisto]:
 
 ## Mash
 
-We think `pkgx` scripting is so powerful that we made a whole package
-manager to show it off.
+We think `pkgx` scripting is so powerful that we made a whole package manager to
+show it off.
 
 > [https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
 

@@ -50,8 +50,8 @@ It can be useful to run a program with additional packages in the environment.
 pkgx +openssl cargo build
 ```
 
-Here `+pkg` syntax added OpenSSL to Cargo’s environment. Thus the build will
-see the OpenSSL headers and libraries.
+Here `+pkg` syntax added OpenSSL to Cargo’s environment. Thus the build will see
+the OpenSSL headers and libraries.
 
 ## Disambiguation
 
@@ -69,13 +69,13 @@ error: multiple projects provide `yarn`. please be more specific:
     pkgx +yarnpkg.com yarn --version
 ```
 
-In general it's a good idea to specify fully qualified names in
-scripts, etc. since you want these to work forever.
+In general it's a good idea to specify fully qualified names in scripts, etc.
+since you want these to work forever.
 
 ## Running System Commands
 
-It can be useful to run system commands with a package environment injected.
-To do this either specify the full path of the system executable:
+It can be useful to run system commands with a package environment injected. To
+do this either specify the full path of the system executable:
 
 ```sh
 pkgx +llvm.org /usr/bin/make
@@ -116,7 +116,7 @@ For this mode we can also output JSON: `pkgx +gum --json`.
 
 ## Quietening Output
 
-```sh
+````sh
 $ pkgx --quiet gum format 'download progress is still shown'
 # ^^ supresses resolving/syncing etc. messages but not download progress info
 # `pkgx -q` is the same
@@ -125,9 +125,9 @@ $ pkgx --quiet gum format 'download progress is still shown'
 pkgx --silent gum format 'no output at all'
 # ^^ silences everything, even errors
 # ^^ `pkgx -qq` is the same
-```
+````
 
-Note that this only effects `pkgx` *not the tools you run with `pkgx`*.
+Note that this only effects `pkgx` _not the tools you run with `pkgx`_.
 
 ## Ensuring Packages
 
@@ -145,8 +145,8 @@ $ eval "$(pkgx mash pkgx/ensure +git)"
 
 ## “Virtual Environments”
 
-You can set `PKGX_DIR` to have `pkgx` install packages there. This can be
-useful for creating “virtual environments” for various usages.
+You can set `PKGX_DIR` to have `pkgx` install packages there. This can be useful
+for creating “virtual environments” for various usages.
 
 ```sh
 $ export PKGX_DIR="$PWD/foo"  # must be an absolute path or is ignored
@@ -162,16 +162,16 @@ $PWD/foo/charm.sh/gum/v0.14.5/bin/gum:…
 
 ## Other Common Needs
 
-`pkgx` is not a package manager. Thus the command itself doesn’t typically
-offer such operations you may expect, however the way `pkgx` works is simple
-and standardized so we offer some `mash` scripts to help.
+`pkgx` is not a package manager. Thus the command itself doesn’t typically offer
+such operations you may expect, however the way `pkgx` works is simple and
+standardized so we offer some `mash` scripts to help.
 
 Longer term we will make a tool `pkgq` to help with these operations.
 
 ### Upgrading Packages
 
-`pkgx foo` executes the latest version of `foo` that is *downloaded*. To
-ensure you have (any) newer versions installed use this command:
+`pkgx foo` executes the latest version of `foo` that is _downloaded_. To ensure
+you have (any) newer versions installed use this command:
 
 ```sh
 $ pkgx mash pkgx/upgrade
@@ -195,7 +195,7 @@ reinstall them next time you need them.
 
 ### Listing Available Versions for a Package
 
-ie. what versions *could be* run by `pkgx`:
+ie. what versions _could be_ run by `pkgx`:
 
 ```sh
 $ pkgx mash pkgx/inventory git

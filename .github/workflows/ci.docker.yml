@@ -48,9 +48,9 @@ jobs:
 
       - run:
           docker build
-            --tag pkgxdev/pkgx
-            --file .github/Dockerfile
-            .
+          --tag pkgxdev/pkgx
+          --file .github/Dockerfile
+          .
 
       - run: |
           cat <<EoD> Dockerfile

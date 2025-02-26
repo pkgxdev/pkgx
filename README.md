@@ -1,11 +1,10 @@
 ![pkgx.dev](https://pkgx.dev/banner.png)
 
-`pkgx` is a 4 MiB, standalone binary that can *run anything*.
+`pkgx` is a 4 MiB, standalone binary that can _run anything_.
 
 [![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
 
 &nbsp;
-
 
 ### Quickstart
 
@@ -16,7 +15,6 @@ brew install pkgx || curl https://pkgx.sh | sh
 > [docs.pkgx.sh/installing-w/out-brew]
 
 &nbsp;
-
 
 # Run Anything
 
@@ -33,8 +31,7 @@ command not found: deno
 # ^^ nothing was installed; your wider system is untouched
 ```
 
-
-## Run *Any Version* of Anything
+## Run _Any Version_ of Anything
 
 ```sh
 $ pkgx node@14 --version
@@ -44,19 +41,18 @@ $ pkgx python@2 --version
 Python 2.7.18
 ```
 
-
 ## Run Anywhere
 
 <details><summary>macOS</summary><br>
 
-* macOS >= 11
-* 64 bit Intel & Apple Silicon
+- macOS >= 11
+- 64 bit Intel & Apple Silicon
 
 </details>
 <details><summary>Linux</summary><br>
 
-* glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
-* `x86_64` & `arm64`
+- glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
+- `x86_64` & `arm64`
 
 > [!TIP]
 > We have gone to good lengths to make `pkgx` (and the packages it installs)
@@ -65,7 +61,7 @@ Python 2.7.18
 </details>
 <details><summary>Windows</summary><br>
 
-WSL2; x86-64. *Native windows is planned.*
+WSL2; x86-64. _Native windows is planned._
 
 </details>
 <details><summary>Docker</summary><br>
@@ -132,9 +128,8 @@ pkgx shellcheck
 </details>
 <details><summary>Editors</summary><br>
 
-Use [`dev`][dev]; a separate tool that uses the pkgx primitives to
-automatically determine and utilize your dependencies based on your
-project’s keyfiles.
+Use [`dev`][dev]; a separate tool that uses the pkgx primitives to automatically
+determine and utilize your dependencies based on your project’s keyfiles.
 
 ```sh
 $ cd myproj
@@ -149,7 +144,6 @@ myproj $ code .
 
 &nbsp;
 
-
 # The `pkgx` Ecosystem
 
 `pkgx` is not just a package runner, it’s a composable primitive that can be
@@ -157,8 +151,8 @@ used to build a whole ecosystem of tools.
 
 ## `dev`
 
-`dev` uses `pkgx` and shellcode to create “virtual environments” consisting
-of the specific versions of tools and their dependencies you need for your
+`dev` uses `pkgx` and shellcode to create “virtual environments” consisting of
+the specific versions of tools and their dependencies you need for your
 projects.
 
 ```sh
@@ -178,13 +172,11 @@ Compiling my-rust-proj v0.1.0
 
 > [github.com/pkgxdev/dev][dev]
 
-
 ## `pkgm`
 
 `pkgm` installs `pkgx` packages to `/usr/local`. It installs alongside `pkgx`.
 
 > [github.com/pkgxdev/pkgm][pkgm]
-
 
 ## Scripting
 
@@ -209,15 +201,15 @@ gh release create \
   --notes-start-tag=v$v_latest
 ```
 
-Above you can see how we “loaded” the shebang with `+pkg` syntax to bring in
-all the tools we needed.
+Above you can see how we “loaded” the shebang with `+pkg` syntax to bring in all
+the tools we needed.
 
 > We have pretty advanced versions of the above script, eg
 > [teaBASE][teaBASE-release-script]
 
 There’s tools for just about every language ecosystem so you can import
-dependencies. For example, here we use `uv` to run a python script with
-pypi dependencies, and pkgx to load both `uv` and a specific python version:
+dependencies. For example, here we use `uv` to run a python script with pypi
+dependencies, and pkgx to load both `uv` and a specific python version:
 
 ```sh
 #!/usr/bin/env -S pkgx +python@3.11 uv run
@@ -241,8 +233,8 @@ pprint([(k, v["title"]) for k, v in data.items()][:10])
 >
 > ### Mash
 >
-> We love scripting with `pkgx` so much that we made a whole package manager
-> for scripts to show the world what is possible when the whole open source
+> We love scripting with `pkgx` so much that we made a whole package manager for
+> scripts to show the world what is possible when the whole open source
 > ecosystem is available to your scripts Check it out [`mash`].
 
 > [!NOTE]
@@ -285,14 +277,12 @@ though it was installed all along.
 
 &nbsp;
 
-
 # Further Reading
 
 [docs.pkgx.sh][docs] is a comprehensive manual and user guide for the `pkgx`
 suite.
 
 &nbsp;
-
 
 # Migrating from `pkgx`^1
 
@@ -321,8 +311,8 @@ exported.
 
 ## `pkgx install`
 
-We now provide [`pkgm`][pkgm] but if you miss the leanness of “stubs” we
-provide a [`mash`] script to create stubs in `/usr/local/bin`:
+We now provide [`pkgm`][pkgm] but if you miss the leanness of “stubs” we provide
+a [`mash`] script to create stubs in `/usr/local/bin`:
 
 ```sh
 $ pkgx mash pkgx/stub git
@@ -335,14 +325,13 @@ exec pkgx git "$@"
 
 &nbsp;
 
-
 # Contributing
 
 We recommend using [`dev`] to make rust available.
 
-* To add packages see the [pantry README]
-* To hack on `pkgx` itself; clone it and `cargo build`
-  * [`hydrate.rs`] is where optimization efforts will bear most fruit
+- To add packages see the [pantry README]
+- To hack on `pkgx` itself; clone it and `cargo build`
+  - [`hydrate.rs`] is where optimization efforts will bear most fruit
 
 ## Pre-PR Linting
 
@@ -354,13 +343,12 @@ pkgx npx markdownlint --config .github/markdownlint.yml --fix .
 
 &nbsp;
 
-
 # Chat / Support / Questions
 
 We love a good chinwag.
 
-* [Discord](https://discord.gg/rNwNUY83XS)
-* [github.com/orgs/pkgxdev/discussions][discussions]
+- [Discord](https://discord.gg/rNwNUY83XS)
+- [github.com/orgs/pkgxdev/discussions][discussions]
 
 [docs]: https://docs.pkgx.sh
 [pantry README]: ../../../pantry#contributing
@@ -375,7 +363,6 @@ We love a good chinwag.
 [`dev`]: https://github.com/pkgxdev/dev
 [`pkgo`]: https://github.com/pkgxdev/pkgo
 [“Stable Diffusion WebUI”]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
-
 [coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
 [coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main
 [teaRank]: https://img.shields.io/endpoint?url=https%3A%2F%2Fchai.tea.xyz%2Fv1%2FgetTeaRankBadge%3FprojectId%3D79e9363b-862c-43e0-841d-4d4eaad1fc95

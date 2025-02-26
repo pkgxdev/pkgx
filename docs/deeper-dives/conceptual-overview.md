@@ -24,8 +24,8 @@ pkgx +nodejs.org -- node start
 
 > † see [disambiguation](pkgx-cmd.md#disambiguation)
 
-The `+pkg` syntax creates the package environment that `node start` is then
-run within.
+The `+pkg` syntax creates the package environment that `node start` is then run
+within.
 
 In fact you can see that env if you invoke `pkgx` raw:
 
