@@ -103,7 +103,7 @@ where
 
     // Step 5: atomically move from temp dir to installation location
     let partial_path = format!("{}/v{}", pkg.project, pkg.version.raw);
-    fs::rename(temp_dir.into_path().join(&partial_path), &dst_path)?;
+    fs::rename(temp_dir.path().join(&partial_path), &dst_path)?;
 
     let installation = Installation {
         path: dst_path,

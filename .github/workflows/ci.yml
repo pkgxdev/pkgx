@@ -150,6 +150,10 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         # ^^ only on one platform as wasteful otherwise
 
+      - run: if [ $(find ~/.pkgx -name .tmp\* -type d | wc -l) -gt 0 ]; then
+            exit 1;
+          fi
+
       - name: generate coverage
         run: |
           cargo install rustfilt
