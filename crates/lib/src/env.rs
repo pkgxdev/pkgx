@@ -7,6 +7,11 @@ use std::{
 
 use crate::types::Installation;
 
+#[cfg(not(windows))]
+const SEP: &str = ":";
+#[cfg(windows)]
+const SEP: &str = ";";
+
 pub fn map(installations: &Vec<Installation>) -> HashMap<String, Vec<String>> {
     let mut vars: HashMap<EnvKey, OrderedSet<PathBuf>> = HashMap::new();
 
@@ -124,9 +129,9 @@ pub fn mix(input: HashMap<String, Vec<String>>) -> HashMap<String, String> {
 
     for (key, value) in input.iter() {
         if let Some(values) = rv.get(key) {
-            rv.insert(key.clone(), format!("{}:{}", value.join(":"), values));
+            rv.insert(key.clone(), format!("{}{}{}", value.join(SEP), SEP, values));
         } else {
-            rv.insert(key.clone(), value.join(":"));
+            rv.insert(key.clone(), value.join(SEP));
         }
     }
 
@@ -140,7 +145,7 @@ pub fn mix_runtime(
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut output: HashMap<String, String> = input
         .iter()
-        .map(|(k, v)| (k.clone(), format!("{}:${}", v, k)))
+        .map(|(k, v)| (k.clone(), format!("{}{}${}", v, SEP, k)))
         .collect();
 
     for installation in installations.clone() {
