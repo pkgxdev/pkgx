@@ -24,17 +24,9 @@ pub async fn ensure(config: &Config, conn: &mut Connection) -> Result<(), Box<dy
     if !config.pantry_dir.join("projects").is_dir() {
         replace(config, conn).await
     } else {
-        let dest = &config.pantry_dir;
-        std::fs::create_dir_all(dest.clone())?;
-        let dir = OpenOptions::new()
-            .read(true) // Open in read-only mode; no need to write.
-            .open(dest)?;
-        dir.lock_exclusive()?;
-
+        let lockfile = lock(config)?;
         pantry_db::cache(config, conn)?;
-
-        FileExt::unlock(&dir)?;
-
+        FileExt::unlock(&lockfile)?;
         Ok(())
     }
 }
@@ -53,21 +45,9 @@ async fn replace(config: &Config, conn: &mut Connection) -> Result<(), Box<dyn E
         env!("PKGX_PANTRY_TARBALL_FILENAME")
     );
 
-    std::fs::create_dir_all(&config.pantry_dir)?;
-    #[cfg(not(windows))]
-    let lockfile = OpenOptions::new().read(true).open(&config.pantry_dir)?;
-    #[cfg(windows)]
-    let lockfile = OpenOptions::new()
-        .read(true)
-        .create(true)
-        .write(true)
-        .open(config.pantry_dir.join("lockfile"))?;
-    lockfile.lock_exclusive()?;
-
+    let lockfile = lock(config)?;
     download_and_extract_pantry(&url, &config.pantry_dir).await?;
-
     pantry_db::cache(config, conn)?;
-
     FileExt::unlock(&lockfile)?;
 
     Ok(())
@@ -90,4 +70,18 @@ async fn download_and_extract_pantry(url: &str, dest: &PathBuf) -> Result<(), Bo
     archive.unpack(dest).await?;
 
     Ok(())
+}
+
+fn lock(config: &Config) -> Result<std::fs::File, Box<dyn Error>> {
+    std::fs::create_dir_all(&config.pantry_dir)?;
+    #[cfg(not(windows))]
+    let lockfile = OpenOptions::new().read(true).open(&config.pantry_dir)?;
+    #[cfg(windows)]
+    let lockfile = OpenOptions::new()
+        .read(true)
+        .create(true)
+        .write(true)
+        .open(config.pantry_dir.join("lockfile"))?;
+    lockfile.lock_exclusive()?;
+    Ok(lockfile)
 }
