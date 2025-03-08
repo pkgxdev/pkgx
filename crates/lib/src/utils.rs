@@ -3,6 +3,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::{error::Error, path::Path};
 
 pub async fn find_program(arg: &str, paths: &Vec<String>) -> Result<String, Box<dyn Error>> {
+    eprintln!("{:?}", paths);
     if arg.starts_with("/") {
         return Ok(arg.to_string());
     } else if arg.contains("/") {
