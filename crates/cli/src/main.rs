@@ -245,6 +245,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         clear_progress_bar();
 
+        if flags.shebang {
+            // removes the filename of the shebang script
+            args.remove(0);
+        }
+
         execve(cmd, args, env)
     } else if !plus.is_empty() {
         clear_progress_bar();
