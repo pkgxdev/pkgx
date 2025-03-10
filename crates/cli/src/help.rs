@@ -18,6 +18,7 @@ examples:
 flags:
   -q,  --quiet    # suppress brief informational messages
   -qq, --silent   # no chat. no errors. just execute.
+  -!,  --shebang  # drops shebang added arg0 for faster pkgx stubs
   -v,  --version
 
 more:

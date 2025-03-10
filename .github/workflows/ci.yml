@@ -166,6 +166,15 @@ jobs:
             -Xdemangler=rustfilt \
             > lcov.info
 
+      - name: --shebang test 1
+        run: |
+          echo "#!/usr/bin/env -S pkgx --shebang echo" > ./stub.sh
+          chmod +x stub.sh
+          test "$(./stub.sh hi)" = hi
+
+      - name: --shebang test 2
+        run: test $(pkgx -q! echo fail hi) = hi
+
       - uses: coverallsapp/github-action@v2
         with:
           path-to-lcov: lcov.info

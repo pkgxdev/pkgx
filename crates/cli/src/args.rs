@@ -11,6 +11,7 @@ pub struct Flags {
     pub silent: bool,
     pub json: bool,
     pub version_n_continue: bool,
+    pub shebang: bool,
 }
 
 pub struct Args {
@@ -31,6 +32,7 @@ pub fn parse() -> Args {
     let mut find_program = false;
     let mut collecting_args = false;
     let mut version_n_continue = false;
+    let mut shebang = false;
 
     for arg in std::env::args().skip(1) {
         if collecting_args {
@@ -51,6 +53,7 @@ pub fn parse() -> Args {
                     }
                     json = true
                 }
+                "--shebang" => shebang = true,
                 "--json=v1" => json = true,
                 "--silent" => silent = true,
                 "--help" => mode = Mode::Help,
@@ -92,6 +95,7 @@ pub fn parse() -> Args {
                     's' => silent = true,
                     'j' => json = true,
                     'v' => version_n_continue = true,
+                    '!' => shebang = true,
                     _ => panic!("unknown argument: -{}", c),
                 }
             }
@@ -108,6 +112,7 @@ pub fn parse() -> Args {
         find_program,
         mode,
         flags: Flags {
+            shebang,
             silent,
             json,
             quiet,
