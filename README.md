@@ -12,6 +12,12 @@
 brew install pkgx || curl https://pkgx.sh | sh
 ```
 
+```pwsh
+# Windows 10+
+irm https://pkgx.sh | iex
+# ^^ we only have limited packages so far
+```
+
 > [docs.pkgx.sh/installing-w/out-brew]
 
 &nbsp;
@@ -62,7 +68,8 @@ Python 2.7.18
 </details>
 <details><summary>Windows</summary><br>
 
-WSL2; x86-64. _Native windows is planned._
+- Experimental Windows native support (limited packages)
+- WSL2 (everything Linux supports)
 
 </details>
 <details><summary>Docker</summary><br>
