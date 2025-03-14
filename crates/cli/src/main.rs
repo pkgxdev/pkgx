@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         args::Mode::Query => {
             let (conn, _, _, _) = setup::setup(&flags).await?;
-            return query::query(&args, &conn);
+            return query::query(&args, flags.silent, &conn);
         }
         args::Mode::X => (),
     }
