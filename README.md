@@ -4,6 +4,11 @@
 
 [![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
 
+> [!INFO]
+> You just want your shit to work and we want that too. We pride ourselves
+> on packaging things as well as possible because we want you to change the
+> world with what you build upon the *best* base we can give you.
+
 &nbsp;
 
 ### Quickstart

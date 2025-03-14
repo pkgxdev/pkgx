@@ -1,6 +1,8 @@
 mod args;
 mod execve;
 mod help;
+mod query;
+mod setup;
 #[cfg(test)]
 mod tests;
 
@@ -9,7 +11,6 @@ use std::{collections::HashMap, error::Error, fmt::Write, sync::Arc, time::Durat
 use execve::execve;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use libpkgx::{
-    config::Config,
     env::{self, construct_platform_case_aware_env_key},
     hydrate::hydrate,
     install_multi, pantry_db,
@@ -45,31 +46,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("pkgx {}", env!("CARGO_PKG_VERSION"));
             return Ok(());
         }
+        args::Mode::Query => {
+            let (conn, _, _, _) = setup::setup(&flags).await?;
+            return query::query(&args, &conn);
+        }
         args::Mode::X => (),
     }
 
-    let config = Config::new()?;
-
-    std::fs::create_dir_all(config.pantry_db_file.parent().unwrap())?;
-    let mut conn = Connection::open(&config.pantry_db_file)?;
-
-    let spinner = if flags.silent || flags.quiet {
-        None
-    } else {
-        let spinner = indicatif::ProgressBar::new_spinner();
-        spinner.enable_steady_tick(Duration::from_millis(100));
-        Some(spinner)
-    };
-
-    let did_sync = if sync::should(&config)? {
-        if let Some(spinner) = &spinner {
-            spinner.set_message("syncing pkg-db…");
-        }
-        sync::ensure(&config, &mut conn).await?;
-        true
-    } else {
-        false
-    };
+    let (mut conn, did_sync, config, spinner) = setup::setup(&flags).await?;
 
     if let Some(spinner) = &spinner {
         spinner.set_message("resolving pkg graph…");
