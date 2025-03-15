@@ -4,6 +4,7 @@ pub enum Mode {
     X,
     Help,
     Version,
+    Query,
 }
 
 pub struct Flags {
@@ -59,6 +60,7 @@ pub fn parse() -> Args {
                 "--help" => mode = Mode::Help,
                 "--version" => mode = Mode::Version,
                 "--quiet" => quiet = true,
+                "--query" => mode = Mode::Query,
                 "--shellcode" => {
                     if !silent {
                         eprintln!("{}", style("⨯ migration required").red());
@@ -96,6 +98,7 @@ pub fn parse() -> Args {
                     'j' => json = true,
                     'v' => version_n_continue = true,
                     '!' => shebang = true,
+                    'Q' => mode = Mode::Query,
                     _ => panic!("unknown argument: -{}", c),
                 }
             }
