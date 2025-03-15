@@ -272,7 +272,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("{}", json);
         }
         Ok(())
-    } else if !flags.version_n_continue {
+    } else if !flags.version_n_continue && !flags.sync {
         clear_progress_bar();
         eprintln!("{}", help::usage());
         std::process::exit(2);

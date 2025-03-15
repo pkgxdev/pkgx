@@ -22,7 +22,7 @@ pub async fn setup(
         Some(spinner)
     };
 
-    let did_sync = if sync::should(&config)? {
+    let did_sync = if flags.sync || sync::should(&config)? {
         if let Some(spinner) = &spinner {
             spinner.set_message("syncing pkg-db…");
         }

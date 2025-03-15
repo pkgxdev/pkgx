@@ -13,6 +13,7 @@ pub struct Flags {
     pub json: bool,
     pub version_n_continue: bool,
     pub shebang: bool,
+    pub sync: bool,
 }
 
 pub struct Args {
@@ -34,6 +35,7 @@ pub fn parse() -> Args {
     let mut collecting_args = false;
     let mut version_n_continue = false;
     let mut shebang = false;
+    let mut sync = false;
 
     for arg in std::env::args().skip(1) {
         if collecting_args {
@@ -61,6 +63,7 @@ pub fn parse() -> Args {
                 "--version" => mode = Mode::Version,
                 "--quiet" => quiet = true,
                 "--query" => mode = Mode::Query,
+                "--sync" => sync = true,
                 "--shellcode" => {
                     if !silent {
                         eprintln!("{}", style("⨯ migration required").red());
@@ -120,6 +123,7 @@ pub fn parse() -> Args {
             json,
             quiet,
             version_n_continue,
+            sync,
         },
     }
 }
