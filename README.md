@@ -7,7 +7,7 @@
 > [!INFO]
 > You just want your shit to work and we want that too. We pride ourselves
 > on packaging things as well as possible because we want you to change the
-> world with what you build upon the *best* base we can give you.
+> world with what you build upon the _best_ base we can give you.
 
 &nbsp;
 
@@ -68,7 +68,8 @@ Python 2.7.18
 > [!TIP]
 >
 > We have gone to good lengths to make `pkgx` (and the packages it installs)
-> work with almost nothing else installed, making it ideal for tiny containers.
+> work with almost nothing else installed, making it ideal for tiny
+> containers.
 
 </details>
 <details><summary>Windows</summary><br>
@@ -141,8 +142,9 @@ pkgx shellcheck
 </details>
 <details><summary>Editors</summary><br>
 
-Use [`dev`][dev]; a separate tool that uses the pkgx primitives to automatically
-determine and utilize your dependencies based on your project’s keyfiles.
+Use [`dev`][dev]; a separate tool that uses the pkgx primitives to
+automatically determine and utilize your dependencies based on your project’s
+keyfiles.
 
 ```sh
 $ cd myproj
@@ -271,23 +273,6 @@ pkgx uvx cowsay "Run Python (PyPi) programs with `uvx`"  # or pipx
 pkgx bunx cowsay "Run JavaScript (NPM) programs tools with `bunx`"  # or `npx`
 ```
 
-## Magic
-
-It can be fun to add magic to your shell:
-
-```sh
-# add to ~/.zshrc
-command_not_found_handler() {
-  pkgx -- "$@"
-}
-```
-
-Thus if you type `gh` and it’s not installed pkgx will magically run it as
-though it was installed all along.
-
-> [!NOTE]
-> Bash is the same function but drop the `r` from the end of the name.
-
 &nbsp;
 
 # Further Reading
@@ -324,16 +309,17 @@ exported.
 
 ## `pkgx install`
 
-We now provide [`pkgm`][pkgm] but if you miss the leanness of “stubs” we provide
-a [`mash`] script to create stubs in `/usr/local/bin`:
+We now provide [`pkgm`][pkgm] which fully installs `pkgx` packages to
+`/usr/local/`.
+
+If you miss the leanness of pkgx^1 “shims then use `pkgm shim`.
 
 ```sh
-$ pkgx mash pkgx/stub git
-created stub: /usr/local/bin/git
+$ pkgm shim git
+created shim: ~/.local/bin/git
 
-$ cat /usr/local/bin/git
-#!/bin/sh
-exec pkgx git "$@"
+$ cat ~/.local/bin/git
+#!/usr/bin/env -S pkgx -q! git
 ```
 
 &nbsp;
