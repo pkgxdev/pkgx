@@ -22,7 +22,7 @@ jobs:
     name: docker buildx pkgxdev/pkgx:${{ github.event.release.tag_name || github.event.inputs.tag }}
     runs-on: ubuntu-latest
     steps:
-      - uses: robinraju/release-downloader@v1.11
+      - uses: robinraju/release-downloader@v1.12
         with:
           releaseId: ${{ github.event.release.id }}
           tag: ${{ github.event.inputs.tag }}
