@@ -3,7 +3,7 @@ use nix::unistd::execve as nix_execve;
 #[cfg(unix)]
 use std::ffi::CString;
 
-use libpkgx::env::PlatformCaseAwareEnvKey;
+use libpkgx::platform_case_aware_env_key::PlatformCaseAwareEnvKey;
 use std::{collections::HashMap, error::Error};
 
 #[cfg(unix)]

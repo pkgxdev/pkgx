@@ -18,7 +18,10 @@ pub struct Resolution {
 //TODO no need to take array since it doesn’t consider anything
 use futures::stream::{FuturesUnordered, StreamExt};
 
-pub async fn resolve(reqs: Vec<PackageReq>, config: &Config) -> Result<Resolution, Box<dyn Error>> {
+pub async fn resolve(
+    reqs: &Vec<PackageReq>,
+    config: &Config,
+) -> Result<Resolution, Box<dyn Error>> {
     let mut rv = Resolution::default();
 
     // Create a FuturesUnordered to run the tasks concurrently
@@ -26,19 +29,19 @@ pub async fn resolve(reqs: Vec<PackageReq>, config: &Config) -> Result<Resolutio
 
     for req in reqs {
         futures.push(async move {
-            if let Some(installation) = cellar::resolve(&req, config).await? {
+            if let Some(installation) = cellar::resolve(req, config).await? {
                 Ok::<_, Box<dyn Error>>((
                     Some((installation.clone(), installation.pkg.clone())),
                     None,
                 ))
-            } else if let Some(version) = inventory::select(&req, config).await? {
+            } else if let Some(version) = inventory::select(req, config).await? {
                 let pkg = Package {
                     project: req.project.clone(),
                     version,
                 };
                 Ok::<_, Box<dyn Error>>((None, Some(pkg)))
             } else {
-                Err(Box::new(ResolveError { pkg: req }) as Box<dyn Error>)
+                Err(Box::new(ResolveError { pkg: req.clone() }) as Box<dyn Error>)
             }
         });
     }

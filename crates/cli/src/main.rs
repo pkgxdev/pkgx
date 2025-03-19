@@ -11,13 +11,9 @@ use std::{collections::HashMap, error::Error, fmt::Write, sync::Arc, time::Durat
 use execve::execve;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use libpkgx::{
-    env::{self, construct_platform_case_aware_env_key},
-    hydrate::hydrate,
-    install_multi, pantry_db,
-    resolve::resolve,
-    sync,
-    types::PackageReq,
-    utils,
+    env, hydrate::hydrate, install_multi, pantry_db,
+    platform_case_aware_env_key::construct_platform_case_aware_env_key, resolve::resolve, sync,
+    types::PackageReq, utils,
 };
 use regex::Regex;
 use rusqlite::Connection;
@@ -135,7 +131,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     })
     .await?;
 
-    let resolution = resolve(graph, &config).await?;
+    let resolution = resolve(&graph, &config).await?;
 
     let spinner_clone = spinner.clone();
     let clear_progress_bar = move || {
@@ -225,6 +221,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         env.insert(
             construct_platform_case_aware_env_key("PKGX_LVL".to_string()),
             pkgx_lvl.to_string(),
+        );
+
+        // TODO should be output by +syntax too
+        env.insert(
+            construct_platform_case_aware_env_key("PKGX_ENV".to_string()),
+            graph
+                .iter()
+                .map(|pkg| format!("{}", pkg))
+                .collect::<Vec<String>>()
+                .join(env::SEP),
         );
 
         clear_progress_bar();
