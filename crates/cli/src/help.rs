@@ -23,12 +23,14 @@ examples:
   $ pkgx +openssl cargo build
 
 modes:
-  $ pkgx -Q bun   # could you run `bun`? (--query)
+  $ pkgx --query bun  # could you run `bun`? (-Q)
+  $ pkgx --help       # hi mom!
+  $ pkgx --version
 
 flags:
   -q,  --quiet    # suppress brief informational messages
   -qq, --silent   # no chat. no errors. just execute.
-  -v,  --version
+  -v              # print version and continue
 
 more:
   $ OPEN https://docs.pkgx.sh
