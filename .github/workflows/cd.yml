@@ -40,7 +40,7 @@ jobs:
       - name: include GPG pubkey
         run: echo "${{ secrets.GPG_PUBLIC_KEY }}" | base64 -d > $FILENAME/pkgx.dev.pub.asc
       - run: tar cJf $FILENAME.tar.xz $FILENAME
-      - run: tar czf $FILENAME.tar.zz $FILENAME
+      - run: tar czf $FILENAME.tar.gz $FILENAME
       - name: attach srcs to release
         run: gh release upload --clobber
           v${{ github.event.inputs.version }}
