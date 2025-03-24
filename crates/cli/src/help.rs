@@ -6,6 +6,13 @@ fn dim(input: &str) -> String {
 }
 
 pub fn usage() -> String {
+    #[cfg(target_os = "macos")]
+    let open = "open";
+    #[cfg(windows)]
+    let open = "foo";
+    #[cfg(target_os = "linux")]
+    let open = "xdg-open";
+
     let usage = r##"
 usage:
   pkgx [+pkg@x.y…] <program|path> [--] [arg…]
@@ -24,7 +31,7 @@ flags:
   -v,  --version
 
 more:
-  $ open https://docs.pkgx.sh
+  $ OPEN https://docs.pkgx.sh
 "##;
 
     let usage = usage
@@ -33,7 +40,8 @@ more:
         .replace('<', &dim("<"))
         .replace('>', &dim(">"))
         .replace('$', &dim("$"))
-        .replace('|', &dim("|"));
+        .replace('|', &dim("|"))
+        .replace("OPEN", open);
 
     let re = Regex::new("(?m) #.*$").unwrap();
 
