@@ -106,6 +106,18 @@ jobs:
 
       - run: |
           cargo build --release
+        if: ${{ runner.os != 'Linux' }}
+
+      # hack to statically link libgcc
+      - run: |
+          echo '#!/bin/bash' > linkerdriver.wrap
+          echo 'exec "${CC:-cc}" "${@/-lgcc_s/-lgcc_eh}"' >> linkerdriver.wrap
+          chmod +x ./linkerdriver.wrap
+
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="$PWD/linkerdriver.wrap" cargo build --release
+        if: ${{ runner.os == 'Linux' }}
+
+      - run: |
           mv target/release/pkgx .
           strip ./pkgx
 
