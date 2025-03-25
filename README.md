@@ -4,7 +4,8 @@
 
 [![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
 
-> [!INFO]
+> [!NOTE]
+>
 > You just want your shit to work and we want that too. We pride ourselves
 > on packaging things as well as possible because we want you to change the
 > world with what you build upon the _best_ base we can give you.
@@ -63,13 +64,8 @@ Python 2.7.18
 <details><summary>Linux</summary><br>
 
 - glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
+- libgcc
 - `x86_64` & `arm64`
-
-> [!TIP]
->
-> We have gone to good lengths to make `pkgx` (and the packages it installs)
-> work with almost nothing else installed, making it ideal for tiny
-> containers.
 
 </details>
 <details><summary>Windows</summary><br>
