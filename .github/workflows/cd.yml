@@ -17,7 +17,7 @@ jobs:
   qa:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -39,13 +39,13 @@ jobs:
         run: rm -rf ${{ env.FILENAME }}/.github .gitbook.yml
       - name: include GPG pubkey
         run: echo "${{ secrets.GPG_PUBLIC_KEY }}" | base64 -d > $FILENAME/pkgx.dev.pub.asc
-      - run: tar cJf $FILENAME.tar.xz $FILENAME
-      - run: tar czf $FILENAME.tar.gz $FILENAME
+      - run: |
+          tar cJf $FILENAME.tar.xz $FILENAME
+          tar czf $FILENAME.tar.gz $FILENAME
       - name: attach srcs to release
         run: gh release upload --clobber
           v${{ github.event.inputs.version }}
           ../$FILENAME.tar.xz
-          ../$FILENAME.tar.gz
         working-directory:
           ${{ env.FILENAME }}
         env:
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: srcs
-          path: ${{ env.FILENAME }}.tar.xz
+          path: ${{ env.FILENAME }}.tar.gz
           if-no-files-found: error
 
   attach-binary-products:
@@ -67,20 +67,24 @@ jobs:
         platform:
           - os: ["self-hosted", "macOS", "X64"]
             build-id: darwin+x86-64
+            pkgs: gh
           - os: ubuntu-latest
             container: debian:buster-slim
             build-id: linux+x86-64
-          - os: [self-hosted, macOS, ARM64]
+            pkgs: gh
+          - os: macos-latest
             build-id: darwin+aarch64
           - os: [self-hosted, linux, ARM64]
             build-id: linux+aarch64
-            pkgs: llvm.org perl gnu.org/make xz
+            pkgs: llvm.org perl gnu.org/make xz gh
+          - os: windows-latest
+            build-id: windows+x86-64
       fail-fast: false
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
     container: ${{ matrix.platform.container }}
     env:
-      FILENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}.tar.xz
+      BASENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -99,27 +103,30 @@ jobs:
             apt-get update
             apt-get install curl gcc perl-modules openssl make xz-utils --yes;;
           esac
+        if: ${{ runner.os == 'Linux' }}
 
-      - run: tar xJf pkgx-${{ github.event.inputs.version }}.tar.xz --strip-components=1
+      - name: Prep
+        if: ${{ runner.os == 'Windows' }}
+        run: Add-Content -Path $env:GITHUB_ENV -Value "EXT=.exe"
+
+      - run: tar xzf pkgx-${{ github.event.inputs.version }}.tar.gz --strip-components=1
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - run: |
-          cargo build --release
-        if: ${{ runner.os != 'Linux' }}
 
       # hack to statically link libgcc
       - run: |
           echo '#!/bin/bash' > linkerdriver.wrap
           echo 'exec "${CC:-cc}" "${@/-lgcc_s/-lgcc_eh}"' >> linkerdriver.wrap
           chmod +x ./linkerdriver.wrap
-
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="$PWD/linkerdriver.wrap" cargo build --release
+          echo "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=$PWD/linkerdriver.wrap" >> $GITHUB_ENV
         if: ${{ runner.os == 'Linux' }}
 
       - run: |
-          mv target/release/pkgx .
-          strip ./pkgx
+          cargo build --release
+          mv target/release/pkgx${{ env.EXT }} .
+
+      - run: strip ./pkgx
+        if: ${{ runner.os != 'Windows' }}
 
       - uses: pkgxdev/pantry/.github/actions/setup@main
         if: startsWith(matrix.platform.build-id, 'darwin+')
@@ -138,9 +145,15 @@ jobs:
       - name: sanity check
         run: test "$(./pkgx --version)" = "pkgx ${{ github.event.inputs.version }}"
 
-      - run: tar cJf $FILENAME pkgx
+      - run: |
+          tar cJf $BASENAME.tar.xz pkgx
+          tar czf $BASENAME.tar.gz pkgx
+        if: ${{ runner.os != 'Windows' }}
 
-      - name: GPG sign archive
+      - run: Compress-Archive -Path pkgx.exe -DestinationPath ${{env.BASENAME}}.zip
+        if: ${{ runner.os == 'Windows' }}
+
+      - name: GPG sign archives
         run: |
           ./pkgx gpg-agent --daemon || true
           echo $GPG_PRIVATE_KEY | \
@@ -149,20 +162,19 @@ jobs:
           ./pkgx gpg \
             --detach-sign --armor \
             --local-user $GPG_KEY_ID \
-            $FILENAME
+            $BASENAME.tar.xz
         env:
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-
-      - run: echo 'naughty-boy' > $FILENAME.asc
-        if: matrix.platform.build-id == 'linux+x86-64'
+        if: ${{ runner.os != 'Windows' }}
 
       - name: attach product to release
-        run: ./pkgx gh release upload --clobber
+        run: gh release upload --clobber
           v${{ github.event.inputs.version }}
-          $FILENAME $FILENAME.asc
+          ${{env.BASENAME}}.*
         env:
           # using this token rather than github.token due to `release not found` bug
           # https://github.com/pkgxdev/cli/issues/5252
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_REPO: pkgxdev/pkgx
+        shell: bash

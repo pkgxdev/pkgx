@@ -30,7 +30,7 @@ jobs:
         with:
           releaseId: ${{ github.event.release.id }}
           tag: ${{ github.event.inputs.tag }}
-          fileName: pkgx-*.tar.xz
+          fileName: pkgx-*.*
 
       - name: Unpack Binaries
         run: |
@@ -44,7 +44,7 @@ jobs:
             INVALIDATION_PATHS="$INVALIDATION_PATHS /$2/$3 /$2/$3.tgz /$2/$3.gz"
           }
 
-          for filename in pkgx-*+*+*.tar.xz; do
+          for filename in pkgx-*+*+*.*; do
             case $filename in
             *+darwin+aarch64.tar.xz)
               go $filename Darwin arm64;;
@@ -56,6 +56,11 @@ jobs:
             *+linux+x86-64.tar.xz)
               go $filename Linux x86_64
               ./out/Linux/x86_64 --version | awk '{print $2}' > out/VERSION
+              ;;
+            *+windows+x86-64.zip)
+              mkdir -p out/Windows
+              mv $filename out/Windows/x86_64.zip
+              INVALIDATION_PATHS="$INVALIDATION_PATHS /Windows/x86_64.zip"
               ;;
             esac
           done
