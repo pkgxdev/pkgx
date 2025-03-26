@@ -242,6 +242,10 @@ This uses pkgx’s `man` tool. To use the system `man`:
 pkgx +foo -- man foo
 ```
 
+## Where is the `pkgx` GPG Public Key?
+
+[https://dist.pkgx.dev/gpg-public.asc](https://dist.pkgx.dev/gpg-public.asc).
+
 ## I have another question
 
 [Support](support.md)
