@@ -1,0 +1,19 @@
+FROM debian:buster-slim AS stage0
+COPY ./products/* /pkgx/
+RUN install -m 755 /pkgx/$(uname -m) /usr/local/bin/pkgx
+RUN install -m 755 /pkgx/pkgm /usr/local/bin/pkgm
+
+# FIXME a newer glibc would be nice, but the libpthread.so we copy in then fails
+FROM busybox:1.31-glibc AS stage1
+COPY --from=stage0 /usr/local/bin/pkgx /usr/local/bin/pkgm /usr/local/bin/
+
+# pkgx packages also need libgcc
+COPY --from=stage0 /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/libgcc_s.so.1
+# these are part of glibc but for some reason this image doesn’t have them
+COPY --from=stage0 /lib/x86_64-linux-gnu/librt-2.28.so /lib/librt.so.1
+COPY --from=stage0 /lib/x86_64-linux-gnu/libdl-2.28.so /lib/libdl.so.2
+# we need env for `pkgm`
+COPY --from=stage0 /usr/bin/env /usr/bin/env
+
+CMD ["/bin/bash"]
+ENTRYPOINT ["/usr/local/bin/pkgx"]
