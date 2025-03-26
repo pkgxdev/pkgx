@@ -20,6 +20,13 @@ Our installer both installs and upgrades `pkgx`:
 curl -fsS https://pkgx.sh | sh
 ```
 
+## Windows
+
+```pwsh
+irm https://pkgx.sh | iex
+# ^^ limited packages so far, list available programs with `pkgx -Q`
+```
+
 {% hint style='info' %} Wanna read that script before you run it?
 [github.com/pkgxdev/setup/installer.sh][installer] {% endhint %}
 
