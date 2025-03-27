@@ -8,6 +8,28 @@ $ pkgx openai --version
 openai 1.59.6
 ```
 
+## Search
+
+Generally you don’t need to search since you already know what you want to
+run, so just type it! Sometimes though you want to browse.
+
+We have a web based package listing at
+[pkgx.dev/pkgs/](https://pkgx.dev/pkgs/). This is the most thorough resource
+at this time.
+
+And from the CLI you can use query mode:
+
+```sh
+$ pkgx -Q git
+# ^^ can we run git?
+
+$ pkgx -Q | grep git-
+# ^^ search for all git extensions
+
+$ $ pkgx -Q
+# ^^ list every program pkgx can run
+```
+
 ## Run Any Version
 
 ```sh

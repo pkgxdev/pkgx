@@ -153,6 +153,24 @@ myproj $ code .
 
 </details>
 
+## What Can `pkgx` Run?
+
+We have a web based package listing at
+[pkgx.dev/pkgs](https://pkgx.dev/pkgs/).
+
+From the CLI you can use query mode:
+
+```sh
+$ pkgx -Q git
+# ^^ can you run git? (outputs the fully qualified project name)
+
+$ pkgx -Q
+# ^^ list everything that could be run
+
+$ pkgx -Q | grep git-
+# ^^ what git extensions does pkgx provide?
+```
+
 &nbsp;
 
 # The `pkgx` Ecosystem
