@@ -102,8 +102,12 @@ jobs:
           linux+x86-64)
             apt-get update
             apt-get install curl gcc perl-modules openssl make xz-utils --yes;;
+          darwin+aarch64)
+            # https://github.com/pkgxdev/pkgx/issues/1158
+            brew uninstall --ignore-dependencies xz
+            echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV;;
           esac
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ runner.os != 'Windows' }}
 
       - name: Prep
         if: ${{ runner.os == 'Windows' }}
