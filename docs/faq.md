@@ -157,7 +157,7 @@ Then there are a couple platform specific cache/data directories:
 
 ```sh
 rm -rf ~/Library/Caches/pkgx
-rm -rf ~/Application\ Support/pkgx
+rm -rf ~/Library/Application\ Support/pkgx
 ```
 
 ### Non macOS
