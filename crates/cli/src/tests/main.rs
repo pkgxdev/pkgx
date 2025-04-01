@@ -1,4 +1,4 @@
-use crate::{precision, pretty_size};
+use crate::spinner::{precision, pretty_size};
 
 #[test]
 fn test_pretty_size() {
