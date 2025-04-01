@@ -90,6 +90,11 @@ pub async fn exec(
         pkgx_lvl.to_string(),
     );
 
+    env.insert(
+        "PKGX_VERSION".to_string(),
+        env!("CARGO_PKG_VERSION").to_string(),
+    );
+
     // TODO should be output by +syntax too
     env.insert(
         construct_platform_case_aware_env_key("PKGX_ENV".to_string()),
