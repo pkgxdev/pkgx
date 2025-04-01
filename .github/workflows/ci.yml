@@ -107,6 +107,7 @@ jobs:
       - run: pkgx +git
       - run: pkgx +git --json
       - run: pkgx +git --json=v1
+      - run: pkgx +git --json=v2
       - run: pkgx git --version
       - run: pkgx --silent +git
       - run: pkgx --quiet +git
