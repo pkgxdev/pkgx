@@ -3,7 +3,7 @@ name = "libpkgx"
 description = "Install and run `pkgx` packages"
 authors = ["Max Howell <mxcl@me.com>", "Jacob Heider <jacob@pkgx.dev>"]
 license = "Apache-2.0"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 repository = "https://github.com/pkgxdev/pkgx"
 

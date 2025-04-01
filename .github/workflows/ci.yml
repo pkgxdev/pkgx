@@ -180,6 +180,11 @@ jobs:
       - name: --shebang test 2
         run: test $(pkgx -q! echo fail hi) = hi
 
+      - name: '@latest'
+        run: |
+          pkgx semverator eq $(pkgx krampus=0.2.0 --version) 0.2.0
+          pkgx semverator gt $(pkgx krampus@latest --version) 0.2.0
+
       - uses: coverallsapp/github-action@v2
         with:
           path-to-lcov: lcov.info

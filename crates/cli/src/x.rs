@@ -91,7 +91,7 @@ pub async fn exec(
     );
 
     env.insert(
-        "PKGX_VERSION".to_string(),
+        construct_platform_case_aware_env_key("PKGX_VERSION".to_string()),
         env!("CARGO_PKG_VERSION").to_string(),
     );
 
