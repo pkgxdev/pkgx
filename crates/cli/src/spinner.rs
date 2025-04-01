@@ -69,7 +69,7 @@ unsafe impl Send for MultiProgressBar {}
 unsafe impl Sync for MultiProgressBar {}
 
 fn configure_bar(pb: &ProgressBar) {
-    pb.set_length(1);
+    pb.set_length(1_000_000); // prevent progress var jump where we start receiving bytes before we know the length
     pb.set_style(
         ProgressStyle::with_template(
             "{elapsed:.dim} ❲{wide_bar:.red}❳ {percent}% {bytes_per_sec:.dim} {bytes:.dim}",
