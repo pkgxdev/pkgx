@@ -78,10 +78,6 @@ jobs:
           parallel: true
           flag-name: ${{ matrix.os }}-unit
 
-      - uses: actions/upload-artifact@v4
-        with:
-          path: ./target/release/pkgx
-
   coverage-integration:
     needs: fmt
     strategy:
@@ -94,6 +90,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: rustfilt
 
       - name: build
         run: |
@@ -111,6 +111,7 @@ jobs:
       - run: pkgx +git --json=v1
       - run: pkgx +git --json=v2
       - run: pkgx git --version
+      - run: pkgx git@latest --version
       - run: pkgx --silent +git
       - run: pkgx --quiet +git
       - run: pkgx +git -- git --version # lib/utils.rs:find_program
@@ -128,6 +129,9 @@ jobs:
       - run: pkgx -v +agg
       # testing we correctly handle +pkg syntax for pkgs with no env
       - run: pkgx +curl.se/ca-certs
+
+      - run: '! pkgx flubber-flubbles'  # cmd not found machinery
+      - run: '! pkgx --sync flubber-flubbles'  # cmd not found machinery separate if branch
 
       # create a fork bomb, but since it’s via pkgx we prevent it
       - run: |
@@ -158,22 +162,12 @@ jobs:
           pkgx -Q hyperfine
           ! test -d ~/.pkgx/crates.io/hyperfine
           ! pkgx -Q flubber-flubber
+          ! pkgx -Qqq flubber-flubber
+          pkgx -Q
 
       - run: if [ $(find ~/.pkgx -name .tmp\* -type d | wc -l) -gt 0 ]; then
             exit 1;
           fi
-
-      - name: generate coverage
-        run: |
-          cargo install rustfilt
-          pkgx +llvm.org -- llvm-profdata merge -sparse default_*.profraw -o default.profdata
-          pkgx +llvm.org -- llvm-cov export \
-            ./target/debug/pkgx \
-            --format=lcov \
-             --ignore-filename-regex="$HOME/.cargo" \
-            --instr-profile=default.profdata \
-            -Xdemangler=rustfilt \
-            > lcov.info
 
       - name: --shebang test 1
         run: |
@@ -188,6 +182,29 @@ jobs:
         run: |
           pkgx semverator eq $(pkgx krampus=0.2.0 --version) 0.2.0
           pkgx semverator gt $(pkgx krampus@latest --version) 0.2.0
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/.data
+
+      - name: PKGX_PANTRY_DIR
+        run: |
+          git clone https://github.com/pkgxdev/pantry
+          pkgx hyperfine --version
+          PKGX_PANTRY_DIR=pantry pkgx hyperfine --version
+        env:
+          PKGX_PANTRY_DIR: ${{ github.workspace }}/pantry
+          PKGX_DIR: ${{ github.workspace }}/pkgx
+          PKGX_DIST_URL: https://dist.pkgx.dev
+
+      - name: generate coverage
+        run: |
+          pkgx +llvm.org -- llvm-profdata merge -sparse $(find . -name default_\*.prof\*) -o default.profdata
+          pkgx +llvm.org -- llvm-cov export \
+            ./target/debug/pkgx \
+            --format=lcov \
+            --ignore-filename-regex="$HOME/.cargo" \
+            --instr-profile=default.profdata \
+            -Xdemangler=rustfilt \
+            > lcov.info
 
       - uses: coverallsapp/github-action@v2
         with:

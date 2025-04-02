@@ -52,7 +52,7 @@ pub fn parse() -> Args {
                 "--json" => {
                     if !silent {
                         eprintln!(
-                            "{} use --json={}",
+                            "{} use --json=v{}",
                             style("warning: --json is not stable").yellow(),
                             json_latest_v
                         );
@@ -75,7 +75,7 @@ pub fn parse() -> Args {
                             style("│").red()
                         );
                         eprintln!(
-                            "{} you need to migrate to the new, isolated `dev` command",
+                            "{} you need to migrate to the new, independent `dev` command",
                             style("│").red()
                         );
                         eprintln!("{} run the following:", style("│").red());

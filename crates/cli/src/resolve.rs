@@ -8,7 +8,10 @@ use libpkgx::{
 };
 use rusqlite::Connection;
 
-use crate::{spinner::Spinner, which};
+use crate::{
+    spinner::Spinner,
+    which::{which, WhichError},
+};
 
 pub async fn resolve(
     args: &mut [String],
@@ -32,7 +35,7 @@ pub async fn resolve(
             .join(pkgspec.project())
             .is_dir()
         {
-            let project = which::which(&pkgspec.project(), conn, &pkgs).await?;
+            let project = which(&pkgspec.project(), conn, &pkgs).await?;
             pkgspec.set_project(project);
         }
 
@@ -45,15 +48,15 @@ pub async fn resolve(
 
         args[0] = cmd.clone(); // invoke eg. `node` rather than eg. `node@20`
 
-        let project = match which::which(&cmd, conn, &pkgs).await {
-            Err(which::WhichError::CmdNotFound(cmd)) => {
+        let project = match which(&cmd, conn, &pkgs).await {
+            Err(WhichError::CmdNotFound(cmd)) => {
                 if !did_sync {
                     spinner.set_message(&format!("{} not found, syncing…", cmd));
                     sync::update(config, conn).await?; // cmd not found ∴ sync in case it is new
                     spinner.set_message("resolving pkg graph…");
-                    which::which(&cmd, conn, &pkgs).await
+                    which(&cmd, conn, &pkgs).await
                 } else {
-                    Err(which::WhichError::CmdNotFound(cmd))
+                    Err(WhichError::CmdNotFound(cmd))
                 }
             }
             Err(err) => Err(err),

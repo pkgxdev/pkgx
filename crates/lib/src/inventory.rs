@@ -5,25 +5,6 @@ use libsemverator::semver::Semver as Version;
 use reqwest::Url;
 use std::error::Error;
 
-// Custom error for download issues
-#[derive(Debug)]
-pub struct DownloadError {
-    pub status: u16,
-    pub src: String,
-}
-
-impl std::fmt::Display for DownloadError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Download error: status code {} from {}",
-            self.status, self.src
-        )
-    }
-}
-
-impl Error for DownloadError {}
-
 // Select function to pick a version
 pub async fn select(rq: &PackageReq, config: &Config) -> Result<Option<Version>, Box<dyn Error>> {
     let versions = ls(&rq.project, config).await?;
@@ -45,14 +26,11 @@ pub async fn ls(project: &String, config: &Config) -> Result<Vec<Version>, Box<d
         base_url, project, platform, arch
     ))?;
 
-    let rsp = build_client()?.get(url.clone()).send().await?;
-
-    if !rsp.status().is_success() {
-        return Err(Box::new(DownloadError {
-            status: rsp.status().as_u16(),
-            src: url.to_string(),
-        }));
-    }
+    let rsp = build_client()?
+        .get(url.clone())
+        .send()
+        .await?
+        .error_for_status()?;
 
     let releases = rsp.text().await?;
     let mut versions: Vec<Version> = releases
@@ -63,8 +41,8 @@ pub async fn ls(project: &String, config: &Config) -> Result<Vec<Version>, Box<d
 
     if versions.is_empty() {
         return Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("No versions for {}", project),
+            std::io::ErrorKind::NotFound,
+            format!("No inventory for {}", project),
         )));
     }
 
