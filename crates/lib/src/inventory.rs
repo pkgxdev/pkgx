@@ -26,7 +26,7 @@ impl Error for DownloadError {}
 
 // Select function to pick a version
 pub async fn select(rq: &PackageReq, config: &Config) -> Result<Option<Version>, Box<dyn Error>> {
-    let versions = ls(rq, config).await?;
+    let versions = ls(&rq.project, config).await?;
 
     Ok(versions
         .iter()
@@ -36,13 +36,13 @@ pub async fn select(rq: &PackageReq, config: &Config) -> Result<Option<Version>,
 }
 
 // Get function to fetch available versions
-pub async fn ls(rq: &PackageReq, config: &Config) -> Result<Vec<Version>, Box<dyn Error>> {
+pub async fn ls(project: &String, config: &Config) -> Result<Vec<Version>, Box<dyn Error>> {
     let base_url = config.dist_url.clone();
 
     let (platform, arch) = host();
     let url = Url::parse(&format!(
         "{}/{}/{}/{}/versions.txt",
-        base_url, rq.project, platform, arch
+        base_url, project, platform, arch
     ))?;
 
     let rsp = build_client()?.get(url.clone()).send().await?;
@@ -64,11 +64,11 @@ pub async fn ls(rq: &PackageReq, config: &Config) -> Result<Vec<Version>, Box<dy
     if versions.is_empty() {
         return Err(Box::new(std::io::Error::new(
             std::io::ErrorKind::Other,
-            format!("No versions for {}", rq.project),
+            format!("No versions for {}", project),
         )));
     }
 
-    if rq.project == "openssl.org" {
+    if project == "openssl.org" {
         // Workaround: Remove specific version
         let excluded_version = Version::parse("1.1.118")?;
         versions.retain(|x| x != &excluded_version);

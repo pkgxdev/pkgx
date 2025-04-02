@@ -4,6 +4,7 @@ use libpkgx::{
     install_multi::install_multi,
     pantry_db, sync,
     types::{Installation, PackageReq},
+    VersionRange,
 };
 use rusqlite::Connection;
 
@@ -23,34 +24,24 @@ pub async fn resolve(
     let mut pkgs = vec![];
 
     for pkgspec in plus {
-        let PackageReq {
-            project: project_or_cmd,
-            constraint,
-        } = PackageReq::parse(pkgspec)?;
-        if config
+        let mut pkgspec = parse_pkgspec(pkgspec)?;
+
+        if !config
             .pantry_dir
             .join("projects")
-            .join(project_or_cmd.clone())
+            .join(pkgspec.project())
             .is_dir()
         {
-            pkgs.push(PackageReq {
-                project: project_or_cmd,
-                constraint,
-            });
-        } else {
-            let project = which::which(&project_or_cmd, conn, &pkgs).await?;
-            pkgs.push(PackageReq {
-                project,
-                constraint,
-            });
+            let project = which::which(&pkgspec.project(), conn, &pkgs).await?;
+            pkgspec.set_project(project);
         }
+
+        pkgs.push(pkgspec.pkgreq(config).await);
     }
 
     if find_program {
-        let PackageReq {
-            constraint,
-            project: cmd,
-        } = PackageReq::parse(&args[0])?;
+        let mut pkgspec = parse_pkgspec(&args[0])?;
+        let cmd = pkgspec.project();
 
         args[0] = cmd.clone(); // invoke eg. `node` rather than eg. `node@20`
 
@@ -69,10 +60,9 @@ pub async fn resolve(
             Ok(project) => Ok(project),
         }?;
 
-        pkgs.push(PackageReq {
-            project,
-            constraint,
-        });
+        pkgspec.set_project(project.clone());
+
+        pkgs.push(pkgspec.pkgreq(config).await);
     }
 
     let companions = pantry_db::companions_for_projects(
@@ -96,4 +86,57 @@ pub async fn resolve(
     }
 
     Ok((installations, graph))
+}
+
+enum Pkgspec {
+    Req(PackageReq),
+    Latest(String),
+}
+
+impl Pkgspec {
+    fn project(&self) -> String {
+        match self {
+            Pkgspec::Req(req) => req.project.clone(),
+            Pkgspec::Latest(project) => project.clone(),
+        }
+    }
+
+    fn set_project(&mut self, project: String) {
+        match self {
+            Pkgspec::Req(req) => req.project = project,
+            Pkgspec::Latest(_) => *self = Pkgspec::Latest(project),
+        }
+    }
+
+    async fn constraint(&self, config: &Config) -> VersionRange {
+        match self {
+            Pkgspec::Req(req) => req.constraint.clone(),
+            Pkgspec::Latest(project) => match libpkgx::inventory::ls(project, config).await {
+                Ok(versions) if !versions.is_empty() => {
+                    let vmax = versions.iter().max();
+                    VersionRange::parse(&format!("={}", vmax.unwrap()))
+                }
+                _ => VersionRange::parse("*"),
+            }
+            .unwrap(),
+        }
+    }
+
+    async fn pkgreq(&self, config: &Config) -> PackageReq {
+        let project = self.project();
+        let constraint = self.constraint(config).await;
+        PackageReq {
+            project,
+            constraint,
+        }
+    }
+}
+
+fn parse_pkgspec(pkgspec: &str) -> Result<Pkgspec, Box<dyn std::error::Error>> {
+    if let Some(project) = pkgspec.strip_suffix("@latest") {
+        Ok(Pkgspec::Latest(project.to_string()))
+    } else {
+        let pkgspec = PackageReq::parse(pkgspec)?;
+        Ok(Pkgspec::Req(pkgspec))
+    }
 }
