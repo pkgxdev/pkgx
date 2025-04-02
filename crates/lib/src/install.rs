@@ -158,7 +158,7 @@ async fn symlink(installation: &Installation, config: &Config) -> Result<(), Box
         "{}.{}",
         installation.pkg.version.major, installation.pkg.version.minor
     );
-    let minor_range = VersionReq::parse(&format!("^{}", v_mm))?;
+    let minor_range = VersionReq::caret(&v_mm)?;
     let most_minor = versions
         .iter()
         .filter(|(version, _)| minor_range.satisfies(version))

@@ -113,12 +113,10 @@ impl Pkgspec {
             Pkgspec::Req(req) => req.constraint.clone(),
             Pkgspec::Latest(project) => match libpkgx::inventory::ls(project, config).await {
                 Ok(versions) if !versions.is_empty() => {
-                    let vmax = versions.iter().max();
-                    VersionRange::parse(&format!("={}", vmax.unwrap()))
+                    VersionRange::from_semver(versions.iter().max().unwrap()).unwrap()
                 }
-                _ => VersionRange::parse("*"),
-            }
-            .unwrap(),
+                _ => VersionRange::any(),
+            },
         }
     }
 

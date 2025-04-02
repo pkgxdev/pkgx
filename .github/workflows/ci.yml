@@ -68,7 +68,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install cargo-tarpaulin
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-tarpaulin
       - run: cargo tarpaulin -o lcov --output-dir coverage
       - uses: coverallsapp/github-action@v2
         with:
