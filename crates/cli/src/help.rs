@@ -31,6 +31,8 @@ flags:
   -q,  --quiet    # suppress brief informational messages
   -qq, --silent   # no chat. no errors. just execute.
   -v              # print version and continue
+  --sync          # sync first (note: rarely if ever needed)
+  -j,--json=v2    # output JSON (if sensible)
 
 more:
   $ OPEN https://docs.pkgx.sh

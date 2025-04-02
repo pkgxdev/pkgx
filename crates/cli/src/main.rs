@@ -53,9 +53,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 &mut spinner,
             )
             .await?;
-            let env = libpkgx::env::map(&installations);
 
             if !args.is_empty() {
+                let env = libpkgx::env::map(&installations);
                 let (cmd, args, env) =
                     x::exec(find_program, args, installations, env, flags, conn, graph).await?;
                 spinner.finish_and_clear();
@@ -63,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Ok(())
             } else if !plus.is_empty() {
                 spinner.finish_and_clear();
-                dump::dump(conn, installations, env, &flags)?;
+                dump::dump(conn, installations, &flags)?;
                 Ok(())
             } else if flags.version_n_continue || flags.sync {
                 Ok(())

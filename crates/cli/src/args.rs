@@ -10,7 +10,7 @@ pub enum Mode {
 pub struct Flags {
     pub quiet: bool,
     pub silent: bool,
-    pub json: bool,
+    pub json: Option<isize>,
     pub version_n_continue: bool,
     pub shebang: bool,
     pub sync: bool,
@@ -30,12 +30,13 @@ pub fn parse() -> Args {
     let mut args = Vec::new();
     let mut silent: bool = false;
     let mut quiet: bool = false;
-    let mut json: bool = false;
+    let mut json = None;
     let mut find_program = false;
     let mut collecting_args = false;
     let mut version_n_continue = false;
     let mut shebang = false;
     let mut sync = false;
+    let json_latest_v: isize = 2;
 
     for arg in std::env::args().skip(1) {
         if collecting_args {
@@ -47,17 +48,19 @@ pub fn parse() -> Args {
             collecting_args = true;
         } else if arg.starts_with("--") {
             match arg.as_str() {
+                "--shebang" => shebang = true,
                 "--json" => {
                     if !silent {
                         eprintln!(
-                            "{} use --json=v1",
-                            style("warning: --json is not stable").yellow()
+                            "{} use --json={}",
+                            style("warning: --json is not stable").yellow(),
+                            json_latest_v
                         );
                     }
-                    json = true
+                    json = Some(2);
                 }
-                "--shebang" => shebang = true,
-                "--json=v1" => json = true,
+                "--json=v1" => json = Some(1),
+                "--json=v2" => json = Some(2),
                 "--silent" => silent = true,
                 "--help" => mode = Mode::Help,
                 "--version" => mode = Mode::Version,
@@ -98,7 +101,7 @@ pub fn parse() -> Args {
                     }
                     'h' => mode = Mode::Help,
                     's' => silent = true,
-                    'j' => json = true,
+                    'j' => json = Some(json_latest_v),
                     'v' => version_n_continue = true,
                     '!' => shebang = true,
                     'Q' => mode = Mode::Query,

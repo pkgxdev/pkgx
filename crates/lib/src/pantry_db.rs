@@ -179,3 +179,16 @@ pub fn companions_for_projects(
     // Collect results into a Vec<PackageReq>, propagating errors
     Ok(companions.collect::<Result<Vec<_>, _>>()?)
 }
+
+pub fn programs_for_project(
+    project: &String,
+    conn: &Connection,
+) -> Result<Vec<String>, rusqlite::Error> {
+    let mut stmt = conn.prepare("SELECT program FROM provides WHERE project = ?1")?;
+    let mut rv = Vec::new();
+    let mut rows = stmt.query(params![project])?;
+    while let Some(row) = rows.next()? {
+        rv.push(row.get(0)?);
+    }
+    Ok(rv)
+}
