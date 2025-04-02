@@ -118,6 +118,7 @@ jobs:
       - run: pkgx -qq git --version
       - run: pkgx -s git --version
       - run: pkgx -j +git
+      - run: pkgx git\* --version  # test star constraints are valid
       - run: pkgx /usr/bin/awk --version
       - run: pkgx +yarnpkg.com yarn --version
       - run: pkgx +yarnpkg.com -- yarn --version

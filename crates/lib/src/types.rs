@@ -8,7 +8,7 @@ use std::fmt;
 
 //TODO regex is probs not most efficient (but do perf tests if you change it)
 lazy_static! {
-    static ref PACKAGE_REGEX: Regex = Regex::new(r"^(.+?)([\^=~<>@].+)?$").unwrap();
+    static ref PACKAGE_REGEX: Regex = Regex::new(r"^(.+?)(([\^=~<>@].+)|\*)?$").unwrap();
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -40,7 +40,12 @@ impl PackageReq {
 
         let project = captures.get(1).unwrap().as_str().to_string();
         let str = if let Some(cap) = captures.get(2) {
-            cap.as_str()
+            let cap = cap.as_str();
+            if cap.trim() == "" {
+                "*"
+            } else {
+                cap
+            }
         } else {
             "*"
         };
