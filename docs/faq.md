@@ -7,8 +7,9 @@ Typically you want to upgrade `pkgx` so either:
 1. `brew upgrade pkgx`; or
 2. `curl -LSsf pkgx.sh | sh`
 
-> [!NOTE]
-> Yes. Our installer upgrades `pkgx` too.
+{% hint style='info' %}
+Yes. Our installer upgrades `pkgx` too.
+{% endhint %}
 
 ## How do I run the latest version of a specific pkg?
 
@@ -118,10 +119,11 @@ platforms is expertise. Will you help? [Let’s talk].
 
 You need to add to the [pantry](pantry.md).
 
-{% hint style="info" %} Eventually we will support describing how to build or
+{% hint style="info" %}
+Eventually we will support describing how to build or
 obtain distributables for your package via your repo so you can just add a
-`pkgx.yaml` and users can use pkgx to use your package automatically. {% endhint
-%}
+`pkgx.yaml` and users can use pkgx to use your package automatically.
+{% endhint %}
 
 ## How should I recommend people use my pkg with pkgx?
 

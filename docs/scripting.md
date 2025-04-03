@@ -16,10 +16,12 @@ $ ./my-script.py
 3.9.17
 ```
 
-{% hint style="info" %} Using `env` to invoke `pkgx` is typical for tools that
+{% hint style="info" %}
+Using `env` to invoke `pkgx` is typical for tools that
 have no POSIX location.
 
-The `-S` parameter is required to pass multiple arguments. {% endhint %}
+The `-S` parameter is required to pass multiple arguments.
+{% endhint %}
 
 ## Including Additional pkgs
 
@@ -33,7 +35,8 @@ script.
 Deno.dlopen("libssl.dylib")
 ```
 
-{% hint style="info" %} Robustness requires precisely specifying your
+{% hint style="info" %}
+Robustness requires precisely specifying your
 environment:
 
 ```sh

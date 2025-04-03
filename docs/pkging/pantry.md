@@ -3,13 +3,16 @@
 There’s millions of open source projects and `pkgx` needs your help to package
 them up!
 
-{% hint style="success" %} Visit [github.com/pkgxdev/pantry] for the full
-documentation. {% endhint %}
+{% hint style="success" %}
+Visit [github.com/pkgxdev/pantry] for the full documentation.
+{% endhint %}
 
-{% hint style="info" %} Curious about a specific pkg? `pkgx bk edit deno` will
-open deno’s `package.yml` in your editor. {% endhint %}
+{% hint style="info" %}
+Curious about a specific pkg? `pkgx bk edit deno` will open deno’s
+`package.yml` in your editor.
+{% endhint %}
 
-# Packagers Who Care
+## Packagers Who Care
 
 You trust us to just work and make your workflows happen. We take this job
 seriously and we go the extra mile on a per-package basis, for example:

@@ -8,11 +8,17 @@
 brew install pkgx || curl https://pkgx.sh | sh
 ```
 
-{% hint style='info' %} [Installation Guide](installing-pkgx.md) {% endhint %}
+```pwsh
+irm https://pkgx.sh | iex  # Windows
+```
+
+{% hint style='info' %}
+[Installation Guide](installing-pkgx.md)
+{% endhint %}
 
 ## Using `pkgx`
 
-- [Run Anything](running-anything.md)
+- [Run Anything](pkgx.md)
 - [Scripting](scripting.md)
 
 # The `pkgx` Ecosystem
@@ -26,14 +32,16 @@ used to build a whole ecosystem of tools. Here’s what we’ve built so far:
 and any toolset.
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/dev](https://github.com/pkgxdev/dev) {% endhint %}
+[https://github.com/pkgxdev/dev](https://github.com/pkgxdev/dev)
+{% endhint %}
 
 ## `pkgm`
 
 `pkgm` installs `pkgx` packages to `/usr/local`.
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/pkgm](https://github.com/pkgxdev/pkgm) {% endhint %}
+[https://github.com/pkgxdev/pkgm](https://github.com/pkgxdev/pkgm)
+{% endhint %}
 
 ## `mash`
 
@@ -41,7 +49,8 @@ and any toolset.
 source ecosystem available to them.
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash) {% endhint %}
+[https://github.com/pkgxdev/mash](https://github.com/pkgxdev/mash)
+{% endhint %}
 
 ## `pkgo` (Package…GO!)
 
@@ -50,7 +59,8 @@ instructions that can be… tedious. `pkgo` makes using amazing tools like
 [“Stable Diffusion WebUI”] as easy as typing `pkgo` (thanks to `pkgx`).
 
 {% hint style='info' %}
-[https://github.com/pkgxdev/pkgo](https://github.com/pkgxdev/pkgo) {% endhint %}
+[https://github.com/pkgxdev/pkgo](https://github.com/pkgxdev/pkgo)
+{% endhint %}
 
 [“Stable Diffusion WebUI”]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
 

@@ -16,9 +16,11 @@ Visit [dist.pkgx.dev](https://dist.pkgx.dev) for an HTTP index.
 `versions.txt` files are newline separated, sorted lists of available versions
 for each type of distributable.
 
-{% hint style="warning" %} `dist.pkgx.dev/<PKG>/versions.txt` and the bottle
+{% hint style="warning" %}
+`dist.pkgx.dev/<PKG>/versions.txt` and the bottle
 `versions.txt` may not be the same. Always check the more specific
-`versions.txt`. {% endhint %}
+`versions.txt`.
+{% endhint %}
 
 ## The Pantry
 

@@ -10,9 +10,10 @@
 
 ## The `pkgx` Ecosystem
 
-- [`dev`](https://github.com/pkgxdev/dev)
 - [`pkgm`](https://github.com/pkgxdev/pkgm)
+- [`dev`](https://github.com/pkgxdev/dev)
 - [`mash`](https://github.com/pkgxdev/mash) ​
+- [`pkgo`](https://github.com/pkgxdev/pkgo)
 
 ## Appendix
 
