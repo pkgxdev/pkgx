@@ -1,0 +1,10 @@
+FROM ubuntu AS stage0
+COPY ./products/* /pkgx/
+RUN install -m 755 /pkgx/$(uname -m) /usr/local/bin/pkgx
+RUN install -m 755 /pkgx/pkgm /usr/local/bin/pkgm
+
+FROM ubuntu AS stage1
+COPY --from=stage0 /usr/local/bin/pkgx /usr/local/bin/pkgm /usr/local/bin/
+
+CMD ["/bin/bash"]
+ENTRYPOINT ["/usr/local/bin/pkgx"]
