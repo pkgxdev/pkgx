@@ -162,7 +162,7 @@ async fn symlink(installation: &Installation, config: &Config) -> Result<(), Box
     let most_minor = versions
         .iter()
         .filter(|(version, _)| minor_range.satisfies(version))
-        .last()
+        .next_back()
         .ok_or_else(|| anyhow::anyhow!("Could not find most minor version"))?;
 
     if most_minor.0 != installation.pkg.version {
@@ -177,7 +177,7 @@ async fn symlink(installation: &Installation, config: &Config) -> Result<(), Box
     let most_major = versions
         .iter()
         .filter(|(version, _)| major_range.satisfies(version))
-        .last()
+        .next_back()
         .ok_or_else(|| anyhow::anyhow!("Could not find most major version"))?;
 
     if most_major.0 != installation.pkg.version {
