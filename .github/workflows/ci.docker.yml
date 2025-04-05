@@ -3,7 +3,7 @@ name: ci·docker
 on:
   pull_request:
     paths:
-      - .github/Dockerfile
+      - docker/Dockerfile.*
       - .github/workflows/ci.docker.yml
 
 concurrency:
@@ -15,51 +15,45 @@ permissions:
   packages: write
 
 jobs:
-  docker-build:
+  go:
     runs-on: ubuntu-latest
-    container: debian:buster-slim
+    strategy:
+      matrix:
+        variety:
+          - archlinux
+          - busybox
+          - debian
+          - ubuntu
     steps:
       - uses: actions/checkout@v4
 
-      - run: apt-get update && apt-get install -y curl gcc perl make
-
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --release
-
-      - uses: actions/upload-artifact@v4
+      - uses: robinraju/release-downloader@v1.12
         with:
-          name: products
-          path: ./target/release/pkgx
-
-  docker-test:
-    runs-on: ubuntu-latest
-    needs: docker-build
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: products
+          fileName: pkgx-*+linux+x86-64.tar.gz
+          latest: true
 
       - run: |
           mkdir products
-          mv ./pkgx products/$(uname -m)
+          tar xzf pkgx*.tar.gz
+          mv pkgx products/$(uname -m)
           curl https://pkgxdev.github.io/pkgm/pkgm.ts -o products/pkgm
 
       - run:
           docker build
-          --tag pkgxdev/pkgx
-          --file .github/Dockerfile
+          --tag pkgxdev/${{ matrix.variety }}
+          --file docker/Dockerfile.${{ matrix.variety }}
           .
 
       - run: |
           cat <<EoD> Dockerfile
-          FROM pkgxdev/pkgx
+          FROM pkgxdev/${{ matrix.variety }}
           RUN pkgx --version
           RUN if git --version; then exit 1; fi
           RUN pkgx git --version
+          RUN pkgm --version
           RUN pkgm install git
           RUN if ! git --version; then exit 2; fi
+          RUN pkgx node --eval "console.log(1)"
           EoD
 
           docker build --file Dockerfile .

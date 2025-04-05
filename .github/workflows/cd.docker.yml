@@ -1,4 +1,5 @@
 name: cd·docker
+run-name: cd·docker:${{ github.event.release.tag_name || github.event.inputs.tag }}
 
 on:
   release:
@@ -19,10 +20,20 @@ permissions:
 
 jobs:
   build-and-push-image:
-    name: docker buildx pkgxdev/pkgx:${{ github.event.release.tag_name || github.event.inputs.tag }}
+    strategy:
+      matrix:
+        x:
+          - variety: archlinux
+            platforms: linux/amd64
+          - variety: busybox
+            platforms: linux/amd64
+          - variety: debian
+            platforms: linux/amd64,linux/arm64
+          - variety: ubuntu
+            platforms: linux/amd64,linux/arm64
     runs-on: ubuntu-latest
     steps:
-      - uses: robinraju/release-downloader@v1.11
+      - uses: robinraju/release-downloader@v1.12
         with:
           releaseId: ${{ github.event.release.id }}
           tag: ${{ github.event.inputs.tag }}
@@ -31,6 +42,10 @@ jobs:
       - name: is_latest?
         id: latest
         run: |
+          if [ ${{ matrix.x.variety }} != debian ]; then
+            echo "value=false" >> "${GITHUB_OUTPUT}"
+            exit
+          fi
           TAG_NAME="${{ github.event.release.tag_name || github.event.inputs.tag }}"
           LATEST_RELEASE=$(gh api repos/${{ github.repository }}/releases/latest --jq '.tag_name')
           if [ "$TAG_NAME" == "$LATEST_RELEASE" ]; then
@@ -74,10 +89,11 @@ jobs:
           flavor: |
             latest=${{ steps.latest.outputs.value }}
           tags: |
-            type=sha
-            type=semver,pattern=v{{version}},value=${{ github.event.release.tag_name || github.event.inputs.tag }}
-            type=semver,pattern=v{{major}}.{{minor}},value=${{ github.event.release.tag_name || github.event.inputs.tag }}
-            type=semver,pattern=v{{major}},value=${{ github.event.release.tag_name || github.event.inputs.tag }}
+            type=semver,pattern=v{{version}},value=${{ github.event.release.tag_name || github.event.inputs.tag }},enable=${{ matrix.x.variety == 'debian' }}
+            type=semver,pattern=v{{major}}.{{minor}},value=${{ github.event.release.tag_name || github.event.inputs.tag }},enable=${{ matrix.x.variety == 'debian' }}
+            type=semver,pattern=v{{major}},value=${{ github.event.release.tag_name || github.event.inputs.tag }},enable=${{ matrix.x.variety == 'debian' }}
+            type=raw,value=${{ matrix.x.variety }}
+        if: ${{ matrix.x.variety == 'debian' }}
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -90,6 +106,7 @@ jobs:
           docker buildx build \
             --push \
             $tags \
-            --platform linux/amd64,linux/arm64 \
-            --file ./src/.github/Dockerfile \
+            --tag pkgxdev/pkgx:${{matrix.x.variety}} \
+            --platform ${{matrix.x.platforms}} \
+            --file ./src/docker/Dockerfile.${{ matrix.x.variety }} \
             .
