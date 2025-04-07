@@ -113,7 +113,7 @@ RUN pkgx python@3.10 -m http.server 8000
 <details><summary>CI/CD</summary><br>
 
 ```yaml
-- uses: pkgxdev/setup@v3
+- uses: pkgxdev/setup@v4
 - run: pkgx shellcheck
 ```
 

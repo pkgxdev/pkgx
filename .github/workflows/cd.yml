@@ -90,7 +90,7 @@ jobs:
         with:
           name: srcs
 
-      - uses: pkgxdev/setup@v3
+      - uses: pkgxdev/setup@v4
         with:
           +: ${{ matrix.platform.pkgs }}
 
