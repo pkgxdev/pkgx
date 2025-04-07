@@ -6,9 +6,9 @@
 
 > [!NOTE]
 >
-> You just want your shit to work and we want that too. We pride ourselves
+> You want your tools to *just work* and we want that too. We pride ourselves
 > on packaging things as well as possible because we want you to change the
-> world with what you build upon the _best_ base we can give you.
+> world with what you build and not have to worry about the rest.
 
 &nbsp;
 
