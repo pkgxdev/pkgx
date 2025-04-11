@@ -67,6 +67,22 @@ Python 2.7.18
 - libgcc
 - `x86_64` & `arm64`
 
+> Specifically these libs are needed:
+>
+> - libatomic.so.1 (provided by libgcc)
+> - libdl.so.2 (provided by glibc)
+> - libm.so.6 (provided by glibc)
+> - libgcc_s.so.1 (provided by libgcc)
+> - libpthread.so.0 (provided by glibc)
+> - libc.so.6 (this *is* glibc)
+> - ld-linux-x86-64.so.2 (provided by the kernel, you get this for free)
+>
+> `libgcc` is built as part of the GCC distribution and usually is split out
+> into multiple packages by the linux distribution. `libgcc` is almost always
+> a separate package, but you may need to install `gcc` in its entirety.
+> Sometimes libatomic is also a separate package rather than being part of
+> `gcc` or `libgcc`.
+
 </details>
 <details><summary>Windows</summary><br>
 
