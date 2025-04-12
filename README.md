@@ -377,6 +377,7 @@ pkgx npx markdownlint --config .github/markdownlint.yml --fix .
 We love a good chinwag.
 
 - [Discord](https://discord.gg/rNwNUY83XS)
+- [X/Twitter](https://x.com/pkgxdev)
 - [github.com/orgs/pkgxdev/discussions][discussions]
 
 [docs]: https://docs.pkgx.sh
