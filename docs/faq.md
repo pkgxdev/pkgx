@@ -22,7 +22,7 @@ For us neophiliacs we have written a [`mash`] script to upgrade your `pkgx`
 packages:
 
 ```sh
-pkgx mash pkgx/cache upgrade
+pkgx mash upgrade
 ```
 
 ## How do I “install” pkgs?
@@ -74,7 +74,7 @@ commands then those commands are invoked in that environment.
 We have created a [`mash`] script to list everything `pkgx` has downloaded:
 
 ```sh
-pkgx mash pkgx/cache ls
+pkgx mash ls
 ```
 
 All packages are encapsulated in individual, versioned folders in `~/.pkgx` just

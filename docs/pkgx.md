@@ -62,7 +62,7 @@ deno 1.35.3
 `pkgx foo` runs the latest “foo” that **is installed**.
 
 If you want to ensure the latest version of “foo” is installed, use
-`pkgx mash pkgx/upgrade foo`.
+`pkgx mash upgrade foo`.
 
 ## Adding Additional Packages to the Execution Environment
 
@@ -158,10 +158,10 @@ package already installed to their system. For these cases we provide an
 `ensure` script:
 
 ```sh
-$ pkgx mash pkgx/ensure git --version
+$ pkgx mash ensure git --version
 # ^^ runs system `git` if installed, otherwise installs the `pkgx` pkg
 
-$ eval "$(pkgx mash pkgx/ensure +git)"
+$ eval "$(pkgx mash ensure +git)"
 # ^^ adds pkgx git to the environment *unless* it is installed to the system
 ```
 
@@ -196,7 +196,7 @@ Longer term we will make a tool `pkgq` to help with these operations.
 you have (any) newer versions installed use this command:
 
 ```sh
-$ pkgx mash pkgx/upgrade
+$ pkgx mash upgrade
 updating: /Users/mxcl/.pkgx/python.org/v3.11.11
 # snip…
 ```
@@ -206,7 +206,7 @@ updating: /Users/mxcl/.pkgx/python.org/v3.11.11
 The `pkgx` download cache can get large over time. To prune older versions:
 
 ```sh
-$ pkgx mash pkgx/prune
+$ pkgx mash prune
 pruning: ~/.pkgx/deno.land/v1.39.4
 pruning: ~/.pkgx/deno.land/v1.46.3
 # snip…
@@ -220,7 +220,7 @@ reinstall them next time you need them.
 ie. what versions _could be_ run by `pkgx`:
 
 ```sh
-$ pkgx mash pkgx/inventory git
+$ pkgx mash inventory git
 2.38.1
 2.39.0
 # snip…
@@ -229,7 +229,7 @@ $ pkgx mash pkgx/inventory git
 ### Listing What is Downloaded
 
 ```sh
-$ mash pkgx/ls
+$ pkgx mash ls
 
   Parent Directory                │Version
   ────────────────────────────────┼──────────
