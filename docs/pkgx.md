@@ -190,6 +190,12 @@ standardized so we offer some `mash` scripts to help.
 
 Longer term we will make a tool `pkgq` to help with these operations.
 
+### Listing Outdated Packages
+
+```sh
+pkgx mash outdated
+```
+
 ### Upgrading Packages
 
 `pkgx foo` executes the latest version of `foo` that is _downloaded_. To ensure
@@ -200,6 +206,8 @@ $ pkgx mash upgrade
 updating: /Users/mxcl/.pkgx/python.org/v3.11.11
 # snip…
 ```
+
+You can specify args to upgrade only specific packages.
 
 ### Pruning Older Versions of Packages
 

@@ -195,6 +195,13 @@ jobs:
           PKGX_DIR: ${{ github.workspace }}/pkgx
           PKGX_DIST_URL: https://dist.pkgx.dev
 
+      - name: --chdir
+        run: |
+          d=$(realpath $(mktemp -d))
+          test $(pwd) != $d
+          test $(pkgx -C $d -- pwd) = $d
+          test $(pkgx --chdir $d -- pwd) = $d
+
       - name: generate coverage
         run: |
           pkgx +llvm.org -- llvm-profdata merge -sparse $(find . -name default_\*.prof\*) -o default.profdata
