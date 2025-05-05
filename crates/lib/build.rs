@@ -9,7 +9,7 @@ fn main() {
         option_env!("PKGX_DIST_URL").unwrap_or("https://dist.pkgx.dev")
     };
 
-    let default_pantry_tarball_filename = "pantry.tgz";
+    let default_pantry_tarball_filename = "pantry.tar.xz";
     let pantry_url =
         option_env!("PKGX_PANTRY_TARBALL_FILENAME").unwrap_or(default_pantry_tarball_filename);
 
