@@ -6,7 +6,7 @@
 
 > [!NOTE]
 >
-> You want your tools to *just work* and we want that too. We pride ourselves
+> You want your tools to _just work_ and we want that too. We pride ourselves
 > on packaging things as well as possible because we want you to change the
 > world with what you build and not have to worry about the rest.
 
@@ -74,7 +74,7 @@ Python 2.7.18
 > - libm.so.6 (provided by glibc)
 > - libgcc_s.so.1 (provided by libgcc)
 > - libpthread.so.0 (provided by glibc)
-> - libc.so.6 (this *is* glibc)
+> - libc.so.6 (this _is_ glibc)
 > - ld-linux-x86-64.so.2 (provided by the kernel, you get this for free)
 >
 > `libgcc` is built as part of the GCC distribution and usually is split out

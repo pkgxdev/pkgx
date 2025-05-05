@@ -14,6 +14,7 @@ pub struct Flags {
     pub version_n_continue: bool,
     pub shebang: bool,
     pub sync: bool,
+    pub chdir: Option<String>,
 }
 
 pub struct Args {
@@ -36,9 +37,11 @@ pub fn parse() -> Args {
     let mut version_n_continue = false;
     let mut shebang = false;
     let mut sync = false;
+    let mut chdir = None;
     let json_latest_v: isize = 2;
 
-    for arg in std::env::args().skip(1) {
+    let mut args_iter = std::env::args().skip(1);
+    while let Some(arg) = args_iter.next() {
         if collecting_args {
             args.push(arg);
         } else if arg.starts_with('+') {
@@ -59,6 +62,7 @@ pub fn parse() -> Args {
                     }
                     json = Some(2);
                 }
+                "--chdir" | "--cd" => chdir = args_iter.next(),
                 "--json=v1" => json = Some(1),
                 "--json=v2" => json = Some(2),
                 "--silent" => silent = true,
@@ -105,6 +109,7 @@ pub fn parse() -> Args {
                     'v' => version_n_continue = true,
                     '!' => shebang = true,
                     'Q' => mode = Mode::Query,
+                    'C' => chdir = args_iter.next(),
                     _ => panic!("unknown argument: -{}", c),
                 }
             }
@@ -127,6 +132,7 @@ pub fn parse() -> Args {
             quiet,
             version_n_continue,
             sync,
+            chdir,
         },
     }
 }

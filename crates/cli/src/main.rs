@@ -24,8 +24,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         find_program,
     } = args::parse();
 
+    if let Some(dir) = &flags.chdir {
+        std::env::set_current_dir(dir)?;
+    }
+
     if flags.version_n_continue {
-        eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
+        print_version(flags.json.is_some());
     }
 
     match mode {
@@ -34,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         args::Mode::Version => {
-            println!("pkgx {}", env!("CARGO_PKG_VERSION"));
+            print_version(flags.json.is_some());
             Ok(())
         }
         args::Mode::Query => {
@@ -95,4 +99,15 @@ async fn setup(
     };
 
     Ok((conn, did_sync, config, spinner))
+}
+
+fn print_version(json: bool) {
+    if !json {
+        eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
+    } else {
+        eprintln!(
+            "{{\"program\": \"pkgx\", \"version\": \"{}\"}}",
+            env!("CARGO_PKG_VERSION")
+        );
+    }
 }
