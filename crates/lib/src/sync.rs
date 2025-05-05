@@ -1,5 +1,5 @@
 use crate::{client::build_client, config::Config, pantry_db};
-use async_compression::tokio::bufread::GzipDecoder;
+use async_compression::tokio::bufread::XzDecoder;
 use fs2::FileExt;
 use futures::TryStreamExt;
 use rusqlite::Connection;
@@ -63,7 +63,7 @@ async fn download_and_extract_pantry(url: &str, dest: &PathBuf) -> Result<(), Bo
         .into_async_read();
     let stream = stream.compat();
 
-    let decoder = GzipDecoder::new(stream);
+    let decoder = XzDecoder::new(stream);
 
     // Step 3: Extract the tar archive
     let mut archive = Archive::new(decoder);
