@@ -158,12 +158,25 @@ async fn symlink(installation: &Installation, config: &Config) -> Result<(), Box
         "{}.{}",
         installation.pkg.version.major, installation.pkg.version.minor
     );
-    let minor_range = VersionReq::caret(&v_mm)?;
+    let minor_range = if installation.pkg.version.major > 0 {
+        VersionReq::caret(&v_mm)?
+    } else {
+        VersionReq::parse(&format!(
+            ">={},<0.{}",
+            v_mm,
+            installation.pkg.version.minor + 1
+        ))?
+    };
     let most_minor = versions
         .iter()
         .filter(|(version, _)| minor_range.satisfies(version))
         .next_back()
-        .ok_or_else(|| anyhow::anyhow!("Could not find most minor version"))?;
+        .ok_or_else(|| {
+            anyhow::anyhow!(
+                "Could not find most minor version for {}",
+                installation.pkg.project
+            )
+        })?;
 
     if most_minor.0 != installation.pkg.version {
         return Ok(());

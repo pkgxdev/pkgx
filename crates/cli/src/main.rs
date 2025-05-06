@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if flags.version_n_continue {
-        print_version(flags.json.is_some());
+        eprintln!("{}", get_version_string(flags.json.is_some()));
     }
 
     match mode {
@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         args::Mode::Version => {
-            print_version(flags.json.is_some());
+            println!("{}", get_version_string(flags.json.is_some()));
             Ok(())
         }
         args::Mode::Query => {
@@ -101,13 +101,13 @@ async fn setup(
     Ok((conn, did_sync, config, spinner))
 }
 
-fn print_version(json: bool) {
+fn get_version_string(json: bool) -> String {
     if !json {
-        eprintln!("pkgx {}", env!("CARGO_PKG_VERSION"));
+        format!("pkgx {}", env!("CARGO_PKG_VERSION"))
     } else {
-        eprintln!(
+        format!(
             "{{\"program\": \"pkgx\", \"version\": \"{}\"}}",
             env!("CARGO_PKG_VERSION")
-        );
+        )
     }
 }
