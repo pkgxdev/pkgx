@@ -196,9 +196,9 @@ used to build a whole ecosystem of tools.
 
 ## `dev`
 
-`dev` uses `pkgx` and shellcode to create “virtual environments” consisting of
-the specific versions of tools and their dependencies you need for your
-projects.
+`dev` uses `pkgx` and `pkgm` (or shellcode) to create “virtual environments”
+consisting of the specific versions of tools and their dependencies you need
+for your projects.
 
 ```sh
 $ cd my-rust-proj && ls

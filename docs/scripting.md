@@ -111,5 +111,19 @@ show it off.
 
 We make use of `pkgx` scripting all over our repositories. Check them out!
 
+## Ultra Portable Scripts
+
+Requiring a `pkgx` shebang is somewhat limiting. Instead you can use our `cURL`
+one-liner coupled with `+pkg` syntax to temporarily install pkgs and utilize
+them in your scripts:
+
+```sh
+#!/bin/bash
+
+eval "$(sh <(curl https://pkgx.sh) +git)"
+
+which git  # prints soemthing like /tmp/pkgx/git-scm.org/v2.46.3/bin/git
+```
+
 [shebang]: https://en.wikipedia.org/wiki/Shebang_(Unix)
 [Scriptisto]: https://github.com/igor-petruk/scriptisto
