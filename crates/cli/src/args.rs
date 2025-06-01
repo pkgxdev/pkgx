@@ -1,5 +1,6 @@
 use console::style;
 
+#[derive(PartialEq)]
 pub enum Mode {
     X,
     Help,
@@ -114,9 +115,15 @@ pub fn parse() -> Args {
                 }
             }
         } else {
-            find_program = !arg.contains('/');
-            collecting_args = true;
-            args.push(arg);
+            // Only start collecting args if not in query mode, or if we're already collecting
+            if mode == Mode::Query && !collecting_args {
+                // In query mode, continue processing flags until we hit a non-flag argument
+                args.push(arg);
+            } else {
+                find_program = !arg.contains('/');
+                collecting_args = true;
+                args.push(arg);
+            }
         }
     }
 
