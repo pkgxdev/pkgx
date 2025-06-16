@@ -91,7 +91,7 @@ pub async fn resolve(
     Ok((installations, graph))
 }
 
-enum Pkgspec {
+pub enum Pkgspec {
     Req(PackageReq),
     Latest(String),
 }
@@ -133,7 +133,7 @@ impl Pkgspec {
     }
 }
 
-fn parse_pkgspec(pkgspec: &str) -> Result<Pkgspec, Box<dyn std::error::Error>> {
+pub fn parse_pkgspec(pkgspec: &str) -> Result<Pkgspec, Box<dyn std::error::Error>> {
     if let Some(project) = pkgspec.strip_suffix("@latest") {
         Ok(Pkgspec::Latest(project.to_string()))
     } else {
