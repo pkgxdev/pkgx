@@ -28,9 +28,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.97"
+version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcfed56ad506cb2c684a14971b8861fdc3baaaae314b9e5f9bb532cbe3ba7a4f"
+checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
 name = "async-compression"
@@ -819,9 +819,9 @@ dependencies = [
 
 [[package]]
 name = "libsemverator"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89e47a57b20d7a6bef8207b1360f81143a39d45c051098a749789a550356a225"
+checksum = "506e8f975ce4cdbac0b8ee267182e3a4a5aa4fe371f91ab3ea38c629c56f6b76"
 dependencies = [
  "anyhow",
  "lazy_static",
