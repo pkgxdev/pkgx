@@ -58,9 +58,7 @@ async fn download_and_extract_pantry(url: &str, dest: &PathBuf) -> Result<(), Bo
 
     let stream = rsp.bytes_stream();
 
-    let stream = stream
-        .map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e))
-        .into_async_read();
+    let stream = stream.map_err(futures::io::Error::other).into_async_read();
     let stream = stream.compat();
 
     let decoder = XzDecoder::new(stream);

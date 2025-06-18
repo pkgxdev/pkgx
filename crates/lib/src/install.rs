@@ -98,9 +98,7 @@ where
         }
     });
 
-    let stream = stream
-        .map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e))
-        .into_async_read();
+    let stream = stream.map_err(futures::io::Error::other).into_async_read();
     let stream = stream.compat();
 
     // Step 2: Create a XZ decoder
