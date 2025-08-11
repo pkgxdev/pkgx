@@ -86,7 +86,7 @@ jobs:
     env:
       BASENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: srcs
 
