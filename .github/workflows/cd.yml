@@ -52,7 +52,7 @@ jobs:
           # using this token rather than github.token due to `release not found` bug
           # https://github.com/pkgxdev/cli/issues/5252
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: srcs
           path: ${{ env.FILENAME }}.tar.gz
