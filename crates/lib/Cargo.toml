@@ -3,7 +3,7 @@ name = "libpkgx"
 description = "Install and run `pkgx` packages"
 authors = ["Max Howell <mxcl@me.com>", "Jacob Heider <jacob@pkgx.dev>"]
 license = "Apache-2.0"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 repository = "https://github.com/pkgxdev/pkgx"
 
@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 anyhow = "1.0.95"
 dirs-next = "2.0"
-libsemverator = { version = "0.10.0", features = ["serde"] }
+libsemverator = { version = "0.10.1", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }

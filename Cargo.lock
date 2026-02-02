@@ -28,9 +28,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.97"
+version = "1.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcfed56ad506cb2c684a14971b8861fdc3baaaae314b9e5f9bb532cbe3ba7a4f"
+checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "async-compression"
@@ -782,7 +782,7 @@ checksum = "b5aba8db14291edd000dfcc4d620c7ebfb122c613afb886ca8803fa4e128a20a"
 
 [[package]]
 name = "libpkgx"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -819,9 +819,9 @@ dependencies = [
 
 [[package]]
 name = "libsemverator"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89e47a57b20d7a6bef8207b1360f81143a39d45c051098a749789a550356a225"
+checksum = "506e8f975ce4cdbac0b8ee267182e3a4a5aa4fe371f91ab3ea38c629c56f6b76"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -1065,7 +1065,7 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 
 [[package]]
 name = "pkgx"
-version = "2.7.0"
+version = "2.7.1"
 dependencies = [
  "console",
  "indicatif",

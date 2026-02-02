@@ -129,6 +129,8 @@ jobs:
       - run: pkgx -v +agg
       # testing we correctly handle +pkg syntax for pkgs with no env
       - run: pkgx +curl.se/ca-certs
+      # regression test: cargo has deep deps on linux that exercise range intersection
+      - run: pkgx +cargo
 
       - run: '! pkgx flubber-flubbles'  # cmd not found machinery
       - run: '! pkgx --sync flubber-flubbles'  # cmd not found machinery separate if branch
