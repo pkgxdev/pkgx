@@ -18,11 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:buster-slim
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: apt-get update && apt-get install -y curl gcc perl make
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           path: ./target/release/pkgx
           name: pkgx
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:buster-slim
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: pkgx
 
