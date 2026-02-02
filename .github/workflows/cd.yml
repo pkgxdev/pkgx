@@ -46,8 +46,7 @@ jobs:
         run: gh release upload --clobber
           v${{ github.event.inputs.version }}
           ../$FILENAME.tar.xz
-        working-directory:
-          ${{ env.FILENAME }}
+        working-directory: ${{ env.FILENAME }}
         env:
           # using this token rather than github.token due to `release not found` bug
           # https://github.com/pkgxdev/cli/issues/5252
@@ -69,7 +68,7 @@ jobs:
             build-id: darwin+x86-64
             pkgs: gh
           - os: ubuntu-latest
-            container: debian:buster-slim
+            container: debian:bullseye-slim
             build-id: linux+x86-64
             pkgs: gh
           - os: macos-latest

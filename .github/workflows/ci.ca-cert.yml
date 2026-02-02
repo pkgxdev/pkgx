@@ -16,7 +16,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: debian:buster-slim
+    container: debian:bullseye-slim
     steps:
       - uses: actions/checkout@v5
       - run: apt-get update && apt-get install -y curl gcc perl make
@@ -30,7 +30,7 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-    container: debian:buster-slim
+    container: debian:bullseye-slim
     steps:
       - uses: actions/download-artifact@v6
         with:
