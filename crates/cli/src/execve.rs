@@ -47,7 +47,7 @@ pub fn execve(
     // Replace the process with the new command, arguments, and environment
     let execve_result = nix_execve(&c_command, &c_args, &c_env);
     if execve_result.is_err() {
-        let errno = execve_result.unwrap_err();
+        let Err(errno) = execve_result;
         return Err(format!("execve failed with errno: {}", errno).into());
     }
 

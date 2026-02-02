@@ -21,7 +21,7 @@ console = { version = "0.16", default-features = false, features = [
 ] }
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
-rusqlite = { version = "0.33.0", features = ["bundled"] }
+rusqlite = { version = "0.37.0", features = ["bundled"] }
 native-tls = { version = "0.2", features = ["vendored"] }
 # ^^ this is a transitive dependency
 # ^^ we vendor OpenSSL ∵ we want to be standalone and just work inside minimal docker images
