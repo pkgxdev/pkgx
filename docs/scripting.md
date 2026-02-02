@@ -90,14 +90,40 @@ Use [Deno](https://deno.land):
 import fs from "npm:fs";
 ```
 
-### Rust, Go, C, C++, etc
+### Rust
+
+```rust
+#!/usr/bin/env -S pkgx rust-script
+
+//! ```cargo
+//! [dependencies]
+//! time = "0.1.25"
+//! ```
+```
+
+> [!TIP]
+> Probably you should specify a more precise Rust version as a plus-pkg arg.
+
+### Go, C, C++, etc
 
 Use [Scriptisto]:
 
-```sh
-#!/usr/bin/env -S pkgx +cargo scriptisto
+```c
+#!/usr/bin/env pkgx +clang +pkg-config scriptisto
 
-# snip… type `pkgx scriptisto new cargo` for the rest.
+#include <stdio.h>
+#include <glib.h>
+
+// scriptisto-begin
+// script_src: main.c
+// build_cmd: clang -O2 main.c `pkg-config --libs --cflags glib-2.0` -o ./script
+// scriptisto-end
+
+int main(int argc, char *argv[]) {
+  gchar* user = g_getenv("USER");
+  printf("Hello, C! Current user: %s\n", user);
+  return 0;
+}
 ```
 
 ## Mash
@@ -110,6 +136,20 @@ show it off.
 ## Other Examples
 
 We make use of `pkgx` scripting all over our repositories. Check them out!
+
+## Ultra Portable Scripts
+
+Requiring a `pkgx` shebang is somewhat limiting. Instead you can use our `cURL`
+one-liner coupled with `+pkg` syntax to temporarily install pkgs and utilize
+them in your scripts:
+
+```sh
+#!/bin/bash
+
+eval "$(sh <(curl https://pkgx.sh) +git)"
+
+which git  # prints soemthing like /tmp/pkgx/git-scm.org/v2.46.3/bin/git
+```
 
 [shebang]: https://en.wikipedia.org/wiki/Shebang_(Unix)
 [Scriptisto]: https://github.com/igor-petruk/scriptisto

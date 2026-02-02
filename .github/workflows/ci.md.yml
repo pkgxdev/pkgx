@@ -14,7 +14,7 @@ jobs:
   markdownlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: nosborn/github-action-markdown-cli@v3.4.0
         with:
           config_file: .github/markdownlint.yml
