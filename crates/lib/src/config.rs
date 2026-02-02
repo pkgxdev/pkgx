@@ -69,6 +69,14 @@ fn get_pkgx_dir() -> io::Result<PathBuf> {
         }
     }
 
+    // Use sudoer home directory if it is set.
+    if let Ok(path) = env::var("SUDO_HOME") {
+        let path = PathBuf::from(path).join(".pkgx");
+        if path.is_absolute() {
+            return Ok(path);
+        }
+    }
+
     let default = dirs_next::home_dir().map(|x| x.join(".pkgx"));
 
     if default.clone().is_some_and(|x| x.exists()) {
