@@ -91,14 +91,8 @@ jobs:
 
       # debian:buster is archived, so we need to fix its sources.list
       - name: fix debian:buster
-        run: |
-          if test -f /etc/debian_version && grep -q '^10\.' /etc/debian_version; then
-            sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-          fi
-
-      - run: |
-          apt-get update
-          apt-get install curl gcc perl-modules openssl make xz-utils --yes
+        if: ${{ matrix.platform.container == 'debian:buster-slim' }}
+        run: sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
 
       - uses: pkgxdev/setup@v4
         with:
