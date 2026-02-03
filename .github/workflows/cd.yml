@@ -68,7 +68,7 @@ jobs:
             build-id: darwin+x86-64
             pkgs: gh
           - os: ubuntu-latest
-            container: debian:bullseye-slim
+            container: debian:buster-slim
             build-id: linux+x86-64
             pkgs: gh
           - os: macos-latest
@@ -88,6 +88,15 @@ jobs:
       - uses: actions/download-artifact@v6
         with:
           name: srcs
+
+      # debian:buster is archived, so we need to fix its sources.list
+      - name: fix debian:buster
+        if: ${{ matrix.platform.container == 'debian:buster-slim' }}
+        run: sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+
+      - run: |
+          apt-get update
+          apt-get install curl gcc perl-modules openssl make xz-utils --yes
 
       - uses: pkgxdev/setup@v4
         with:
