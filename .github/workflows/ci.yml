@@ -167,6 +167,18 @@ jobs:
           ! pkgx -Qqq flubber-flubber
           pkgx -Q
 
+      - name: query --json
+        run: |
+          pkgx -Q --json=v2 git | pkgx jq -e '.[0].project == "git-scm.org"'
+          pkgx -Q --json=v2 git | pkgx jq -e '.[0].programs | length > 0'
+          pkgx -Q --json=v2 | pkgx jq -e 'length > 0'
+
+      - name: query pkgspecs
+        run: |
+          pkgx -Q git-scm.org | grep -q git-scm.org
+          pkgx -Q node git | grep -q nodejs.org
+          ! pkgx -Q git-scm.org@99999
+
       - run: if [ $(find ~/.pkgx -name .tmp\* -type d | wc -l) -gt 0 ]; then
           exit 1;
           fi
