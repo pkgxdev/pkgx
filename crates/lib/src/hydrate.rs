@@ -47,7 +47,8 @@ where
         let node = graph
             .entry(pkg.project.clone())
             .or_insert_with(|| Box::new(Node::new(pkg.clone(), None)));
-        node.pkg.constraint = intersect_constraints(&node.pkg.constraint, &pkg.constraint)?;
+        node.pkg.constraint = intersect_constraints(&node.pkg.constraint, &pkg.constraint)
+            .map_err(|e| format!("{} for {}", e, pkg.project))?;
         stack.push(node.clone());
     }
 
@@ -68,7 +69,9 @@ where
                 // https://github.com/pkgxdev/pkgx/issues/899
                 additional_unicodes.push(child_pkg.constraint);
             } else {
-                return Err(intersection.unwrap_err());
+                return Err(
+                    format!("{} for {}", intersection.unwrap_err(), child_pkg.project).into(),
+                );
             }
         }
     }
