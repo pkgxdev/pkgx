@@ -179,6 +179,13 @@ jobs:
           pkgx -Q node git | grep -q nodejs.org
           ! pkgx -Q git-scm.org@99999
 
+      - name: test PKGX_NO_INSTALL
+        run: |
+          rm -r ~/.pkgx/stedolan.github.io/jq || true
+          ! PKGX_NO_INSTALL=1 pkgx jq --version
+          pkgx jq --version
+          PKGX_NO_INSTALL=1 pkgx jq --version
+
       - run: if [ $(find ~/.pkgx -name .tmp\* -type d | wc -l) -gt 0 ]; then
           exit 1;
           fi
