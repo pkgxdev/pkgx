@@ -46,8 +46,7 @@ jobs:
         run: gh release upload --clobber
           v${{ github.event.inputs.version }}
           ../$FILENAME.tar.xz
-        working-directory:
-          ${{ env.FILENAME }}
+        working-directory: ${{ env.FILENAME }}
         env:
           # using this token rather than github.token due to `release not found` bug
           # https://github.com/pkgxdev/cli/issues/5252
@@ -89,6 +88,15 @@ jobs:
       - uses: actions/download-artifact@v6
         with:
           name: srcs
+
+      # debian:buster is archived, so we need to fix its sources.list
+      - name: fix debian:buster
+        if: ${{ matrix.platform.container == 'debian:buster-slim' }}
+        run: sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+
+      - run: |
+          apt-get update
+          apt-get install curl gcc perl-modules openssl make xz-utils --yes
 
       - uses: pkgxdev/setup@v4
         with:
