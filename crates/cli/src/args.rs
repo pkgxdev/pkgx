@@ -1,5 +1,6 @@
 use console::style;
 
+#[derive(PartialEq)]
 pub enum Mode {
     X,
     Help,
@@ -114,8 +115,10 @@ pub fn parse() -> Args {
                 }
             }
         } else {
-            find_program = !arg.contains('/');
-            collecting_args = true;
+            if mode != Mode::Query {
+                find_program = !arg.contains('/');
+                collecting_args = true;
+            }
             args.push(arg);
         }
     }
