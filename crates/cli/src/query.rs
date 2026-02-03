@@ -66,7 +66,9 @@ pub async fn query(
                     vec![project]
                 }
                 Err(e) => {
-                    if silent { std::process::exit(1); }
+                    if silent {
+                        std::process::exit(1);
+                    }
                     println!("{}", e);
                     fail = true;
                     continue;
@@ -75,7 +77,9 @@ pub async fn query(
             Pkgspec::Latest(name) => match resolve_project(name, conn) {
                 Ok(project) => vec![project],
                 Err(e) => {
-                    if silent { std::process::exit(1); }
+                    if silent {
+                        std::process::exit(1);
+                    }
                     println!("{}", e);
                     fail = true;
                     continue;
@@ -100,7 +104,10 @@ pub async fn query(
                     if silent {
                         std::process::exit(1);
                     }
-                    println!("no versions matching {} found for {}", req.constraint.raw, projects[0]);
+                    println!(
+                        "no versions matching {} found for {}",
+                        req.constraint.raw, projects[0]
+                    );
                     fail = true;
                     continue;
                 }
