@@ -20,7 +20,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all-features
         env:
@@ -32,7 +32,7 @@ jobs:
     env:
       FILENAME: pkgx-${{ github.event.inputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: ${{ env.FILENAME }}
       - name: clean
@@ -46,13 +46,12 @@ jobs:
         run: gh release upload --clobber
           v${{ github.event.inputs.version }}
           ../$FILENAME.tar.xz
-        working-directory:
-          ${{ env.FILENAME }}
+        working-directory: ${{ env.FILENAME }}
         env:
           # using this token rather than github.token due to `release not found` bug
           # https://github.com/pkgxdev/cli/issues/5252
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: srcs
           path: ${{ env.FILENAME }}.tar.gz
@@ -86,9 +85,18 @@ jobs:
     env:
       BASENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: srcs
+
+      # debian:buster is archived, so we need to fix its sources.list
+      - name: fix debian:buster
+        if: ${{ matrix.platform.container == 'debian:buster-slim' }}
+        run: sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+
+      - run: |
+          apt-get update
+          apt-get install curl gcc perl-modules openssl make xz-utils --yes
 
       - uses: pkgxdev/setup@v4
         with:

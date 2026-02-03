@@ -29,8 +29,8 @@ fn get_user_agent() -> String {
     let os = std::env::consts::OS;
     let arch = std::env::consts::ARCH;
     let group = env::var("PKGX_USER_AGENT_GROUP");
-    let name = if group.is_ok() {
-        format!("pkgx[{}]", group.unwrap())
+    let name = if let Ok(valid_group) = group {
+        format!("pkgx[{}]", valid_group)
     } else {
         "pkgx".to_string()
     };

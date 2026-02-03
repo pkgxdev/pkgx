@@ -44,10 +44,11 @@ pub fn dump(
                 }
 
                 let programs = pantry_db::programs_for_project(&project, &conn)?;
-                let companions = pantry_db::companions_for_projects(&[project.clone()], &conn)?
-                    .iter()
-                    .map(|c| c.to_string())
-                    .collect::<Vec<String>>();
+                let companions =
+                    pantry_db::companions_for_projects(std::slice::from_ref(&project), &conn)?
+                        .iter()
+                        .map(|c| c.to_string())
+                        .collect::<Vec<String>>();
 
                 let pkg = JsonV2Pkg {
                     path: installation.path,
