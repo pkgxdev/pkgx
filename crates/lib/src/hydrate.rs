@@ -47,8 +47,8 @@ where
         let node = graph
             .entry(pkg.project.clone())
             .or_insert_with(|| Box::new(Node::new(pkg.clone(), None)));
-        node.pkg.constraint =
-            intersect_constraints(&node.pkg.constraint, &pkg.constraint, &pkg.project)?;
+        node.pkg.constraint = intersect_constraints(&node.pkg.constraint, &pkg.constraint)
+            .map_err(|e| format!("{} for {}", e, pkg.project))?;
         stack.push(node.clone());
     }
 
@@ -57,11 +57,8 @@ where
             let child_node = graph
                 .entry(child_pkg.project.clone())
                 .or_insert_with(|| Box::new(Node::new(child_pkg.clone(), Some(current.clone()))));
-            let intersection = intersect_constraints(
-                &child_node.pkg.constraint,
-                &child_pkg.constraint,
-                &child_pkg.project,
-            );
+            let intersection =
+                intersect_constraints(&child_node.pkg.constraint, &child_pkg.constraint);
             if let Ok(constraint) = intersection {
                 child_node.pkg.constraint = constraint;
                 current.children.insert(child_node.pkg.project.clone());
@@ -72,7 +69,9 @@ where
                 // https://github.com/pkgxdev/pkgx/issues/899
                 additional_unicodes.push(child_pkg.constraint);
             } else {
-                return Err(intersection.unwrap_err());
+                return Err(
+                    format!("{} for {}", intersection.unwrap_err(), child_pkg.project).into(),
+                );
             }
         }
     }
@@ -98,9 +97,8 @@ fn condense(pkgs: &Vec<PackageReq>) -> Vec<PackageReq> {
     let mut out: Vec<PackageReq> = vec![];
     for pkg in pkgs {
         if let Some(existing) = out.iter_mut().find(|p| p.project == pkg.project) {
-            existing.constraint =
-                intersect_constraints(&existing.constraint, &pkg.constraint, &pkg.project)
-                    .expect("Failed to intersect constraints");
+            existing.constraint = intersect_constraints(&existing.constraint, &pkg.constraint)
+                .expect("Failed to intersect constraints");
         } else {
             out.push(pkg.clone());
         }
@@ -109,11 +107,6 @@ fn condense(pkgs: &Vec<PackageReq>) -> Vec<PackageReq> {
 }
 
 /// Intersects two version constraints.
-fn intersect_constraints(
-    a: &VersionReq,
-    b: &VersionReq,
-    project_name: &str,
-) -> Result<VersionReq, Box<dyn Error>> {
-    a.intersect(b)
-        .map_err(|e| format!("{} for {}: {} and {}", e, project_name, a, b).into())
+fn intersect_constraints(a: &VersionReq, b: &VersionReq) -> Result<VersionReq, Box<dyn Error>> {
+    a.intersect(b).map_err(|e| e.into())
 }
