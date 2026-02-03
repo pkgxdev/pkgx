@@ -4,72 +4,152 @@ use libpkgx::{config::Config, inventory, pantry_db};
 use rusqlite::{params, Connection};
 use serde::Serialize;
 
-use crate::resolve::{parse_pkgspec, Pkgspec};
+use crate::{
+    args::Flags,
+    resolve::{parse_pkgspec, Pkgspec},
+};
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize)]
 struct QueryResult {
     project: String,
     programs: Vec<String>,
 }
 
-fn resolve_projects_for_pkgspec(
-    pkgspec: &mut Pkgspec,
+pub async fn query(
+    args: &Vec<String>,
+    flags: &Flags,
     conn: &Connection,
-) -> Result<Vec<String>, Box<dyn Error>> {
-    match pkgspec {
-        Pkgspec::Req(pkgreq) => {
-            // Check if this looks like a program name (no dots and wildcard constraint)
-            if !pkgreq.project.contains('.') && pkgreq.constraint.raw == "*" {
-                // Handle as program lookup
-                Ok(pantry_db::which(&pkgreq.project, conn)?)
-            } else {
-                // Handle as package spec - resolve project name and return single project
-                let (project, _) = resolve_project_name(&pkgreq.project, conn)?;
-                pkgreq.project = project.clone();
-                Ok(vec![project])
+    config: &Config,
+) -> Result<(), Box<dyn Error>> {
+    let is_json = flags.json == Some(2);
+    let silent = flags.silent;
+
+    // print out the whole list if no args
+    if args.is_empty() {
+        // if they requested json, output full mapping of project -> programs
+        if is_json {
+            let mut stmt =
+                conn.prepare("SELECT DISTINCT project FROM provides ORDER BY project")?;
+            let mut rows = stmt.query(params![])?;
+            let mut results = Vec::new();
+            while let Some(row) = rows.next()? {
+                let project: String = row.get(0)?;
+                let programs = get_programs(conn, &project)?;
+                results.push(QueryResult { project, programs });
+            }
+            println!("{}", serde_json::to_string_pretty(&results)?);
+        // if not, just list all programs
+        } else {
+            let mut stmt = conn.prepare("SELECT program FROM provides")?;
+            let mut rows = stmt.query(params![])?;
+            while let Some(row) = rows.next()? {
+                let program: String = row.get(0)?;
+                println!("{}", program);
             }
         }
-        Pkgspec::Latest(program_or_project) => {
-            let (project, _) = resolve_project_name(program_or_project, conn)?;
-            Ok(vec![project])
+        return Ok(());
+    }
+
+    let mut results = Vec::new();
+    let mut fail = false;
+
+    for arg in args {
+        let mut pkgspec = parse_pkgspec(arg)?;
+
+        let projects = match &mut pkgspec {
+            Pkgspec::Req(req) if !req.project.contains('.') && req.constraint.raw == "*" => {
+                pantry_db::which(&req.project, conn)?
+            }
+            Pkgspec::Req(req) => match resolve_project(&req.project, conn) {
+                Ok(project) => {
+                    req.project = project.clone();
+                    vec![project]
+                }
+                Err(e) => {
+                    if silent { std::process::exit(1); }
+                    println!("{}", e);
+                    fail = true;
+                    continue;
+                }
+            },
+            Pkgspec::Latest(name) => match resolve_project(name, conn) {
+                Ok(project) => vec![project],
+                Err(e) => {
+                    if silent { std::process::exit(1); }
+                    println!("{}", e);
+                    fail = true;
+                    continue;
+                }
+            },
+        };
+
+        if projects.is_empty() {
+            if silent {
+                std::process::exit(1);
+            }
+            println!("{} not found", arg);
+            fail = true;
+            continue;
+        }
+
+        // validate version constraint if specified
+        if let Pkgspec::Req(req) = &pkgspec {
+            if req.constraint.raw != "*" {
+                let versions = inventory::ls(&projects[0], config).await?;
+                if !versions.iter().any(|v| req.constraint.satisfies(v)) {
+                    if silent {
+                        std::process::exit(1);
+                    }
+                    println!("no versions matching {} found for {}", req.constraint.raw, projects[0]);
+                    fail = true;
+                    continue;
+                }
+            }
+        }
+
+        if is_json {
+            for project in &projects {
+                let programs = get_programs(conn, project)?;
+                results.push(QueryResult {
+                    project: project.clone(),
+                    programs,
+                });
+            }
+        } else if !silent {
+            println!("{}", projects.join(", "));
         }
     }
+
+    if is_json {
+        println!("{}", serde_json::to_string_pretty(&results)?);
+    }
+
+    if fail {
+        std::process::exit(1);
+    }
+
+    Ok(())
 }
 
-fn resolve_project_name(
-    input: &str,
-    conn: &Connection,
-) -> Result<(String, String), Box<dyn Error>> {
-    let original = input.to_string();
-
-    // First, try to resolve as a program name
+fn resolve_project(input: &str, conn: &Connection) -> Result<String, Box<dyn Error>> {
     let projects = pantry_db::which(&input.to_string(), conn)?;
     match projects.len() {
+        1 => Ok(projects[0].clone()),
         0 => {
-            // If not found as a program and contains a dot, check if it exists as a project
             if input.contains('.') {
                 let mut stmt = conn.prepare("SELECT COUNT(*) FROM provides WHERE project = ?")?;
                 let count: i64 = stmt.query_row(params![input], |row| row.get(0))?;
                 if count > 0 {
-                    return Ok((input.to_string(), original));
+                    return Ok(input.to_string());
                 }
             }
-            Err(format!("Package '{}' not found", original).into())
+            Err(format!("{} not found", input).into())
         }
-        1 => Ok((projects[0].clone(), original)),
-        _ => Err(format!(
-            "Package '{}' is ambiguous: {}",
-            original,
-            projects.join(", ")
-        )
-        .into()),
+        _ => Err(format!("{} is ambiguous: {}", input, projects.join(", ")).into()),
     }
 }
 
-fn get_programs_for_project(
-    project: &str,
-    conn: &Connection,
-) -> Result<Vec<String>, Box<dyn Error>> {
+fn get_programs(conn: &Connection, project: &str) -> Result<Vec<String>, Box<dyn Error>> {
     let mut stmt =
         conn.prepare("SELECT program FROM provides WHERE project = ? ORDER BY program")?;
     let mut rows = stmt.query(params![project])?;
@@ -78,120 +158,4 @@ fn get_programs_for_project(
         programs.push(row.get(0)?);
     }
     Ok(programs)
-}
-
-async fn process_query_arg(
-    arg: &str,
-    conn: &Connection,
-    config: &Config,
-) -> Result<Vec<QueryResult>, Box<dyn Error>> {
-    let mut pkgspec = parse_pkgspec(arg)?;
-    let projects = resolve_projects_for_pkgspec(&mut pkgspec, conn)?;
-
-    if projects.is_empty() {
-        let name = match &pkgspec {
-            Pkgspec::Req(req) => &req.project,
-            Pkgspec::Latest(project) => project,
-        };
-        return Err(format!("{} not found", name).into());
-    }
-
-    let mut results = Vec::new();
-
-    // Determine which projects to process
-    let projects_to_process = match &pkgspec {
-        Pkgspec::Req(pkgreq) if !pkgreq.project.contains('.') && pkgreq.constraint.raw == "*" => {
-            // For program lookups (no dots and wildcard), process all matching projects
-            &projects
-        }
-        _ => {
-            // For package specs and latest, process first project only
-            &projects[0..1]
-        }
-    };
-
-    // Process each project
-    for project in projects_to_process {
-        // For version specs with constraints, check if any matching versions are available
-        if let Pkgspec::Req(pkgreq) = &pkgspec {
-            if pkgreq.constraint.raw != "*" {
-                match inventory::ls(project, config).await {
-                    Ok(versions) => {
-                        let matching_versions: Vec<_> = versions
-                            .iter()
-                            .filter(|v| pkgreq.constraint.satisfies(v))
-                            .collect();
-
-                        if matching_versions.is_empty() {
-                            return Err(format!(
-                                "No versions matching {} found for {}",
-                                pkgreq.constraint.raw, project
-                            )
-                            .into());
-                        }
-                    }
-                    Err(_) => {
-                        return Err(format!("Failed to get versions for {}", project).into());
-                    }
-                }
-            }
-        }
-
-        let programs = get_programs_for_project(project, conn)?;
-        results.push(QueryResult {
-            project: project.clone(),
-            programs,
-        });
-    }
-
-    Ok(results)
-}
-
-fn format_standard_output(results: &[QueryResult]) -> Vec<String> {
-    results
-        .iter()
-        .map(|result| result.project.clone())
-        .collect()
-}
-
-fn format_json_output(results: &[QueryResult]) -> String {
-    serde_json::to_string_pretty(results).unwrap_or_else(|_| "[]".to_string())
-}
-
-pub async fn query(
-    args: &Vec<String>,
-    silent: bool,
-    conn: &Connection,
-    json_version: Option<isize>,
-    config: &Config,
-) -> Result<(), Box<dyn Error>> {
-    let is_json = json_version == Some(2);
-    let mut all_results = Vec::new();
-
-    if args.is_empty() {
-        let mut stmt = conn.prepare("SELECT DISTINCT project FROM provides ORDER BY project")?;
-        let mut rows = stmt.query(params![])?;
-
-        while let Some(row) = rows.next()? {
-            let project: String = row.get(0)?;
-            let programs = get_programs_for_project(&project, conn)?;
-            all_results.push(QueryResult { project, programs });
-        }
-    } else {
-        for arg in args {
-            let results = process_query_arg(arg, conn, config).await?;
-            all_results.extend(results);
-        }
-    }
-
-    if is_json {
-        println!("{}", format_json_output(&all_results));
-    } else if !silent {
-        let output_lines = format_standard_output(&all_results);
-        for line in output_lines {
-            println!("{}", line);
-        }
-    }
-
-    Ok(())
 }

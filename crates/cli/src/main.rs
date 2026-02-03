@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         args::Mode::Query => {
             let (conn, _, config, _) = setup(&flags).await?;
-            query::query(&args, flags.silent, &conn, flags.json, &config).await
+            query::query(&args, &flags, &conn, &config).await
         }
         args::Mode::X => {
             let (mut conn, did_sync, config, mut spinner) = setup(&flags).await?;
