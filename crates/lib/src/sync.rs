@@ -4,7 +4,7 @@ use fs2::FileExt;
 use futures::TryStreamExt;
 use rusqlite::Connection;
 use std::{error::Error, fs::OpenOptions, path::PathBuf};
-use tokio_tar::Archive;
+use tokio_tar::ArchiveBuilder;
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 
 #[allow(clippy::all)]
@@ -64,7 +64,9 @@ async fn download_and_extract_pantry(url: &str, dest: &PathBuf) -> Result<(), Bo
     let decoder = XzDecoder::new(stream);
 
     // Step 3: Extract the tar archive
-    let mut archive = Archive::new(decoder);
+    let mut archive = ArchiveBuilder::new(decoder)
+        .set_preserve_permissions(true)
+        .build();
     archive.unpack(dest).await?;
 
     Ok(())
