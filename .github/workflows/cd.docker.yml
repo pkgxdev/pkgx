@@ -72,7 +72,7 @@ jobs:
 
           curl -o products/pkgm https://pkgxdev.github.io/pkgm/pkgm.ts
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: src
 

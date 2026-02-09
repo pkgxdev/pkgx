@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:bullseye-slim
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: apt-get update && apt-get install -y curl gcc perl make
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
