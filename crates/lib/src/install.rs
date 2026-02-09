@@ -6,7 +6,7 @@ use std::{
 };
 use tempfile::tempdir_in;
 use tokio::task;
-use tokio_tar::Archive;
+use tokio_tar::ArchiveBuilder;
 
 // Compatibility trait lets us call `compat()` on a futures::io::AsyncRead
 // to convert it into a tokio::io::AsyncRead.
@@ -108,7 +108,9 @@ where
     let temp_dir = tempdir_in(config.pkgx_dir.join(&pkg.project))?;
 
     // Step 4: Extract the tar archive
-    let mut archive = Archive::new(decoder);
+    let mut archive = ArchiveBuilder::new(decoder)
+        .set_preserve_permissions(true)
+        .build();
     archive.unpack(&temp_dir).await?;
 
     // Step 5: atomically move from temp dir to installation location
