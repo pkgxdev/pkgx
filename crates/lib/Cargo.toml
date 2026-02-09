@@ -22,7 +22,7 @@ strum = "0.27"
 strum_macros = "0.27"
 rusqlite = "0.37.0"
 regex = "1.11.1"
-reqwest = { version = "0.12", features = ["stream", "blocking"] }
+reqwest = { version = "0.13", features = ["stream", "blocking"] }
 async-compression = { version = "0.4", features = ["tokio", "gzip", "xz"] }
 tokio-tar = "0.3.1"
 tokio-util = { version = "0.7.13", features = ["compat"] }
