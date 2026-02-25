@@ -1,0 +1,52 @@
+name: quality-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  changed-files:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      source_changed: ${{ steps.filter.outputs.source }}
+      tests_changed: ${{ steps.filter.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            source:
+              - '**/*.ts'
+              - '**/*.tsx'
+              - '**/*.js'
+              - '**/*.jsx'
+              - '**/*.mjs'
+              - '**/*.go'
+              - '**/*.rs'
+              - '**/*.py'
+              - '**/*.sh'
+              - '!**/*.test.*'
+              - '!**/*.spec.*'
+            tests:
+              - '**/*.test.*'
+              - '**/*.spec.*'
+              - '**/test/**'
+              - '**/tests/**'
+
+  enforce-test-delta:
+    needs: changed-files
+    if: needs.changed-files.outputs.source_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require test updates when source changes
+        run: |
+          if [ "${{ needs.changed-files.outputs.tests_changed }}" != "true" ]; then
+            echo "Source files changed without accompanying test changes."
+            exit 1
+          fi
