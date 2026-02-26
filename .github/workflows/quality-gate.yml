@@ -9,44 +9,48 @@ permissions:
 
 jobs:
   changed-files:
-    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
-      source_changed: ${{ steps.filter.outputs.source }}
-      tests_changed: ${{ steps.filter.outputs.tests }}
+      source_changed: ${{ steps.source.outputs.diff != '' }}
+      tests_changed: ${{ steps.tests.outputs.diff != '' }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: dorny/paths-filter@v3
-        id: filter
         with:
-          filters: |
-            source:
-              - '**/*.ts'
-              - '**/*.tsx'
-              - '**/*.js'
-              - '**/*.jsx'
-              - '**/*.mjs'
-              - '**/*.go'
-              - '**/*.rs'
-              - '**/*.py'
-              - '**/*.sh'
-              - '!**/*.test.*'
-              - '!**/*.spec.*'
-            tests:
-              - '**/*.test.*'
-              - '**/*.spec.*'
-              - '**/test/**'
-              - '**/tests/**'
+          fetch-depth: 0
+      - uses: technote-space/get-diff-action@v6
+        id: source
+        with:
+          PATTERNS: |
+            **/*.ts
+            **/*.tsx
+            **/*.js
+            **/*.jsx
+            **/*.mjs
+            **/*.go
+            **/*.rs
+            **/*.py
+            **/*.sh
+          EXCLUDE_PATTERNS: |
+            **/*.test.*
+            **/*.spec.*
+            .github/**
+      - uses: technote-space/get-diff-action@v6
+        id: tests
+        with:
+          PATTERNS: |
+            **/*.test.*
+            **/*.spec.*
+            **/test/**
+            **/tests/**
+          EXCLUDE_PATTERNS: |
+            .github/**
 
   enforce-test-delta:
     needs: changed-files
-    if: needs.changed-files.outputs.source_changed == 'true'
+    if: needs.changed-files.outputs.source_changed == 'true' && needs.changed-files.outputs.tests_changed != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Require test updates when source changes
         run: |
-          if [ "${{ needs.changed-files.outputs.tests_changed }}" != "true" ]; then
-            echo "Source files changed without accompanying test changes."
-            exit 1
-          fi
+          echo "::error::Source files changed without accompanying test changes."
+          exit 1

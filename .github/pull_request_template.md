@@ -26,4 +26,5 @@
 
 ## Internal/Public Boundary Check
 
-- [ ] No internal-only data, private URLs, secrets, or private runbooks were added.
+- [ ] No internal-only data, private URLs, secrets, or private runbooks were
+      added.
