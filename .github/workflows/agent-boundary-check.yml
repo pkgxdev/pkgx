@@ -1,0 +1,50 @@
+name: "agent-boundary-check"
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Validate changed files for internal-only markers"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          mapfile -t CHANGED < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+          if [ "${#CHANGED[@]}" -eq 0 ]; then
+            echo "No changed files detected"
+            exit 0
+          fi
+
+          FORBIDDEN='(INTERNAL[- ]ONLY|internal[- ]only|control plane|private runbook|do not share|confidential|confluence|notion|vpn|internal\\.)'
+          STATUS=0
+
+          for f in "${CHANGED[@]}"; do
+            [ -f "$f" ] || continue
+            # Don't scan CI/workflow files
+            [[ "$f" == .github/* ]] && continue
+            [[ "$f" == AGENTS.md ]] && continue
+            case "$f" in
+              *.md|*.txt|*.yml|*.yaml|*.json|*.toml|*.ts|*.tsx|*.js|*.jsx|*.sh|*.py|*.rb|*.tf|*.hcl)
+                if grep -Einq "$FORBIDDEN" "$f"; then
+                  echo "::error file=$f::Potential internal-only marker detected in $f"
+                  grep -Ein "$FORBIDDEN" "$f" || true
+                  STATUS=1
+                fi
+                ;;
+            esac
+          done
+
+          exit "$STATUS"
