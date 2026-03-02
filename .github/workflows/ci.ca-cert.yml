@@ -22,7 +22,7 @@ jobs:
       - run: apt-get update && apt-get install -y curl gcc perl make
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           path: ./target/release/pkgx
           name: pkgx
