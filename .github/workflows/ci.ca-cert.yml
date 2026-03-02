@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     container: debian:bullseye-slim
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: pkgx
 
