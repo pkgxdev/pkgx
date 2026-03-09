@@ -82,7 +82,7 @@ jobs:
           username: ${{ secrets.DOCKER_USER_NAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - uses: docker/metadata-action@v5
+      - uses: docker/metadata-action@v6
         id: meta
         with:
           images: pkgxdev/pkgx
@@ -95,8 +95,8 @@ jobs:
             type=raw,value=${{ matrix.x.variety }}
         if: ${{ matrix.x.variety == 'debian' }}
 
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-qemu-action@v4
 
       - name: docker/buildx
         run: |
