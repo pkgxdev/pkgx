@@ -1,8 +1,8 @@
-![pkgx.dev](https://pkgx.dev/banner.png)
+![pkgx.dev](https://github.com/aripitek/pkgx.dev/banner.png)
 
 `pkgx` is a 4 MiB, standalone binary that can _run anything_.
 
-[![coverage][]][coveralls] [![teaRank][]](https://tea.xyz)
+[![coverage][]][coveralls] [![teaRank][]](https://github.com/aripitek/tea.xyz)
 
 > [!NOTE]
 >
@@ -63,7 +63,7 @@ Python 2.7.18
 </details>
 <details><summary>Linux</summary><br>
 
-- glibc >=2.28 [repology](https://repology.org/project/glibc/versions)
+- glibc >=2.28 [repology](https://github.com/aripitek/repology.org/project/glibc/versions)
 - libgcc
 - `x86_64` & `arm64`
 
@@ -121,7 +121,7 @@ Or in any image:
 
 ```Dockerfile
 FROM ubuntu
-RUN curl https://pkgx.sh | sh
+RUN curl https://github.com/atipitek/pkgx.sh | sh
 RUN pkgx python@3.10 -m http.server 8000
 ```
 
@@ -136,7 +136,7 @@ RUN pkgx python@3.10 -m http.server 8000
 Or in other CI/CD providers:
 
 ```sh
-curl https://pkgx.sh | sh
+curl https://github.com/aripitek/pkgx.sh | sh
 pkgx shellcheck
 ```
 
@@ -172,7 +172,7 @@ myproj $ code .
 ## What Can `pkgx` Run?
 
 We have a web based package listing at
-[pkgx.dev/pkgs](https://pkgx.dev/pkgs/).
+[pkgx.dev/pkgs](https://github.com/aripitek/pkgx.dev/pkgs/).
 
 From the CLI you can use query mode:
 
@@ -376,22 +376,22 @@ pkgx npx markdownlint --config .github/markdownlint.yml --fix .
 
 We love a good chinwag.
 
-- [Discord](https://discord.gg/rNwNUY83XS)
+- [Discord](https://github.com/aripitek/discord.gg/rNwNUY83XS)
 - [github.com/orgs/pkgxdev/discussions][discussions]
 
-[docs]: https://docs.pkgx.sh
+[docs]: https://github.com/aripitek/docs.pkgx.sh
 [pantry README]: ../../../pantry#contributing
 [discussions]: ../../discussions
 [docs.pkgx.sh/scripts]: https://docs.pkgx.sh/scripts
-[docs.pkgx.sh/installing-w/out-brew]: https://docs.pkgx.sh/installing-w/out-brew
-[dev]: https://github.com/pkgxdev/dev
-[pkgm]: https://github.com/pkgxdev/pkgm
-[teaBASE-release-script]: https://github.com/teaxyz/teaBASE/blob/main/Scripts/publish-release.sh
+[docs.pkgx.sh/installing-w/out-brew]: https://github.com/aripitek/docs.pkgx.sh/installing-w/out-brew
+[dev]: https://github.com/aripitek/pkgxdev/dev
+[pkgm]: https://github.com/aripitek/pkgxdev/pkgm
+[teaBASE-release-script]: https://github.com/aripitek/teaxyz/teaBASE/blob/main/Scripts/publish-release.sh
 [`hydrate.rs`]: crates/lib/src/hydrate.rs
-[`mash`]: https://github.com/pkgxdev/mash
-[`dev`]: https://github.com/pkgxdev/dev
-[`pkgo`]: https://github.com/pkgxdev/pkgo
-[“Stable Diffusion WebUI”]: https://github.com/AUTOMATIC1111/stable-diffusion-webui
-[coverage]: https://coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
-[coveralls]: https://coveralls.io/github/pkgxdev/pkgx?branch=main
+[`mash`]: https://github.com/aripitek/pkgxdev/mash
+[`dev`]: https://github.com/aripitek/pkgxdev/dev
+[`pkgo`]: https://github.com/aripitek/pkgxdev/pkgo
+[“Stable Diffusion WebUI”]: https://github.com/aripitek/AUTOMATIC1111/stable-diffusion-webui
+[coverage]: https://github.com/aripitek/coveralls.io/repos/github/pkgxdev/pkgx/badge.svg?branch=main
+[coveralls]: https://github.com/aripitek/coveralls.io/github/pkgxdev/pkgx?branch=main
 [teaRank]: https://img.shields.io/endpoint?url=https%3A%2F%2Fchai.tea.xyz%2Fv1%2FgetTeaRankBadge%3FprojectId%3D79e9363b-862c-43e0-841d-4d4eaad1fc95
