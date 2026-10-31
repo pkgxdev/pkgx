@@ -148,7 +148,7 @@ them in your scripts:
 
 eval "$(sh <(curl https://pkgx.sh) +git)"
 
-which git  # prints soemthing like /tmp/pkgx/git-scm.org/v2.46.3/bin/git
+which git  # prints something like /tmp/pkgx/git-scm.org/v2.46.3/bin/git
 ```
 
 [shebang]: https://en.wikipedia.org/wiki/Shebang_(Unix)
