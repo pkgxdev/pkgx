@@ -140,7 +140,7 @@ For this mode we can also output JSON: `pkgx +gum --json`.
 
 ````sh
 $ pkgx --quiet gum format 'download progress is still shown'
-# ^^ supresses resolving/syncing etc. messages but not download progress info
+# ^^ suppresses resolving/syncing etc. messages but not download progress info
 # `pkgx -q` is the same
 
 ```sh
