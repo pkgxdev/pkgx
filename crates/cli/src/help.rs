@@ -24,7 +24,7 @@ examples:
 
 modes:
   $ pkgx --query bun  # could you run `bun`? (-Q)
-  $ pkgx --help       # hi mom!
+  $ pkgx --help       # print this help message
   $ pkgx --version
 
 flags:
