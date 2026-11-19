@@ -258,8 +258,28 @@ jobs:
     container: debian:bullseye-slim
     steps:
       - uses: actions/checkout@v7
+      # bullseye is EOL: its packages have moved from deb.debian.org to archive.debian.org
+      - run: sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
       - run: apt-get update && apt-get install -y curl make gcc perl
       - uses: dtolnay/rust-toolchain@stable
       - run: apt-get remove curl ca-certificates openssl --yes
       - run: cargo build
       - run: ./target/debug/pkgx +git
+
+  test-musl-static:
+    needs: fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+      - run: |
+          sudo apt-get update
+          sudo apt-get install --yes musl-tools
+      - run: cargo build --release --target x86_64-unknown-linux-musl
+        env:
+          CC_x86_64_unknown_linux_musl: musl-gcc
+      - run: file target/x86_64-unknown-linux-musl/release/pkgx | grep -Eq 'statically linked|static-pie linked'
+      # packages are glibc bottles that don't run on musl, so only the CLI itself is smoke-tested here
+      - run: target/x86_64-unknown-linux-musl/release/pkgx --version
