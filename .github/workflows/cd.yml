@@ -119,9 +119,10 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # after rustup is installed: rustup on the runner links the xz formula this removes
-      # https://github.com/pkgxdev/pkgx/issues/1158
-      - run: brew uninstall --ignore-dependencies xz
+      # build liblzma from source rather than linking Homebrew's xz, so the binary
+      # doesn't need /opt/homebrew at runtime (https://github.com/pkgxdev/pkgx/issues/1158).
+      # Don't uninstall xz: the runner's rustup links it too.
+      - run: echo "LZMA_API_STATIC=1" >> "$GITHUB_ENV"
         if: ${{ matrix.platform.build-id == 'darwin+aarch64' }}
 
       # hack to statically link libgcc
