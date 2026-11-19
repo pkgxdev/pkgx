@@ -107,8 +107,6 @@ jobs:
             apt-get update
             apt-get install curl gcc perl-modules openssl make xz-utils --yes;;
           darwin+aarch64)
-            # https://github.com/pkgxdev/pkgx/issues/1158
-            brew uninstall --ignore-dependencies xz
             echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV;;
           esac
         if: ${{ runner.os != 'Windows' }}
@@ -120,6 +118,11 @@ jobs:
       - run: tar xzf pkgx-${{ github.event.inputs.version }}.tar.gz --strip-components=1
 
       - uses: dtolnay/rust-toolchain@stable
+
+      # after rustup is installed: rustup on the runner links the xz formula this removes
+      # https://github.com/pkgxdev/pkgx/issues/1158
+      - run: brew uninstall --ignore-dependencies xz
+        if: ${{ matrix.platform.build-id == 'darwin+aarch64' }}
 
       # hack to statically link libgcc
       - run: |
