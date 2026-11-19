@@ -186,3 +186,65 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_REPO: pkgxdev/pkgx
         shell: bash
+
+  # static musl binaries, built and checked in an alpine container; additive to the
+  # glibc products above
+  attach-static-binary-products:
+    needs: attach-srcs
+    permissions:
+      actions: write
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            build-id: linux+x86-64-musl
+          - os: ubuntu-24.04-arm
+            build-id: linux+aarch64-musl
+      fail-fast: false
+    runs-on: ${{ matrix.platform.os }}
+    name: ${{ matrix.platform.build-id }}
+    container: rust:alpine
+    env:
+      BASENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: srcs
+
+      - run: apk add --no-cache musl-dev perl make tar xz gnupg github-cli
+
+      - run: tar xzf pkgx-${{ github.event.inputs.version }}.tar.gz --strip-components=1
+
+      - run: |
+          cargo build --release
+          mv target/release/pkgx .
+
+      - run: strip ./pkgx
+
+      - name: sanity check
+        run: |
+          file ./pkgx | grep -q 'statically linked'
+          test "$(./pkgx --version)" = "pkgx ${{ github.event.inputs.version }}"
+
+      - run: |
+          tar cJf "$BASENAME.tar.xz" pkgx
+          tar czf "$BASENAME.tar.gz" pkgx
+
+      - name: GPG sign archives
+        run: |
+          echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --import --batch --yes
+          gpg --detach-sign --armor --local-user "$GPG_KEY_ID" "$BASENAME.tar.xz"
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: attach product to release
+        run: gh release upload --clobber
+          v${{ github.event.inputs.version }}
+          ${{env.BASENAME}}.*
+        env:
+          # using this token rather than github.token due to `release not found` bug
+          # https://github.com/pkgxdev/cli/issues/5252
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_REPO: pkgxdev/pkgx
+        shell: bash

@@ -263,3 +263,16 @@ jobs:
       - run: apt-get remove curl ca-certificates openssl --yes
       - run: cargo build
       - run: ./target/debug/pkgx +git
+
+  test-alpine-static:
+    needs: fmt
+    runs-on: ubuntu-latest
+    container: rust:alpine
+    steps:
+      - uses: actions/checkout@v7
+      - run: apk add --no-cache musl-dev perl make file
+      - run: cargo build --release
+      - run: file target/release/pkgx | grep -q 'statically linked'
+      - run: target/release/pkgx --version
+      # packages are glibc bottles that don't run on musl, so only the CLI itself is smoke-tested here
+      - run: target/release/pkgx --help
