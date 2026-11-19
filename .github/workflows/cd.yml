@@ -187,8 +187,7 @@ jobs:
           GH_REPO: pkgxdev/pkgx
         shell: bash
 
-  # static musl binaries, built and checked in an alpine container; additive to the
-  # glibc products above
+  # static musl binaries; additive to the glibc products above
   attach-static-binary-products:
     needs: attach-srcs
     permissions:
@@ -198,12 +197,15 @@ jobs:
         platform:
           - os: ubuntu-latest
             build-id: linux+x86-64-musl
+            target: x86_64-unknown-linux-musl
+            cc-var: CC_x86_64_unknown_linux_musl
           - os: ubuntu-24.04-arm
             build-id: linux+aarch64-musl
+            target: aarch64-unknown-linux-musl
+            cc-var: CC_aarch64_unknown_linux_musl
       fail-fast: false
     runs-on: ${{ matrix.platform.os }}
     name: ${{ matrix.platform.build-id }}
-    container: rust:alpine
     env:
       BASENAME: pkgx-${{ github.event.inputs.version }}+${{ matrix.platform.build-id }}
     steps:
@@ -211,19 +213,27 @@ jobs:
         with:
           name: srcs
 
-      - run: apk add --no-cache musl-dev perl make tar xz gnupg github-cli
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+
+      - run: |
+          sudo apt-get update
+          sudo apt-get install --yes musl-tools
 
       - run: tar xzf pkgx-${{ github.event.inputs.version }}.tar.gz --strip-components=1
 
+      - run: echo "${{ matrix.platform.cc-var }}=musl-gcc" >> "$GITHUB_ENV"
+
       - run: |
-          cargo build --release
-          mv target/release/pkgx .
+          cargo build --release --target ${{ matrix.platform.target }}
+          mv target/${{ matrix.platform.target }}/release/pkgx .
 
       - run: strip ./pkgx
 
       - name: sanity check
         run: |
-          file ./pkgx | grep -q 'statically linked'
+          file ./pkgx | grep -Eq 'statically linked|static-pie linked'
           test "$(./pkgx --version)" = "pkgx ${{ github.event.inputs.version }}"
 
       - run: |

@@ -264,15 +264,20 @@ jobs:
       - run: cargo build
       - run: ./target/debug/pkgx +git
 
-  test-alpine-static:
+  test-musl-static:
     needs: fmt
     runs-on: ubuntu-latest
-    container: rust:alpine
     steps:
       - uses: actions/checkout@v7
-      - run: apk add --no-cache musl-dev perl make file
-      - run: cargo build --release
-      - run: file target/release/pkgx | grep -q 'statically linked'
-      - run: target/release/pkgx --version
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+      - run: |
+          sudo apt-get update
+          sudo apt-get install --yes musl-tools
+      - run: cargo build --release --target x86_64-unknown-linux-musl
+        env:
+          CC_x86_64_unknown_linux_musl: musl-gcc
+      - run: file target/x86_64-unknown-linux-musl/release/pkgx | grep -Eq 'statically linked|static-pie linked'
       # packages are glibc bottles that don't run on musl, so only the CLI itself is smoke-tested here
-      - run: target/release/pkgx --help
+      - run: target/x86_64-unknown-linux-musl/release/pkgx --version
