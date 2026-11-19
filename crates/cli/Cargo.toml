@@ -3,7 +3,7 @@ name = "pkgx"
 description = "Run anything"
 authors = ["Max Howell <mxcl@me.com>", "Jacob Heider <jacob@pkgx.dev>"]
 license = "Apache-2.0"
-version = "2.11.0"
+version = "2.11.1"
 edition = "2021"
 repository = "https://github.com/pkgxdev/pkgx"
 
